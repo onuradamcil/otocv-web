@@ -1,0 +1,52 @@
+/* ✍️ GOOGLE FONTS ENJEKSİYONU (MÜTLAKA EN TEPEDE, HER ŞEYDEN ÖNCE OLMALI) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700;900&family=JetBrains+Mono:wght@500;700&display=swap');
+
+@import "tailwindcss";
+
+/* 🎨 HIGH-CONTRAST STANDART CSS3 PREMIUM TASARIM MOTORU */
+:root {
+  /* Renk Paletimiz (AI Tasarım Kimliği) */
+  --color-canvas: #FFFDFB;         /* Premium Sıcak Fildişi */
+  --color-darkslate: #0F172A;      /* Lüks Gece Mavisi / Slate */
+  --color-premium-amber: #D97706;  /* Tescilli Altın / Kehribar */
+  --color-verified-green: #059669; /* Doğrulanmış Yeşil / Mint */
+  --color-muted-slate: #64748B;    /* Yardımcı Metin Grisi */
+
+  /* Yazı Tiplerimiz */
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* 🏢 KÜRESEL TARAYICI GÖVDE MÜHÜRLERİ & PIKSEL NETLİK KALKANLARI */
+html, body, * {
+  /* 🚀 SİBER MÜDAHALE: Tarayıcının yazı çizim motoruna subpixel-antialiasing zorunluluğu getiriyoruz. */
+  /* Harflerin kenarlarındaki o çamurlu piksellenmeyi and titremeyi kökten imha eder! */
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+  font-smooth: always !important;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-darkslate);
+  font-family: var(--font-sans);
+}
+
+/* 🚀 GRAFİKER KORUMA MOTORU: Küçük metinlerin bold olduğunda çamurlaşmasını önleyen küresel kural */
+/* Metin puntosu küçüldükçe harflerin arasına milimetrik boşluk vererek (tracking-wide) okunaklılığı sabitler. */
+.text-xs, .text-\[10px\], .text-\[11px\], .text-\[12px\], label {
+  letter-spacing: 0.02em !important;
+}
+
+/* 🧪 MİKRO ETKİLEŞİM BARKOD LAZER ANIMASYONU */
+@keyframes scannerLine {
+  0% { top: 0%; }
+  50% { top: 100%; }
+  100% { top: 0%; }
+}
+
+.animate-scannerLine {
+  animation: scannerLine 3s infinite ease-in-out;
+}

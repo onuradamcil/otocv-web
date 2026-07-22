@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Oto.CV: Canlı Marş (F5)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "serverReadyAction": {
+        "pattern": "Ready in",
+        "action": "openExternally",
+        "uriFormat": "http://localhost:3000"
+      }
+    }
+  ]
+}
