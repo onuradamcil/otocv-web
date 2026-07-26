@@ -395,27 +395,16 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
         </div>
       </div>
 
-      {/* 🚀 DİNAMİK PAZARYERİ ŞERİDİ (IS_LISTED REAKTİF KONTROLÜ) */}
+      {/* 🚀 GARAJDAN SADECE BİLGİ GÖSTERİLİR / DÜZENLEME İLANI YÖNETİM SAYFASINA TAŞINDI */}
       {vehicle.is_listed ? (
         <div className="bg-emerald-50 border border-emerald-200/80 px-3.5 py-2.5 rounded-2xl flex items-center justify-between select-none mb-3">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
             <span className="text-emerald-800 font-extrabold text-xs tracking-tight">Pazaryerinde Satışta</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono font-black text-xs sm:text-sm tracking-tight text-slate-900">
-              ₺{vehicle.price ? Number(vehicle.price).toLocaleString('tr-TR') : '0'}
-            </span>
-            <button 
-              onClick={() => onOpenListingModal(vehicle)}
-              className="p-1 hover:bg-emerald-100 rounded-lg text-emerald-700 transition-colors cursor-pointer"
-              title="İlanı Düzenle"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-              </svg>
-            </button>
-          </div>
+          <span className="font-mono font-black text-xs sm:text-sm tracking-tight text-slate-900">
+            ₺{vehicle.price ? Number(vehicle.price).toLocaleString('tr-TR') : '0'}
+          </span>
         </div>
       ) : (
         <button

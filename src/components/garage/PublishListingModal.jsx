@@ -1,7 +1,6 @@
 // =========================================================================
 // OTO-CV UI MODÜLÜ: KURUMSAL PAZARYERİ İLAN SİHİRBAZI (PublishListingModal.jsx)
-// İşlev: Genişletilmiş modal ekranı (max-w-2xl), katman korumalı (z-30)
-//        serbest taşan İl/İlçe dropdown panelleri ve 2. SS tipografi standartı.
+// İşlev: Genişletilmiş modal ekranı, İl/İlçe seçimi ve DEMO DOPİNG / VİTRİN SEÇİMİ.
 // =========================================================================
 
 'use client';
@@ -39,6 +38,9 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
   const [selectedCity, setSelectedCity] = useState('Ankara');
   const [selectedDistrict, setSelectedDistrict] = useState('Çankaya');
 
+  // 💎 DEMO VİTRİN / DOPİNG STATE'İ
+  const [isFeatured, setIsFeatured] = useState(false);
+
   // Custom Dropdown Açık/Kapalı ve Arama State'leri
   const [isCityOpen, setIsCityOpen] = useState(false);
   const [citySearch, setCitySearch] = useState('');
@@ -75,6 +77,7 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
       
       setTitle(vehicle.listing_title || `${vehicle.year} ${vehicle.brand} ${vehicle.model}`);
       setDescription(vehicle.listing_description || '');
+      setIsFeatured(vehicle.is_featured || false);
       
       const defaultCity = vehicle.city && TURKEY_LOCATIONS[vehicle.city] ? vehicle.city : 'Ankara';
       setSelectedCity(defaultCity);
@@ -115,7 +118,7 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
   };
 
   // =========================================================================
-  // 4. BLOK: İSTİSNASIZ TÜM ALANLAR İÇİN ZORUNLU FORM DOĞRULAMA (VALIDATION)
+  // 4. BLOK: FORM DOĞRULAMA VE İLAN YAYINLAMA
   // =========================================================================
   const handleSubmitListing = async (e) => {
     e.preventDefault();
@@ -152,7 +155,6 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
 
     try {
       setSubmitting(true);
-      const vehicleDbId = vehicle.id || vehicle.idx;
 
       const payload = {
         price: rawPrice,
@@ -161,6 +163,7 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
         city: selectedCity,
         district: selectedDistrict,
         tramerAmount: rawTramer,
+        isFeatured: isFeatured, // 💎 Doping bilgisi servise gönderiliyor
         photos: vehicle.image_url ? vehicle.image_url.split(',') : []
       };
 
@@ -184,7 +187,6 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
 
     try {
       setSubmitting(true);
-      const vehicleDbId = vehicle.id || vehicle.idx;
       const result = await unpublishVehicleListing(vehicle);
 
       if (result.success) {
@@ -211,12 +213,11 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
   );
 
   // =========================================================================
-  // 5. BLOK: ARAYÜZ RENDER KATMANI (GENİŞ VE TAŞABİLİR DROPDOWN MİMARİSİ)
+  // 5. BLOK: ARAYÜZ RENDER KATMANI
   // =========================================================================
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-fadeIn select-none">
       
-      {/* 🚀 MODAL GENİŞLİĞİ IDEAL ORAN OLAN max-w-2xl YAPILDI */}
       <div className="bg-white border border-slate-200/90 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* MODAL ÜST BARI */}
@@ -240,7 +241,7 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
           </button>
         </div>
 
-        {/* FORM İÇERİK BÖLGESİ (DROPDOWN TAŞMASI İÇİN pb-28 DİP BOŞLUĞU EKLENDİ) */}
+        {/* FORM İÇERİK BÖLGESİ */}
         <form onSubmit={handleSubmitListing} className="p-6 pb-28 space-y-4 overflow-y-auto scrollbar-thin">
           
           {/* SEÇİLİ ARAÇ ÖZET KARTI */}
@@ -340,7 +341,7 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
 
           </div>
 
-          {/* İL (*) VE İLÇE (*) DROPDOWN ALANI (DİNAMİK KATMAN KORUMALI) */}
+          {/* İL (*) VE İLÇE (*) DROPDOWN ALANI */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             {/* İL SEÇİMİ */}
@@ -364,7 +365,6 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
                 </svg>
               </div>
 
-              {/* 🚀 DİŞARI TAŞABİLEN RAHAT ARAMALI İL PANELİ */}
               {isCityOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden animate-fadeIn">
                   <div className="p-2 border-b border-slate-100 bg-slate-50/90">
@@ -423,7 +423,6 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
                 </svg>
               </div>
 
-              {/* 🚀 DİŞARI TAŞABİLEN RAHAT ARAMALI İLÇE PANELİ */}
               {isDistrictOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden animate-fadeIn">
                   <div className="p-2 border-b border-slate-100 bg-slate-50/90">
@@ -487,6 +486,41 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
             {validationErrors.description && <p className="text-[11px] font-bold text-rose-600 mt-0.5">{validationErrors.description}</p>}
           </div>
 
+          {/* 💎 DEMO VİTRİN / DOPİNG SEÇİM BARI */}
+          <div className="pt-2">
+            <div 
+              onClick={() => setIsFeatured(!isFeatured)}
+              className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                isFeatured 
+                  ? 'bg-gradient-to-r from-amber-50 to-indigo-50 border-amber-400 ring-2 ring-amber-400/30' 
+                  : 'bg-slate-50 border-slate-200/90 hover:border-slate-300'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                  isFeatured ? 'bg-amber-400 border-amber-500 text-slate-950 font-black' : 'bg-white border-slate-300'
+                }`}>
+                  {isFeatured && <span className="text-xs">✓</span>}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-slate-900">Anasayfa Vitrinine Çıkar</span>
+                    <span className="bg-amber-400 text-slate-950 text-[9px] font-black px-1.5 py-0.5 rounded font-mono uppercase">
+                      PREMIUM
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    İlanınız pazaryerinde en üst sıradaki karanlık Vitrin rafında 10x daha fazla görüntülensin.
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-black font-mono text-indigo-700">₺250</span>
+                <span className="text-[9px] block text-slate-400 font-bold">DEMO ÖDEME</span>
+              </div>
+            </div>
+          </div>
+
           {/* AKSİYON BUTONLARI */}
           <div className="pt-3 flex flex-col sm:flex-row gap-2.5 justify-end border-t border-slate-100">
             {vehicle.is_listed && (
@@ -508,7 +542,7 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
               {submitting ? (
                 <span className="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
               ) : (
-                vehicle.is_listed ? 'İlanı Güncelle' : 'İlanı Yayınla'
+                vehicle.is_listed ? 'İlanı Güncelle' : (isFeatured ? '₺250 Öde & Vitrine Çıkar' : 'İlanı Yayınla')
               )}
             </button>
           </div>

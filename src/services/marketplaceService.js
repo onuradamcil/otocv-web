@@ -1,7 +1,7 @@
 // =========================================================================
 // OTO-CV MİMARİ KATMANI: PAZARYERİ VERİ VE AKSİYON SERVİSİ (marketplaceService.js)
-// İşlev: Bağımsız 'listings' tablosu üzerinde CRUD işlemlerini ve
-//        ilişkisel Supabase Join sorgularını yöneten servis.
+// İşlev: Bağımsız 'listings' tablosu üzerinde CRUD işlemlerini, Vitrin (Doping)
+//        ve ilişkisel Supabase Join sorgularını yöneten servis.
 // =========================================================================
 
 import { supabase } from '../lib/supabase';
@@ -9,7 +9,7 @@ import { supabase } from '../lib/supabase';
 /**
  * Bir araç için pazaryerinde ilan oluşturur veya mevcut ilanı günceller.
  * @param {Object} vehicle - Garajdaki araç nesnesi
- * @param {Object} listingPayload - Fiyat, Başlık, Açıklama, Konum ve Tramer verileri
+ * @param {Object} listingPayload - Fiyat, Başlık, Açıklama, Konum, Tramer ve Vitrin Doping verileri
  */
 export const publishVehicleListing = async (vehicle, listingPayload) => {
   try {
@@ -37,6 +37,7 @@ export const publishVehicleListing = async (vehicle, listingPayload) => {
           city: listingPayload.city,
           district: listingPayload.district,
           tramer_amount: Number(listingPayload.tramerAmount || 0),
+          is_featured: listingPayload.isFeatured || false,
           updated_at: new Date().toISOString()
         })
         .eq('id', existingListings[0].id)
@@ -54,6 +55,7 @@ export const publishVehicleListing = async (vehicle, listingPayload) => {
           city: listingPayload.city,
           district: listingPayload.district,
           tramer_amount: Number(listingPayload.tramerAmount || 0),
+          is_featured: listingPayload.isFeatured || false,
           status: 'active'
         })
         .select();
@@ -110,12 +112,16 @@ export const fetchMarketplaceListings = async (filters = {}) => {
       const v = item.vehicles || {};
       return {
         listing_id: item.id,
+        user_id: item.user_id, // 🚀 KRİTİK DÜZELTME: user_id EKLENDİ!
         listing_title: item.title,
         listing_description: item.description,
         price: item.price,
         city: item.city,
         district: item.district,
         tramer_amount: item.tramer_amount,
+        is_featured: item.is_featured || false,
+        views_count: item.views_count || 0, // 📊 Okunma sayısı
+        favorite_count: item.favorite_count || 0, // ❤️ Favori sayısı
         created_at: item.created_at,
         // Vehicles tablosundan birleşen veriler
         plate_number: item.vehicle_plate,
@@ -125,6 +131,7 @@ export const fetchMarketplaceListings = async (filters = {}) => {
         km: v.km,
         package: v.package,
         fuel_type: v.fuel_type,
+        gear_type: v.gear_type || 'Otomatik',
         trust_score: v.trust_score,
         image_url: v.image_url,
         pin_code: v.pin_code
