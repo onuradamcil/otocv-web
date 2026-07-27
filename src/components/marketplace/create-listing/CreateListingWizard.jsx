@@ -278,7 +278,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               <button
                 type="button"
                 onClick={handleDiscardDraft}
-                className="w-full bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-bold text-sm py-3.5 px-4 rounded-s transition-all cursor-pointer text-center tracking-normal"
+                className="w-full bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center tracking-normal"
               >
                 Yeni bir ilan ver
               </button>
@@ -286,7 +286,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               <button
                 type="button"
                 onClick={handleResumeDraft}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-s transition-all cursor-pointer text-center shadow-sm tracking-normal"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center shadow-sm tracking-normal"
               >
                 Bu ilanla devam et
               </button>
