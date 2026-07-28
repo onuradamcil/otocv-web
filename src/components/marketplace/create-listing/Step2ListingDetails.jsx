@@ -6,7 +6,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { TURKEY_LOCATIONS as turkeyLocations } from '../../../data/turkeyLocations';
 
 // =========================================================================
@@ -157,7 +157,7 @@ const EDITOR_COLOR_PALETTE = [
   ['#FFFFFF', '#E2E8F0', '#94A3B8', '#64748B', '#334155'], // Gri Skalası
 ];
 
-export default function Step2ListingDetails({ formData, updateFormData, onNext, onBack }) {
+const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBack }, ref) => {
 
   // =========================================================================
   // 💾 2. BLOK: PANELLERE GÖRE TOPLU STATE HAFIZALARI (REACT HOOK TOPLULAŞTIRMA)
@@ -256,6 +256,31 @@ export default function Step2ListingDetails({ formData, updateFormData, onNext, 
   // 📌 FORM DOĞRULAMA (ONBLUR & VALIDATION) SENSÖRLERİ
   // -------------------------------------------------------------------------
 
+  // 🧹 Metni HTML etiketlerinden, &nbsp; ve gizli karakterlerden arındıran temizleyici (CSS Placeholder Bug Çözümü)
+  const getCleanText = (str) => {
+    if (!str) return '';
+    return str
+      .replace(/<[^>]*>/g, '')  // HTML etiketlerini temizle
+      .replace(/&nbsp;/gi, ' ') // HTML boşluk kodlarını temizle
+      .replace(/\s+/g, ' ')    // Fazla boşlukları teke indir
+      .trim();
+  };
+
+  // 🎯 STEP 2 TAM VALIDASYON SENSÖRÜ (TÜM ZORUNLU ALANLAR & MİN 20 KARAKTER GERÇEK AÇIKLAMA)
+  const cleanDescText = getCleanText(description);
+
+  const isStep2Valid = 
+    !!title && title.trim() !== '' &&
+    !!price && price.trim() !== '' &&
+    !!mileage && mileage.trim() !== '' &&
+    !!transmission && transmission !== 'Seçiniz' &&
+    !!bodyType && bodyType !== 'Seçiniz' &&
+    !!vehicleStatus && vehicleStatus !== 'Seçiniz' &&
+    !!plate && plate.trim() !== '' &&
+    !!city && city !== 'İl Seçiniz' && city !== '' &&
+    !!district && district !== 'İlçe Seçiniz' && district !== '' &&
+    cleanDescText.length >= 20;
+
   // Odak Kaybı Sensörü (Kullanıcı input'tan çıktığı an çalışır)
   const handleBlur = (fieldName) => {
     setTouchedFields(prev => ({ ...prev, [fieldName]: true }));
@@ -266,60 +291,50 @@ export default function Step2ListingDetails({ formData, updateFormData, onNext, 
     const isTouched = touchedFields[fieldName] || isSubmitted;
     if (!isTouched) return false;
 
-    // 📌 ALAN DOĞRULAMA (VALIDATION) SWITCH MOTORU
-switch (fieldName) {
-  case 'title':
-    return !title || title.trim() === '';
-  case 'price':
-    return !price || price.trim() === '';
-  case 'mileage':
-    return !mileage || mileage.trim() === '';
-  case 'transmission':
-    return !transmission || transmission === 'Seçiniz';
-  case 'bodyType':
-    return !bodyType || bodyType === 'Seçiniz';
-  case 'vehicleStatus':
-    return !vehicleStatus || vehicleStatus === 'Seçiniz';
-  case 'plate':
-    return !plate || plate.trim() === '';
-  case 'city':
-    return !city || city === 'İl Seçiniz';
-  case 'district':
-    return !district || district === 'İlçe Seçiniz';
-  case 'description': {
-    // Editörden gelen metnin HTML etiketlerini temizleyip net karakter sayısına bakıyoruz
-    const textContent = (editorRef.current?.innerText || description || '')
-      .replace(/<[^>]*>/g, '')
-      .trim();
-    return textContent.length < 20; // 20 karakterden az ise (boş olması dahil) geçersiz say
-  }
-  default:
-    return false;
-}
+    switch (fieldName) {
+      case 'title':
+        return !title || title.trim() === '';
+      case 'price':
+        return !price || price.trim() === '';
+      case 'mileage':
+        return !mileage || mileage.trim() === '';
+      case 'transmission':
+        return !transmission || transmission === 'Seçiniz';
+      case 'bodyType':
+        return !bodyType || bodyType === 'Seçiniz';
+      case 'vehicleStatus':
+        return !vehicleStatus || vehicleStatus === 'Seçiniz';
+      case 'plate':
+        return !plate || plate.trim() === '';
+      case 'city':
+        return !city || city === 'İl Seçiniz' || city === '';
+      case 'district':
+        return !district || district === 'İlçe Seçiniz' || district === '';
+      case 'description': {
+        return cleanDescText.length < 20;
+      }
+      default:
+        return false;
+    }
   };
 
   // Devam Et Butonuna Basıldığında Toplu Kontrol Yapan Handler
   const handleNextWithValidation = () => {
     setIsSubmitted(true);
 
-    const hasError = 
-      !title || title.trim() === '' ||
-      !price || price.trim() === '' ||
-      !mileage || mileage.trim() === '' ||
-      !transmission || transmission === 'Seçiniz' ||
-      !bodyType || bodyType === 'Seçiniz' ||
-      !vehicleStatus || vehicleStatus === 'Seçiniz' ||
-      !plate || plate.trim() === '' ||
-      !city || city === 'İl Seçiniz' ||
-      !district || district === 'İlçe Seçiniz'
-      descText.length < 20;
-
-    if (!hasError) {
+    if (isStep2Valid) {
       if (onNext) onNext();
+      return true;
+    } else {
+      window.scrollTo({ top: 200, behavior: 'smooth' });
+      return false;
     }
   };
 
-
+  // 🚀 Wizard bileşeninin ref üzerinden doğrulama yapabilmesi için fonksiyonu dışa açıyoruz
+  useImperativeHandle(ref, () => ({
+    handleNextWithValidation
+  }));
   // -------------------------------------------------------------------------
   // 📌 PANEL 2 HANDLERLARI (FİYAT, KM, PLAKA SANİTİZERLARI & BAŞLIK SAYAÇ)
   // -------------------------------------------------------------------------
@@ -390,7 +405,7 @@ switch (fieldName) {
   // İlan Başlığı Karakter Sayacı ve Geçerlilik Hesabı
   const MAX_TITLE_LENGTH = 70;
   const remainingTitleChars = MAX_TITLE_LENGTH - title.length;
-  const isStep2Valid = price !== '' && mileage !== '' && title !== '';
+  
 
 
   // -------------------------------------------------------------------------
@@ -590,7 +605,7 @@ switch (fieldName) {
     setIsBgColorOpen(false);
   };
 
- // 3. YAPAY ZEKA İLE DINAMIK VERI CEKEN İLAN AÇIKLAMASI ÜRETİCİ
+  // 3. YAPAY ZEKA İLE DINAMIK VERI CEKEN İLAN AÇIKLAMASI ÜRETİCİ
   const handleGenerateAiDescription = () => {
     const year = formData.selectedYear || '';
     const brand = formData.selectedBrand?.name || 'Aracım';
@@ -643,41 +658,6 @@ switch (fieldName) {
 
   return (
     <div className="pb-24 text-slate-900 select-none font-sans antialiased">
-
-      {/* =========================================================================
-          BLOK 2: YAPIŞKAN AKSİYON BARI (STICKY HEADER)
-         ========================================================================= */}
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
-          
-          <div className="space-y-1">
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none">
-              İlan Bilgileri
-            </h1>
-            <p className="text-xs text-slate-600 font-medium">
-              <span className="text-rose-600 font-bold">*</span> İlan fiyatı, kilometre ve araç detaylarını eksiksiz doldurun.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              onClick={onBack}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-5 py-3 rounded-md transition-colors cursor-pointer"
-            >
-              ‹ Adım 1'e Dön
-            </button>
-
-            <button 
-              disabled={!isStep2Valid}
-              onClick={onNext}
-              className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-100 disabled:text-indigo-300 text-white font-bold text-xs px-7 py-3 rounded-md transition-all shadow-2xs disabled:cursor-not-allowed cursor-pointer"
-            >
-              Devam Et: Ön İzleme ›
-            </button>
-          </div>
-
-        </div>
-      </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
 
@@ -2188,27 +2168,37 @@ switch (fieldName) {
 
         </div>
 
-        {/* =========================================================================
-            BLOK 3: ALT AKSİYON BUTONLARI (BOTTOM BAR)
+       {/* =========================================================================
+            BLOK 3: ALT AKSİYON BUTONLARI (STICKY HEADER İLE TAM UYUMLU KİLİTLİ BUTON)
            ========================================================================= */}
-        <div className="flex items-center justify-between pt-4 pb-12">
+        <div className="flex items-center justify-between pt-6 pb-12">
+          
+          {/* SOL: UZUN SAYFALAR İÇİN CAN SİMİDİ GERİ DÖN BUTONU */}
           <button
+            type="button"
             onClick={onBack}
-            className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-6 py-3.5 rounded-md transition-colors cursor-pointer"
+            className="bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 font-bold text-xs sm:text-sm px-6 py-3.5 rounded-lg transition-all cursor-pointer select-none"
           >
             ‹ 1. Adıma Dön
           </button>
 
+          {/* SAĞ: TAM SIKI KONTROLLÜ VE ÜST BARA PARALEL RENKLİ DEVAM ET BUTONU */}
           <button 
+            type="button"
             disabled={!isStep2Valid}
-            onClick={onNext}
-            className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-100 disabled:text-indigo-300 text-white font-bold text-xs px-8 py-3.5 rounded-md transition-all shadow-md disabled:cursor-not-allowed cursor-pointer"
+            onClick={handleNextWithValidation}
+            className="bg-rose-500 hover:bg-rose-600 disabled:bg-[#FFF5F7] disabled:text-[#FFC2CB] text-white font-extrabold text-xs sm:text-sm py-3.5 px-8 rounded-lg transition-all shadow-sm disabled:cursor-not-allowed cursor-pointer select-none active:scale-98"
           >
             Devam Et: Ön İzleme ve Yayınla ›
           </button>
+
         </div>
 
       </div>
     </div>
-  );
-}
+ );
+});
+
+Step2ListingDetails.displayName = 'Step2ListingDetails';
+
+export default Step2ListingDetails;

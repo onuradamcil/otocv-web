@@ -211,40 +211,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
   return (
     <div className="pb-12 text-slate-900 select-none">
       
-      {/* ---------------------------------------------------------------------
-          4.1 YAPIŞKAN AKSİYON BARI
-         --------------------------------------------------------------------- */}
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
-          
-          <div className="space-y-1">
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none">
-              Ücretsiz İlan Ver
-            </h1>
-            <p className="text-xs text-slate-600 font-medium">
-              <span className="text-rose-600 font-bold">*</span> ile işaretli zorunlu alanları doldurduktan sonra ilan verebilirsin.
-            </p>
-          </div>
-
-          <div className="flex flex-col items-end gap-1.5 shrink-0">
-            <button 
-              disabled={!isFormValid}
-              onClick={onNext}
-              className="w-72 bg-[#FFF0F2] disabled:bg-[#FFF5F7] disabled:text-[#FFC2CB] text-[#E11D48] font-black text-sm py-3 px-6 rounded-md transition-all shadow-2xs disabled:cursor-not-allowed text-center cursor-pointer"
-            >
-              Devam Et: İlan Detayları ›
-            </button>
-            
-            <div className="w-72 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-              <div 
-                className="h-full bg-amber-400 transition-all duration-300 rounded-full"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-
-        </div>
-      </div>
+    
 
       {/* ---------------------------------------------------------------------
           4.2 ANA İÇERİK FORMU

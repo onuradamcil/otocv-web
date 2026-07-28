@@ -1,7 +1,7 @@
 // =========================================================================
 // OTO-CV İLAN VERME SİHİRBAZI: MİMARİ ORKESTRA ŞEFİ (CreateListingWizard.jsx)
-// İşlev: Adım takibi (Step 1-2-3), Supabase JSONB Hibrit Draft (Taslak)
-//        Yönetimi, useRef Tekil Modal Tetikleyicisi ve İlan Yayınlama Flow'u.
+// İşlev: Adım takibi (Step 1-2-3), Küresel Yapışkan Header, Köşeli Progress Bar,
+//        Katı Form Validasyonları, Supabase JSONB Draft Yönetimi ve Yayınlama.
 // =========================================================================
 
 'use client';
@@ -41,7 +41,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     selectedPackage: null,
     isFinalConfirmed: false,
 
-    // 2. Adım Verileri (Geliştirme Aşamasındaki Dinamik Yapı)
+    // 2. Adım Verileri
     title: '',
     price: '',
     mileage: '',
@@ -54,8 +54,10 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     swap: 'Hayır',
     city: 'İstanbul',
     district: 'Kadıköy',
-    hasTramer: 'Yok',
+    tramerStatus: 'Tramer Yok',
     tramerAmount: '',
+    isFullyOriginal: false,
+    damageReport: {},
     selectedFeatures: [],
     description: ''
   });
@@ -64,29 +66,83 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     setFormData(prev => ({ ...prev, ...fields }));
   };
 
+  // Step 2 Çocuk bileşenin doğrulama fonksiyonunu yukarıdan tetiklemek için ref
+  const step2Ref = useRef(null);
+
   // =========================================================================
-  // 2. BLOK: HİBRİT TASLAK (DRAFT) SENSÖRÜ VE SADECE 1 KERE ÇALIŞAN KİLİT
+  // 📊 2. BLOK: KÜRESEL İLERLEME SENSÖRÜ (FOTOĞRAF ENTEGRELİ CANLI PROGRESS)
+  // =========================================================================
+
+  const calculateGlobalProgress = () => {
+    let progress = 0;
+
+    // --- STEP 1 KATKISI (Fotoğraf dahil - Maksimum %33.3) ---
+    const hasPhotos = Array.isArray(formData.photos) && formData.photos.length > 0;
+    
+    const step1Fields = [
+      hasPhotos,
+      !!formData.selectedCategory,
+      !!formData.selectedYear,
+      !!formData.selectedFuel,
+      !!formData.selectedBrand,
+      !!formData.selectedSeries,
+      !!formData.selectedModel,
+      !!formData.selectedPackage,
+      !!formData.isFinalConfirmed
+    ];
+    
+    const filledStep1 = step1Fields.filter(Boolean).length;
+    const step1Ratio = filledStep1 / step1Fields.length;
+    progress += step1Ratio * 33.3;
+
+    // --- STEP 2 KATKISI (Maksimum %33.3) ---
+    if (currentStep >= 2) {
+      const descText = (formData.description || '').replace(/<[^>]*>/g, '').trim();
+      const step2Validations = [
+        !!formData.title && formData.title.trim() !== '',
+        !!formData.price && formData.price.trim() !== '',
+        !!formData.mileage && formData.mileage.trim() !== '',
+        !!formData.transmission && formData.transmission !== 'Seçiniz',
+        !!formData.bodyType && formData.bodyType !== 'Seçiniz',
+        !!formData.vehicleStatus && formData.vehicleStatus !== 'Seçiniz',
+        !!formData.plate && formData.plate.trim() !== '',
+        !!formData.city && formData.city !== 'İl Seçiniz' && formData.city !== '',
+        !!formData.district && formData.district !== 'İlçe Seçiniz' && formData.district !== '',
+        descText.length >= 20
+      ];
+      const filledStep2 = step2Validations.filter(Boolean).length;
+      progress += (filledStep2 / step2Validations.length) * 33.3;
+    }
+
+    // --- STEP 3 KATKISI (Maksimum %33.4) ---
+    if (currentStep === 3) {
+      progress = 90;
+    }
+
+    return Math.min(Math.round(progress), 100);
+  };
+
+  const globalProgress = calculateGlobalProgress();
+
+  // =========================================================================
+  // 3. BLOK: HİBRİT TASLAK (DRAFT) SENSÖRÜ
   // =========================================================================
   
-  // 🚀 Sekmeler arası geçişlerde modalın sürekli fırlamasını engelleyen mühür
   const hasCheckedDraftRef = useRef(false);
 
   useEffect(() => {
     fetchUserProfilePackage();
 
-    // Sadece sayfa ilk yüklendiğinde 1 defa çalışır
     if (!hasCheckedDraftRef.current) {
       hasCheckedDraftRef.current = true;
       checkExistingDraft();
     }
   }, [user]);
 
-  // Supabase & LocalStorage Çift Katmanlı Taslak Kontrolü
   const checkExistingDraft = async () => {
     try {
-      // A) Öncelik: Giriş Yapmış Kullanıcı İçin Supabase Taslak Sorgusu
       if (user?.id) {
-        const { data: dbDraft, error } = await supabase
+        const { data: dbDraft } = await supabase
           .from('listing_drafts')
           .select('*')
           .eq('user_id', user.id)
@@ -102,7 +158,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         }
       }
 
-      // B) Fallback: Misafir veya Offline Kullanıcı İçin LocalStorage Sorgusu
       const storageKey = `otocv_draft_${user?.id || 'guest'}`;
       const savedDraft = localStorage.getItem(storageKey);
       if (savedDraft) {
@@ -117,15 +172,12 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     }
   };
 
-  // 🚀 SUPABASE & LOCALSTORAGE OTOMATİK SAVE FONKSİYONU (UPSERT)
   const saveDraftToDatabase = async (updatedStep, updatedFormData) => {
     const dataToSave = updatedFormData || formData;
     const stepToSave = updatedStep || currentStep;
 
-    // Minimum kayıt şartı: En azından bir marka seçilmiş olmalı
     if (!dataToSave.selectedBrand) return;
 
-    // 1. LocalStorage Güncelle
     const storageKey = `otocv_draft_${user?.id || 'guest'}`;
     const payload = {
       formData: dataToSave,
@@ -134,7 +186,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     };
     localStorage.setItem(storageKey, JSON.stringify(payload));
 
-    // 2. Supabase `listing_drafts` Tablosuna Kaydet (Giriş Yapmışsa)
     if (user?.id) {
       try {
         await supabase
@@ -151,7 +202,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     }
   };
 
-  // Taslağı Yükle ve Kaldığı Adımdan Devam Et
   const handleResumeDraft = () => {
     if (!draftData) return;
     setFormData(draftData.formData);
@@ -159,13 +209,10 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     setShowDraftModal(false);
   };
 
-  // Taslağı Temizle ve 1. Adımdan Sıfırdan Başla
   const handleDiscardDraft = async () => {
-    // LocalStorage temizle
     const storageKey = `otocv_draft_${user?.id || 'guest'}`;
     localStorage.removeItem(storageKey);
 
-    // Supabase temizle
     if (user?.id) {
       try {
         await supabase
@@ -181,7 +228,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     setShowDraftModal(false);
   };
 
-  // Profil Paketini Çeken Servis
   const fetchUserProfilePackage = async () => {
     if (!user) return;
     try {
@@ -204,13 +250,48 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   };
 
   // =========================================================================
-  // 3. BLOK: ADIM GEÇİŞ YÖNETİMİ VE OTOMATİK DRAFT SENSÖRÜ
+  // 4. BLOK: MERKEZİ ADIM GEÇİŞ VE KATI VALIDASYON TETİĞİ
   // =========================================================================
   
+  // Step 2 Manuel Veri Kontrolörü (Yedek Sensör)
+  const checkIsStep2ValidDirectly = () => {
+    const descText = (formData.description || '').replace(/<[^>]*>/g, '').trim();
+    return (
+      !!formData.title && formData.title.trim() !== '' &&
+      !!formData.price && formData.price.trim() !== '' &&
+      !!formData.mileage && formData.mileage.trim() !== '' &&
+      !!formData.transmission && formData.transmission !== 'Seçiniz' &&
+      !!formData.bodyType && formData.bodyType !== 'Seçiniz' &&
+      !!formData.vehicleStatus && formData.vehicleStatus !== 'Seçiniz' &&
+      !!formData.plate && formData.plate.trim() !== '' &&
+      !!formData.city && formData.city !== 'İl Seçiniz' && formData.city !== '' &&
+      !!formData.district && formData.district !== 'İlçe Seçiniz' && formData.district !== '' &&
+      descText.length >= 20
+    );
+  };
+
   const handleNextStep = () => {
+    // 📌 STEP 1 GEÇİŞ KONTROLÜ
+    if (currentStep === 1) {
+      if (!isStep1Valid) return;
+    }
+
+    // 📌 STEP 2 GEÇİŞ KONTROLÜ
+    if (currentStep === 2) {
+      let isStep2Valid = false;
+      if (step2Ref.current?.handleNextWithValidation) {
+        isStep2Valid = step2Ref.current.handleNextWithValidation();
+      } else {
+        isStep2Valid = checkIsStep2ValidDirectly();
+      }
+
+      if (!isStep2Valid) {
+        return; // Hata varsa KESİNLİKLE Adım 3'e geçme!
+      }
+    }
+
     const nextStep = Math.min(currentStep + 1, 3);
     setCurrentStep(nextStep);
-    // 🚀 Her adıma geçildiğinde Supabase'e sessizce kaydet
     saveDraftToDatabase(nextStep, formData);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -222,11 +303,41 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // 🎯 STEP 1 KİLİT ŞARTI: Paket seçilmiş olmalı VE "Eşleşen Araç Künyesi" tıklanmış olmalı!
+  const isStep1Valid = !!formData.selectedBrand && 
+                       !!formData.selectedSeries && 
+                       !!formData.selectedModel && 
+                       !!formData.selectedPackage && 
+                       !!formData.isFinalConfirmed;
+
+  // 🎯 STEP 2 KİLİT ŞARTI (SİZİNLE EŞ ZAMANLI SENKRONİZE):
+  const getCleanText = (str) => {
+    if (!str) return '';
+    return str
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  const descText = getCleanText(formData.description);
+  const isStep2Valid = 
+    !!formData.title && formData.title.trim() !== '' &&
+    !!formData.price && formData.price.trim() !== '' &&
+    !!formData.mileage && formData.mileage.trim() !== '' &&
+    !!formData.transmission && formData.transmission !== 'Seçiniz' &&
+    !!formData.bodyType && formData.bodyType !== 'Seçiniz' &&
+    !!formData.vehicleStatus && formData.vehicleStatus !== 'Seçiniz' &&
+    !!formData.plate && formData.plate.trim() !== '' &&
+    !!formData.city && formData.city !== 'İl Seçiniz' && formData.city !== '' &&
+    !!formData.district && formData.district !== 'İlçe Seçiniz' && formData.district !== '' &&
+    descText.length >= 20;
+
   return (
     <div className="min-h-screen bg-[#F2F4F7] text-slate-900 select-none font-sans antialiased relative">
       
       {/* ---------------------------------------------------------------------
-          3.1 TOP LOGO VE GERİ BARI
+          4.1 TOP LOGO VE STEP SENSÖRÜ BARI
          --------------------------------------------------------------------- */}
       <div className="relative z-20 bg-white border-b border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.04)]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
@@ -257,46 +368,93 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       </div>
 
       {/* ---------------------------------------------------------------------
-          3.2 AKTİF ADIM BİLEŞENİ
+          🚀 4.2 MERKEZİ YAPIŞKAN AKSİYON BARI (STICKY HEADER)
          --------------------------------------------------------------------- */}
-      {currentStep === 1 && (
-        <Step1VehicleAndPhotos
-          formData={formData}
-          updateFormData={updateFormData}
-          userPackage={userPackage}
-          onNext={handleNextStep}
-        />
-      )}
+      <div className="sticky top-0 z-30 bg-white border-b border-slate-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
+          
+          {/* DINAMIK BAŞLIK VE AÇIKLAMA */}
+          <div className="space-y-1">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none">
+              {currentStep === 1 && "Ücretsiz İlan Ver"}
+              {currentStep === 2 && "İlan Bilgileri"}
+              {currentStep === 3 && "İlan Ön İzleme"}
+            </h1>
+            <p className="text-xs text-slate-600 font-medium">
+              <span className="text-rose-600 font-bold">*</span> ile işaretli zorunlu alanları doldurduktan sonra ilan verebilirsin.
+            </p>
+          </div>
 
-      {currentStep === 2 && (
-        <Step2ListingDetails
-          formData={formData}
-          updateFormData={updateFormData}
-          onNext={handleNextStep}
-          onBack={handlePrevStep}
-        />
-      )}
+          {/* DEVAM ET BUTONU & KÖŞELİ PROGRESS BAR */}
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            {currentStep < 3 && (
+              <button 
+                disabled={
+                  (currentStep === 1 && !isStep1Valid) ||
+                  (currentStep === 2 && !isStep2Valid)
+                }
+                onClick={handleNextStep}
+                className="w-64 sm:w-72 bg-rose-500 hover:bg-rose-600 disabled:bg-[#FFF5F7] disabled:text-[#FFC2CB] text-white font-extrabold text-xs sm:text-sm py-2.5 sm:py-3 px-5 rounded-md transition-all shadow-xs disabled:cursor-not-allowed text-center cursor-pointer active:scale-98"
+              >
+                {currentStep === 1 && "Devam Et: İlan Detayları ›"}
+                {currentStep === 2 && "Devam Et: Ön İzleme ›"}
+              </button>
+            )}
 
-      {currentStep === 3 && (
-        <Step3PreviewAndPublish
-          formData={formData}
-          onBack={handlePrevStep}
-          onSuccess={async () => {
-            // İlan başarıyla yayınlandığında draft'ı temizliyoruz
-            await handleDiscardDraft();
-            if (onSuccess) onSuccess();
-          }}
-        />
-      )}
+            {/* 🎯 SS1 BİREBİR: KÖŞELİ, DOLGUN, DIŞ BOŞLUĞU OLMAYAN CANLI GRADYANLI BAR */}
+            <div className="w-64 sm:w-72 h-3 bg-slate-200/80 rounded-sm overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 rounded-sm transition-all duration-300"
+                style={{ width: `${globalProgress}%` }}
+              />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ---------------------------------------------------------------------
+          4.3 AKTİF ADIM BİLEŞENLERİ
+         --------------------------------------------------------------------- */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
+        {currentStep === 1 && (
+          <Step1VehicleAndPhotos
+            formData={formData}
+            updateFormData={updateFormData}
+            userPackage={userPackage}
+            onNext={handleNextStep}
+          />
+        )}
+
+        {currentStep === 2 && (
+          <Step2ListingDetails
+            ref={step2Ref}
+            formData={formData}
+            updateFormData={updateFormData}
+            onNext={handleNextStep}
+            onBack={handlePrevStep}
+          />
+        )}
+
+        {currentStep === 3 && (
+          <Step3PreviewAndPublish
+            formData={formData}
+            onBack={handlePrevStep}
+            onSuccess={async () => {
+              await handleDiscardDraft();
+              if (onSuccess) onSuccess();
+            }}
+          />
+        )}
+      </div>
 
       {/* =========================================================================
-          🚀 4. BLOK: YARIM KALAN İLAN (DRAFT RECOVERY) MODAL BİLEŞENİ
+          🚀 4.4 YARIM KALAN İLAN (DRAFT RECOVERY) MODAL BİLEŞENİ
          ========================================================================= */}
       {showDraftModal && draftData && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-6 relative border border-slate-100 font-sans antialiased">
             
-            {/* KAPAT X BUTONU */}
             <button 
               onClick={handleDiscardDraft}
               className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center font-semibold text-lg cursor-pointer"
@@ -304,7 +462,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               ✕
             </button>
 
-            {/* MODAL BAŞLIK VE SAAT İKONU */}
             <div className="space-y-3">
               <div className="w-11 h-11 rounded-full bg-slate-100 border border-slate-200/60 flex items-center justify-center text-slate-800 shrink-0">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -322,10 +479,8 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               </div>
             </div>
 
-            {/* 🥪 SANDVİÇ YAPILI ARAÇ BİLGİ KARTI */}
             <div className="bg-slate-100/80 p-3 sm:p-3.5 rounded-xl">
               <div className="bg-white border border-slate-200/80 rounded-lg p-3.5 flex items-center gap-3.5 shadow-2xs">
-                
                 <div className="w-11 h-11 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 17a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm8 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm-11-2 1.6-4.8A2 2 0 0 1 8.5 9h7c.8 0 1.6.4 2 1.2L19 15M3 15h18v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-2Z" />
@@ -343,7 +498,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               </div>
             </div>
 
-            {/* BOTUNLAR */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <button
                 type="button"

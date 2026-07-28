@@ -1,37 +1,375 @@
 // =========================================================================
 // OTO-CV İLAN VERME: 3. ADIM BİLEŞENİ (Step3PreviewAndPublish.jsx)
-// İşlev: İlan Kartı Ön İzleme, Son Kontrol ve Supabase Veritabanına Yayınlama.
+// İşlev: Canlı İlan Ön İzleme Vitrini, Ekspertiz/Donanım Göstericisi, 
+//        Supabase `listings` Tablosuna Nihai Yayınlama ve Taslak Silme.
 // =========================================================================
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { supabase } from '../../../lib/supabase';
 
-export default function Step3PreviewAndPublish({ formData, onBack, onSuccess }) {
+// --- EKSPERTİZ RENK VE ETİKET KATALOĞU ---
+const DAMAGE_STATUSES = {
+  ORIGINAL: { label: 'Orijinal', bg: 'bg-emerald-500', text: 'text-white' },
+  PAINTED: { label: 'Boyanmış', bg: 'bg-amber-400', text: 'text-amber-950' },
+  LOCAL_PAINTED: { label: 'Lokal Boyanmış', bg: 'bg-orange-500', text: 'text-white' },
+  CHANGED: { label: 'Değişmiş', bg: 'bg-rose-600', text: 'text-white' },
+  UNSPECIFIED: { label: 'Belirtilmemiş', bg: 'bg-slate-200', text: 'text-slate-600' }
+};
+
+const CAR_PARTS_MAP = {
+  front_bumper: 'Ön Tampon',
+  rear_bumper: 'Arka Tampon',
+  front_bonnet: 'Motor Kaputu',
+  roof: 'Tavan',
+  trunk: 'Bagaj Kapağı',
+  fender_front_left: 'Sol Ön Çamurluk',
+  door_front_left: 'Sol Ön Kapı',
+  door_rear_left: 'Sol Arka Kapı',
+  fender_rear_left: 'Sol Arka Çamurluk',
+  fender_front_right: 'Sağ Ön Çamurluk',
+  door_front_right: 'Sağ Ön Kapı',
+  door_rear_right: 'Sağ Arka Kapı',
+  fender_rear_right: 'Sağ Arka Çamurluk'
+};
+
+export default function Step3PreviewAndPublish({ formData, onBack, onSuccess, user }) {
+  // Galeri Aktif Fotoğraf State'i
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  
+  // Yayınlama İşlemi Yükleniyor State'i
+  const [isPublishing, setIsSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Fotoğraf Dizisi Güvenlik Kontrolü
+  const photos = Array.isArray(formData.photos) && formData.photos.length > 0 
+    ? formData.photos 
+    : ['/placeholder-car.jpg']; // Fallback görsel
+
+  // 🚀 NİHAİ SUPABASE `listings` TABLOSUNA İLAN KAYDETME HANDLERI
+  const handlePublishListing = async () => {
+    setIsSubmitted(true);
+    setErrorMessage('');
+
+    try {
+      // 1. Veritabanı İçin Temiz Veri Paketleme
+      const listingPayload = {
+        user_id: user?.id || null,
+        title: formData.title,
+        price: parseInt((formData.price || '0').replace(/[^0-9]/g, ''), 10),
+        mileage: parseInt((formData.mileage || '0').replace(/[^0-9]/g, ''), 10),
+        brand: formData.selectedBrand?.name || '',
+        series: formData.selectedSeries?.name || '',
+        model: formData.selectedModel?.name || '',
+        package: formData.selectedPackage?.name || '',
+        year: formData.selectedYear || new Date().getFullYear(),
+        fuel_type: formData.selectedFuel || '',
+        transmission: formData.transmission || '',
+        body_type: formData.bodyType || '',
+        color: formData.color?.name || 'Belirtilmedi',
+        vehicle_status: formData.vehicleStatus || 'İkinci El',
+        plate: formData.plate || '',
+        city: formData.city || 'İstanbul',
+        district: formData.district || '',
+        warranty: formData.warranty === 'Evet',
+        swap: formData.swap === 'Evet',
+        tramer_status: formData.tramerStatus || 'Tramer Yok',
+        tramer_amount: formData.tramerAmount || '0',
+        is_fully_original: !!formData.isFullyOriginal,
+        damage_report: formData.damageReport || {},
+        features: formData.selectedFeatures || [],
+        description: formData.description || '',
+        photos: photos,
+        status: 'active', // Direkt yayına alıyoruz
+        created_at: new Date().toISOString()
+      };
+
+      // 2. Supabase `listings` Tablosuna Ekleme
+      const { data, error } = await supabase
+        .from('listings')
+        .insert([listingPayload])
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // 3. Başarılı İse Callback Tetikle
+      if (onSuccess) {
+        onSuccess(data);
+      }
+
+    } catch (err) {
+      console.error("İlan yayınlanırken hata oluştu:", err);
+      setErrorMessage(err.message || 'İlan yayınlanırken bir hata oluştu. Lütfen tekrar deneyiniz.');
+    } finally {
+      setIsSubmitted(false);
+    }
+  };
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6 pb-24 font-sans antialiased">
-      <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-sm flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Ön İzleme ve Yayınla</h2>
-          <p className="text-xs text-slate-500 mt-1">İlanınız yayına girmeden önceki son kontrol ekranı.</p>
+    <div className="pb-24 text-slate-900 font-sans antialiased space-y-6">
+      
+      {/* 📌 ÖN İZLEME BİLGİLENDİRME BARI */}
+      <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 shadow-2xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm font-extrabold text-lg">
+            👁️
+          </div>
+          <div>
+            <h3 className="text-sm sm:text-base font-extrabold text-indigo-950 tracking-tight">
+              İlan Ön İzleme Modu
+            </h3>
+            <p className="text-xs text-indigo-700 font-medium">
+              İlanınız alıcılara tam olarak bu şekilde görünecektir. Bilgileri kontrol edip onaylayabilirsiniz.
+            </p>
+          </div>
         </div>
-        <button onClick={onBack} className="text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 px-4 py-2 rounded-lg cursor-pointer">
-          ‹ 2. Adıma Dön
+
+        <button
+          onClick={onBack}
+          className="hidden sm:flex items-center gap-1.5 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold px-4 py-2 rounded-lg transition-colors cursor-pointer shrink-0"
+        >
+          ✏️ Bilgileri Düzenle
         </button>
       </div>
 
-      <div className="bg-white border border-slate-200/90 rounded-xl p-8 text-center space-y-4 shadow-sm">
-        <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 font-black text-2xl flex items-center justify-center mx-auto">
-          🚀
+      {/* 📌 HATA BİLDİRİM BARI */}
+      {errorMessage && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl text-xs font-bold animate-fadeIn">
+          ⚠️ {errorMessage}
         </div>
-        <h3 className="text-lg font-black text-slate-900">3. Adım: Ön İzleme Ekranı Hazır!</h3>
-        <button 
-          onClick={onSuccess} 
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-8 py-3 rounded-xl cursor-pointer shadow-md"
-        >
-          İlanı Canlıya Al ve Yayınla ✨
-        </button>
+      )}
+
+      {/* =========================================================================
+          IZGARA DÜZENİ: SOL İÇERİK (65%) & SAĞ ÖZET KÜNYE KARTI (35%)
+         ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* ---------------------------------------------------------------------
+            LEFT COLUMN: GALERİ, AÇIKLAMA, EKSPERTİZ & DONANIM (8 KOLON)
+           --------------------------------------------------------------------- */}
+        <div className="lg:col-span-8 space-y-6">
+          
+          {/* 📸 1. KART: FOTOĞRAF GALERİSİ */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+            {/* Büyük Ana Fotoğraf */}
+            <div className="relative w-full h-[320px] sm:h-[420px] bg-slate-900 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
+              <img
+                src={photos[selectedPhotoIndex]}
+                alt={formData.title}
+                className="w-full h-full object-contain object-center"
+              />
+              <span className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs font-mono font-bold px-3 py-1 rounded-full">
+                {selectedPhotoIndex + 1} / {photos.length}
+              </span>
+            </div>
+
+            {/* Küçük Thumbnail Izgarası */}
+            {photos.length > 1 && (
+              <div className="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-thin">
+                {photos.map((imgUrl, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedPhotoIndex(idx)}
+                    className={`relative w-20 h-16 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
+                      selectedPhotoIndex === idx ? 'border-indigo-600 scale-105 shadow-xs' : 'border-transparent opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={imgUrl} alt={`Fotoğraf ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 🛠️ 2. KART: EKSPERTİZ & TRAMER ÖZETİ */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <span>🛡️ Boya, Değişen ve Tramer Bilgisi</span>
+              </h3>
+              <span className="text-xs font-mono font-bold bg-amber-50 text-amber-700 px-3 py-1 rounded-full border border-amber-200/60">
+                {formData.tramerStatus === 'Tramer Var' && formData.tramerAmount 
+                  ? `Tramer: ${formData.tramerAmount} TL` 
+                  : formData.tramerStatus}
+              </span>
+            </div>
+
+            {formData.isFullyOriginal ? (
+              <div className="bg-emerald-50 border border-emerald-200/80 p-4 rounded-xl flex items-center gap-3 text-emerald-800">
+                <span className="text-xl">✨</span>
+                <p className="text-xs font-bold">Bu araç hatasızdır! Tüm kaporta ve tampon parçaları tamamen orijinaldir.</p>
+              </div>
+            ) : Object.keys(formData.damageReport || {}).length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {Object.entries(formData.damageReport).map(([partId, statusKey]) => {
+                  const status = DAMAGE_STATUSES[statusKey] || DAMAGE_STATUSES.UNSPECIFIED;
+                  return (
+                    <div key={partId} className="bg-slate-50 border border-slate-200/70 p-2.5 rounded-xl flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-700 truncate mr-1">
+                        {CAR_PARTS_MAP[partId] || partId}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold shrink-0 ${status.bg} ${status.text}`}>
+                        {status.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 font-medium">Ekspertiz ve kaporta durumu belirtilmemiş.</p>
+            )}
+          </div>
+
+          {/* ⚙️ 3. KART: SEÇİLİ DONANIM ÖZELLİKLERİ */}
+          {formData.selectedFeatures?.length > 0 && (
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-base font-black text-slate-900 tracking-tight">
+                  ⚡ Donanım Özellikleri
+                </h3>
+                <span className="text-xs font-mono font-bold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100">
+                  {formData.selectedFeatures.length} Özellik Seçildi
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {formData.selectedFeatures.map((feat, idx) => (
+                  <span
+                    key={idx}
+                    className="bg-slate-100/90 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200/70 transition-colors"
+                  >
+                    ✓ {feat}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ✍️ 4. KART: İLAN AÇIKLAMASI */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
+            <h3 className="text-base font-black text-slate-900 tracking-tight border-b border-slate-100 pb-3">
+              📝 İlan Açıklaması
+            </h3>
+            
+            <div
+              className="prose max-w-none text-xs sm:text-sm text-slate-800 leading-relaxed font-medium [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1 [&_p]:mb-2"
+              dangerouslySetInnerHTML={{ __html: formData.description || 'Açıklama girilmemiş.' }}
+            />
+          </div>
+
+        </div>
+
+        {/* ---------------------------------------------------------------------
+            RIGHT COLUMN: SAĞ SABİT KÜNYE & YAYINLAMA KARTI (4 KOLON)
+           --------------------------------------------------------------------- */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-6 sticky top-24">
+            
+            {/* CANLI FİYAT VE LOKASYON */}
+            <div className="space-y-1 pb-4 border-b border-slate-100">
+              <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">İlan Fiyatı</span>
+              <div className="text-3xl font-black text-emerald-600 tracking-tight">
+                {formData.price ? `${formData.price} TL` : 'Fiyat Belirtilmedi'}
+              </div>
+              <p className="text-xs font-bold text-slate-500 pt-1 flex items-center gap-1">
+                📍 {formData.city} / {formData.district}
+              </p>
+            </div>
+
+            {/* TEKNİK KÜNYE TABLOSU */}
+            <div className="space-y-2.5 text-xs font-medium">
+              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider text-slate-400 pb-1">Araç Künyesi</h4>
+              
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Marka</span>
+                <span className="font-bold text-slate-900">{formData.selectedBrand?.name || '-'}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Seri</span>
+                <span className="font-bold text-slate-900">{formData.selectedSeries?.name || '-'}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Model</span>
+                <span className="font-bold text-slate-900">{formData.selectedModel?.name || '-'}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Yıl</span>
+                <span className="font-bold text-slate-900">{formData.selectedYear || '-'}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Kilometre</span>
+                <span className="font-bold text-slate-900">{formData.mileage ? `${formData.mileage} KM` : '-'}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Vites Tipi</span>
+                <span className="font-bold text-slate-900">{formData.transmission}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Yakıt Tipi</span>
+                <span className="font-bold text-slate-900">{formData.selectedFuel || '-'}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Kasa Tipi</span>
+                <span className="font-bold text-slate-900">{formData.bodyType}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Renk</span>
+                <span className="font-bold text-slate-900">{formData.color?.name || 'Beyaz'}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Plaka</span>
+                <span className="font-bold text-slate-900 font-mono">{formData.plate || '-'}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Garanti</span>
+                <span className="font-bold text-slate-900">{formData.warranty}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Takas</span>
+                <span className="font-bold text-slate-900">{formData.swap}</span>
+              </div>
+            </div>
+
+            {/* 🚀 AKSİYON BUTONLARI */}
+            <div className="space-y-3 pt-2">
+              <button
+                type="button"
+                disabled={isPublishing}
+                onClick={handlePublishListing}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-98 disabled:bg-emerald-300 text-white font-black text-sm py-4 px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isPublishing ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Yayınlanıyor...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🚀 İlanı Onayla ve Yayınla</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                disabled={isPublishing}
+                onClick={onBack}
+                className="w-full bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 font-bold text-xs py-3 px-4 rounded-xl transition-all cursor-pointer text-center"
+              >
+                ‹ Geri Dön ve Bilgileri Düzenle
+              </button>
+            </div>
+
+          </div>
+        </div>
+
       </div>
+
     </div>
   );
 }
