@@ -233,13 +233,27 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
   // =========================================================================
 
   // Otomatik İlan Başlığı Üretici Sensör (Sadece başlık boşsa çalışır)
-  useEffect(() => {
-    if (!title && formData.selectedBrand) {
-      const generatedTitle = `${formData.selectedYear || ''} ${formData.selectedBrand?.name || ''} ${formData.selectedSeries?.name || ''} ${formData.selectedModel?.name || ''}`;
-      setTitle(generatedTitle);
-      updateFormData({ title: generatedTitle });
-    }
-  }, [formData.selectedBrand]);
+ const lastCatalogRef = useRef('');
+
+useEffect(() => {
+  // Seçili aracın benzersiz katalog imzası
+  const currentCatalogKey = `${formData.selectedYear || ''}-${formData.selectedBrand?.id || ''}-${formData.selectedSeries?.id || ''}-${formData.selectedModel?.id || ''}`;
+  
+  // Yeni üretilen otomatik başlık metni
+  const newGeneratedTitle = `${formData.selectedYear || ''} ${formData.selectedBrand?.name || ''} ${formData.selectedSeries?.name || ''} ${formData.selectedModel?.name || ''}`.trim();
+
+  // Eğer katalog değiştiyse VEYA başlık henüz yoksa
+  if (lastCatalogRef.current !== currentCatalogKey && newGeneratedTitle) {
+    setTitle(newGeneratedTitle);
+    updateFormData({ title: newGeneratedTitle });
+    lastCatalogRef.current = currentCatalogKey; // Son kataloğu hafızaya al
+  }
+}, [
+  formData.selectedYear, 
+  formData.selectedBrand, 
+  formData.selectedSeries, 
+  formData.selectedModel
+]);
 
   // Wizard Global State Senkronizatörü (Tüm paneller bu fonksiyonu kullanır)
   const handleFieldChange = (field, value) => {
@@ -668,8 +682,7 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
             Düzenle
           </button>
         </div>
-
-       {/* =========================================================================
+{/* =========================================================================
             PANEL 2: TEMEL ARAÇ & VİTRİN BİLGİLERİ (DÜPLİKE ALANLAR SÖKÜLDÜ)
            ========================================================================= */}
         <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-sm space-y-6">
@@ -721,7 +734,7 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
                 <span>Vites Tipi</span>
               </label>
               <select
-                value={transmission}
+                value={transmission || ''}
                 onBlur={() => handleBlur('transmission')}
                 onChange={(e) => { setTransmission(e.target.value); handleFieldChange('transmission', e.target.value); }}
                 className={`w-full border rounded-md px-3 text-sm font-semibold outline-none cursor-pointer h-[42px] transition-all ${
@@ -730,6 +743,7 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
                     : 'border-slate-200/80 bg-slate-100/70 focus:bg-white text-slate-800 focus:border-indigo-600'
                 }`}
               >
+                <option value="">Seçiniz</option>
                 {TRANSMISSION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
               {isFieldInvalid('transmission') && (
@@ -744,7 +758,7 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
                 <span>Kasa Tipi</span>
               </label>
               <select
-                value={bodyType}
+                value={bodyType || ''}
                 onBlur={() => handleBlur('bodyType')}
                 onChange={(e) => { setBodyType(e.target.value); handleFieldChange('bodyType', e.target.value); }}
                 className={`w-full border rounded-md px-3 text-sm font-semibold outline-none cursor-pointer h-[42px] transition-all ${
@@ -753,6 +767,7 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
                     : 'border-slate-200/80 bg-slate-100/70 focus:bg-white text-slate-800 focus:border-indigo-600'
                 }`}
               >
+                <option value="">Seçiniz</option>
                 {BODY_TYPES.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
               {isFieldInvalid('bodyType') && (
@@ -776,11 +791,17 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <span 
-                    className="w-4 h-4 rounded-xs border border-slate-300 shrink-0 shadow-2xs" 
-                    style={{ background: selectedColor?.hex || '#FFFFFF' }}
-                  />
-                  <span>{selectedColor?.name || selectedColor || 'Beyaz'}</span>
+                  {selectedColor ? (
+                    <>
+                      <span 
+                        className="w-4 h-4 rounded-xs border border-slate-300 shrink-0 shadow-2xs" 
+                        style={{ background: selectedColor?.hex || '#FFFFFF' }}
+                      />
+                      <span>{selectedColor?.name || selectedColor}</span>
+                    </>
+                  ) : (
+                    <span className="text-slate-400 font-normal">Renk Seçiniz</span>
+                  )}
                 </div>
                 <span className="text-xs text-slate-400">▼</span>
               </div>
@@ -820,7 +841,7 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
                 <span>Araç Durumu</span>
               </label>
               <select
-                value={vehicleStatus}
+                value={vehicleStatus || ''}
                 onBlur={() => handleBlur('vehicleStatus')}
                 onChange={(e) => { setVehicleStatus(e.target.value); handleFieldChange('vehicleStatus', e.target.value); }}
                 className={`w-full border rounded-md px-3 text-sm font-semibold outline-none cursor-pointer h-[42px] transition-all ${
@@ -829,6 +850,7 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
                     : 'border-slate-200/80 bg-slate-100/70 focus:bg-white text-slate-800 focus:border-indigo-600'
                 }`}
               >
+                <option value="">Seçiniz</option>
                 {VEHICLE_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
               {isFieldInvalid('vehicleStatus') && (
@@ -836,28 +858,19 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
               )}
             </div>
 
-            {/* 5. GARANTİ DURUMU */}
+            {/* 4. GARANTİ DURUMU */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                <span className="text-rose-600 font-bold">*</span>
-                <span>Garanti Durumu</span>
-              </label>
-              <div className="grid grid-cols-2 gap-2 h-[42px]">
-                {['Evet', 'Hayır'].map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => { setWarranty(option); handleFieldChange('warranty', option); }}
-                    className={`h-full px-3 text-xs font-bold rounded-md border transition-all cursor-pointer ${
-                      warranty === option
-                        ? 'bg-indigo-50 border-indigo-600 text-indigo-700'
-                        : 'bg-slate-100/80 border-slate-200/80 text-slate-600 hover:bg-slate-200/60'
-                    }`}
-                  >
-                    {option}
-                  </button>
+              <label className="text-xs font-bold text-slate-700">Garanti Durumu</label>
+              <select
+                value={warranty || ''}
+                onChange={(e) => { setWarranty(e.target.value); handleFieldChange('warranty', e.target.value); }}
+                className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-sm font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
+              >
+                <option value="">Seçiniz</option>
+                {WARRANTY_OPTIONS.map(w => (
+                  <option key={w} value={w}>{w}</option>
                 ))}
-              </div>
+              </select>
             </div>
 
             {/* 6. TAKAS OLUR MU? */}
@@ -888,9 +901,8 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
 
         </div>
 
-
         {/* =========================================================================
-            PANEL 2.5: ARAÇ DETAYLARI (OPSİYONEL TEKNİK BİLGİLER - 3x2 MATRİS DÜZENİ)
+            PANEL 2.5: ARAÇ DETAYLARI (OPSİYONEL TEKNİK BİLGİLER)
            ========================================================================= */}
         <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-sm space-y-6">
           
@@ -912,7 +924,7 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700">Motor Hacmi</label>
               <select
-                value={engineCapacity}
+                value={engineCapacity || ''}
                 onChange={(e) => { setEngineCapacity(e.target.value); handleFieldChange('engineCapacity', e.target.value); }}
                 className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-sm font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
               >
@@ -927,10 +939,11 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700">Araç Türü</label>
               <select
-                value={vehicleType}
+                value={vehicleType || ''}
                 onChange={(e) => { setVehicleType(e.target.value); handleFieldChange('vehicleType', e.target.value); }}
                 className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-sm font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
               >
+                <option value="">Seçiniz</option>
                 {VEHICLE_TYPES.map(vt => (
                   <option key={vt} value={vt}>{vt}</option>
                 ))}
@@ -941,26 +954,13 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700">Plaka Uyruğu</label>
               <select
-                value={plateNationality}
+                value={plateNationality || ''}
                 onChange={(e) => { setPlateNationality(e.target.value); handleFieldChange('plateNationality', e.target.value); }}
                 className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-sm font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
               >
+                <option value="">Seçiniz</option>
                 {PLATE_NATIONALITIES.map(pn => (
                   <option key={pn} value={pn}>{pn}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* 4. GARANTİ DURUMU */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Garanti Durumu</label>
-              <select
-                value={warranty}
-                onChange={(e) => { setWarranty(e.target.value); handleFieldChange('warranty', e.target.value); }}
-                className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-sm font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
-              >
-                {WARRANTY_OPTIONS.map(w => (
-                  <option key={w} value={w}>{w}</option>
                 ))}
               </select>
             </div>
@@ -969,26 +969,13 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700">Aracın İlk Sahibiyim</label>
               <select
-                value={isFirstOwner}
+                value={isFirstOwner || ''}
                 onChange={(e) => { setIsFirstOwner(e.target.value); handleFieldChange('isFirstOwner', e.target.value); }}
                 className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-sm font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
               >
+                <option value="">Seçiniz</option>
                 {FIRST_OWNER_OPTIONS.map(fo => (
                   <option key={fo} value={fo}>{fo}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* 6. TAKASA UYGUN */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Takasa Uygun</label>
-              <select
-                value={swap}
-                onChange={(e) => { setSwap(e.target.value); handleFieldChange('swap', e.target.value); }}
-                className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-sm font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
-              >
-                {SWAP_OPTIONS.map(sw => (
-                  <option key={sw} value={sw}>{sw}</option>
                 ))}
               </select>
             </div>
