@@ -163,27 +163,27 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
   // 💾 2. BLOK: PANELLERE GÖRE TOPLU STATE HAFIZALARI (REACT HOOK TOPLULAŞTIRMA)
   // =========================================================================
 
-  // 📌 PANEL 2 STATE'LERİ: TEMEL İLAN BİLGİLERİ (Fiyat Söküldü)
+  // 📌 PANEL 2 STATE'LERİ: TEMEL İLAN BİLGİLERİ (Fiyat Söküldü, Varsayılanlar "")
   const [title, setTitle] = useState(formData.title || '');
   const [mileage, setMileage] = useState(formData.mileage || '');
-  const [transmission, setTransmission] = useState(formData.transmission || 'Otomatik');
-  const [bodyType, setBodyType] = useState(formData.bodyType || 'Sedan');
-  const [selectedColor, setSelectedColor] = useState(formData.color || COLOR_OPTIONS[2]); // Default Beyaz
+  const [transmission, setTransmission] = useState(formData.transmission || '');
+  const [bodyType, setBodyType] = useState(formData.bodyType || '');
+  const [selectedColor, setSelectedColor] = useState(formData.color || null);
   const [colorDropdownOpen, setColorDropdownOpen] = useState(false);
-  const [vehicleStatus, setVehicleStatus] = useState(formData.vehicleStatus || 'İkinci El');
+  const [vehicleStatus, setVehicleStatus] = useState(formData.vehicleStatus || '');
   const [plate, setPlate] = useState(formData.plate || '');
 
-  // 📌 PANEL 2.5 STATE'LERİ: ARAÇ DETAYLARI (TEKNİK KİMLİK)
+  // 📌 PANEL 2.5 STATE'LERİ: ARAÇ DETAYLARI (TEKNİK KİMLİK, Varsayılanlar "")
   const [engineCapacity, setEngineCapacity] = useState(formData.engineCapacity || '');
-  const [vehicleType, setVehicleType] = useState(formData.vehicleType || 'Bireysel');
-  const [plateNationality, setPlateNationality] = useState(formData.plateNationality || '(TR) Türkiye');
-  const [warranty, setWarranty] = useState(formData.warranty || 'Yok');
-  const [isFirstOwner, setIsFirstOwner] = useState(formData.isFirstOwner || 'İlk Sahibi Değilim');
-  const [swap, setSwap] = useState(formData.swap || 'Hayır');
+  const [vehicleType, setVehicleType] = useState(formData.vehicleType || '');
+  const [plateNationality, setPlateNationality] = useState(formData.plateNationality || '');
+  const [warranty, setWarranty] = useState(formData.warranty || '');
+  const [isFirstOwner, setIsFirstOwner] = useState(formData.isFirstOwner || '');
+  const [swap, setSwap] = useState(formData.swap || '');
 
   // 📌 PANEL 3 STATE'LERİ & REF'LERİ: ARAÇ KONUMU (ARANABİLİR İL / İLÇE DROPDOWN)
-  const [city, setCity] = useState(formData.city || 'İstanbul');
-  const [district, setDistrict] = useState(formData.district || 'Kadıköy');
+  const [city, setCity] = useState(formData.city || '');
+  const [district, setDistrict] = useState(formData.district || '');
   const [isCityOpen, setIsCityOpen] = useState(false);
   const [citySearch, setCitySearch] = useState('');
   const [isDistrictOpen, setIsDistrictOpen] = useState(false);
@@ -192,7 +192,7 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
   const districtDropdownRef = useRef(null);
 
   // 📌 PANEL 4 STATE'LERİ: HASAR KAYDI, EKSPERTİZ & TRAMER
-  const [tramerStatus, setTramerStatus] = useState(formData.tramerStatus || 'Tramer Yok');
+  const [tramerStatus, setTramerStatus] = useState(formData.tramerStatus || '');
   const [tramerAmount, setTramerAmount] = useState(formData.tramerAmount || '');
   const [isFullyOriginal, setIsFullyOriginal] = useState(formData.isFullyOriginal || false);
   const [damageReport, setDamageReport] = useState(formData.damageReport || {});
@@ -265,15 +265,14 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
       .trim();
   };
 
-  // 🎯 STEP 2 TAM VALIDASYON SENSÖRÜ (Fiyat Şartı Söküldü)
   // 🎯 STEP 2 TAM VALIDASYON SENSÖRÜ
   const cleanDescText = getCleanText(description);
 
   const isStep2Valid = 
     !!title && title.trim() !== '' &&
-    !!transmission && transmission !== 'Seçiniz' &&
-    !!bodyType && bodyType !== 'Seçiniz' &&
-    !!vehicleStatus && vehicleStatus !== 'Seçiniz' &&
+    !!transmission && transmission !== 'Seçiniz' && transmission !== '' &&
+    !!bodyType && bodyType !== 'Seçiniz' && bodyType !== '' &&
+    !!vehicleStatus && vehicleStatus !== 'Seçiniz' && vehicleStatus !== '' &&
     !!city && city !== 'İl Seçiniz' && city !== '' &&
     !!district && district !== 'İlçe Seçiniz' && district !== '' &&
     cleanDescText.length >= 20;
@@ -294,11 +293,11 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
       case 'mileage':
         return !mileage || mileage.trim() === '';
       case 'transmission':
-        return !transmission || transmission === 'Seçiniz';
+        return !transmission || transmission === 'Seçiniz' || transmission === '';
       case 'bodyType':
-        return !bodyType || bodyType === 'Seçiniz';
+        return !bodyType || bodyType === 'Seçiniz' || bodyType === '';
       case 'vehicleStatus':
-        return !vehicleStatus || vehicleStatus === 'Seçiniz';
+        return !vehicleStatus || vehicleStatus === 'Seçiniz' || vehicleStatus === '';
       case 'plate':
         return !plate || plate.trim() === '';
       case 'city':
@@ -591,11 +590,11 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
     const series = formData.selectedSeries?.name || '';
     const model = formData.selectedModel?.name || '';
     const km = mileage || 'Düşük';
-    const trans = transmission || 'Otomatik';
-    const body = bodyType || 'Sedan';
-    const clr = selectedColor?.name || 'Beyaz';
-    const locCity = city || 'İstanbul';
-    const locDistrict = district || '';
+    const trans = transmission && transmission !== 'Seçiniz' ? transmission : 'Belirtilmedi';
+    const body = bodyType && bodyType !== 'Seçiniz' ? bodyType : 'Belirtilmedi';
+    const clr = selectedColor?.name || 'Belirtilmedi';
+    const locCity = city && city !== 'İl Seçiniz' ? city : 'Belirtilmedi';
+    const locDistrict = district && district !== 'İlçe Seçiniz' ? district : '';
     
     // Ekspertiz ve Tramer Analizi (Nötr ve Şeffaf Dil)
     let tramerText = '';
@@ -606,7 +605,7 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
         ? `Aracın sistem kayıtlarında toplam ${tramerAmount} TL tutarında Tramer kaydı mevcuttur.` 
         : 'Aracın Tramer kaydı bulunmaktadır.';
     } else {
-      tramerText = `Tramer durumu: ${tramerStatus}.`;
+      tramerText = tramerStatus && tramerStatus !== 'Seçiniz' ? `Tramer durumu: ${tramerStatus}.` : 'Tramer durumu henüz belirtilmemiştir.';
     }
 
     // Seçilen Donanımları Metne Dökme
@@ -1707,7 +1706,7 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
               </svg>
               <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-1">
                 <span className="text-rose-600 font-bold">*</span>
-                <span>İlan Açıklaması</span>
+                <span>Araç Açıklaması</span>
               </h3>
             </div>
             

@@ -1,6 +1,6 @@
 // =========================================================================
 // OTO-CV WEB ADIM 3: MEDİKAL SİCİL & SERVİS GEÇMİŞİ (Step3Medical.jsx)
-// İşlev: Step 1 & 2 standartlarında, başlık karmaşasından arındırılmış modern panel.
+// İşlev: Sandwich UI Mimarisi, Akıllı Otomatik Çöp Kayıt Temizleyici ve Zırhlı Validasyon.
 // =========================================================================
 
 'use client';
@@ -51,11 +51,24 @@ const Step3Medical = forwardRef(({
   const vehicleProductionYear = selectedYear || formData.selectedYear || null;
 
   // =========================================================================
-  // 1. BLOK: KOŞULLU VE AKILLI FORM GEÇERLİLİK DENETLEYİCİSİ (OPSİYONEL)
+  // 🧹 SÜPER YARDIMCI: TAMAMEN BOŞ KAYIT KONTROLÜ SENSÖRÜ
+  // =========================================================================
+  const isRecordCompletelyEmpty = (record) => {
+    return (
+      !record.shop_name?.trim() &&
+      !record.km?.toString().trim() &&
+      !record.cost?.toString().trim() &&
+      !record.summary?.trim() &&
+      !record.service_date?.trim() &&
+      !record.invoice_file
+    );
+  };
+
+  // =========================================================================
+  // 1. BLOK: KOŞULLU VE AKILLI FORM GEÇERLİLİK DENETLEYİCİSİ
   // =========================================================================
   const isRecordValid = (record) => {
-    const isEntirelyEmpty = !record.shop_name?.trim() && !record.km && !record.cost && !record.summary && !record.service_date;
-    if (isEntirelyEmpty) return true;
+    if (isRecordCompletelyEmpty(record)) return false;
 
     const hasType = !!record.service_type;
     const hasShop = record.shop_name?.trim().length > 0;
@@ -67,11 +80,20 @@ const Step3Medical = forwardRef(({
     return hasType && hasShop && hasKm && hasCost && hasSummary && hasValidDate;
   };
 
-  const isStep3Valid = activeRecords.length === 0 || activeRecords.every(isRecordValid);
+  const isStep3Valid = activeRecords.length === 0 || activeRecords.every(rec => isRecordCompletelyEmpty(rec) || isRecordValid(rec));
 
   const handleNextWithValidation = () => {
     setSubmitAttempted(true);
-    return isStep3Valid;
+
+    // 1. Öncesinde tamamen boş bırakılmış çöp kayıtları otomatik buda
+    const cleanedRecords = activeRecords.filter(rec => !isRecordCompletelyEmpty(rec));
+    if (cleanedRecords.length !== activeRecords.length) {
+      updateRecords(cleanedRecords);
+    }
+
+    // 2. Kalan kayıtların eksiksiz olduğunu doğrula
+    const isValid = cleanedRecords.length === 0 || cleanedRecords.every(isRecordValid);
+    return isValid;
   };
 
   useImperativeHandle(ref, () => ({
@@ -147,8 +169,12 @@ const Step3Medical = forwardRef(({
   // =========================================================================
   // 4. BLOK: DİNAMİK SATIR MODÜLLERİ VE AKORDEON DRIVERLARI
   // =========================================================================
+  
+  // 🚀 AKILLI YENİ KAYIT EKLEYİCİ (Mevcut çöp kayıtları önceden süpürür)
   const addNewRecord = () => {
-    const closedRecords = activeRecords.map(rec => ({ ...rec, is_expanded: false }));
+    const cleanedRecords = activeRecords.filter(rec => !isRecordCompletelyEmpty(rec));
+    const closedRecords = cleanedRecords.map(rec => ({ ...rec, is_expanded: false }));
+    
     updateRecords([
       ...closedRecords,
       {
@@ -173,6 +199,16 @@ const Step3Medical = forwardRef(({
       filtered[filtered.length - 1].is_expanded = true;
     }
     updateRecords(filtered);
+  };
+
+  // 🚀 AKILLI KAPATMA HANDLER'I (Boşsa SİLER, Veri varsa DARALTIR)
+  const handleCloseRecord = (idToClose) => {
+    const target = activeRecords.find(r => r.id === idToClose);
+    if (target && isRecordCompletelyEmpty(target)) {
+      removeRecord(idToClose);
+    } else {
+      toggleExpand(idToClose);
+    }
   };
 
   const toggleExpand = (idToToggle) => {
@@ -205,8 +241,7 @@ const Step3Medical = forwardRef(({
   };
 
   const isFieldInvalid = (record, field) => {
-    const isEntirelyEmpty = !record.shop_name?.trim() && !record.km && !record.cost && !record.summary && !record.service_date;
-    if (isEntirelyEmpty) return false;
+    if (isRecordCompletelyEmpty(record)) return false;
 
     const isTouched = touchedFields[`${record.id}-${field}`] || submitAttempted;
     const isEmpty = !record[field] || record[field].toString().trim() === '';
@@ -217,10 +252,10 @@ const Step3Medical = forwardRef(({
     <div className="pb-24 text-slate-900 select-none font-sans antialiased">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
 
-        {/* ANA KART KAPSAYICISI (STEP 1 & 2 İLE BİREBİR AYNI DİL) */}
+        {/* 1. KATMAN: DIŞ BEYAZ PANEL */}
         <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
           
-          {/* TEK VE NET ÜST BAŞLIK (ÇORBA GÖRÜNTÜ GİTTİ) */}
+          {/* TEK VE NET ÜST BAŞLIK */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -240,12 +275,12 @@ const Step3Medical = forwardRef(({
           </div>
 
           {/* =========================================================================
-              🚀 ZERO-STATE (SADELEŞTİRİLMİŞ BAŞLIK & KÖŞELİ ROZETLİ MODERN UI)
+              🚀 ZERO-STATE (KAYIT YOKSA GÖRÜNÜR)
              ========================================================================= */}
           {activeRecords.length === 0 && (
             <div className="w-full border border-slate-200/90 rounded-xl bg-white shadow-2xs overflow-hidden font-sans select-none">
               
-              {/* 1. KATMAN: ÜST HEADER ALANI (YENİLENMİŞ SADE METİN & KÖŞELİ BONUS ROZETİ) */}
+              {/* ÜST HEADER ALANI */}
               <div className="p-6 sm:p-7 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -270,10 +305,8 @@ const Step3Medical = forwardRef(({
                 </div>
               </div>
 
-              {/* 2. KATMAN: MİKRO ÖZELLİK KARTLARI İZGARASI */}
+              {/* MİKRO ÖZELLİK KARTLARI GRID */}
               <div className="p-6 sm:p-7 grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-slate-100">
-                
-                {/* KART 1: FATURA & MAKBUZ */}
                 <div className="border border-slate-200/80 bg-slate-50/50 p-4 rounded-lg flex items-start gap-3 transition-all hover:bg-white hover:border-slate-300 hover:shadow-2xs">
                   <div className="w-10 h-10 rounded-md bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
                     <FileTextIcon />
@@ -286,7 +319,6 @@ const Step3Medical = forwardRef(({
                   </div>
                 </div>
 
-                {/* KART 2: BAKIM TAKVİMİ */}
                 <div className="border border-slate-200/80 bg-slate-50/50 p-4 rounded-lg flex items-start gap-3 transition-all hover:bg-white hover:border-slate-300 hover:shadow-2xs">
                   <div className="w-10 h-10 rounded-md bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
                     <CalendarIcon />
@@ -299,7 +331,6 @@ const Step3Medical = forwardRef(({
                   </div>
                 </div>
 
-                {/* KART 3: ŞEFFAF GARAJ MÜHRÜ */}
                 <div className="border border-slate-200/80 bg-slate-50/50 p-4 rounded-lg flex items-start gap-3 transition-all hover:bg-white hover:border-slate-300 hover:shadow-2xs">
                   <div className="w-10 h-10 rounded-md bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
                     <ShieldCheckIcon />
@@ -311,10 +342,9 @@ const Step3Medical = forwardRef(({
                     </p>
                   </div>
                 </div>
-
               </div>
 
-              {/* 3. KATMAN: REFAKTE EDİLMİŞ ALT AKSİYON BUTONU VE BİLGİLENDİRME */}
+              {/* ALT AKSİYON BUTONU */}
               <div className="p-6 sm:p-7 bg-slate-50/40 flex flex-col items-center justify-center gap-3 text-center">
                 <button
                   type="button"
@@ -338,296 +368,324 @@ const Step3Medical = forwardRef(({
             </div>
           )}
 
-          {/* DİNAMİK SERVİS AKORDEON LİSTESİ */}
-          <div className="space-y-4">
-            {activeRecords.map((record, index) => (
-              <div 
-                key={record.id}
-                className={`border rounded-xl overflow-hidden transition-all duration-300 ${
-                  record.is_expanded 
-                    ? 'bg-white border-indigo-300 shadow-sm' 
-                    : 'bg-slate-50/80 border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                {/* KAPALI YATAY BANT */}
-                {!record.is_expanded && (
-                  <div 
-                    onClick={() => toggleExpand(record.id)}
-                    className="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-slate-100/60 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-extrabold shrink-0">
-                        ✓
-                      </span>
-                      <div className="min-w-0">
-                        <h4 className="text-sm font-bold text-slate-900 truncate">
-                          {record.shop_name || `Bakım Kaydı #${index + 1}`}
-                        </h4>
-                        <p className="text-[11px] text-slate-500 font-semibold font-mono mt-0.5">
-                          {record.service_type} {record.km ? `• ${record.km} KM` : ''} {record.cost ? `• ₺${record.cost}` : ''}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0 text-xs">
-                      {record.invoice_file && (
-                        <span className="text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-md font-bold text-[10px]">
-                          Fatura Yüklendi
-                        </span>
-                      )}
-                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </div>
-                  </div>
-                )}
-
-                {/* AÇIK İÇ İÇE FORM PANELİ */}
-                {record.is_expanded && (
-                  <div className="p-5 sm:p-6 space-y-5 bg-white">
-                    <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                      <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                        <span className="bg-indigo-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] font-mono font-bold">
-                          {index + 1}
-                        </span>
-                        <span>Servis & Bakım Kaydı Detayı</span>
-                      </h4>
-                      
-                      <div className="flex items-center gap-2">
-                        <button 
-                          type="button" 
-                          onClick={() => removeRecord(record.id)}
-                          className="px-2.5 py-1 text-rose-600 hover:bg-rose-50 rounded-md text-xs font-bold transition-colors cursor-pointer"
-                        >
-                          Sil
-                        </button>
-                        <button 
-                          type="button" 
+          {/* =========================================================================
+              2. KATMAN: ORTA GRİ BAZA CONTAINER (SANDVİÇ MİMARİSİ)
+             ========================================================================= */}
+          {activeRecords.length > 0 && (
+            <div className="bg-[#F2F4F7] border border-slate-200/80 rounded-xl p-4 sm:p-5 space-y-4">
+              
+              {/* DİNAMİK SERVİS AKORDEON LİSTESİ */}
+              <div className="space-y-4">
+                {activeRecords.map((record, index) => {
+                  const recordValid = isRecordValid(record);
+                  return (
+                    <div 
+                      key={record.id}
+                      className={`bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs transition-all duration-300 ${
+                        record.is_expanded ? 'ring-1 ring-indigo-500/20 border-indigo-300 shadow-sm' : 'hover:border-slate-300'
+                      }`}
+                    >
+                      {/* KAPALI YATAY BANT */}
+                      {!record.is_expanded && (
+                        <div 
                           onClick={() => toggleExpand(record.id)}
-                          className="px-2.5 py-1 text-slate-500 hover:bg-slate-100 rounded-md text-xs font-bold transition-colors cursor-pointer"
+                          className="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
                         >
-                          Kapat
-                        </button>
-                      </div>
-                    </div>
+                          <div className="flex items-center gap-3 min-w-0">
+                            {/* DİNAMİK STATUS İKONU: GEÇERLİYSE YEŞİL TİK, EKSİKSE TURUNCU ÜNLEM */}
+                            {recordValid ? (
+                              <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-extrabold shrink-0" title="Tamamlanmış Kayıt">
+                                ✓
+                              </span>
+                            ) : (
+                              <span className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-extrabold shrink-0" title="Eksik Bilgi">
+                                !
+                              </span>
+                            )}
+                            <div className="min-w-0">
+                              <h4 className="text-sm font-bold text-slate-900 truncate">
+                                {record.shop_name || `Bakım Kaydı #${index + 1}`}
+                              </h4>
+                              <p className="text-[11px] text-slate-500 font-semibold font-mono mt-0.5">
+                                {record.service_type} {record.km ? `• ${record.km} KM` : ''} {record.cost ? `• ₺${record.cost}` : ''}
+                              </p>
+                            </div>
+                          </div>
 
-                    {/* SEGMENT SEÇİCİ TABLAR */}
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide block">
-                        İşlem Türü <span className="text-rose-600">*</span>
-                      </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-1 bg-slate-100/80 border border-slate-200/80 rounded-xl">
-                        {['Periyodik Bakım', 'Mekanik Bakım', 'Tamir / Onarım', 'Sarf Malzeme', 'Dış İşlem'].map((type) => {
-                          const isSel = record.service_type === type;
-                          return (
-                            <button
-                              key={type} 
-                              type="button"
-                              onClick={() => handleInputChange(record.id, 'service_type', type)}
-                              className={`py-2 px-2 rounded-lg text-xs font-bold text-center transition-all cursor-pointer ${
-                                isSel ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/60'
+                          <div className="flex items-center gap-3 shrink-0 text-xs">
+                            {!recordValid && (
+                              <span className="text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md font-bold text-[10px]">
+                                Eksik Bilgi
+                              </span>
+                            )}
+                            {record.invoice_file && (
+                              <span className="text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-md font-bold text-[10px]">
+                                Fatura Yüklendi
+                              </span>
+                            )}
+                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* AÇIK İÇ İÇE FORM PANELİ */}
+                      {record.is_expanded && (
+                        <div className="p-5 sm:p-6 space-y-5 bg-white">
+                          
+                          {/* AKORDEON ÜST BAŞLIK & AKSİYONLAR */}
+                          <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                            <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                              <span className="bg-indigo-600 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] font-mono font-bold">
+                                {index + 1}
+                              </span>
+                              <span>Servis & Bakım Kaydı Detayı</span>
+                            </h4>
+                            
+                            <div className="flex items-center gap-2">
+                              <button 
+                                type="button" 
+                                onClick={() => removeRecord(record.id)}
+                                className="px-2.5 py-1 text-rose-600 hover:bg-rose-50 rounded-md text-xs font-bold transition-colors cursor-pointer"
+                              >
+                                Sil
+                              </button>
+                              {/* AKILLI KAPAT BUTONU */}
+                              <button 
+                                type="button" 
+                                onClick={() => handleCloseRecord(record.id)}
+                                className="px-2.5 py-1 text-slate-500 hover:bg-slate-100 rounded-md text-xs font-bold transition-colors cursor-pointer"
+                              >
+                                Kapat
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* GRUP 1: İŞLEM TÜRÜ TABLARI */}
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide block">
+                              İşlem Türü <span className="text-rose-600">*</span>
+                            </label>
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-1 bg-slate-100/80 border border-slate-200/80 rounded-xl">
+                              {['Periyodik Bakım', 'Mekanik Bakım', 'Tamir / Onarım', 'Sarf Malzeme', 'Dış İşlem'].map((type) => {
+                                const isSel = record.service_type === type;
+                                return (
+                                  <button
+                                    key={type} 
+                                    type="button"
+                                    onClick={() => handleInputChange(record.id, 'service_type', type)}
+                                    className={`py-2 px-2 rounded-lg text-xs font-bold text-center transition-all cursor-pointer ${
+                                      isSel ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/60'
+                                    }`}
+                                  >
+                                    {type}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* YATAY AYIRICI ÇİZGİ */}
+                          <div className="border-t border-slate-100 pt-4 space-y-4">
+                            
+                            {/* GRUP 2: TARİH, SERVİS VE KM MATRİSİ */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                              
+                              {/* İŞLEM TARİHİ */}
+                              <div className="space-y-1.5">
+                                <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide">
+                                  İşlem Tarihi <span className="text-rose-600">*</span>
+                                </label>
+                                <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
+                                  record.date_error || isFieldInvalid(record, 'service_date') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
+                                }`}>
+                                  <input 
+                                    type="text" 
+                                    placeholder="GG/AA/YYYY" 
+                                    value={record.service_date || ''}
+                                    onBlur={() => handleFieldBlur(record.id, 'service_date')}
+                                    className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 font-mono tracking-wider"
+                                    onChange={(e) => validateAndFormatDate(e.target.value, record.id)}
+                                  />
+                                </div>
+                                {record.date_error && <p className="text-[10px] font-bold text-rose-600">{record.date_error}</p>}
+                                {!record.date_error && isFieldInvalid(record, 'service_date') && <p className="text-[10px] font-bold text-rose-600">Tarih alanı zorunludur.</p>}
+                              </div>
+
+                              {/* KURUM / USTA */}
+                              <div className="space-y-1.5">
+                                <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide">
+                                  Kurum / Servis Adı <span className="text-rose-600">*</span>
+                                </label>
+                                <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
+                                  isFieldInvalid(record, 'shop_name') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
+                                }`}>
+                                  <input 
+                                    type="text" 
+                                    placeholder="Örn: Borusan Oto / Usta" 
+                                    value={record.shop_name || ''} 
+                                    maxLength={50}
+                                    onBlur={() => handleFieldBlur(record.id, 'shop_name')}
+                                    className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 tracking-wide"
+                                    onChange={(e) => handleInputChange(record.id, 'shop_name', e.target.value)}
+                                  />
+                                </div>
+                                {isFieldInvalid(record, 'shop_name') && <p className="text-[10px] font-bold text-rose-600">Servis adı boş bırakılamaz.</p>}
+                              </div>
+
+                              {/* YAPILAN KİLOMETRE */}
+                              <div className="space-y-1.5">
+                                <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide">
+                                  İşlem Yapılan KM <span className="text-rose-600">*</span>
+                                </label>
+                                <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
+                                  isFieldInvalid(record, 'km') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
+                                }`}>
+                                  <input 
+                                    type="text" 
+                                    placeholder="Örn: 60.000" 
+                                    value={record.km || ''} 
+                                    maxLength={11}
+                                    onBlur={() => handleFieldBlur(record.id, 'km')}
+                                    className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 font-mono tracking-wide"
+                                    onChange={(e) => handleInputChange(record.id, 'km', e.target.value)}
+                                  />
+                                </div>
+                                {isFieldInvalid(record, 'km') && <p className="text-[10px] font-bold text-rose-600">Kilometre kaydı zorunludur.</p>}
+                              </div>
+
+                            </div>
+
+                            {/* GRUP 3: TUTAR VE İŞLEM ÖZETİ */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              
+                              {/* İŞLEM TUTARI */}
+                              <div className="space-y-1.5">
+                                <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide">
+                                  İşlem Tutarı (TL) <span className="text-rose-600">*</span>
+                                </label>
+                                <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
+                                  isFieldInvalid(record, 'cost') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
+                                }`}>
+                                  <input 
+                                    type="text" 
+                                    placeholder="Örn: 15.000" 
+                                    value={record.cost || ''} 
+                                    maxLength={12}
+                                    onBlur={() => handleFieldBlur(record.id, 'cost')}
+                                    className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 font-mono tracking-wide"
+                                    onChange={(e) => handleInputChange(record.id, 'cost', e.target.value)}
+                                  />
+                                </div>
+                                {isFieldInvalid(record, 'cost') && <p className="text-[10px] font-bold text-rose-600">Maliyet tutarı zorunludur.</p>}
+                              </div>
+
+                              {/* İŞLEM ÖZETİ */}
+                              <div className="space-y-1.5 md:col-span-2">
+                                <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide">
+                                  Yapılan İşlem Özeti <span className="text-rose-600">*</span>
+                                </label>
+                                <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
+                                  isFieldInvalid(record, 'summary') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
+                                }`}>
+                                  <input 
+                                    type="text" 
+                                    placeholder="Örn: Triger seti ve periyodik sıvı bakımları yenilendi." 
+                                    value={record.summary || ''} 
+                                    maxLength={120}
+                                    onBlur={() => handleFieldBlur(record.id, 'summary')}
+                                    className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800"
+                                    onChange={(e) => handleInputChange(record.id, 'summary', e.target.value)}
+                                  />
+                                </div>
+                                {isFieldInvalid(record, 'summary') && <p className="text-[10px] font-bold text-rose-600">İşlem açıklaması zorunludur.</p>}
+                              </div>
+
+                            </div>
+
+                            {/* KOŞULLU BİR SONRAKİ BAKIM KM ALANI */}
+                            {record.service_type === 'Periyodik Bakım' && (
+                              <div className="space-y-1.5 pt-1">
+                                <label className="text-[11px] font-extrabold text-indigo-600 uppercase tracking-wide block">
+                                  Bir Sonraki Yağ Değişim Kilometresi (KM)
+                                </label>
+                                <div className="border border-indigo-200 rounded-xl bg-indigo-50/30 flex items-center h-11 px-3">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Örn: 135.000 (Gelecek Bakım Hatırlatıcısı İçin)" 
+                                    value={record.next_service_km || ''} 
+                                    maxLength={11}
+                                    className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 font-mono tracking-wide"
+                                    onChange={(e) => handleInputChange(record.id, 'next_service_km', e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                          </div>
+
+                          {/* YATAY AYIRICI ÇİZGİ & GRUP 4: FATURA YÜKLEME ALANI */}
+                          <div className="pt-3 border-t border-slate-100 space-y-1.5">
+                            <span className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide block">
+                              Servis Makbuzu / Faturası <span className="text-slate-400 font-normal font-mono">(Opsiyonel - %95+ Güven Skoru)</span>
+                            </span>
+
+                            <input 
+                              type="file" 
+                              accept="image/*,application/pdf" 
+                              id={`invoice-${record.id}`} 
+                              className="hidden"
+                              onChange={(e) => handleInvoiceUpload(record.id, e.target.files[0])}
+                            />
+
+                            <label 
+                              htmlFor={`invoice-${record.id}`}
+                              className={`w-full border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all ${
+                                !record.invoice_file ? 'bg-slate-50 border-slate-200 hover:border-indigo-400' : 'bg-emerald-50/50 border-emerald-500'
                               }`}
                             >
-                              {type}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* GİRDİ MATRİSİ (3'LÜ GRID) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      
-                      {/* İŞLEM TARİHİ */}
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide">
-                          İşlem Tarihi <span className="text-rose-600">*</span>
-                        </label>
-                        <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
-                          record.date_error || isFieldInvalid(record, 'service_date') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
-                        }`}>
-                          <input 
-                            type="text" 
-                            placeholder="GG/AA/YYYY" 
-                            value={record.service_date || ''}
-                            onBlur={() => handleFieldBlur(record.id, 'service_date')}
-                            className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 font-mono tracking-wider"
-                            onChange={(e) => validateAndFormatDate(e.target.value, record.id)}
-                          />
-                        </div>
-                        {record.date_error && <p className="text-[10px] font-bold text-rose-600">{record.date_error}</p>}
-                        {!record.date_error && isFieldInvalid(record, 'service_date') && <p className="text-[10px] font-bold text-rose-600">Tarih alanı zorunludur.</p>}
-                      </div>
-
-                      {/* KURUM / USTA */}
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide">
-                          Kurum / Servis Adı <span className="text-rose-600">*</span>
-                        </label>
-                        <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
-                          isFieldInvalid(record, 'shop_name') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
-                        }`}>
-                          <input 
-                            type="text" 
-                            placeholder="Örn: Borusan Oto / Usta" 
-                            value={record.shop_name || ''} 
-                            maxLength={50}
-                            onBlur={() => handleFieldBlur(record.id, 'shop_name')}
-                            className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 tracking-wide"
-                            onChange={(e) => handleInputChange(record.id, 'shop_name', e.target.value)}
-                          />
-                        </div>
-                        {isFieldInvalid(record, 'shop_name') && <p className="text-[10px] font-bold text-rose-600">Servis adı boş bırakılamaz.</p>}
-                      </div>
-
-                      {/* YAPILAN KİLOMETRE */}
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide">
-                          İşlem Yapılan KM <span className="text-rose-600">*</span>
-                        </label>
-                        <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
-                          isFieldInvalid(record, 'km') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
-                        }`}>
-                          <input 
-                            type="text" 
-                            placeholder="Örn: 60.000" 
-                            value={record.km || ''} 
-                            maxLength={11}
-                            onBlur={() => handleFieldBlur(record.id, 'km')}
-                            className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 font-mono tracking-wide"
-                            onChange={(e) => handleInputChange(record.id, 'km', e.target.value)}
-                          />
-                        </div>
-                        {isFieldInvalid(record, 'km') && <p className="text-[10px] font-bold text-rose-600">Kilometre kaydı zorunludur.</p>}
-                      </div>
-
-                    </div>
-
-                    {/* TUTAR VE AÇIKLAMA */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      
-                      {/* İŞLEM TUTARI */}
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide">
-                          İşlem Tutarı (TL) <span className="text-rose-600">*</span>
-                        </label>
-                        <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
-                          isFieldInvalid(record, 'cost') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
-                        }`}>
-                          <input 
-                            type="text" 
-                            placeholder="Örn: 15.000" 
-                            value={record.cost || ''} 
-                            maxLength={12}
-                            onBlur={() => handleFieldBlur(record.id, 'cost')}
-                            className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 font-mono tracking-wide"
-                            onChange={(e) => handleInputChange(record.id, 'cost', e.target.value)}
-                          />
-                        </div>
-                        {isFieldInvalid(record, 'cost') && <p className="text-[10px] font-bold text-rose-600">Maliyet tutarı zorunludur.</p>}
-                      </div>
-
-                      {/* İŞLEM ÖZETİ */}
-                      <div className="space-y-1.5 md:col-span-2">
-                        <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide">
-                          Yapılan İşlem Özeti <span className="text-rose-600">*</span>
-                        </label>
-                        <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
-                          isFieldInvalid(record, 'summary') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
-                        }`}>
-                          <input 
-                            type="text" 
-                            placeholder="Örn: Triger seti ve periyodik sıvı bakımları yenilendi." 
-                            value={record.summary || ''} 
-                            maxLength={120}
-                            onBlur={() => handleFieldBlur(record.id, 'summary')}
-                            className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800"
-                            onChange={(e) => handleInputChange(record.id, 'summary', e.target.value)}
-                          />
-                        </div>
-                        {isFieldInvalid(record, 'summary') && <p className="text-[10px] font-bold text-rose-600">İşlem açıklaması zorunludur.</p>}
-                      </div>
-
-                    </div>
-
-                    {/* KOŞULLU BİR SONRAKİ BAKIM KM ALANI */}
-                    {record.service_type === 'Periyodik Bakım' && (
-                      <div className="space-y-1.5 pt-1">
-                        <label className="text-[11px] font-extrabold text-indigo-600 uppercase tracking-wide block">
-                          Bir Sonraki Yağ Değişim Kilometresi (KM)
-                        </label>
-                        <div className="border border-indigo-200 rounded-xl bg-indigo-50/30 flex items-center h-11 px-3">
-                          <input 
-                            type="text" 
-                            placeholder="Örn: 135.000 (Gelecek Bakım Hatırlatıcısı İçin)" 
-                            value={record.next_service_km || ''} 
-                            maxLength={11}
-                            className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 font-mono tracking-wide"
-                            onChange={(e) => handleInputChange(record.id, 'next_service_km', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* FATURA YÜKLEME ALANI */}
-                    <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                      <span className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wide block">
-                        Servis Makbuzu / Faturası <span className="text-slate-400 font-normal font-mono">(Opsiyonel - %95+ Güven Skoru)</span>
-                      </span>
-
-                      <input 
-                        type="file" 
-                        accept="image/*,application/pdf" 
-                        id={`invoice-${record.id}`} 
-                        className="hidden"
-                        onChange={(e) => handleInvoiceUpload(record.id, e.target.files[0])}
-                      />
-
-                      <label 
-                        htmlFor={`invoice-${record.id}`}
-                        className={`w-full border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all ${
-                          !record.invoice_file ? 'bg-slate-50 border-slate-200 hover:border-indigo-400' : 'bg-emerald-50/50 border-emerald-500'
-                        }`}
-                      >
-                        {!record.invoice_file ? (
-                          <div className="flex items-center gap-2 text-indigo-600">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                            </svg>
-                            <span className="text-xs font-bold">Servis Faturası veya Makbuz Görseli Yükle</span>
+                              {!record.invoice_file ? (
+                                <div className="flex items-center gap-2 text-indigo-600">
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                  </svg>
+                                  <span className="text-xs font-bold">Servis Faturası veya Makbuz Görseli Yükle</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
+                                  <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center font-extrabold text-[9px]">
+                                    ✓
+                                  </span>
+                                  <span>Fatura Belgesi Bağlandı:</span>
+                                  <span className="font-mono font-semibold text-slate-600 truncate max-w-xs">
+                                    {record.invoice_file.name}
+                                  </span>
+                                </div>
+                              )}
+                            </label>
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
-                            <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center font-extrabold text-[9px]">
-                              ✓
-                            </span>
-                            <span>Fatura Belgesi Bağlandı:</span>
-                            <span className="font-mono font-semibold text-slate-600 truncate max-w-xs">
-                              {record.invoice_file.name}
-                            </span>
-                          </div>
-                        )}
-                      </label>
-                    </div>
 
-                  </div>
-                )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
 
-          {/* DİNAMİK YENİ BAKIM KAYDI EKLEME BUTONU */}
-          {activeRecords.length > 0 && (
-            <button
-              type="button" 
-              onClick={addNewRecord}
-              className="w-full py-3.5 bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200 text-indigo-700 font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              <span>Yeni Bir Servis / Bakım Kaydı Ekle</span>
-            </button>
+              {/* 3. KATMAN - PANEL B: BAĞIMSIZ BEYAZ "YENİ KAYIT EKLE" KART BUTONU */}
+              <button
+                type="button" 
+                onClick={addNewRecord}
+                className="w-full py-4 bg-white hover:bg-slate-50/80 border border-slate-200/90 text-indigo-600 hover:text-indigo-700 font-extrabold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs hover:border-slate-300"
+              >
+                <div className="w-5 h-5 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm shrink-0">
+                  +
+                </div>
+                <span>Yeni Bir Servis / Bakım Kaydı Ekle</span>
+              </button>
+
+            </div>
           )}
 
         </div>
