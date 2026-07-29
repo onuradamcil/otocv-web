@@ -1,7 +1,7 @@
 // =========================================================================
-// OTO-CV İLAN VERME SİHİRBAZI: MİMARİ ORKESTRA ŞEFİ (CreateListingWizard.jsx)
-// İşlev: Adım takibi (Step 1-2-3), Küresel Yapışkan Header, Köşeli Progress Bar,
-//        Katı Form Validasyonları, Supabase JSONB Draft Yönetimi ve Yayınlama.
+// OTO-CV İLAN & GARAJ SİHİRBAZI: MİMARİ ORKESTRA ŞEFİ (CreateListingWizard.jsx)
+// İşlev: 4 Adımlı Master Takip (Step 1-2-3-4), Yapışkan Header, Canlı Progress,
+//        Zırhlı Validasyonlar, Supabase Draft Yönetimi ve Tescil Kaydı.
 // =========================================================================
 
 'use client';
@@ -10,11 +10,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../../lib/supabase';
 import Step1VehicleAndPhotos from './Step1VehicleAndPhotos';
 import Step2ListingDetails from './Step2ListingDetails';
-import Step3PreviewAndPublish from './Step3PreviewAndPublish';
+import Step3MedicalHistory from './Step3MedicalHistory';
+import Step4PreviewAndPublish from './Step4PreviewAndPublish';
 
 export default function CreateListingWizard({ onBack, onSuccess, user }) {
   // =========================================================================
-  // 1. BLOK: AKILLI STEP TAKİBİ VE GLOBAL FORM STATE'İ
+  // 1. BLOK: AKILLI STEP TAKİBİ VE GLOBAL FORM STATE'İ (4 ADIMLI MASTER)
   // =========================================================================
   
   const [currentStep, setCurrentStep] = useState(1);
@@ -30,7 +31,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
   // TÜM İLAN SİHİRBAZININ MERKEZİ VERİ HAFIZASI
   const [formData, setFormData] = useState({
-    // 1. Adım Verileri
+    // 1. Adım Verileri (Katalog, Medya, Tescil/Takvim)
     photos: [],
     selectedCategory: null,
     selectedYear: null,
@@ -40,16 +41,21 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     selectedModel: null,
     selectedPackage: null,
     isFinalConfirmed: false,
-
-    // 2. Adım Verileri
-    title: '',
-    price: '',
+    plate: '',
+    plate_number: '',
     mileage: '',
+    km: '',
+    traffic_insurance_end_date: '',
+    kasko_end_date: '',
+    inspection_end_date: '',
+    registration_file: null,
+
+    // 2. Adım Verileri (Vitrin Başlığı, Detaylar, Ekspertiz, AI Özeti)
+    title: '',
     transmission: 'Otomatik',
     bodyType: 'Sedan',
     color: null,
     vehicleStatus: 'İkinci El',
-    plate: '',
     warranty: 'Hayır',
     swap: 'Hayır',
     city: 'İstanbul',
@@ -59,26 +65,37 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     isFullyOriginal: false,
     damageReport: {},
     selectedFeatures: [],
-    description: ''
+    description: '',
+
+    // 3. Adım Verileri (Bakım & Medikal Sicil Kayıtları)
+    service_records: [],
+
+    // 4. Adım Verileri (Final Onay & Vitrin Tercihi)
+    isLegalConfirmed: false,
+    isVinConfirmed: false,
+    isPublicShowcase: true
   });
 
   const updateFormData = (fields) => {
     setFormData(prev => ({ ...prev, ...fields }));
   };
 
-  // Step 2 Çocuk bileşenin doğrulama fonksiyonunu yukarıdan tetiklemek için ref
+  // Çocuk bileşenlerin doğrulama fonksiyonlarını yukarıdan tetiklemek için ref'ler
   const step2Ref = useRef(null);
+  const step3Ref = useRef(null);
 
   // =========================================================================
-  // 📊 2. BLOK: KÜRESEL İLERLEME SENSÖRÜ (FOTOĞRAF ENTEGRELİ CANLI PROGRESS)
+  // 📊 2. BLOK: KÜRESEL İLERLEME SENSÖRÜ (4 ADIM BAZLI CANLI PROGRESS)
   // =========================================================================
 
   const calculateGlobalProgress = () => {
     let progress = 0;
 
-    // --- STEP 1 KATKISI (Fotoğraf dahil - Maksimum %33.3) ---
+    // --- STEP 1 KATKISI (Maksimum %25) ---
     const hasPhotos = Array.isArray(formData.photos) && formData.photos.length > 0;
-    
+    const activePlate = formData.plate || formData.plate_number;
+    const activeKm = formData.mileage || formData.km;
+
     const step1Fields = [
       hasPhotos,
       !!formData.selectedCategory,
@@ -88,35 +105,40 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       !!formData.selectedSeries,
       !!formData.selectedModel,
       !!formData.selectedPackage,
-      !!formData.isFinalConfirmed
+      !!formData.isFinalConfirmed,
+      !!activePlate && activePlate.trim().length >= 7,
+      !!activeKm && activeKm.toString().trim().length > 0,
+      !!formData.traffic_insurance_end_date && formData.traffic_insurance_end_date.length === 10,
+      !!formData.inspection_end_date && formData.inspection_end_date.length === 10
     ];
     
     const filledStep1 = step1Fields.filter(Boolean).length;
-    const step1Ratio = filledStep1 / step1Fields.length;
-    progress += step1Ratio * 33.3;
+    progress += (filledStep1 / step1Fields.length) * 25;
 
-    // --- STEP 2 KATKISI (Maksimum %33.3) ---
+    // --- STEP 2 KATKISI (Maksimum %25) ---
     if (currentStep >= 2) {
       const descText = (formData.description || '').replace(/<[^>]*>/g, '').trim();
       const step2Validations = [
         !!formData.title && formData.title.trim() !== '',
-        !!formData.price && formData.price.trim() !== '',
-        !!formData.mileage && formData.mileage.trim() !== '',
         !!formData.transmission && formData.transmission !== 'Seçiniz',
         !!formData.bodyType && formData.bodyType !== 'Seçiniz',
         !!formData.vehicleStatus && formData.vehicleStatus !== 'Seçiniz',
-        !!formData.plate && formData.plate.trim() !== '',
         !!formData.city && formData.city !== 'İl Seçiniz' && formData.city !== '',
         !!formData.district && formData.district !== 'İlçe Seçiniz' && formData.district !== '',
         descText.length >= 20
       ];
       const filledStep2 = step2Validations.filter(Boolean).length;
-      progress += (filledStep2 / step2Validations.length) * 33.3;
+      progress += (filledStep2 / step2Validations.length) * 25;
     }
 
-    // --- STEP 3 KATKISI (Maksimum %33.4) ---
-    if (currentStep === 3) {
-      progress = 90;
+    // --- STEP 3 KATKISI (Maksimum %25) ---
+    if (currentStep >= 3) {
+      progress += 25;
+    }
+
+    // --- STEP 4 KATKISI (Maksimum %25) ---
+    if (currentStep === 4) {
+      progress += 25;
     }
 
     return Math.min(Math.round(progress), 100);
@@ -258,12 +280,9 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     const descText = (formData.description || '').replace(/<[^>]*>/g, '').trim();
     return (
       !!formData.title && formData.title.trim() !== '' &&
-      !!formData.price && formData.price.trim() !== '' &&
-      !!formData.mileage && formData.mileage.trim() !== '' &&
       !!formData.transmission && formData.transmission !== 'Seçiniz' &&
       !!formData.bodyType && formData.bodyType !== 'Seçiniz' &&
       !!formData.vehicleStatus && formData.vehicleStatus !== 'Seçiniz' &&
-      !!formData.plate && formData.plate.trim() !== '' &&
       !!formData.city && formData.city !== 'İl Seçiniz' && formData.city !== '' &&
       !!formData.district && formData.district !== 'İlçe Seçiniz' && formData.district !== '' &&
       descText.length >= 20
@@ -286,11 +305,22 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       }
 
       if (!isStep2Valid) {
-        return; // Hata varsa KESİNLİKLE Adım 3'e geçme!
+        return; // Hata varsa Adım 3'e GEÇME!
       }
     }
 
-    const nextStep = Math.min(currentStep + 1, 3);
+    // 📌 STEP 3 GEÇİŞ KONTROLÜ
+    if (currentStep === 3) {
+      let isStep3Valid = true;
+      if (step3Ref.current?.handleNextWithValidation) {
+        isStep3Valid = step3Ref.current.handleNextWithValidation();
+      }
+      if (!isStep3Valid) {
+        return; // Hata varsa Adım 4'e GEÇME!
+      }
+    }
+
+    const nextStep = Math.min(currentStep + 1, 4);
     setCurrentStep(nextStep);
     saveDraftToDatabase(nextStep, formData);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -303,14 +333,23 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 🎯 STEP 1 KİLİT ŞARTI: Paket seçilmiş olmalı VE "Eşleşen Araç Künyesi" tıklanmış olmalı!
-  const isStep1Valid = !!formData.selectedBrand && 
+  // 🎯 STEP 1 KİLİT ŞARTI (Fotoğraf, Katalog, Plaka/KM, Sigorta, Muayene)
+  const activePlate = formData.plate || formData.plate_number;
+  const activeKm = formData.mileage || formData.km;
+  const hasPhotos = Array.isArray(formData.photos) && formData.photos.length > 0;
+
+  const isStep1Valid = hasPhotos &&
+                       !!formData.selectedBrand && 
                        !!formData.selectedSeries && 
                        !!formData.selectedModel && 
                        !!formData.selectedPackage && 
-                       !!formData.isFinalConfirmed;
+                       !!formData.isFinalConfirmed &&
+                       !!activePlate && activePlate.trim().length >= 7 &&
+                       !!activeKm && activeKm.toString().trim().length > 0 &&
+                       !!formData.traffic_insurance_end_date && formData.traffic_insurance_end_date.length === 10 &&
+                       !!formData.inspection_end_date && formData.inspection_end_date.length === 10;
 
-  // 🎯 STEP 2 KİLİT ŞARTI (SİZİNLE EŞ ZAMANLI SENKRONİZE):
+  // 🎯 STEP 2 KİLİT ŞARTI
   const getCleanText = (str) => {
     if (!str) return '';
     return str
@@ -323,21 +362,26 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   const descText = getCleanText(formData.description);
   const isStep2Valid = 
     !!formData.title && formData.title.trim() !== '' &&
-    !!formData.price && formData.price.trim() !== '' &&
-    !!formData.mileage && formData.mileage.trim() !== '' &&
     !!formData.transmission && formData.transmission !== 'Seçiniz' &&
     !!formData.bodyType && formData.bodyType !== 'Seçiniz' &&
     !!formData.vehicleStatus && formData.vehicleStatus !== 'Seçiniz' &&
-    !!formData.plate && formData.plate.trim() !== '' &&
     !!formData.city && formData.city !== 'İl Seçiniz' && formData.city !== '' &&
     !!formData.district && formData.district !== 'İlçe Seçiniz' && formData.district !== '' &&
     descText.length >= 20;
+
+  // 🎯 STEP 3 KİLİT ŞARTI (Servis kayıtları geçerli mi veya boş mu?)
+  const activeRecords = formData.service_records || [];
+  const isStep3Valid = activeRecords.length === 0 || activeRecords.every(rec => {
+    const isEntirelyEmpty = !rec.shop_name?.trim() && !rec.km && !rec.cost && !rec.summary && !rec.service_date;
+    if (isEntirelyEmpty) return true;
+    return !!rec.service_type && rec.shop_name?.trim().length > 0 && !!rec.km && !!rec.cost && rec.summary?.trim().length > 0 && rec.service_date?.trim().length === 10 && !rec.date_error;
+  });
 
   return (
     <div className="min-h-screen bg-[#F2F4F7] text-slate-900 select-none font-sans antialiased relative">
       
       {/* ---------------------------------------------------------------------
-          4.1 TOP LOGO VE STEP SENSÖRÜ BARI
+          4.1 TOP LOGO VE STEP SENSÖRÜ BARI (4 ADIM)
          --------------------------------------------------------------------- */}
       <div className="relative z-20 bg-white border-b border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.04)]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
@@ -352,9 +396,9 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
           {/* SİHİRBAZ ADIM SAYACI ROZETİ */}
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">
-            <span className="text-xs font-semibold text-slate-500">Adım {currentStep} / 3</span>
+            <span className="text-xs font-semibold text-slate-500">Adım {currentStep} / 4</span>
             <div className="flex gap-1">
-              {[1, 2, 3].map(step => (
+              {[1, 2, 3, 4].map(step => (
                 <div 
                   key={step} 
                   className={`w-2 h-2 rounded-full transition-colors ${
@@ -373,35 +417,38 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       <div className="sticky top-0 z-30 bg-white border-b border-slate-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
           
-          {/* DINAMIK BAŞLIK VE AÇIKLAMA */}
+          {/* DİNAMİK BAŞLIK VE AÇIKLAMA */}
           <div className="space-y-1">
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none">
-              {currentStep === 1 && "Ücretsiz İlan Ver"}
-              {currentStep === 2 && "İlan Bilgileri"}
-              {currentStep === 3 && "İlan Ön İzleme"}
+              {currentStep === 1 && "Garaja Araç Ekle & Tescil"}
+              {currentStep === 2 && "Araç Detayları & Ekspertiz"}
+              {currentStep === 3 && "Servis & Bakım Geçmişi"}
+              {currentStep === 4 && "OTO.CV Karne Ön İzleme & Tescil"}
             </h1>
             <p className="text-xs text-slate-600 font-medium">
-              <span className="text-rose-600 font-bold">*</span> ile işaretli zorunlu alanları doldurduktan sonra ilan verebilirsin.
+              <span className="text-rose-600 font-bold">*</span> ile işaretli zorunlu alanları doldurarak dijital karnenizi oluşturun.
             </p>
           </div>
 
           {/* DEVAM ET BUTONU & KÖŞELİ PROGRESS BAR */}
           <div className="flex flex-col items-end gap-1.5 shrink-0">
-            {currentStep < 3 && (
+            {currentStep < 4 && (
               <button 
                 disabled={
                   (currentStep === 1 && !isStep1Valid) ||
-                  (currentStep === 2 && !isStep2Valid)
+                  (currentStep === 2 && !isStep2Valid) ||
+                  (currentStep === 3 && !isStep3Valid)
                 }
                 onClick={handleNextStep}
                 className="w-64 sm:w-72 bg-rose-500 hover:bg-rose-600 disabled:bg-[#FFF5F7] disabled:text-[#FFC2CB] text-white font-extrabold text-xs sm:text-sm py-2.5 sm:py-3 px-5 rounded-md transition-all shadow-xs disabled:cursor-not-allowed text-center cursor-pointer active:scale-98"
               >
-                {currentStep === 1 && "Devam Et: İlan Detayları ›"}
-                {currentStep === 2 && "Devam Et: Ön İzleme ›"}
+                {currentStep === 1 && "Devam Et: Araç Detayları ›"}
+                {currentStep === 2 && "Devam Et: Servis Geçmişi ›"}
+                {currentStep === 3 && "Devam Et: Ön İzleme & Tescil ›"}
               </button>
             )}
 
-            {/* 🎯 SS1 BİREBİR: KÖŞELİ, DOLGUN, DIŞ BOŞLUĞU OLMAYAN CANLI GRADYANLI BAR */}
+            {/* KÖŞELİ, CANLI GRADYANLI BAR */}
             <div className="w-64 sm:w-72 h-3 bg-slate-200/80 rounded-sm overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 rounded-sm transition-all duration-300"
@@ -437,9 +484,22 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         )}
 
         {currentStep === 3 && (
-          <Step3PreviewAndPublish
+          <Step3MedicalHistory
+            ref={step3Ref}
             formData={formData}
+            updateFormData={updateFormData}
+            onNext={handleNextStep}
             onBack={handlePrevStep}
+            selectedYear={formData.selectedYear}
+          />
+        )}
+
+        {currentStep === 4 && (
+          <Step4PreviewAndPublish
+            formData={formData}
+            updateFormData={updateFormData}
+            onBack={handlePrevStep}
+            user={user}
             onSuccess={async () => {
               await handleDiscardDraft();
               if (onSuccess) onSuccess();
@@ -471,10 +531,10 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
               <div className="space-y-1">
                 <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
-                  Yarım kalan ilanınız var
+                  Yarım kalan kaydınız var
                 </h3>
                 <p className="text-sm text-slate-500 font-normal leading-relaxed">
-                  İlan vermeye kaldığınız yerden devam etmek ister misiniz?
+                  Araç karnenizi oluşturmaya kaldığınız yerden devam etmek ister misiniz?
                 </p>
               </div>
             </div>
@@ -504,7 +564,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 onClick={handleDiscardDraft}
                 className="w-full bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center"
               >
-                Yeni bir ilan ver
+                Sıfırdan Başla
               </button>
               
               <button
@@ -512,7 +572,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 onClick={handleResumeDraft}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center shadow-sm"
               >
-                Bu ilanla devam et
+                Kayıtla Devam Et
               </button>
             </div>
 
