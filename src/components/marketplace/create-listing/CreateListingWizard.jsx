@@ -711,8 +711,8 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         </div>
       </div>
 
-      {/* ADIM BİLEŞENLERİ */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
+      {/* ADIM BİLEŞENLERİ KAPSAYICISI (DİNAMİK GENİŞLİK SENSÖRLÜ) */}
+      <div className={`${currentStep === 4 ? 'max-w-[1280px]' : 'max-w-5xl'} mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6 transition-all duration-300`}>
         {currentStep === 1 && (
           <Step1VehicleAndPhotos
             formData={formData}
@@ -750,7 +750,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
             onBack={handlePrevStep}
             user={user}
             onSuccess={async () => {
-              // 📌 STEP 4 SONRASI FİNAL TESCİL / YAYINLAMA LOADING TETİKLEYİCİSİ
               setStepLoader({
                 isLoading: true,
                 title: "Araç Karneniz Tescilleniyor",
@@ -758,7 +757,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               });
 
               try {
-                // İlan onaylandığı için deleteStoragePhotos = false
                 await handleDiscardDraft(false);
                 if (onSuccess) await onSuccess();
               } catch (err) {
