@@ -1,7 +1,7 @@
 // =========================================================================
 // OTO-CV SİHİRBAZI: MÜHÜRLÜ KURUMSAL ŞOVRUM & DETAYLI İLAN PANELLERİ
-// İşlev: Sahibinden / Arabam.com Birebir Mizanpajı - Dinamik Sticky Header,
-//        Aktif Bölüm Sensörü (ScrollSpy) ve Bağımsız Akerdiyon Servis Paneli.
+// İşlev: Sahibinden / Arabam.com Birebir Mizanpajı - İki Katmanlı Sticky Header,
+//        Dinamik Donanım Matrisi, Statik SVG ve Akıllı Bakım Sicili Paneli.
 // =========================================================================
 
 'use client';
@@ -38,6 +38,74 @@ const CAR_PARTS = [
   { id: 'fender_rear_right', name: 'Sağ Arka Çamurluk' },
 ];
 
+// 📋 MASTER DONANIM KATALOĞU
+const FEATURE_CATALOG = [
+  {
+    category: 'Güvenlik',
+    items: [
+      'ABS',
+      'ESP / VSA (Elektronik Denge)',
+      'Hava Yastığı (Sürücü)',
+      'Hava Yastığı (Yolcu)',
+      'Hava Yastığı (Yan)',
+      'Hava Yastığı (Tavan)',
+      'Isofix',
+      'Yokuş Kalkış Desteği',
+      'Lastik Basınç Kontrolü',
+      'Merkezi Kilit',
+      'Kör Nokta Uyarısı',
+      'Şerit Takip Sistemi',
+      'Fren Yardım Sistemi (Brake Assist)'
+    ]
+  },
+  {
+    category: 'İç Donanım',
+    items: [
+      'Klima (Analog)',
+      'Klima (Dijital)',
+      'Deri / Kumaş Koltuk',
+      'Elektrikli Ön Camlar',
+      'Elektrikli Arka Camlar',
+      'Ön Kol Dayama',
+      'Soğutmalı Torpido',
+      'Start / Stop',
+      'Yol Bilgisayarı',
+      'Derinlik ve Yükseklik Ayarlı Direksiyon',
+      'Koltuk Isıtma',
+      'Hayalet Ekran'
+    ]
+  },
+  {
+    category: 'Dış Donanım',
+    items: [
+      'Yan Aynalar - Isıtmalı',
+      'Yan Aynalar - Otomatik Kararan',
+      'Yan Aynalar - Elektrikli Katlanır',
+      'LED Matrix Farlar',
+      'Far Sensörü',
+      'Yağmur Sensörü',
+      'Park Sensörü (Ön)',
+      'Park Sensörü (Arka)',
+      'Geri Görüş Kamerası',
+      'Panoramik Cam Tavan / Sunroof',
+      'Alaşım Jant'
+    ]
+  },
+  {
+    category: 'Multimedya & Konfor',
+    items: [
+      'Hız Sabitleme Sistemi (Cruise Control)',
+      'Adaptif Hız Sabitleyici',
+      'Kablosuz Şarj',
+      'Bluetooth / Telefon Bağlantısı',
+      'Dokunmatik Multimedya Ekranı',
+      'Elektrikli Bagaj Kapama',
+      'Keyless Go (Anahtarsız Çalıştırma)',
+      'Navigasyon'
+    ]
+  }
+];
+
 // Görsel Sensörü (Bozuk Link Temizleyici)
 const parseSafeImageUrls = (rawPhotos) => {
   if (!rawPhotos) return ['/placeholder-car.jpg'];
@@ -65,27 +133,66 @@ const parseSafeImageUrls = (rawPhotos) => {
   return parsed.length > 0 ? parsed : ['/placeholder-car.jpg'];
 };
 
+// ⏱️ GİZLİLİK ODAKLI TARİH KONTROL SENSÖRÜ
+const getDynamicStatus = (dateInput, validLabel = 'Geçerli') => {
+  if (!dateInput) return { text: 'Belirtilmemiş', class: 'text-slate-500 font-medium' };
+
+  const dateStr = String(dateInput).trim();
+  const today = new Date();
+
+  if (/^\d{4}$/.test(dateStr)) {
+    const yearVal = parseInt(dateStr, 10);
+    if (yearVal >= today.getFullYear()) {
+      return { text: validLabel, class: 'text-emerald-700 font-bold' };
+    }
+    return { text: 'Süresi Dolmuş', class: 'text-rose-600 font-bold' };
+  }
+
+  let parsedDate;
+  if (dateStr.includes('/')) {
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const year = parseInt(parts[2], 10);
+      parsedDate = new Date(year, month, day);
+    }
+  } else {
+    parsedDate = new Date(dateStr);
+  }
+
+  if (!parsedDate || isNaN(parsedDate.getTime())) {
+    return { text: 'Belirtilmemiş', class: 'text-slate-500 font-medium' };
+  }
+
+  if (parsedDate >= today) {
+    return { text: validLabel, class: 'text-emerald-700 font-bold' };
+  } else {
+    return { text: 'Süresi Dolmuş', class: 'text-rose-600 font-bold' };
+  }
+};
+
 // =========================================================================
 // 🚀 ANA BİLEŞEN: SINGLE SHOWROOM PANEL
 // =========================================================================
 export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }) {
-  // Görsel ve Galeri State'leri
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [thumbPage, setThumbPage] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
   
-  // İletişim, Sensör ve Scroll State'leri
   const [showPhone, setShowPhone] = useState(false);
   const [activeSection, setActiveSection] = useState('sec-description');
   const [isSticky, setIsSticky] = useState(false);
-  const [openAccordionIdx, setOpenAccordionIdx] = useState(0); // Ayrı Bakım Paneli Akerdiyonu
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  
+  // Akerdiyon ve Fatura Lightbox State'i
+  const [expandedTileIndex, setExpandedTileIndex] = useState(0);
+  const [invoiceModalUrl, setInvoiceModalUrl] = useState(null);
 
-  // Sticky Bar Tespiti İçin Sensör Referansı
   const navRef = useRef(null);
 
   const imageList = parseSafeImageUrls(formData.photos);
-  const activePlate = formData.plate || formData.plate_number || '06 ONR 997';
   const activeKm = formData.mileage || formData.km || '0';
   const otocvScore = formData.otocv_score || 92;
 
@@ -94,6 +201,17 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
   const memberSince = 'Mart 2026';
   const damageReport = formData.damage_report || formData.damageReport || {};
 
+  // Kullanıcının Seçtiği Donanımlar
+  const userSelectedFeatures = Array.isArray(formData.selectedFeatures) 
+    ? formData.selectedFeatures 
+    : (Array.isArray(formData.features) ? formData.features : []);
+
+  // Kataloğumuzda olmayan ekstra donanımları yakalama
+  const catalogFlatItems = FEATURE_CATALOG.flatMap(cat => cat.items.map(i => String(i).trim().toLowerCase()));
+  const extraFeatures = userSelectedFeatures.filter(
+    sf => !catalogFlatItems.includes(String(sf).trim().toLowerCase())
+  );
+
   const THUMBNAILS_PER_PAGE = 10;
   const totalPages = Math.ceil(imageList.length / THUMBNAILS_PER_PAGE);
   const currentThumbnails = imageList.slice(
@@ -101,24 +219,48 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
     (thumbPage + 1) * THUMBNAILS_PER_PAGE
   );
 
+  // Servis Kayıtları ve Tutar Hesabı
+  const rawServiceRecords = formData.service_records || formData.service_history || [];
+  
+  const totalMaintenanceCost = rawServiceRecords.reduce((sum, item) => {
+    let costVal = 0;
+    if (typeof item.cost === 'number') {
+      costVal = item.cost;
+    } else if (typeof item.cost === 'string') {
+      const cleanCost = item.cost.replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '');
+      costVal = parseFloat(cleanCost) || 0;
+    }
+    return sum + costVal;
+  }, 0);
+
+  const formattedTotalCost = `${totalMaintenanceCost.toLocaleString('tr-TR')} TL`;
+
   // =========================================================================
-  // 📡 SCROLL INTERSECTION OBSERVER (Aktif Sekme ve Sticky Kontrolü)
+  // ⚙️ TEK VE TEMİZ SCROLL KONTROLCÜSÜ (Sticky Header, ScrollToTop & Observer)
   // =========================================================================
   useEffect(() => {
-    // 1. Sticky Header Tespiti
     const handleScroll = () => {
+      // 1. Sticky Bar Tespiti
       if (navRef.current) {
         const top = navRef.current.getBoundingClientRect().top;
-        setIsSticky(top <= 1); // Sentinel div 1px yukarı ulaştığında sticky tetiklenir
+        setIsSticky(top <= 1);
+      }
+
+      // 2. Yüzen Yukarı Çık Butonunun Tespiti (400px kaydırılınca görünür)
+      if (window.scrollY > 400) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
       }
     };
+
     window.addEventListener('scroll', handleScroll);
 
-    // 2. Hangi Bölümün Okunduğunun Tespiti (Sekme alt çizgisi için)
-    const sections = ['sec-description', 'sec-damage', 'sec-info', 'sec-features'];
+    // Section Observer (ScrollSpy)
+    const sections = ['sec-description', 'sec-damage', 'sec-info', 'sec-features', 'sec-service'];
     const observerOptions = {
       root: null,
-      rootMargin: '-120px 0px -50% 0px', // Header boyutu hesaba katılarak kalibre edildi
+      rootMargin: '-110px 0px -40% 0px',
       threshold: 0
     };
 
@@ -141,12 +283,14 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
     };
   }, []);
 
-  // Menüden Tıklanınca Yumuşak Kaydırma (Smooth Scroll)
   const scrollToSection = (sectionId) => {
     setActiveSection(sectionId);
+    if (sectionId === 'sec-service') {
+      setExpandedTileIndex(0);
+    }
     const el = document.getElementById(sectionId);
     if (el) {
-      const yOffset = -70; // Sticky header'ın altında kalmaması için ofset
+      const yOffset = -110;
       const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
@@ -164,31 +308,74 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
 
   const groupedParts = getGroupedParts();
 
-  // Örnek Servis Verisi
-  const serviceRecords = formData.service_history || [
-    {
-      date: '14 Ocak 2026', km: '120.000 KM', title: 'Ağır Bakım & Triger',
-      center: 'Oto-CV Onaylı', details: 'Motor yağı, filtreler, triger seti değişti.'
-    },
-    {
-      date: '20 Haziran 2025', km: '105.000 KM', title: 'Sıvı Bakımları',
-      center: 'Yetkili Servis', details: 'Castrol 5W-30 motor yağı ve fren hidroliği.'
-    }
-  ];
-
   return (
-    <div className="w-full max-w-[1280px] mx-auto font-sans antialiased select-none">
+    <div className="w-full max-w-[1280px] mx-auto font-sans antialiased select-none space-y-4 relative">
       
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      {/* 📜 2. ADIM: ARKA PLAN ÇAPRAZ FİLİGRAN (WATERMARK) KATMANI */}
+      <div className="absolute inset-0 pointer-events-none select-none z-10 overflow-hidden flex flex-col justify-around opacity-[0.035] space-y-32 py-20">
+        <div className="rotate-[-25deg] whitespace-nowrap text-slate-900 font-black text-4xl sm:text-6xl tracking-widest uppercase">
+          OTO.CV TESCİL ÖN İZLEME • RESMİ GEÇERLİLİĞİ YOKTUR • OTO.CV TESCİL ÖN İZLEME
+        </div>
+        <div className="rotate-[-25deg] whitespace-nowrap text-slate-900 font-black text-4xl sm:text-6xl tracking-widest uppercase">
+          OTO.CV TESCİL ÖN İZLEME • RESMİ GEÇERLİLİĞİ YOKTUR • OTO.CV TESCİL ÖN İZLEME
+        </div>
+        <div className="rotate-[-25deg] whitespace-nowrap text-slate-900 font-black text-4xl sm:text-6xl tracking-widest uppercase">
+          OTO.CV TESCİL ÖN İZLEME • RESMİ GEÇERLİLİĞİ YOKTUR • OTO.CV TESCİL ÖN İZLEME
+        </div>
+        <div className="rotate-[-25deg] whitespace-nowrap text-slate-900 font-black text-4xl sm:text-6xl tracking-widest uppercase">
+          OTO.CV TESCİL ÖN İZLEME • RESMİ GEÇERLİLİĞİ YOKTUR • OTO.CV TESCİL ÖN İZLEME
+        </div>
+      </div>
+      
+      {/* 🛡️ KURUMSAL DİJİTAL KARNE ÖN İZLEME & BİLGİ GÜNCELLEME BANTI */}
+      <div className="bg-slate-900 text-white rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md border border-slate-800 relative z-20 overflow-hidden">
         
-        {/* =========================================================================
-            🏛️ SOL ANA KONTEYNER (9 KOLON): PANEL 1, 2 VE 3 DİZİLİMİ
-           ========================================================================= */}
+        {/* Sol Taraf: Rozet, İkon ve Açıklama */}
+        <div className="flex items-center gap-3.5 z-10">
+          <div className="w-10 h-10 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0 shadow-inner">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="text-xs sm:text-sm font-extrabold tracking-tight text-white">
+                DİJİTAL KARNE ÖN İZLEME MODU
+              </h4>
+              <span className="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded">
+                Tescil Öncesi
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 font-normal leading-relaxed">
+              Bu ekran tescil öncesi canlı simülasyondur. Bilgilerde eksik veya düzeltme varsa önceki adımlara dönebilirsiniz.
+            </p>
+          </div>
+        </div>
+
+        {/* Sağ Taraf: Önceki Adıma Dön / Bilgileri Düzenle Butonu */}
+        <div className="w-full sm:w-auto shrink-0 z-10 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
+          <button
+            type="button"
+            onClick={onEdit || (() => window.history.back())}
+            className="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-white rounded-lg text-xs font-extrabold transition-all shadow-xs cursor-pointer flex items-center justify-center gap-2 border border-indigo-500/50"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+            </svg>
+            <span>Bilgileri Düzenle</span>
+          </button>
+        </div>
+
+      </div>
+
+      {/* 🏛️ 2 BAĞIMSIZ KURUMSAL PANEL ALANI */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start relative z-20">
+        
+        {/* SOL ANA KONTEYNER (9 KOLON) */}
         <div className="lg:col-span-9 space-y-5">
           
-          {/* =========================================================================
-              📦 PANEL 1: GALERİ, VİTRİN VE ARAÇ KÜNYESİ KARTI
-             ========================================================================= */}
+          {/* PANEL 1: GALERİ VE KÜNYE */}
           <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-2xs space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div className="space-y-1">
@@ -289,31 +476,26 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
                     <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Kasa Tipi</span><span className="text-slate-800 font-normal">{formData.bodyType || '-'}</span></div>
                     <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Motor Hacmi</span><span className="text-slate-800 font-normal">{formData.engineCapacity || '-'}</span></div>
                     <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Renk</span><span className="text-slate-800 font-normal">{formData.color?.name || formData.color || 'Gri'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Plaka</span><span className="font-mono text-slate-800 font-normal uppercase">{activePlate}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Plaka Durumu</span><span className="font-mono text-slate-800 font-normal uppercase">TR (Gizlenmiş)</span></div>
                     <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Sahiplik</span><span className="text-slate-800 font-normal">{formData.isFirstOwner || 'İlk Sahibi Değilim'}</span></div>
                     <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Tramer Kaydı</span><span className="text-emerald-600 font-medium">{formData.tramerStatus === 'Tramer Var' ? `${formData.tramerAmount} TL` : 'Tramer Yok'}</span></div>
                     <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Garanti / Takas</span><span className="text-slate-800 font-normal">{formData.warranty || 'Yok'} / {formData.swap || 'Hayır'}</span></div>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
 
-         {/* =========================================================================
-              📦 PANEL 2: TEK AKIŞLI DİJİTAL DETAYLAR KARTI (İKİ KATMANLI MODERN STICKY HEADER)
-             ========================================================================= */}
+          {/* PANEL 2: DETAYLAR KARTI (STICKY HEADER) */}
           <div className="bg-white border border-slate-200 rounded-md shadow-2xs relative">
             
-            {/* 📡 GÖRÜNMEZ SENSÖR (Bu çizgi ekranın en üstüne değdiğinde header sticky olur) */}
             <div ref={navRef} className="absolute -top-px left-0 w-full h-[1px] opacity-0 pointer-events-none" />
 
-            {/* 📌 YAPIŞKAN (STICKY TOP BANNER) - SS 2 BİREBİR TASARIM */}
             <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm flex flex-col w-full transition-all duration-300">
-              
-              {/* ÜST KATMAN: Araç Bilgisi ve Tescil (Sadece Sticky durumunda ortaya çıkar) */}
-              <div className={`w-full flex items-center justify-between px-5 transition-all duration-300 overflow-hidden bg-slate-50/50 ${isSticky ? 'h-[72px] border-b border-slate-200 opacity-100' : 'h-0 opacity-0 border-transparent'}`}>
+              <div className={`w-full flex items-center justify-between px-5 transition-all duration-300 overflow-hidden bg-slate-50/50 ${isSticky ? 'h-[64px] border-b border-slate-200 opacity-100' : 'h-0 opacity-0 border-transparent'}`}>
                 <div className="flex items-center gap-4">
-                  <img src={imageList[0]} alt="Kapak" className="w-[72px] h-12 object-cover rounded border border-slate-200 shadow-xs" />
+                  <img src={imageList[0]} alt="Kapak" className="w-[64px] h-10 object-cover rounded border border-slate-200 shadow-xs" />
                   <div className="flex flex-col">
                     <span className="text-sm font-extrabold text-slate-800 tracking-tight">
                       {formData.title || `${formData.selectedBrand?.name || ''} ${formData.selectedSeries?.name || ''} ${formData.selectedModel?.name || ''}`}
@@ -323,7 +505,6 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
                 </div>
               </div>
 
-              {/* ALT KATMAN: Modern Sekmeler (Klasik temiz, çizgisiz ve aralıklı görünüm) */}
               <div className="w-full flex items-center overflow-x-auto scrollbar-none px-5 bg-white">
                 {[
                   { id: 'sec-description', label: 'Açıklama' },
@@ -338,7 +519,7 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
                       key={tab.id}
                       type="button"
                       onClick={() => scrollToSection(tab.id)}
-                      className={`py-4 mr-6 sm:mr-8 text-[13px] font-bold transition-all cursor-pointer select-none whitespace-nowrap border-b-[3px] outline-none ${
+                      className={`py-3.5 mr-6 sm:mr-8 text-[13px] font-bold transition-all cursor-pointer select-none whitespace-nowrap border-b-[3px] outline-none ${
                         isActive
                           ? 'border-rose-600 text-rose-600'
                           : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -351,11 +532,11 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
               </div>
             </div>
 
-            {/* 📄 PANEL 2 İÇERİK BÖLÜMLERİ (TEK PARÇA AKIŞ) */}
+            {/* PANEL 2 İÇERİK BÖLÜMLERİ */}
             <div className="p-5 sm:p-7 space-y-12 divide-y divide-slate-100">
               
               {/* 1. BÖLÜM: AÇIKLAMA */}
-              <div id="sec-description" className="space-y-3 pt-2 scroll-mt-16">
+              <div id="sec-description" className="space-y-3 pt-2 scroll-mt-32">
                 <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                   <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
                   <span>Açıklama</span>
@@ -376,15 +557,13 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
               </div>
 
               {/* 2. BÖLÜM: BOYA, DEĞİŞEN VE TRAMER */}
-              <div id="sec-damage" className="space-y-5 pt-8 scroll-mt-16">
+              <div id="sec-damage" className="space-y-5 pt-8 scroll-mt-32">
                 <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                   <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
                   <span>Boya, Değişen ve Tramer</span>
                 </h3>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                  
-                  {/* SOL: KAPORTA SVG ŞEMASI (SALT OKUNUR STATİK AYNA) */}
                   <div className="lg:col-span-6 bg-slate-50/80 border border-slate-200/80 rounded-md p-4 flex flex-col items-center justify-center min-h-[360px] relative">
                     <div className="relative w-full max-w-[280px] h-[320px] flex items-center justify-center my-auto pointer-events-none select-none">
                       <svg version="1.1" viewBox="0 0 380 440" className="w-full h-full drop-shadow-xs">
@@ -416,7 +595,7 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
                               <path d="m95.64 100.03h-23.897s-10.743-1.3004-10.743 13.004v65.594s1.7069 8.7909 8.4843 8.7909h26.156s-8.5345-37.712 0-87.389z" fill={DAMAGE_STATUSES[damageReport['trunk'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
                               <path d="m126.16 111s-10.794 28.349-1.1547 64.501h63.658s8.7855-32.771 0-64.501h-62.503z" fill={DAMAGE_STATUSES[damageReport['roof'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
                               <path d="m361.78 111.14s0.050203-7.4385-2.6608-11.34c-2.711-3.9013-12.701-7.8026-12.701-7.8026s-2.9118 22.471 6.677 28.505c9.5888 6.034 8.6851-9.3631 8.6851-9.3631z" fill="#CBD5E1" fillRule="nonzero" />
-                              <path d="m361.78 179.77s0.050203-7.4385-2.6608 11.34-12.701 7.8026-12.701 7.8026-2.9118-22.471 6.677-28.505c9.5888-6.034 8.6851 9.3631 8.6851 9.3631z" fill="#CBD5E1" fillRule="nonzero" />
+                              <path d="m361.78 179.77s0.050203 7.4385-2.6608 11.34-12.701 7.8026-12.701 7.8026-2.9118-22.471 6.677-28.505c9.5888-6.034 8.6851 9.3631 8.6851 9.3631z" fill="#CBD5E1" fillRule="nonzero" />
                               <path d="m39.259 83.601c-4.2171-1.7166-8.6851-2.6009-13.254-2.6009h-17.822c-3.6648 0-6.7272 3.017-6.928 6.8142-0.80325 17.738-1.2551 36.256-1.2551 55.502v0.41614c0 19.402 0.45183 38.077 1.2551 55.918 0.15061 3.7973 3.213 6.8142 6.928 6.8142h17.822c4.5685 0 9.0366-0.88429 13.254-2.6009v-120.26z" stroke="#CBD5E1" strokeWidth="1.5" />
                               <path d="m36.941 86.497c-3.7652-1.6125-7.7313-2.4968-11.798-2.4968h-15.864c-3.2632 0-5.9742 2.8609-6.1248 6.5021-0.70284 16.958-1.1547 34.643-1.1547 53.005v0.41614c0 18.518 0.40162 36.36 1.1547 53.422 0.15061 3.6412 2.8616 6.5021 6.1248 6.5021h15.864c4.0664 0 8.0325-0.83228 11.798-2.4968v-114.85z" fill={DAMAGE_STATUSES[damageReport['rear_bumper'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
                             </g>
@@ -484,116 +663,350 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
               </div>
 
               {/* 3. BÖLÜM: ARAÇ BİLGİLERİ */}
-              <div id="sec-info" className="space-y-3 pt-8 scroll-mt-16">
-                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+              <div id="sec-info" className="space-y-4 pt-10 scroll-mt-32">
+                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2 mb-5">
                   <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
                   <span>Araç Bilgileri</span>
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div className="bg-slate-50 p-3 rounded border border-slate-200/80 flex justify-between">
-                    <span className="text-slate-500 font-medium">Ruhsat Tescil Tarihi</span>
-                    <span className="font-bold text-slate-900">{formData.registrationDate || '2025'}</span>
+
+                <div className="bg-white border border-slate-200 rounded-md shadow-2xs overflow-hidden">
+                  
+                  {/* GENEL BAKIŞ */}
+                  <div className="space-y-0.5 divide-y divide-slate-100">
+                    <div className="flex justify-between items-center py-2.5 px-4 bg-slate-50/50">
+                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-wider">GENEL BAKIŞ</span>
+                      <span className="text-[11px] font-black text-emerald-600 font-mono">%100 Tescilli</span>
+                    </div>
+
+                    {[
+                      { label: 'Model Yılı', value: formData.selectedYear },
+                      { label: 'Kilometre', value: `${activeKm} KM`, isMono: true },
+                      { label: 'Yakıt Tipi', value: formData.selectedFuel },
+                      { label: 'Vites Tipi', value: formData.transmission },
+                      { label: 'Kasa Tipi', value: formData.bodyType },
+                      { label: 'Renk', value: formData.color?.name || formData.color },
+                      { 
+                        label: 'Plaka Durumu', 
+                        value: 'TR (Gizlenmiş Tescil)', 
+                        isMono: true, 
+                        textClass: 'text-slate-600 font-semibold' 
+                      },
+                      { label: 'Sahiplik Durumu', value: formData.isFirstOwner === 'Evet' ? 'İlk Sahibi' : 'İlk Sahibi Değilim' },
+                      { 
+                        label: 'Tramer Hasar Kaydı', 
+                        value: formData.tramerStatus === 'Tramer Var' ? `${formData.tramerAmount} TL` : 'Tramer Yok', 
+                        textClass: formData.tramerStatus === 'Tramer Var' ? 'text-amber-700' : 'text-emerald-700 font-bold' 
+                      },
+                      { label: 'Takas Durumu', value: formData.swap },
+                    ].map((item, index) => (
+                      <div key={item.label} className={`flex justify-between items-baseline py-2.5 px-5 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>
+                        <span className="text-xs font-medium text-slate-600 w-2/5">{item.label}</span>
+                        <span className={`text-xs font-semibold ${item.textClass || 'text-slate-900'} ${item.isMono ? 'font-mono' : ''} text-right w-3/5 truncate`}>
+                          {item.value || 'Belirtilmemiş'}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                  <div className="bg-slate-50 p-3 rounded border border-slate-200/80 flex justify-between">
-                    <span className="text-slate-500 font-medium">Muayene Geçerlilik Tarihi</span>
-                    <span className="font-bold text-slate-900">{formData.inspectionDate || 'Belirtilmemiş'}</span>
+
+                  {/* TESCİL VE BELGE DURUMU */}
+                  <div className="space-y-0.5 divide-y divide-slate-100 border-t border-slate-200">
+                    <div className="flex justify-between items-center py-2.5 px-4 bg-slate-50/50 mt-0.5">
+                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-wider">TESCİL VE BELGE DURUMU</span>
+                    </div>
+
+                    {(() => {
+                      const rawInspection = formData.inspection_end_date || formData.inspectionDate;
+                      const rawInsurance = formData.traffic_insurance_end_date || formData.insuranceDate;
+                      const rawKasko = formData.kasko_end_date || formData.kaskoDate;
+
+                      const inspectionStatus = getDynamicStatus(rawInspection, 'Muayeneli');
+                      const insuranceStatus = getDynamicStatus(rawInsurance, 'Sigortalı');
+                      const kaskoStatus = getDynamicStatus(rawKasko, 'Kaskolu');
+
+                      return [
+                        { 
+                          label: 'Muayene Durumu', 
+                          value: inspectionStatus.text, 
+                          textClass: inspectionStatus.class 
+                        },
+                        { 
+                          label: 'Zorunlu Trafik Sigortası', 
+                          value: insuranceStatus.text, 
+                          textClass: insuranceStatus.class 
+                        },
+                        { 
+                          label: 'Kasko Durumu', 
+                          value: kaskoStatus.text, 
+                          textClass: kaskoStatus.class 
+                        },
+                        { label: 'Yedek Anahtar', value: formData.spareKey || 'Var' },
+                        { label: 'Garanti / İthalat Durumu', value: formData.warranty || 'Bayi Çıkışlı' },
+                      ].map((item, index) => (
+                        <div key={item.label} className={`flex justify-between items-baseline py-2.5 px-5 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>
+                          <span className="text-xs font-medium text-slate-600 w-2/5">{item.label}</span>
+                          <span className={`text-xs ${item.textClass || 'text-slate-900 font-semibold'} text-right w-3/5 truncate`}>
+                            {item.value}
+                          </span>
+                        </div>
+                      ));
+                    })()}
                   </div>
-                  <div className="bg-slate-50 p-3 rounded border border-slate-200/80 flex justify-between">
-                    <span className="text-slate-500 font-medium">Yedek Anahtar</span>
-                    <span className="font-bold text-slate-900">{formData.spareKey || 'Var'}</span>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded border border-slate-200/80 flex justify-between">
-                    <span className="text-slate-500 font-medium">İthalat / Garanti Status</span>
-                    <span className="font-bold text-slate-900">Bayi Çıkışlı</span>
-                  </div>
+
                 </div>
               </div>
 
-              {/* 4. BÖLÜM: DONANIM */}
-              <div id="sec-features" className="space-y-3 pt-8 scroll-mt-16">
+              {/* 4. BÖLÜM: DİNAMİK & KATEGORİZE EDİLMİŞ DONANIM MATRİSİ */}
+              <div id="sec-features" className="space-y-6 pt-8 scroll-mt-32">
                 <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                   <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
                   <span>Donanım Özellikleri</span>
                 </h3>
-                <div className="bg-slate-50 p-4 rounded-md border border-slate-200/80 space-y-3">
-                  <div className="space-y-2">
-                    <span className="text-xs font-bold text-slate-900 uppercase">Öne Çıkan Paket Donanımları</span>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      {['Hayalet Ekran', 'Panoramik Cam Tavan', 'Kör Nokta Uyarısı', 'Koltuk Isıtma', 'LED Matrix Farlar', 'Kablosuz Şarj', 'Şerit Takip'].map((feat, fIdx) => (
-                        <span key={fIdx} className="bg-white border border-slate-200 px-2.5 py-1 rounded text-slate-700 font-medium shadow-2xs">
-                          ✓ {feat}
+
+                <div className="bg-white border border-slate-200/90 rounded-md p-4 sm:p-5 shadow-2xs space-y-6">
+                  
+                  {extraFeatures.length > 0 && (
+                    <div className="space-y-3 bg-emerald-50/40 p-3.5 rounded-md border border-emerald-200/80">
+                      <div className="flex items-center justify-between border-l-2 border-emerald-600 pl-2.5">
+                        <span className="text-xs font-black text-emerald-900 uppercase tracking-wider">
+                          Öne Çıkan & Ekstra Seçilen Donanımlar ({extraFeatures.length})
                         </span>
-                      ))}
+                        <span className="text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
+                          Tescilli Seçimler
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1">
+                        {extraFeatures.map((extFeat, exIdx) => (
+                          <div 
+                            key={exIdx} 
+                            className="flex items-center justify-between p-2.5 rounded bg-white border border-emerald-300 text-slate-900 font-extrabold text-xs shadow-2xs"
+                          >
+                            <span className="truncate pr-2">{extFeat}</span>
+                            <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">
+                              ✓
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {FEATURE_CATALOG.map((catGroup, cIdx) => (
+                    <div key={cIdx} className="space-y-3 border-b border-slate-100 last:border-0 pb-5 last:pb-0">
+                      <div className="flex items-center gap-2 border-l-2 border-indigo-600 pl-2.5">
+                        <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                          {catGroup.category}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-2.5 pt-1">
+                        {catGroup.items.map((featName, fIdx) => {
+                          const isSelected = userSelectedFeatures.some(
+                            sf => String(sf).trim().toLowerCase() === String(featName).trim().toLowerCase()
+                          );
+
+                          return (
+                            <div 
+                              key={fIdx} 
+                              className={`flex items-center justify-between p-2.5 rounded transition-all text-xs ${
+                                isSelected 
+                                  ? 'bg-emerald-50/80 border border-emerald-200 text-slate-900 font-extrabold shadow-2xs' 
+                                  : 'bg-slate-50/40 border border-slate-100 text-slate-400 font-normal opacity-60'
+                              }`}
+                            >
+                              <span className="truncate pr-2">{featName}</span>
+                              {isSelected ? (
+                                <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">
+                                  ✓
+                                </span>
+                              ) : (
+                                <span className="text-slate-300 font-bold px-1.5 select-none">−</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+
                 </div>
               </div>
 
             </div>
           </div>
 
-          {/* =========================================================================
-              📦 PANEL 3: BAKIM & SERVİS KAYITLARI (BAĞIMSIZ AKERDİYON PANEL)
-             ========================================================================= */}
-          <div id="sec-service" className="bg-white border border-slate-200 rounded-md p-5 sm:p-6 shadow-2xs space-y-4 scroll-mt-20">
+          {/* PANEL 3: BAKIM GEÇMİŞİ SİCİLİ */}
+          <div id="sec-service" className="bg-white border border-slate-200 rounded-md p-5 sm:p-6 shadow-2xs space-y-4 scroll-mt-32">
+            
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                <span className="w-1.5 h-4 bg-emerald-600 rounded-full" />
-                <span>Bakım & Servis Kayıtları (OTO.CV Onaylı)</span>
-              </h3>
+              <div className="space-y-0.5">
+                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                  <span className="w-1.5 h-4 bg-emerald-600 rounded-full" />
+                  <span>Bakım Geçmişi Sicili (OTO.CV Onaylı)</span>
+                </h3>
+                <p className="text-xs text-slate-500 font-medium pl-3.5">
+                  Usta faturaları, periyodik değişimler ve servis işlemlerinin zaman damgalı dökümü.
+                </p>
+              </div>
+              <span className="text-[11px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-md shrink-0">
+                {rawServiceRecords.length} Onaylı İşlem
+              </span>
             </div>
 
-            <div className="bg-emerald-50/40 border border-emerald-200/80 rounded-md p-4 space-y-4 animate-fadeIn">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white border border-emerald-100 p-3 rounded-md shadow-2xs gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs font-extrabold text-emerald-900">Dijital Servis Karnesi Mühürlüdür</span>
-                </div>
-                <span className="text-[11px] font-mono font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
-                  {serviceRecords.length} Onaylı İşlem Bulundu
-                </span>
+            {rawServiceRecords.length === 0 ? (
+              <div className="text-center py-10 text-xs font-semibold text-slate-400 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                Bu araca ait henüz kayıtlı bir sanayi veya servis sicili eklenmemiştir.
               </div>
+            ) : (
+              <div className="space-y-3">
+                
+                {/* TOPLAM BELGELENMİŞ BAKIM YATIRIMI KARTI */}
+                <div className="bg-slate-50/80 border border-slate-200/90 p-3.5 sm:p-4 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-md bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 9h3.75m4.5 1.5h.008v.008H17.25v-.008zm0 3h.008v.008H17.25v-.008zm0 3h.008v.008H17.25v-.008zM4.5 19.5h15a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25h-15A2.25 2.25 0 002.25 6v11.25A2.25 2.25 0 004.5 19.5z" />
+                      </svg>
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="text-[10px] font-bold text-indigo-900 tracking-wider uppercase block">
+                        TOPLAM BELGELENMİŞ SERVİS YATIRIMI
+                      </span>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        Araca yapılan tüm şeffaf bakımların belgelenmiş maliyet toplamı.
+                      </p>
+                    </div>
+                  </div>
 
-              {/* AKERDİYON SERVİS KARTLARI LİSTESİ */}
-              <div className="space-y-2">
-                {serviceRecords.map((rec, idx) => {
-                  const isOpen = openAccordionIdx === idx;
+                  <div className="self-end sm:self-center bg-white border border-slate-200 px-3 py-1 rounded-md text-sm font-black font-mono text-indigo-700 shadow-2xs">
+                    {formattedTotalCost}
+                  </div>
+                </div>
+
+                {/* YENİLENMİŞ PREMİUM AKERDİYON SERVİS DÖNGÜSÜ */}
+                {rawServiceRecords.map((item, index) => {
+                  const isExpanded = expandedTileIndex === index;
+                  
+                  let invoiceUrl = null;
+                  if (item.invoice_file) {
+                    if (typeof item.invoice_file === 'string') invoiceUrl = item.invoice_file;
+                    else if (item.invoice_file.preview) invoiceUrl = item.invoice_file.preview;
+                    else if (item.invoice_file instanceof File || item.invoice_file instanceof Blob) {
+                      try { invoiceUrl = URL.createObjectURL(item.invoice_file); } catch (e) { invoiceUrl = null; }
+                    }
+                  } else if (item.invoice_url) {
+                    invoiceUrl = item.invoice_url;
+                  }
+
+                  let titleStr = item.service_type || item.title || 'Mekanik Bakım Kaydı';
+                  let descStr = item.summary || item.details || 'İşlem detayı belirtilmedi.';
+                  
+                  let costFormatted = '0 TL';
+                  if (item.cost) {
+                    if (typeof item.cost === 'number') costFormatted = `${item.cost.toLocaleString('tr-TR')} TL`;
+                    else costFormatted = `${item.cost.replace('₺', '').trim()} TL`;
+                  }
+
                   return (
-                    <div key={idx} className="bg-white border border-slate-200/90 rounded-md overflow-hidden transition-all shadow-2xs">
-                      <button
-                        type="button"
-                        onClick={() => setOpenAccordionIdx(isOpen ? null : idx)}
-                        className="w-full p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between text-left hover:bg-slate-50 cursor-pointer transition-colors gap-2 sm:gap-0"
+                    <div 
+                      key={item.id || index}
+                      className="border border-slate-200 rounded-lg overflow-hidden bg-white transition-all duration-150 hover:border-slate-300"
+                    >
+                      <div 
+                        onClick={() => setExpandedTileIndex(isExpanded ? null : index)}
+                        className="p-3.5 sm:p-4 flex justify-between items-center cursor-pointer select-none gap-3 hover:bg-slate-50/50"
                       >
-                        <div className="flex items-center gap-3">
-                          <span className="font-mono text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 whitespace-nowrap">
-                            {rec.km}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded border border-indigo-100 shrink-0">
+                            {item.km ? `${item.km} KM` : '0 KM'}
                           </span>
-                          <div>
-                            <h4 className="text-xs font-extrabold text-slate-900">{rec.title}</h4>
-                            <p className="text-[10px] text-slate-500 font-medium mt-0.5">{rec.center} • {rec.date}</p>
+
+                          <div className="min-w-0">
+                            <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{titleStr}</h4>
+                            <p className="text-[11px] text-slate-500 font-medium mt-0.5 flex items-center gap-2">
+                              <span>📍 {item.shop_name || 'Özel Servis'}</span>
+                              <span>•</span>
+                              <span>🗓️ {item.service_date || 'Belirtilmemiş'}</span>
+                            </p>
                           </div>
                         </div>
-                        <span className="text-slate-400 font-bold text-xs self-end sm:self-auto">{isOpen ? '−' : '+'}</span>
-                      </button>
 
-                      {isOpen && (
-                        <div className="px-4 pb-4 pt-2 text-xs text-slate-600 leading-relaxed border-t border-slate-100 bg-slate-50/30">
-                          <p className="font-medium text-slate-700">{rec.details}</p>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className="text-right">
+                            <span className="text-xs sm:text-sm font-bold font-mono text-slate-900">{costFormatted}</span>
+                            {invoiceUrl && (
+                              <span className="flex items-center justify-end gap-1 text-[10px] font-bold text-emerald-600 mt-0.5">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                                Mühürlü Evrak
+                              </span>
+                            )}
+                          </div>
+
+                          <div className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="bg-slate-50/60 border-t border-slate-100 p-4 space-y-3 animate-fadeIn">
+                          
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white p-3 rounded-md border border-slate-200/80 text-xs">
+                            <div>
+                              <span className="text-slate-400 font-medium block text-[10px] uppercase">İşlem KM</span>
+                              <span className="font-bold text-slate-800 font-mono">{item.km || '0'} KM</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 font-medium block text-[10px] uppercase">Servis Noktası</span>
+                              <span className="font-bold text-slate-800 truncate block">{item.shop_name || 'Belirtilmedi'}</span>
+                            </div>
+                            <div className="col-span-2 sm:col-span-1">
+                              <span className="text-slate-400 font-medium block text-[10px] uppercase">İşlem Tarihi</span>
+                              <span className="font-bold text-slate-800">{item.service_date || 'Belirtilmedi'}</span>
+                            </div>
+                          </div>
+
+                          {descStr && (
+                            <div className="space-y-1">
+                              <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">İşlem Detayı & Usta Notu</span>
+                              <p className="text-xs text-slate-700 font-normal leading-relaxed bg-white p-3 rounded-md border border-slate-200/80">
+                                {descStr}
+                              </p>
+                            </div>
+                          )}
+
+                          {invoiceUrl && (
+                            <div className="space-y-1.5 pt-1">
+                              <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">Servis Faturası / Evrak</span>
+                              <button
+                                type="button"
+                                onClick={() => setInvoiceModalUrl(invoiceUrl)}
+                                className="flex items-center gap-2 bg-white border border-slate-200 hover:border-indigo-300 p-1.5 pr-3 rounded-md text-xs font-bold text-indigo-600 transition-all cursor-pointer shadow-2xs group"
+                              >
+                                <img src={invoiceUrl} alt="Fatura Önizleme" className="w-10 h-10 object-cover rounded border border-slate-100" />
+                                <span className="group-hover:underline">Fatura / Evrak Görselini Büyüt</span>
+                              </button>
+                            </div>
+                          )}
+
                         </div>
                       )}
                     </div>
                   );
                 })}
+
               </div>
-            </div>
+            )}
+
           </div>
 
         </div>
 
-        {/* =========================================================================
-            📞 SAĞ BAĞIMSIZ KART: SATICI & İLETİŞİM PANELİ (3 KOLON)
-           ========================================================================= */}
+        {/* 📞 SAĞ BAĞIMSIZ KART: SATICI & İLETİŞİM PANELİ (3 KOLON) */}
         <div className="lg:col-span-3 space-y-4">
           <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-2xs space-y-4 sticky top-20">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
@@ -634,19 +1047,65 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
 
       </div>
 
+      {/* 🚀 ALT AKSİYON BUTONLARI (SİHİRBAZ BÜTÜNSELLİĞİ) */}
+      <div className="flex items-center justify-between pt-6 pb-12 relative z-20">
+        <button
+          type="button"
+          onClick={onEdit || (() => window.history.back())}
+          className="bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 font-bold text-xs sm:text-sm px-6 py-3.5 rounded-lg transition-all cursor-pointer select-none"
+        >
+          ‹ 3. Adıma Dön
+        </button>
+
+        <button 
+          type="button"
+          onClick={() => alert("Kayıt onaylandı! Vehicle tablosuna aktarılıyor...")}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm py-3.5 px-8 rounded-lg transition-all shadow-sm cursor-pointer select-none active:scale-98 flex items-center gap-2"
+        >
+          <span>Onayla ve Tescille</span>
+          <span className="text-base">›</span>
+        </button>
+      </div>
+
       {/* 🚀 LIGHTBOX GALERİ MODALI */}
       {isFullscreen && imageList.length > 0 && (
         <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 select-none animate-fadeIn">
           <button type="button" onClick={() => setIsFullscreen(false)} className="absolute top-6 right-6 z-50 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full font-bold cursor-pointer">✕ Kapat</button>
-          {imageList.length > 1 && <button type="button" onClick={handlePrevFullscreen} className="absolute left-6 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full font-bold cursor-pointer">‹</button>}
+          {imageList.length > 1 && <button type="button" onClick={() => setFullscreenIndex((prev) => (prev - 1 + imageList.length) % imageList.length)} className="absolute left-6 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full font-bold cursor-pointer">‹</button>}
           <div className="max-w-5xl max-h-[85vh] flex items-center justify-center overflow-hidden">
-            <img src={imageList[fullscreenIndex]} alt="Sonsuz Galeri Görseli" className="max-w-full max-h-[85vh] object-contain" />
+            <img src={imageList[fullscreenIndex]} alt="Galeri Büyütülmüş" className="max-w-full max-h-[85vh] object-contain" />
           </div>
-          {imageList.length > 1 && <button type="button" onClick={handleNextFullscreen} className="absolute right-6 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full font-bold cursor-pointer">›</button>}
+          {imageList.length > 1 && <button type="button" onClick={() => setFullscreenIndex((prev) => (prev + 1) % imageList.length)} className="absolute right-6 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full font-bold cursor-pointer">›</button>}
           <div className="absolute bottom-6 bg-white/10 text-white text-xs font-mono font-bold px-3 py-1.5 rounded-full">
             {fullscreenIndex + 1} / {imageList.length}
           </div>
         </div>
+      )}
+
+      {/* 📑 FATURA GÖRSELİ ÖN İZLEME MODALI */}
+      {invoiceModalUrl && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 select-none animate-fadeIn">
+          <button type="button" onClick={() => setInvoiceModalUrl(null)} className="absolute top-6 right-6 z-50 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full font-bold text-xs cursor-pointer">
+            ✕ Kapat
+          </button>
+          <div className="max-w-4xl max-h-[85vh] bg-white p-2 rounded-xl overflow-hidden shadow-2xl flex items-center justify-center">
+            <img src={invoiceModalUrl} alt="Fatura Evrakı" className="max-w-full max-h-[80vh] object-contain" />
+          </div>
+        </div>
+      )}
+
+      {/* 🚀 4. ADIM: YÜZEN YUKARI ÇIK BUTONU (SCROLL TO TOP) */}
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-50 bg-slate-900/90 hover:bg-slate-900 text-white p-3 rounded-full shadow-lg backdrop-blur transition-all duration-300 hover:scale-110 cursor-pointer flex items-center justify-center group border border-slate-700/50"
+          title="Yukarı Çık"
+        >
+          <svg className="w-5 h-5 transition-transform duration-200 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+          </svg>
+        </button>
       )}
 
     </div>
