@@ -445,7 +445,7 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                 </div>
               </div>
 
-              {/* SAĞ: KÜNYE */}
+              {/* SAĞ: KÜNYE (FULL EKSİKSİZ VE ZIRHLI METRİK MATRİSİ) */}
               <div className="md:col-span-4 space-y-3">
                 <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-md p-3.5 flex items-center justify-between">
                   <div>
@@ -466,23 +466,95 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                     <span className="text-[11px] font-black text-slate-900 uppercase">ARAÇ KÜNYESİ</span>
                     <span className="text-[11px] font-black text-emerald-600 font-mono">%100 Tescilli</span>
                   </div>
+                  
+                  {/* 🟢 ZIRHLI VE DOĞRUDAN FORMATLANAN KÜNYE LİSTESİ */}
                   <div className="space-y-1.5 text-xs divide-y divide-slate-200/70">
-                    <div className="flex justify-between py-1 pt-0.5"><span className="text-slate-900 font-medium">Plaka / Tescil</span><span className="font-mono font-semibold text-indigo-600">{rawPlate || 'Tescilli Plaka'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Marka</span><span className="text-slate-800 font-normal">{vehicle.brand || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Seri</span><span className="text-slate-800 font-normal">{vehicle.series || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Model</span><span className="text-slate-800 font-normal">{vehicle.model || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Paket</span><span className="text-slate-800 font-normal">{vehicle.package || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Yıl</span><span className="font-mono text-slate-800 font-normal">{vehicle.year || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Kilometre</span><span className="font-mono text-slate-800 font-normal">{activeKm} KM</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Vites Tipi</span><span className="text-slate-800 font-normal">{vehicle.transmission || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Yakıt Tipi</span><span className="text-slate-800 font-normal">{vehicle.fuel_type || vehicle.fuel || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Renk</span><span className="text-slate-800 font-normal capitalize">{typeof vehicle.color === 'object' ? (vehicle.color?.name || 'Belirtilmedi') : (vehicle.color || 'Belirtilmedi')}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Tramer Kaydı</span><span className="text-emerald-600 font-medium">{vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? `${vehicle.tramer_amount || 0} TL` : 'Tramer Yok'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">PIN Kodu</span><span className="font-mono font-bold text-slate-700">{pinCode}</span></div>
+                    <div className="flex justify-between py-1 pt-0.5">
+                      <span className="text-slate-900 font-medium">Tescil / İlan No</span>
+                      <span className="font-mono font-semibold text-indigo-600 select-all">{pinCode}</span>
+                    </div>
+                    
+                    {/* 🗓️ KAYIT TARİHİ (HATA VERMEYEN DOĞRUDAN PARSER) */}
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Kayıt Tarihi</span>
+                      <span className="font-mono text-slate-800 font-medium">
+                        {vehicle.created_at
+                          ? new Date(vehicle.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                          : 'Tescilli'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Marka</span>
+                      <span className="text-slate-800 font-normal">{vehicle.brand || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Seri</span>
+                      <span className="text-slate-800 font-normal">{vehicle.series || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Model</span>
+                      <span className="text-slate-800 font-normal">{vehicle.model || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Paket</span>
+                      <span className="text-slate-800 font-normal">{vehicle.package || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Yıl</span>
+                      <span className="font-mono text-slate-800 font-normal">{vehicle.year || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Kilometre</span>
+                      <span className="font-mono text-slate-800 font-normal">{activeKm} KM</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Vites Tipi</span>
+                      <span className="text-slate-800 font-normal">{vehicle.transmission || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Yakıt Tipi</span>
+                      <span className="text-slate-800 font-normal">{vehicle.fuel_type || vehicle.fuel || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Kasa Tipi</span>
+                      <span className="text-slate-800 font-normal">{vehicle.body_type || vehicle.bodyType || '-'}</span>
+                    </div>
+
+                    {/* ⚙️ MOTOR HACMİ ZIRHLI PARSER */}
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Motor Hacmi</span>
+                      <span className="text-slate-800 font-normal">
+                        {vehicle.engine_capacity || vehicle.engineCapacity || vehicle.engine_size || vehicle.engineSize || '-'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Renk</span>
+                      <span className="text-slate-800 font-normal capitalize">{typeof vehicle.color === 'object' ? (vehicle.color?.name || 'Belirtilmedi') : (vehicle.color || 'Belirtilmedi')}</span>
+                    </div>
+
+                    {/* 🚘 PLAKA DURUMU SIKITŞTIRILMIŞ VE TAŞMAYAN HİZALAMA */}
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-slate-900 font-medium">Plaka Durumu</span>
+                      <span className="font-mono text-slate-800 font-semibold text-[11px] uppercase bg-slate-200/60 px-1.5 py-0.5 rounded">TR (Gizlenmiş)</span>
+                    </div>
+
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Sahiplik</span>
+                      <span className="text-slate-800 font-normal">{vehicle.is_first_owner || vehicle.isFirstOwner ? 'İlk Sahibi' : 'İlk Sahibi Değilim'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Tramer Kaydı</span>
+                      <span className="text-emerald-600 font-medium">{vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? `${vehicle.tramer_amount || 0} TL` : 'Tramer Yok'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Garanti / Takas</span>
+                      <span className="text-slate-800 font-normal">{vehicle.warranty || 'Yok'} / {vehicle.swap || 'Hayır'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
 
@@ -1025,9 +1097,9 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
 
         </div>
 
-        {/* 📞 SAĞ BAĞIMSIZ KART: RUHSAT SAHİBİ & İLETİŞİM PANELİ (3 KOLON) */}
+        {/* 📞 SAĞ BAĞIMSIZ KART: SATICI & İLETİŞİM PANELİ (3 KOLON) */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-2xs space-y-4 sticky top-6">
+          <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-2xs space-y-4 sticky top-20">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
               <div className="w-11 h-11 rounded-full bg-slate-900 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs border border-slate-800">
                 {sellerName.substring(0, 2).toUpperCase()}
@@ -1035,16 +1107,20 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
               <div className="space-y-0.5 overflow-hidden">
                 <h3 className="text-sm font-black text-slate-900 tracking-tight truncate">{sellerName}</h3>
                 <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-semibold">
-                  <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 font-mono">Ruhsat Sahibi</span>
+                  <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 font-mono">Bireysel Üye</span>
                   <span>• {memberSince}</span>
                 </div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <button type="button" onClick={() => setShowPhone(!showPhone)} className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm py-3 px-4 rounded transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2">
+              <button type="button" onClick={() => setShowPhone(!showPhone)} className="w-full bg-rose-600 hover:bg-rose-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm py-3 px-4 rounded transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2">
                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.828-1.42-5.11-3.702-6.53-6.529l1.294-.97c.362-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
-                <span>{showPhone ? sellerPhone : `İletişim Numarasını Göster`}</span>
+                <span>{showPhone ? sellerPhone : `Cep Telefonunu Göster`}</span>
+              </button>
+              <button type="button" onClick={() => alert("Mesaj modülü açılıyor...")} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-2.5 px-4 rounded transition-all cursor-pointer flex items-center justify-center gap-2 border border-slate-200/80">
+                <svg className="w-4 h-4 text-slate-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+                <span>Satıcıya Mesaj Gönder</span>
               </button>
             </div>
 
@@ -1054,7 +1130,7 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                 <span>OTO.CV Güvenlik İpucu</span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                Bu aracın şasi ve tescil sorgulaması OTO-CV garaj veritabanında doğrulanmış aktif kayıttır.
+                Güvenliğiniz için aracı görmeden, ruhsat sahibini doğrulamadan kapora veya ödeme yapmayınız.
               </p>
             </div>
           </div>

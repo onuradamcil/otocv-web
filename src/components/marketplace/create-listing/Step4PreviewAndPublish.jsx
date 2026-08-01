@@ -438,7 +438,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                 </div>
               </div>
 
-              {/* SAĞ: KÜNYE */}
+              {/* SAĞ: KÜNYE (STEP 4 ÖN İZLEME SENKRONİZE MATRİSİ) */}
               <div className="md:col-span-4 space-y-3">
                 <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-md p-3.5 flex items-center justify-between">
                   <div>
@@ -459,23 +459,91 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                     <span className="text-[11px] font-black text-slate-900 uppercase">ARAÇ KÜNYESİ</span>
                     <span className="text-[11px] font-black text-emerald-600 font-mono">%100 Tescilli</span>
                   </div>
+                  
                   <div className="space-y-1.5 text-xs divide-y divide-slate-200/70">
-                    <div className="flex justify-between py-1 pt-0.5"><span className="text-slate-900 font-medium">Tescil / İlan No</span><span className="font-mono font-semibold text-indigo-600">CV-0699725</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Marka</span><span className="text-slate-800 font-normal">{formData.selectedBrand?.name || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Seri</span><span className="text-slate-800 font-normal">{formData.selectedSeries?.name || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Model</span><span className="text-slate-800 font-normal">{formData.selectedModel?.name || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Paket</span><span className="text-slate-800 font-normal">{formData.selectedPackage?.name || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Yıl</span><span className="font-mono text-slate-800 font-normal">{formData.selectedYear || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Kilometre</span><span className="font-mono text-slate-800 font-normal">{activeKm} KM</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Vites Tipi</span><span className="text-slate-800 font-normal">{formData.transmission || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Yakıt Tipi</span><span className="text-slate-800 font-normal">{formData.selectedFuel || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Kasa Tipi</span><span className="text-slate-800 font-normal">{formData.bodyType || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Motor Hacmi</span><span className="text-slate-800 font-normal">{formData.engineCapacity || '-'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Renk</span><span className="text-slate-800 font-normal">{formData.color?.name || formData.color || 'Gri'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Plaka Durumu</span><span className="font-mono text-slate-800 font-normal uppercase">TR (Gizlenmiş)</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Sahiplik</span><span className="text-slate-800 font-normal">{formData.isFirstOwner || 'İlk Sahibi Değilim'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Tramer Kaydı</span><span className="text-emerald-600 font-medium">{formData.tramerStatus === 'Tramer Var' ? `${formData.tramerAmount} TL` : 'Tramer Yok'}</span></div>
-                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Garanti / Takas</span><span className="text-slate-800 font-normal">{formData.warranty || 'Yok'} / {formData.swap || 'Hayır'}</span></div>
+                    <div className="flex justify-between py-1 pt-0.5">
+                      <span className="text-slate-900 font-medium">Tescil / İlan No</span>
+                      <span className="font-mono font-semibold text-indigo-600 select-all">CV-TASLAK</span>
+                    </div>
+                    
+                    {/* 🗓️ KAYIT TARİHİ (ÖN İZLEME ANLIK TARİHİ) */}
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Kayıt Tarihi</span>
+                      <span className="font-mono text-slate-800 font-medium">
+                        {new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Marka</span>
+                      <span className="text-slate-800 font-normal">{formData.selectedBrand?.name || formData.selectedBrand || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Seri</span>
+                      <span className="text-slate-800 font-normal">{formData.selectedSeries?.name || formData.selectedSeries || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Model</span>
+                      <span className="text-slate-800 font-normal">{formData.selectedModel?.name || formData.selectedModel || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Paket</span>
+                      <span className="text-slate-800 font-normal">{formData.selectedPackage?.name || formData.selectedPackage || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Yıl</span>
+                      <span className="font-mono text-slate-800 font-normal">{formData.selectedYear || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Kilometre</span>
+                      <span className="font-mono text-slate-800 font-normal">{activeKm} KM</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Vites Tipi</span>
+                      <span className="text-slate-800 font-normal">{formData.transmission || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Yakıt Tipi</span>
+                      <span className="text-slate-800 font-normal">{formData.selectedFuel || '-'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Kasa Tipi</span>
+                      <span className="text-slate-800 font-normal">{formData.bodyType || '-'}</span>
+                    </div>
+
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Motor Hacmi</span>
+                      <span className="text-slate-800 font-normal">
+                        {formData.engineCapacity || formData.engine_capacity || '-'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Renk</span>
+                      <span className="text-slate-800 font-normal capitalize">
+                        {typeof formData.color === 'object' ? (formData.color?.name || 'Belirtilmedi') : (formData.color || 'Belirtilmedi')}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-slate-900 font-medium">Plaka Durumu</span>
+                      <span className="font-mono text-slate-800 font-semibold text-[11px] uppercase bg-slate-200/60 px-1.5 py-0.5 rounded">TR (Gizlenmiş)</span>
+                    </div>
+
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Sahiplik</span>
+                      <span className="text-slate-800 font-normal">{formData.isFirstOwner || 'İlk Sahibi Değilim'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Tramer Kaydı</span>
+                      <span className="text-emerald-600 font-medium">
+                        {formData.tramerStatus === 'Tramer Var' ? `${formData.tramerAmount || 0} TL` : 'Tramer Yok'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-900 font-medium">Garanti / Takas</span>
+                      <span className="text-slate-800 font-normal">{formData.warranty || 'Yok'} / {formData.swap || 'Hayır'}</span>
+                    </div>
                   </div>
                 </div>
               </div>

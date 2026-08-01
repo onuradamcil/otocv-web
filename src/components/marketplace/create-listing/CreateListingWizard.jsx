@@ -219,6 +219,54 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   };
 
   // =========================================================================
+  // 📸 FATURA EVRAKI BULUT DEPOLAMA YÜKLEYİCİ MOTORU
+  // =========================================================================
+  const uploadInvoiceToStorage = async (fileObj, plateFolder) => {
+    if (!fileObj) return null;
+    if (typeof fileObj === 'string' && fileObj.startsWith('http')) return fileObj;
+
+    let blobOrFile = null;
+    if (fileObj instanceof File || fileObj instanceof Blob) {
+      blobOrFile = fileObj;
+    } else if (fileObj?.file && (fileObj.file instanceof File || fileObj.file instanceof Blob)) {
+      blobOrFile = fileObj.file;
+    } else if (fileObj?.preview && typeof fileObj.preview === 'string' && fileObj.preview.startsWith('blob:')) {
+      try {
+        const res = await fetch(fileObj.preview);
+        blobOrFile = await res.blob();
+      } catch (e) {
+        console.error("Fatura blob okunamadı:", e);
+      }
+    }
+
+    if (!blobOrFile) return null;
+
+    try {
+      const fileExt = blobOrFile.type ? (blobOrFile.type.split('/')[1] || 'png') : 'png';
+      const fileName = `invoice_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${plateFolder}/${fileName}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from('vehicle-images')
+        .upload(filePath, blobOrFile, { upsert: true, contentType: blobOrFile.type || 'image/png' });
+
+      if (uploadErr) {
+        console.error("🔴 Fatura Storage Yükleme Hatası:", uploadErr.message);
+        return null;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('vehicle-images')
+        .getPublicUrl(filePath);
+
+      return publicUrlData?.publicUrl || null;
+    } catch (err) {
+      console.error("Fatura yükleme beklenmeyen hata:", err);
+      return null;
+    }
+  };
+
+  // =========================================================================
   // 📊 3. BLOK: KÜRESEL İLERLEME SENSÖRÜ (4 ADIM BAZLI CANLI PROGRESS)
   // =========================================================================
   const calculateGlobalProgress = () => {
@@ -424,8 +472,8 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     }
   };
 
- // =========================================================================
-  // 🏛️ NİHAİ TESCİL MOTORU (VERİTABANI GERÇEK ŞEMASINA %100 UYARLANMIŞ)
+  // =========================================================================
+  // 🏛️ NİHAİ TESCİL MOTORU (EXACT DB SCHEMA & FATURA YÜKLEME DESTEKLİ)
   // =========================================================================
   const handleFinalPublish = async () => {
     if (!user?.id) {
@@ -442,17 +490,19 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     try {
       const generatedPinCode = `CV-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
       
-      // 🟢 Plaka boşlukları tamamen temizlenir (Örn: "01 ONR 0001" -> "01ONR0001")
-      const cleanPlate = (formData.plate || formData.plate_number || '').trim().replace(/\s+/g, '').toUpperCase();
-      
-      const firstPhotoUrl = Array.isArray(formData.photos) && formData.photos.length > 0 
-        ? formData.photos[0] 
-        : (typeof formData.photos === 'string' ? formData.photos.split(',')[0] : '/placeholder-car.jpg');
+      const rawPlate = formData.plate || formData.plate_number || '';
+      const cleanPlate = rawPlate.trim().replace(/\s+/g, '').toUpperCase();
+      const folderPlate = rawPlate.trim().replace(/[^a-zA-Z0-9]/g, '_') || 'drafts';
 
-      // 🟢 'vehicles' TABLOSUNUN BİREBİR GERÇEK SÜTUNLARI
+      const photoUrls = Array.isArray(formData.photos) 
+        ? formData.photos.join(',') 
+        : (formData.photos || '/placeholder-car.jpg');
+
+      // 🟢 1. VEHICLES PAYLOAD (TÜM Vitrin, AÇIKLAMA VE EKSPERTİZ ALANLARI DAHİL)
       const vehiclePayload = {
         user_id: user.id,
         plate_number: cleanPlate,
+        title: formData.title || `${formData.selectedBrand?.name || ''} ${formData.selectedSeries?.name || ''} ${formData.selectedModel?.name || ''}`.trim(),
         brand: formData.selectedBrand?.name || formData.selectedBrand || '',
         series: formData.selectedSeries?.name || formData.selectedSeries || '',
         model: formData.selectedModel?.name || formData.selectedModel || '',
@@ -462,13 +512,20 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         fuel_type: formData.selectedFuel || '',
         transmission: formData.transmission || '',
         color: typeof formData.color === 'object' ? (formData.color?.name || '') : (formData.color || ''),
+        city: formData.city || '',
+        district: formData.district || '',
+        body_type: formData.bodyType || '',
+        engine_capacity: formData.engineCapacity || formData.engine_capacity || '',
+        description: formData.description || '',
+        damage_report: formData.damageReport || formData.damage_report || {},
+        selected_features: formData.selectedFeatures || formData.selected_features || [],
         traffic_insurance_end_date: formData.traffic_insurance_end_date || formData.insuranceDate || '',
         kasko_end_date: formData.kasko_end_date || formData.kaskoDate || '',
         inspection_end_date: formData.inspection_end_date || formData.inspectionDate || '',
         tramer_status: formData.tramerStatus || 'Hasarsız',
         tramer_amount: formData.tramerAmount ? String(formData.tramerAmount) : '0',
         trust_score: formData.otocv_score || 92,
-        image_url: firstPhotoUrl,
+        image_url: photoUrls,
         pin_code: generatedPinCode,
       };
 
@@ -487,16 +544,18 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         return;
       }
 
-      console.log("🟢 Araç 'vehicles' Tablosuna Başarıyla Tescillendi!");
+      console.log("🟢 Araç 'vehicles' Tablosuna Başarıyla Tescillendi! IDX:", insertedVehicle.idx);
 
-      // 📌 2. AŞAMA: STEP 3 BAKIM KAYITLARINI 'maintenance_records' TABLOSUNA AKTARMA
+      // 📌 2. AŞAMA: STEP 3 BAKIM KAYITLARINI & FATURALARI 'maintenance_records' TABLOSUNA AKTARMA
       const serviceRecords = formData.service_records || formData.service_history || [];
       
       if (serviceRecords.length > 0) {
         const validRecords = serviceRecords.filter(rec => rec.shop_name?.trim() || rec.km || rec.cost);
 
         if (validRecords.length > 0) {
-          const maintenancePayloads = validRecords.map(rec => {
+          const maintenancePayloads = [];
+
+          for (const rec of validRecords) {
             let parsedCost = "0.00";
             if (typeof rec.cost === 'number') parsedCost = rec.cost.toFixed(2);
             else if (typeof rec.cost === 'string') {
@@ -504,17 +563,25 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               parsedCost = numVal.toFixed(2);
             }
 
-            return {
-              vehicle_plate: cleanPlate, // 🟢 BİREBİR GERÇEK SÜTUN ADI ('vehicle_plate')
+            // 🟢 FATURA GÖRSELİNİ BULUT DEPOLAMAYA YÜKLE VE URL AL
+            let uploadedInvoiceUrl = null;
+            if (rec.invoice_file) {
+              uploadedInvoiceUrl = await uploadInvoiceToStorage(rec.invoice_file, folderPlate);
+            } else if (rec.invoice_url) {
+              uploadedInvoiceUrl = rec.invoice_url;
+            }
+
+            maintenancePayloads.push({
+              vehicle_plate: cleanPlate, // 🟢 GERÇEK DB SÜTÜN ADI ('vehicle_plate')
               shop_name: rec.shop_name || 'Özel Servis',
-              km_at_service: parseInt(String(rec.km || rec.km_at_service || 0).replace(/\D/g, ''), 10) || 0, // 🟢 HATAYI ÇÖZEN YER: 'km_at_service' SÜTÜNÜ
+              km_at_service: parseInt(String(rec.km || rec.km_at_service || 0).replace(/\D/g, ''), 10) || 0, // 🟢 GERÇEK DB SÜTÜN ADI ('km_at_service')
               cost: parsedCost,
               summary: rec.summary || rec.details || `${rec.service_type || 'Bakım'} Kaydı İşlendi`,
               service_date: rec.service_date || '',
               service_type: rec.service_type || 'Periyodik Bakım',
-              invoice_url: typeof rec.invoice_file === 'string' ? rec.invoice_file : (rec.invoice_url || null)
-            };
-          });
+              invoice_url: uploadedInvoiceUrl
+            });
+          }
 
           console.log("🛠️ Servis Kayıtları 'maintenance_records' Tablosuna Aktarılıyor:", maintenancePayloads);
 
@@ -525,7 +592,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
           if (serviceInsertError) {
             console.error("🔴 Bakım kayıtları aktarılırken hata oluştu:", serviceInsertError.message);
           } else {
-            console.log(`🟢 ${maintenancePayloads.length} Adet Bakım Kaydı 'maintenance_records' Tablosuna Eklendi!`);
+            console.log(`🟢 ${maintenancePayloads.length} Adet Bakım Kaydı ve Faturası 'maintenance_records' Tablosuna Eklendi!`);
           }
         }
       }
@@ -550,6 +617,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       setStepLoader({ isLoading: false, title: '', subtitle: '' });
     }
   };
+
   // =========================================================================
   // 6. BLOK: MERKEZİ ADIM GEÇİŞİ VE GLOBAL LOADER TETİKLEYİCİSİ
   // =========================================================================
