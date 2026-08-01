@@ -1,63 +1,159 @@
 // =========================================================================
-// OTO-CV MODÜL 3: DETAYLI SİCİL VE ARAÇ DNA PANELİ (VehicleDetailsScreen.jsx)
-// İşlev: Sahibinden tarzı alt vitrinli slider, sonsuz döngülü tam ekran galeri,
-//        teknik spesifikasyon gridleri, dinamik toplam yatırım bilançosu kartı,
-//        akıllı akordeon ve 2. kullanıcı (public) PREMIUM PAYWALL koruması.
+// OTO-CV DİJİTAL GARAJ: RESMİ ARAÇ DETAY & TESCİLLİ KARNE EKRANI (VehicleDetailsScreen.jsx)
+// İşlev: Supabase 'vehicles' ve 'maintenance_records' Tablolarından Canlı Veri Çekimi,
+//        Boşluksuz Plaka Sorgu Sensörü, Güvenli JSON Parse Katmanı ve Mizanpaj.
 // =========================================================================
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
+// =========================================================================
+// 🎨 SABİTLER VE YARDIMCI FONKSİYONLAR
+// =========================================================================
+
+const DAMAGE_STATUSES = {
+  ORIGINAL: { label: 'Orijinal', hex: '#22c55e', bg: 'bg-emerald-500' },
+  PAINTED: { label: 'Boyalı', hex: '#facc15', bg: 'bg-amber-400' },
+  LOCAL_PAINTED: { label: 'Lokal Boyalı', hex: 'url(#Gradient_local)', bg: 'bg-orange-500' },
+  CHANGED: { label: 'Değişen', hex: '#e11d48', bg: 'bg-rose-600' },
+  UNSPECIFIED: { label: 'Belirtilmemiş', hex: '#e2e8f0', bg: 'bg-slate-200' },
+};
+
+const CAR_PARTS = [
+  { id: 'front_bumper', name: 'Ön Tampon' },
+  { id: 'rear_bumper', name: 'Arka Tampon' },
+  { id: 'front_bonnet', name: 'Motor Kaputu' },
+  { id: 'roof', name: 'Tavan' },
+  { id: 'trunk', name: 'Arka Kaput' },
+  { id: 'fender_front_left', name: 'Sol Ön Çamurluk' },
+  { id: 'fender_front_right', name: 'Sağ Ön Çamurluk' },
+  { id: 'door_front_left', name: 'Sol Ön Kapı' },
+  { id: 'door_front_right', name: 'Sağ Ön Kapı' },
+  { id: 'door_rear_left', name: 'Sol Arka Kapı' },
+  { id: 'door_rear_right', name: 'Sağ Arka Kapı' },
+  { id: 'fender_rear_left', name: 'Sol Arka Çamurluk' },
+  { id: 'fender_rear_right', name: 'Sağ Arka Çamurluk' },
+];
+
+const FEATURE_CATALOG = [
+  {
+    category: 'Güvenlik',
+    items: [
+      'ABS', 'ESP / VSA (Elektronik Denge)', 'Hava Yastığı (Sürücü)', 'Hava Yastığı (Yolcu)',
+      'Hava Yastığı (Yan)', 'Hava Yastığı (Tavan)', 'Isofix', 'Yokuş Kalkış Desteği',
+      'Lastik Basınç Kontrolü', 'Merkezi Kilit', 'Kör Nokta Uyarısı', 'Şerit Takip Sistemi',
+      'Fren Yardım Sistemi (Brake Assist)'
+    ]
+  },
+  {
+    category: 'İç Donanım',
+    items: [
+      'Klima (Analog)', 'Klima (Dijital)', 'Deri / Kumaş Koltuk', 'Elektrikli Ön Camlar',
+      'Elektrikli Arka Camlar', 'Ön Kol Dayama', 'Soğutmalı Torpido', 'Start / Stop',
+      'Yol Bilgisayarı', 'Derinlik ve Yükseklik Ayarlı Direksiyon', 'Koltuk Isıtma', 'Hayalet Ekran'
+    ]
+  },
+  {
+    category: 'Dış Donanım',
+    items: [
+      'Yan Aynalar - Isıtmalı', 'Yan Aynalar - Otomatik Kararan', 'Yan Aynalar - Elektrikli Katlanır',
+      'LED Matrix Farlar', 'Far Sensörü', 'Yağmur Sensörü', 'Park Sensörü (Ön)', 'Park Sensörü (Arka)',
+      'Geri Görüş Kamerası', 'Panoramik Cam Tavan / Sunroof', 'Alaşım Jant'
+    ]
+  },
+  {
+    category: 'Multimedya & Konfor',
+    items: [
+      'Hız Sabitleme Sistemi (Cruise Control)', 'Adaptif Hız Sabitleyici', 'Kablosuz Şarj',
+      'Bluetooth / Telefon Bağlantısı', 'Dokunmatik Multimedya Ekranı', 'Elektrikli Bagaj Kapama',
+      'Keyless Go (Anahtarsız Çalıştırma)', 'Navigasyon'
+    ]
+  }
+];
+
+const parseSafeImageUrls = (rawPhotos) => {
+  if (!rawPhotos) return ['/placeholder-car.jpg'];
+  let items = [];
+  if (Array.isArray(rawPhotos)) items = rawPhotos;
+  else if (typeof rawPhotos === 'string') items = rawPhotos.split(',').map(s => s.trim());
+  else items = [rawPhotos];
+
+  const parsed = items.map((item) => {
+    if (!item) return null;
+    if (typeof item === 'string') {
+      const clean = item.trim();
+      if (clean.startsWith('http') || clean.startsWith('data:') || clean.startsWith('blob:')) return clean;
+      return null;
+    }
+    if (item.preview && typeof item.preview === 'string') return item.preview;
+    if (item.url && typeof item.url === 'string') return item.url;
+    if (item.src && typeof item.src === 'string') return item.src;
+    return null;
+  }).filter(Boolean);
+
+  return parsed.length > 0 ? parsed : ['/placeholder-car.jpg'];
+};
+
+const getDynamicStatus = (dateInput, validLabel = 'Geçerli') => {
+  if (!dateInput) return { text: 'Belirtilmemiş', class: 'text-slate-500 font-medium' };
+
+  const dateStr = String(dateInput).trim();
+  const today = new Date();
+
+  if (/^\d{4}$/.test(dateStr)) {
+    const yearVal = parseInt(dateStr, 10);
+    if (yearVal >= today.getFullYear()) {
+      return { text: validLabel, class: 'text-emerald-700 font-bold' };
+    }
+    return { text: 'Süresi Dolmuş', class: 'text-rose-600 font-bold' };
+  }
+
+  let parsedDate;
+  if (dateStr.includes('/')) {
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const year = parseInt(parts[2], 10);
+      parsedDate = new Date(year, month, day);
+    }
+  } else {
+    parsedDate = new Date(dateStr);
+  }
+
+  if (!parsedDate || isNaN(parsedDate.getTime())) {
+    return { text: 'Belirtilmemiş', class: 'text-slate-500 font-medium' };
+  }
+
+  if (parsedDate >= today) {
+    return { text: validLabel, class: 'text-emerald-700 font-bold' };
+  } else {
+    return { text: 'Süresi Dolmuş', class: 'text-rose-600 font-bold' };
+  }
+};
+
+// =========================================================================
+// 🚀 ANA BİLEŞEN: VEHICLE DETAILS SCREEN
+// =========================================================================
 export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isPublicView = false }) {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [thumbPage, setThumbPage] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenIndex, setFullscreenIndex] = useState(0);
   
-  // =========================================================================
-  // 1. BLOK: REAKTİF DURUM VE AKILLI HAFIZA MERKEZİ
-  // =========================================================================
+  const [showPhone, setShowPhone] = useState(false);
+  const [activeSection, setActiveSection] = useState('sec-description');
+  const [isSticky, setIsSticky] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
   const [loadingRecords, setLoadingRecords] = useState(true);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [expandedTileIndex, setExpandedTileIndex] = useState(null); 
+  const [expandedTileIndex, setExpandedTileIndex] = useState(0);
+  const [invoiceModalUrl, setInvoiceModalUrl] = useState(null);
 
-  // Premium Simülasyon Modal Kontrolcüsü
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
-
-  // Tam Ekran Işık Kutusu (Lightbox) Kontrolcüleri
-  const [isFullscreenGallery, setIsFullscreenGallery] = useState(false);
-  const [fullscreenIndex, setFullscreenIndex] = useState(0);
-  const [lightboxImages, setLightboxImages] = useState([]); 
-
-  // Güvenli Kimlik ve Skor Bilgilerinin Süzülmesi
-  const plateNumber = vehicle?.plate_number || vehicle?.plate || '';
-  const score = vehicle?.trust_score ?? 60;
-
-  useEffect(() => {
-    if (plateNumber) {
-      fetchVehicleMaintenanceHistory();
-    }
-  }, [plateNumber]);
-
-  // =========================================================================
-  // 2. BLOK: VERİTABANI BAĞLANTI MOTORU (FRANKFURT DB TIMELINE FETCH)
-  // =========================================================================
-  const fetchVehicleMaintenanceHistory = async () => {
-    try {
-      setLoadingRecords(true);
-      const { data, error } = await supabase
-        .from('maintenance_records')
-        .select('*')
-        .eq('vehicle_plate', plateNumber)
-        .order('km_at_service', { ascending: false });
-
-      if (error) throw error;
-      setMaintenanceRecords(data || []);
-    } catch (err) {
-      console.error('Bakım geçmişi yüklenirken siber hata:', err.message);
-    } finally {
-      setLoadingRecords(false);
-    }
-  };
+  const navRef = useRef(null);
 
   if (!vehicle) {
     return (
@@ -67,471 +163,946 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
     );
   }
 
-  // =========================================================================
-  // 3. BLOK: GÖRSEL SEPETİ PARÇALAMA VE KORUMA MOTORU (BLOB / HTTP READY)
-  // =========================================================================
-  const rawImageUrls = vehicle.image_url || vehicle.image || '';
-  const imageList = rawImageUrls
-    ? rawImageUrls.split(',')
-        .map(url => url.trim())
-        .filter(url => url.startsWith('http') || url.startsWith('blob:'))
-    : [];
+  // Veritabanı Temel Eşleştirmeleri
+  const imageList = parseSafeImageUrls(vehicle.image_url || vehicle.image || vehicle.photos);
+  const activeKm = vehicle.km ? Number(vehicle.km).toLocaleString('tr-TR') : '0';
+  const otocvScore = vehicle.trust_score ?? 92;
+  const rawPlate = vehicle.plate_number || vehicle.plate || vehicle.vehicle_plate || '';
+  // 🟢 BOŞLUKSUZ PLAKA TEMİZLEYİCİ
+  const cleanPlateNumber = rawPlate.replace(/\s+/g, '').toUpperCase();
+  const pinCode = vehicle.pin_code || 'CV-RESMI';
 
-  // =========================================================================
-  // 4. BLOK: SONSUZ DÖNGÜLÜ (INFINITE LOOP) LIGHTBOX NAVİGASYON MATRİSİ
-  // =========================================================================
-  const handleNextFullscreenImage = (e) => {
-    e.stopPropagation();
-    if (lightboxImages.length === 0) return;
-    setFullscreenIndex((prev) => (prev + 1) % lightboxImages.length);
-  };
+  const sellerName = vehicle.owner_name || 'Tescilli Araç Sahibi';
+  const sellerPhone = vehicle.owner_phone || '0 (532) 123 45 67';
+  const memberSince = 'Mart 2026';
 
-  const handlePrevFullscreenImage = (e) => {
-    e.stopPropagation();
-    if (lightboxImages.length === 0) return;
-    setFullscreenIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
-  };
+  // 🛠️ HASAR RAPORU (DAMAGE REPORT) JSON PARSE ZIRHI
+  let rawDamageReport = vehicle.damage_report || vehicle.damageReport || {};
+  if (typeof rawDamageReport === 'string') {
+    try { rawDamageReport = JSON.parse(rawDamageReport); } catch (e) { rawDamageReport = {}; }
+  }
+  const damageReport = rawDamageReport || {};
 
-  // =========================================================================
-  // 🧠 REAKTİF BİLANÇO MOTORU: Bakım Harcamalarını Kusursuz Toplama Döngüsü
-  // =========================================================================
+  // 🛠️ DONANIM SEÇİMLERİ (SELECTED FEATURES) JSON PARSE ZIRHI
+  let rawFeatures = vehicle.selected_features || vehicle.selectedFeatures || vehicle.features || [];
+  if (typeof rawFeatures === 'string') {
+    try {
+      rawFeatures = JSON.parse(rawFeatures);
+    } catch (e) {
+      rawFeatures = rawFeatures.split(',').map(s => s.trim());
+    }
+  }
+  const userSelectedFeatures = Array.isArray(rawFeatures) ? rawFeatures : [];
+
+  const catalogFlatItems = FEATURE_CATALOG.flatMap(cat => cat.items.map(i => String(i).trim().toLowerCase()));
+  const extraFeatures = userSelectedFeatures.filter(
+    sf => !catalogFlatItems.includes(String(sf).trim().toLowerCase())
+  );
+
+  const THUMBNAILS_PER_PAGE = 10;
+  const totalPages = Math.ceil(imageList.length / THUMBNAILS_PER_PAGE);
+  const currentThumbnails = imageList.slice(
+    thumbPage * THUMBNAILS_PER_PAGE,
+    (thumbPage + 1) * THUMBNAILS_PER_PAGE
+  );
+
+  // 📡 SUPABASE 'maintenance_records' CANLI ÇEKİM MOTORU (BOŞLUKSUZ PLAKA SENSÖRLÜ)
+  useEffect(() => {
+    const fetchMaintenanceHistory = async () => {
+      if (!cleanPlateNumber) {
+        setLoadingRecords(false);
+        return;
+      }
+
+      try {
+        setLoadingRecords(true);
+        console.log("🔍 Bakım kayıtları çekiliyor. Aranan Boşluksuz Plaka:", cleanPlateNumber);
+
+        // 🟢 Tablodaki 'vehicle_plate' sütununa tam uyan boşluksuz sorgu
+        const { data, error } = await supabase
+          .from('maintenance_records')
+          .select('*')
+          .eq('vehicle_plate', cleanPlateNumber)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('🔴 Bakım geçmişi sorgu hatası:', error.message);
+          setMaintenanceRecords([]);
+        } else {
+          console.log(`🟢 ${data?.length || 0} Adet Bakım Kaydı Başarıyla Çekildi!`, data);
+          setMaintenanceRecords(data || []);
+        }
+      } catch (err) {
+        console.error('Bakım geçmişi yüklenirken beklenmeyen hata:', err);
+      } finally {
+        setLoadingRecords(false);
+      }
+    };
+
+    fetchMaintenanceHistory();
+  }, [cleanPlateNumber]);
+
+  // Bakım Harcamalarını Hesaplama
   const totalMaintenanceCost = maintenanceRecords.reduce((sum, item) => {
-    if (!item.cost) return sum;
-    const cleanCost = typeof item.cost === 'string' 
-      ? parseInt(item.cost.replace(/\./g, ''), 10) 
-      : parseInt(item.cost, 10);
-    return sum + (isNaN(cleanCost) ? 0 : cleanCost);
+    let costVal = 0;
+    if (typeof item.cost === 'number') {
+      costVal = item.cost;
+    } else if (typeof item.cost === 'string') {
+      const cleanCost = item.cost.replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '');
+      costVal = parseFloat(cleanCost) || 0;
+    }
+    return sum + costVal;
   }, 0);
 
   const formattedTotalCost = `₺${totalMaintenanceCost.toLocaleString('tr-TR')}`;
 
+  // ⚙️ SCROLL & Observer Kontrolcüsü
+  useEffect(() => {
+    const handleScroll = () => {
+      if (navRef.current) {
+        const top = navRef.current.getBoundingClientRect().top;
+        setIsSticky(top <= 10);
+      }
+
+      if (window.scrollY > 400) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    const sections = ['sec-description', 'sec-damage', 'sec-info', 'sec-features', 'sec-service'];
+    const observerOptions = {
+      root: null,
+      rootMargin: '-100px 0px -40% 0px',
+      threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    }, observerOptions);
+
+    sections.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      observer.disconnect();
+    };
+  }, []);
+
+  const scrollToSection = (sectionId) => {
+    setActiveSection(sectionId);
+    if (sectionId === 'sec-service') {
+      setExpandedTileIndex(0);
+    }
+    const el = document.getElementById(sectionId);
+    if (el) {
+      const yOffset = -90;
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  };
+
+  // 🛠️ Kaporta Parçaları Gruplama
+  const getGroupedParts = () => {
+    const grouped = { ORIGINAL: [], PAINTED: [], LOCAL_PAINTED: [], CHANGED: [], UNSPECIFIED: [] };
+    CAR_PARTS.forEach((part) => {
+      const status = damageReport[part.id] || 'ORIGINAL';
+      if (grouped[status]) grouped[status].push(part.name);
+      else grouped.ORIGINAL.push(part.name);
+    });
+    return grouped;
+  };
+
+  const groupedParts = getGroupedParts();
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] p-4 md:p-8 font-sans antialiased tracking-tight">
-      <div className="max-w-6xl mx-auto space-y-6 animate-fadeIn">
-        
-        {/* ÜST SEYRÜSEFER GEÇİŞ KÖPRÜSÜ */}
-        <div className="flex items-center justify-between text-xs font-semibold text-slate-400 select-none">
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={onBack}
-              className="text-slate-500 hover:text-indigo-600 transition-colors flex items-center gap-1 font-bold"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-              {isPublicView ? 'Doğrulama Havuzuna Dön' : 'Garajıma Güvenli Dön'}
-            </button>
-            <span>/</span>
-            <span className="text-slate-600 font-medium">Araç Detaylı Sicil Raporu</span>
-          </div>
+    <div className="w-full max-w-[1280px] mx-auto font-sans antialiased select-none space-y-4 relative py-4 px-4 sm:px-6">
+      
+      {/* 🛡️ ÜST SEYRÜSEFER BARI */}
+      <div className="bg-slate-900 text-white rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md border border-slate-800 relative z-20 overflow-hidden">
+        <div className="flex items-center gap-3.5 z-10">
+          <button
+            type="button"
+            onClick={onBack || (() => window.history.back())}
+            className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer border border-slate-700 flex items-center gap-2 active:scale-98"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+            <span>{isPublicView ? 'Doğrulama Havuzuna Dön' : 'Garaja Güvenli Dön'}</span>
+          </button>
           
-          {isPublicView && vehicle.pin_code && (
-            <span className="font-mono text-slate-500 bg-slate-200/60 px-2.5 py-1 rounded-md font-bold">PIN: {vehicle.pin_code}</span>
-          )}
+          <div className="space-y-0.5 hidden sm:block">
+            <div className="flex items-center gap-2">
+              <h4 className="text-xs sm:text-sm font-extrabold tracking-tight text-white">
+                OTO.CV RESMİ TESCİLLİ ARAÇ KARNESİ
+              </h4>
+              <span className="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded">
+                ● OTO.CV SİSTEM ONAYLI
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 font-normal">
+              Bu aracın tüm mekanik bakımları ve ekspertiz detayları OTO-CV altyapısıyla tescil edilmiştir.
+            </p>
+          </div>
         </div>
 
-        {/* 🚀 BANNER ALANI: Çelişki yaratan %100 ibaresi 'SİSTEM ONAYLI' olarak revize edildi */}
-        {isPublicView && (
-          <div className="bg-[#0B1329] border border-[#1E293B] p-4.5 rounded-2xl text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xl relative overflow-hidden animate-scaleUp">
-            <div className="absolute top-1/2 left-0 -translate-y-1/2 w-72 h-20 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="flex gap-3 items-center relative z-10">
-              <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-indigo-400 shrink-0 shadow-inner">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286z" /></svg>
-              </div>
-              <div className="space-y-0.5">
-                <h4 className="text-xs font-black tracking-wide text-slate-100 uppercase">Açık Veri Doğrulama Geçidi</h4>
-                <p className="text-[11px] text-slate-400 font-medium">Bu dijital geçmiş raporu, güvenli bulut mimarisi ve AutoID altyapısıyla tescil edilmiştir.</p>
-              </div>
-            </div>
-            <span className="text-[10px] font-mono font-black tracking-widest bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg shrink-0 self-end sm:self-center uppercase">OTO.CV SİSTEM ONAYLI</span>
-          </div>
-        )}
+        <div className="flex items-center gap-3 z-10 self-end sm:self-center">
+          {onViewKarne && (
+            <button
+              type="button"
+              onClick={onViewKarne}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border border-indigo-400/30 shadow-xs cursor-pointer"
+            >
+              Sicil Karne Gör
+            </button>
+          )}
 
-        {/* DETAY MİZANPAJI: SLIDER & KÜNYE MATRİSİ */}
-        <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 items-start">
+          {pinCode && (
+            <div className="flex items-center gap-2 font-mono text-xs font-bold bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+              <span className="text-slate-400">PIN:</span>
+              <span className="text-indigo-400">{pinCode}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 🏛️ 2 BAĞIMSIZ KURUMSAL PANEL ALANI */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start relative z-20">
+        
+        {/* SOL ANA KONTEYNER (9 KOLON) */}
+        <div className="lg:col-span-9 space-y-5">
           
-          {/* ADVANCED IMAGE SLIDER PANELİ */}
-          <div className="lg:col-span-6 space-y-4">
-            <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm relative group h-[320px] md:h-[400px] flex items-center justify-center bg-slate-950">
-              {imageList.length === 0 ? (
-                <div className="text-center text-slate-400 text-xs font-semibold">Araca ait vitrin görseli bulunmamaktadır.</div>
-              ) : (
-                <>
-                  <img src={imageList[currentImageIndex]} alt="Araç Detay Vitrin" className="w-full h-full object-cover" />
-                  {/* Sol Üst Güven Rozeti */}
-                  <div className="absolute top-4 left-4 bg-white/95 border border-indigo-100 backdrop-blur px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5 select-none">
-                    <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-pulse" />
-                    <span className="text-indigo-600 text-[10px] font-bold tracking-wider uppercase">Doğruluk Skoru (%{score})</span>
-                  </div>
-                  {/* Sağ Alt Büyüteç Tetikleyici */}
-                  <button 
-                    onClick={() => {
-                      setLightboxImages(imageList); 
-                      setFullscreenIndex(currentImageIndex);
-                      setIsFullscreenGallery(true);
-                    }}
-                    className="absolute bottom-4 right-4 bg-black/60 hover:bg-black/80 text-white p-2.5 rounded-full transition-all shadow-md active:scale-95"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
-                    </svg>
-                  </button>
-                </>
-              )}
+          {/* PANEL 1: GALERİ VE KÜNYE */}
+          <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-2xs space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="space-y-1">
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
+                  {vehicle.title || `${vehicle.year || ''} ${vehicle.brand || ''} ${vehicle.series || ''} ${vehicle.model || ''} ${vehicle.package || ''}`}
+                </h1>
+                <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
+                  <span>📍 {vehicle.city || 'Aksaray'}, {vehicle.district || 'Merkez'}</span>
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                <span className="text-xs font-mono font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-md border border-emerald-200">
+                  ✓ OTO.CV Onaylı Garaj Kaydı
+                </span>
+              </div>
             </div>
 
-            {/* ALT VİTRİN THUMBNAIL ŞERİDİ */}
-            {imageList.length > 1 && (
-              <div className="flex items-center justify-center gap-2 overflow-x-auto py-1 select-none">
-                {imageList.map((url, idx) => {
-                  const isSelected = currentImageIndex === idx;
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+              {/* SOL: GALERİ */}
+              <div className="md:col-span-8 space-y-3">
+                <div className="relative w-full h-[380px] sm:h-[460px] bg-slate-100/90 border border-slate-200 rounded-md overflow-hidden flex items-center justify-center group">
+                  <img src={imageList[selectedIndex]} alt="Araç Vitrini" className="w-full h-full object-contain object-center transition-all duration-200" onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-car.jpg'; }} />
+                  {imageList.length > 1 && (
+                    <>
+                      <button type="button" onClick={(e) => { e.stopPropagation(); setSelectedIndex((prev) => (prev - 1 + imageList.length) % imageList.length); }} className="absolute left-2.5 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-8 h-8 rounded flex items-center justify-center font-bold text-lg cursor-pointer">‹</button>
+                      <button type="button" onClick={(e) => { e.stopPropagation(); setSelectedIndex((prev) => (prev + 1) % imageList.length); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-8 h-8 rounded flex items-center justify-center font-bold text-lg cursor-pointer">›</button>
+                    </>
+                  )}
+                  <div className="absolute bottom-2.5 left-2.5 bg-slate-900/80 backdrop-blur text-white px-2.5 py-1 rounded text-[11px] font-mono font-bold">{selectedIndex + 1} / {imageList.length}</div>
+                  <button type="button" onClick={() => { setFullscreenIndex(selectedIndex); setIsFullscreen(true); }} className="absolute bottom-2.5 right-2.5 bg-slate-900/80 hover:bg-slate-900 text-white px-2.5 py-1 rounded cursor-pointer flex items-center gap-1.5 text-[11px] font-bold">
+                    <span>Büyüt</span>
+                  </button>
+                </div>
+
+                <div className="bg-slate-50/60 border border-slate-200/80 rounded-md p-2 sm:p-2.5 space-y-2">
+                  <div className="grid grid-cols-5 gap-1.5 min-h-[136px] sm:min-h-[152px] content-start">
+                    {Array.from({ length: THUMBNAILS_PER_PAGE }).map((_, localIdx) => {
+                      const actualIdx = thumbPage * THUMBNAILS_PER_PAGE + localIdx;
+                      const url = currentThumbnails[localIdx];
+                      if (!url) return <div key={`empty-${localIdx}`} className="h-16 sm:h-18 opacity-0 pointer-events-none" />;
+                      return (
+                        <button key={actualIdx} type="button" onClick={() => setSelectedIndex(actualIdx)} className={`h-16 sm:h-18 rounded overflow-hidden border bg-white relative cursor-pointer flex items-center justify-center p-0.5 ${selectedIndex === actualIdx ? 'border-indigo-600 ring-2 ring-indigo-600/30' : 'border-slate-200 opacity-85 hover:opacity-100'}`}>
+                          <img src={url} alt="Küçük" className="w-full h-full object-contain" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center justify-center pt-1.5 border-t border-slate-200/60">
+                    <div className="flex items-center gap-3">
+                      <button type="button" disabled={thumbPage === 0} onClick={() => setThumbPage(p => Math.max(p - 1, 0))} className="w-7 h-7 bg-white hover:bg-slate-100 border border-slate-200/90 rounded text-slate-700 cursor-pointer disabled:opacity-30">‹</button>
+                      <div className="flex gap-2 px-1">
+                        {Array.from({ length: Math.max(totalPages, 1) }).map((_, pIdx) => (
+                          <div key={pIdx} onClick={() => totalPages > 1 && setThumbPage(pIdx)} className={`rounded-full ${totalPages > 1 ? 'cursor-pointer' : ''} ${thumbPage === pIdx ? 'w-2.5 h-2.5 bg-slate-700' : 'w-2 h-2 bg-slate-300'}`} />
+                        ))}
+                      </div>
+                      <button type="button" disabled={thumbPage === totalPages - 1 || totalPages <= 1} onClick={() => setThumbPage(p => Math.min(p + 1, totalPages - 1))} className="w-7 h-7 bg-white hover:bg-slate-100 border border-slate-200/90 rounded text-slate-700 cursor-pointer disabled:opacity-30">›</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* SAĞ: KÜNYE */}
+              <div className="md:col-span-4 space-y-3">
+                <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-md p-3.5 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[11px] font-extrabold uppercase text-emerald-800 font-mono">KARNE PUANI</span>
+                    </div>
+                    <p className="text-[11px] text-emerald-700/80 font-medium">Tescil Güven Rozeti</p>
+                  </div>
+                  <div className="text-right flex items-baseline gap-0.5">
+                    <span className="text-3xl font-black font-mono text-emerald-600">{otocvScore}</span>
+                    <span className="text-xs font-bold text-emerald-600/70 font-mono">/100</span>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50/80 border border-slate-200 rounded-md p-3.5 space-y-2">
+                  <div className="flex justify-between border-b border-slate-200 pb-2">
+                    <span className="text-[11px] font-black text-slate-900 uppercase">ARAÇ KÜNYESİ</span>
+                    <span className="text-[11px] font-black text-emerald-600 font-mono">%100 Tescilli</span>
+                  </div>
+                  <div className="space-y-1.5 text-xs divide-y divide-slate-200/70">
+                    <div className="flex justify-between py-1 pt-0.5"><span className="text-slate-900 font-medium">Plaka / Tescil</span><span className="font-mono font-semibold text-indigo-600">{rawPlate || 'Tescilli Plaka'}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Marka</span><span className="text-slate-800 font-normal">{vehicle.brand || '-'}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Seri</span><span className="text-slate-800 font-normal">{vehicle.series || '-'}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Model</span><span className="text-slate-800 font-normal">{vehicle.model || '-'}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Paket</span><span className="text-slate-800 font-normal">{vehicle.package || '-'}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Yıl</span><span className="font-mono text-slate-800 font-normal">{vehicle.year || '-'}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Kilometre</span><span className="font-mono text-slate-800 font-normal">{activeKm} KM</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Vites Tipi</span><span className="text-slate-800 font-normal">{vehicle.transmission || '-'}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Yakıt Tipi</span><span className="text-slate-800 font-normal">{vehicle.fuel_type || vehicle.fuel || '-'}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Renk</span><span className="text-slate-800 font-normal capitalize">{typeof vehicle.color === 'object' ? (vehicle.color?.name || 'Belirtilmedi') : (vehicle.color || 'Belirtilmedi')}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">Tramer Kaydı</span><span className="text-emerald-600 font-medium">{vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? `${vehicle.tramer_amount || 0} TL` : 'Tramer Yok'}</span></div>
+                    <div className="flex justify-between py-1"><span className="text-slate-900 font-medium">PIN Kodu</span><span className="font-mono font-bold text-slate-700">{pinCode}</span></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* PANEL 2: DETAYLAR KARTI (STICKY HEADER) */}
+          <div className="bg-white border border-slate-200 rounded-md shadow-2xs relative">
+            
+            <div ref={navRef} className="absolute -top-px left-0 w-full h-[1px] opacity-0 pointer-events-none" />
+
+            {/* 📌 YAPIŞKAN (STICKY TOP BANNER) */}
+            <div className="sticky top-0 z-25 bg-white border-b border-slate-200 shadow-sm flex flex-col w-full transition-all duration-300">
+              
+              {/* ÜST KATMAN: Araç Resmi & Başlığı */}
+              <div className={`w-full flex items-center justify-between px-4 sm:px-6 transition-all duration-300 overflow-hidden bg-slate-50/95 backdrop-blur-md ${isSticky ? 'h-[76px] sm:h-[80px] border-b border-slate-200/90 opacity-100' : 'h-0 opacity-0 border-transparent'}`}>
+                <div className="flex items-center gap-4 min-w-0 py-2">
+                  <div className="w-18 h-12 sm:w-20 sm:h-13 rounded-lg overflow-hidden bg-slate-200/60 border border-slate-300/80 shrink-0 shadow-2xs flex items-center justify-center p-0.5 relative">
+                    <img 
+                      src={imageList[0]} 
+                      alt="Kapak" 
+                      className="w-full h-full object-contain object-center" 
+                      onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-car.jpg'; }}
+                    />
+                  </div>
+
+                  <div className="flex flex-col min-w-0 justify-center gap-1.5">
+                    <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight leading-snug truncate max-w-[280px] sm:max-w-[520px]">
+                      {vehicle.title || `${vehicle.year || ''} ${vehicle.brand || ''} ${vehicle.series || ''} ${vehicle.model || ''}`}
+                    </h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-slate-600 font-semibold font-mono leading-none">
+                        • {vehicle.year || ''} • {activeKm} KM
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="hidden sm:flex items-center gap-2 shrink-0 py-2">
+                  <div className="bg-white border border-slate-200/90 px-3.5 py-1.5 rounded-lg flex items-center gap-2 shadow-2xs">
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase font-mono tracking-wider leading-none">KARNE PUANI</span>
+                    <span className="text-xs sm:text-sm font-black font-mono text-emerald-600 leading-none">{otocvScore}/100</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ALT KATMAN: Sekmeler Barı */}
+              <div className="w-full flex items-center overflow-x-auto scrollbar-none px-5 bg-white">
+                {[
+                  { id: 'sec-description', label: 'Açıklama' },
+                  { id: 'sec-damage', label: 'Boya ve Değişen' },
+                  { id: 'sec-info', label: 'Araç Bilgileri' },
+                  { id: 'sec-features', label: 'Donanım' },
+                  { id: 'sec-service', label: 'Bakım Kayıtları' },
+                ].map((tab) => {
+                  const isActive = activeSection === tab.id;
                   return (
                     <button
-                      key={idx}
-                      onClick={() => setCurrentImageIndex(idx)}
-                      className={`w-20 h-14 rounded-lg overflow-hidden border-2 bg-slate-100 relative shrink-0 transition-all ${
-                        isSelected ? 'border-2 border-[#4F46E5] scale-102 shadow-sm' : 'border-transparent opacity-65 hover:opacity-100'
+                      key={tab.id}
+                      type="button"
+                      onClick={() => scrollToSection(tab.id)}
+                      className={`py-3.5 mr-6 sm:mr-8 text-[13px] font-bold transition-all cursor-pointer select-none whitespace-nowrap border-b-[3px] outline-none ${
+                        isActive
+                          ? 'border-indigo-600 text-indigo-600'
+                          : 'border-transparent text-slate-500 hover:text-slate-800'
                       }`}
                     >
-                      <img src={url} alt="Thumbnail" className="w-full h-full object-cover" />
+                      {tab.label}
                     </button>
                   );
                 })}
               </div>
-            )}
-          </div>
-
-          {/* SAĞ KİMLİK KARTI VE TESCİL PANELİ */}
-          <div className="lg:col-span-4 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-6 flex flex-col justify-between">
-            <div className="space-y-6 w-full">
-              <div className="space-y-1">
-                <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-md tracking-wider uppercase">
-                  Tescilli Araç Sicili
-                </span>
-                <h2 className="text-xl font-bold text-slate-950 tracking-tight leading-tight">
-                  {vehicle.year} {vehicle.brand} {vehicle.model}
-                </h2>
-                <p className="text-xs text-slate-400 font-medium">
-                  {vehicle.package || 'Standart Donanım Paketi'}
-                </p>
-              </div>
-
-              <div className="w-full h-px bg-slate-100" />
-
-              {/* KİLOMETRE VE ÜRETİM ANALİZ HÜCRELERİ */}
-              <div className="grid grid-cols-2 gap-4 select-none">
-                <div className="space-y-0.5">
-                  <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">KİLOMETRE</span>
-                  <p className="text-lg font-bold text-slate-900 font-mono">
-                    {vehicle.km?.toLocaleString('tr-TR')} km
-                  </p>
-                </div>
-                <div className="space-y-0.5 border-l border-slate-100 pl-4">
-                  <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">ÜRETİM YILI</span>
-                  <p className="text-lg font-bold text-slate-900 font-mono">
-                    {vehicle.year}
-                  </p>
-                </div>
-              </div>
-
-              {/* RESMİ PROFILE GÜVENCE ŞERİDİ */}
-              <div className="bg-emerald-50/40 border border-emerald-100 p-4 rounded-xl flex items-start gap-3 select-none">
-                <div className="text-emerald-600 pt-0.5 shrink-0">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12z" />
-                  </svg>
-                </div>
-                <div className="space-y-0.5">
-                  <h4 className="text-xs font-bold text-emerald-800">Doğrulanmış Profil Güvencesi</h4>
-                  <p className="text-[11px] text-emerald-700/90 font-medium leading-relaxed">
-                    Kimlik kartı, resmi ruhsat eşleşmesi ve sistem şasi numarası kontrolleri hatasız tamamlanmıştır.
-                  </p>
-                </div>
-              </div>
             </div>
 
-            {/* 🚀 UX DEVRİMİ: Alıcı (public) görünümünden kafa karıştıran mor karne butonu tamamen imha edildi! */}
-          </div>
-        </div>
-
-        {/* %100 DİNAMİK YAPISAL ÖZELLİK VE TRAMER GRİD MATRİSİ */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 select-none">
-          <SpecCard title="YAKIT TİPİ" value={vehicle.fuel_type || 'Belirtilmedi'} />
-          <SpecCard title="VİTES TİPİ" value={vehicle.transmission || 'Belirtilmedi'} />
-          <SpecCard title="GÖVDE RENGİ" value={vehicle.color || 'Belirtilmedi'} />
-          
-          <SpecCard 
-            title="TRAMER DURUMU" 
-            value={vehicle.tramer_status === 'Tramer Kaydı Var' ? `${vehicle.tramer_amount || '0'} TL Kayıtlı` : 'Hasarsız / Orijinal'} 
-            isSuccess={vehicle.tramer_status !== 'Tramer Kaydı Var'} 
-          />
-        </div>
-
-        {/* =========================================================================
-            5. BLOK: BAKIM GEÇMİŞİ SİCİL PANELİ VE AKORDEON DİZİLİMİ
-            ========================================================================= */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
-          <div className="space-y-0.5">
-            <h3 className="text-base font-bold text-slate-900 tracking-tight">Bakım Geçmişi Sicili</h3>
-            <p className="text-xs text-slate-400 font-medium">
-              Usta faturaları, periyodik değişimler ve servis işlemlerinin zaman damgalı dökümü.
-            </p>
-          </div>
-
-          <div className="border-t border-gray-100 pt-1" />
-
-          {loadingRecords ? (
-            <div className="py-10 flex justify-center items-center">
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-indigo-600 border-t-transparent" />
-            </div>
-          ) : maintenanceRecords.length === 0 ? (
-            <div className="text-center py-10 text-xs font-semibold text-slate-400 border border-dashed border-gray-200 rounded-xl bg-slate-50/50">
-              Bu araca ait kayıtlı bir sanayi veya servis sicili bulunmamaktadır.
-            </div>
-          ) : (
-            <div className="space-y-3">
+            {/* PANEL 2 İÇERİK BÖLÜMLERİ */}
+            <div className="p-5 sm:p-7 space-y-12 divide-y divide-slate-100">
               
-              {/* TOPLAM BELGELENMİŞ GÜVENLİ BAKIM YATIRIMI KARTI */}
-              <div className="bg-indigo-50/40 border border-indigo-100 p-4 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 select-none mb-1 animate-scaleUp">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-white border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 shrink-0 shadow-sm">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.251.11a3.371 3.375 0 003.498 0A3.373 3.372 0 0015 12a3.374 3.374 0 00-2.251-3.182.25.25 0 01-.25-.224V4.5m0 4.5a3.37 3.37 0 00-3.498 0M12 9.75V14.25" />
-                    </svg>
+              {/* 1. BÖLÜM: AÇIKLAMA */}
+              <div id="sec-description" className="space-y-3 pt-2 scroll-mt-24">
+                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                  <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
+                  <span>Açıklama</span>
+                </h3>
+
+                {(vehicle.description || vehicle.details) ? (
+                  <div className="bg-slate-50/50 border border-slate-100 rounded-md p-4 min-h-[120px] max-h-[350px] overflow-y-auto custom-scrollbar">
+                    <div 
+                      className="prose prose-slate max-w-none text-xs sm:text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-line"
+                      dangerouslySetInnerHTML={{ __html: vehicle.description || vehicle.details }}
+                    />
                   </div>
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">TOPLAM BELGELENMİŞ SERVİS YATIRIMI</span>
-                    <p className="text-xs text-slate-500 font-medium">Kazalardan bağımsız olarak araca yapılan şeffaf koruma ve iyileştirme harcamaları.</p>
+                ) : (
+                  <div className="bg-slate-50/50 border border-slate-100 rounded-md p-4 h-[120px] flex items-center justify-center text-xs text-slate-500 italic">
+                    Bu araç için henüz detaylı bir satıcı açıklaması eklenmemiştir.
                   </div>
-                </div>
-                <span className="text-xl font-bold text-indigo-700 font-mono self-end sm:self-center bg-white border border-indigo-100 px-3 py-1 rounded-xl shadow-sm">
-                  {formattedTotalCost}
-                </span>
+                )}
               </div>
 
-              {/* MEVCUT AKORDEON DÖNGÜSÜ */}
-              {maintenanceRecords.map((item, index) => {
-                const isExpanded = expandedTileIndex === index;
-                const invoiceUrl = item.invoice_url;
+              {/* 2. BÖLÜM: BOYA, DEĞİŞEN VE TRAMER */}
+              <div id="sec-damage" className="space-y-5 pt-8 scroll-mt-24">
+                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                  <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
+                  <span>Boya, Değişen ve Tramer</span>
+                </h3>
 
-                // =========================================================================
-                // 🧠 ULTRA AKILLI UNIFIED PARSER MATRİSİ (STEP 3 & POPUP SENKRONİZASYONU)
-                // =========================================================================
-                let titleStr = '';
-                let descStr = '';
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                  <div className="lg:col-span-6 bg-slate-50/80 border border-slate-200/80 rounded-md p-4 flex flex-col items-center justify-center min-h-[360px] relative">
+                    <div className="relative w-full max-w-[280px] h-[320px] flex items-center justify-center my-auto pointer-events-none select-none">
+                      <svg version="1.1" viewBox="0 0 380 440" className="w-full h-full drop-shadow-xs">
+                        <defs>
+                          <linearGradient id="Gradient_local" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 1 }} />
+                            <stop offset="30%" style={{ stopColor: '#f97316', stopOpacity: 1 }} />
+                            <stop offset="70%" style={{ stopColor: '#ffffff', stopOpacity: 1 }} />
+                            <stop offset="100%" style={{ stopColor: '#f97316', stopOpacity: 1 }} />
+                          </linearGradient>
+                        </defs>
+                        <g fill="none" fillRule="evenodd">
+                          <g transform="translate(156.5 219.5) rotate(-90) translate(-188.5 -144.5)">
+                            <g transform="translate(0)">
+                              <path d="m311.85 23.096c0-1.3004-0.20081-2.5488-0.50203-3.8493l-2.8616-11.08 0.40162-2.4448c0.40162-2.2367-1.2049-4.3174-3.4138-4.4215l-19.931-1.1444c-1.4057-0.10403-2.5102 1.1444-2.4097 2.5488 0.20081 2.1847 0.45183 4.4215 0.50203 6.8142 0.40162 13.472-9.8398 24.916-22.842 24.76-12.4-0.10403-22.441-10.559-22.441-23.46 0-2.965 0.050203-5.6179 0.25102-8.3227 0.10041-1.3524-0.95386-2.4968-2.2591-2.4968h-110.6c-1.4057 0-2.46 1.2484-2.2591 2.7049 0.35142 2.3408 0.50203 4.7336 0.50203 7.3344 0.15061 13.004-9.9402 24.188-22.491 24.292-12.601 0.10403-22.842-10.455-22.842-23.46 0-0.67622 0.050203-1.4045 0.10041-2.0807 0.15061-1.5605-1.2551-2.7569-2.711-2.4448l-2.962 0.62421c-1.3053 0.10403-5.3215 0.57219-8.8859 3.9013-1.5563 1.4565-2.5604 3.017-3.2632 4.4215-1.2049 2.4448-2.7612 4.7336-4.6187 6.7622-0.80325 0.88429-1.6567 1.8206-2.46 2.7049-1.8575 3.2251-0.10041 6.7102-0.25102 10.455-0.20081 6.4501 3.8154 12.692 2.2089 19.142-0.25102 0.93631 0.10041 1.9767 0.85345 2.4968 2.6608 1.9246 5.8236 2.913 9.0868 2.913h11.547c0.65264 0 1.2551 0.15605 1.8073 0.46815 2.6106 1.6645 5.1709 3.3811 7.7815 5.0457 9.639 6.2941 20.182 10.924 31.327 13.576 0.60244 0.15605 1.2049 0.26009 1.8073 0.41614 7.5807 1.6645 14.509 2.3408 20.282 2.4968h20.734c20.935 0 41.518-5.6699 59.691-16.437l21.738-12.848 43.928-7.6465c6.8778-1.1964 13.404-4.0573 19.027-8.3748 0.050204-0.052017 6.426-3.4851 6.426-13.368z" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m106.51 55.944c-0.52167 0.93363-0.66394 2.0147-0.33197 2.9974 0.85364 2.506 2.5609 4.5207 4.7899 5.7492l4.6476 2.506c9.5798 5.2087 20.345 7.9113 31.158 7.9113h13.421l3.13-17.248c1.3279-7.2233 1.9918-14.643 1.9918-21.965v-25.847c-2.4187 0-8.0622-0.049138-13.706-0.049138-4.3156 0-7.7776 0-10.196 0.049138-1.8496 0-3.794 1.081-5.3115 2.9483-1.1856 1.425-2.2764 2.9483-3.2723 4.5207-1.0433 1.6707-1.6599 2.9483-2.229 4.1767-0.71137 1.4741-1.3753 2.8992-2.6084 4.619-1.2805 1.769-2.798 3.4397-4.5053 4.9138-3.4146 2.9483-6.3075 6.388-8.5838 10.319l-0.047424 0.049138v0.049138l-8.3467 14.299zm5.027-0.88449c2.0393-1.769 4.6476-2.7517 7.3508-2.7517h40.548c0.80622 0 1.4227 0.73707 1.3279 1.5724l-2.4187 16.412c-0.23712 1.5724-1.5176 2.7026-3.0352 2.6535l-10.149-0.19655c-9.4849-0.19655-18.733-2.85-26.937-7.7638l-3.13-1.8673c-1.8021-1.081-3.2723-2.6535-4.2208-4.5699-0.61652-1.1793-0.33197-2.6535 0.66394-3.4888z" fill={DAMAGE_STATUSES[damageReport['door_rear_left'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m166.04 58.376l-3.0398 16.732 2.9448-0.14764c18.476-0.98425 36.62-6.7421 52.483-16.634 3.4197-2.1653 5.9845-5.561 7.0769-9.5472 3.2297-11.467 3.9897-23.72 2.1848-35.531l-0.28498-1.7224c-0.14249-0.88582-0.85493-1.5256-1.7574-1.5256h-57.613v25.886c0 7.5295-0.66495 15.108-1.9948 22.49zm-0.28498 12.352l3.8472-15.994c0.42747-1.7224 1.8524-2.9527 3.5622-3.0512l34.055-1.9193v-0.049212c0-2.559 1.9948-4.6752 4.5121-4.6752h7.3144c0.61745 0 1.1874 0.14764 1.7574 0.34449 0.23748 0.098425 0.33247 0.3937 0.23748 0.63976-0.094992 0.24606-0.37997 0.34449-0.61745 0.24606-0.42747-0.19685-0.90243-0.29527-1.3774-0.29527h-7.3144c-1.9948 0-3.6097 1.6732-3.6097 3.7401v0.049212c0 2.313 1.8049 4.1831 4.0372 4.1831h7.3144 0.23748l-0.37997 0.24606c-13.489 9.3012-28.783 15.305-44.836 17.52l-7.0769 0.98425c-0.99742 0.19685-1.8998-0.83661-1.6624-1.9685z" fill={DAMAGE_STATUSES[damageReport['door_front_left'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m328.49 199.3c-2.1085 1.6125-3.6146 4.1094-3.8656 7.0223l-0.60244 7.0223c-0.30122 3.6412 2.2591 6.8142 5.7734 7.1263s6.5766-2.3408 6.8778-5.982l0.90366-10.611c4.2171 1.7166 8.6851 2.6009 13.254 2.6009h17.822c3.6648 0 6.7272-3.017 6.928-6.8142 0.80325-17.738 1.2551-36.256 1.2551-55.502v-0.41614c0-19.402-0.45183-38.077-1.2551-55.918-0.15061-3.7973-3.213-6.8142-6.928-6.8142h-17.772c-4.5685 0-9.0366-0.88429-13.254 2.6009l-0.90366-10.611c-0.30122-3.6412-3.4138-6.2941-6.8778-5.982-3.5142 0.3121-6.0746 3.5372-5.7734 7.1263l0.60244 7.0223c0.25102 2.913 1.7069 5.4098 3.8656 7.0223v111.11h-0.050203z" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m340 201.35c3.7652 1.6125 7.7313 2.4968 11.798 2.4968h15.864c3.2632 0 5.9742-2.8609 6.1248-6.5021 0.70284-16.958 1.1547-34.643 1.1547-53.005v-0.41614c0-18.518-0.40162-36.36-1.1547-53.422-0.15061-3.6412-2.8616-6.5021-6.1248-6.5021h-15.864c-4.0664 0-8.0325-0.83227-11.798 2.4968v114.85z" fill={DAMAGE_STATUSES[damageReport['front_bumper'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m300.87 101.87c-2.3093-4.3174-5.8738-7.6985-10.241-9.6752-2.711-1.2484-5.6729-1.8726-8.6349-1.8726h-54.119c-0.050203-0.26009-0.10041-0.41614-0.15061-0.52017-0.60244-2.0287-2.6608-8.7389-7.7815-11.08-1.8575-0.88429-3.2632-0.72824-3.5644-0.67622-0.20081 0-1.4057 0.15605-2.0081 0.67622-2.1587 1.8206 2.4097 8.3227 4.9199 11.6h-68.879c-2.1587 0-4.3677-0.26009-6.4762-0.83227-2.1085-0.57219-4.3175-0.83227-6.4762-0.83227h-51.559c-2.962 0-5.8738 0.57219-8.6349 1.6645-9.8398 3.9533-19.479 10.143-21.437 20.911-2.0081 10.82-2.3595 22.211-2.3595 32.927 0 8.999 0.25102 18.414 1.5061 27.621h-4.2673c-0.60244 0-1.6567 0-1.7069 3.4851 0 3.4331 1.3053 3.4851 3.3636 3.4851h3.7652c2.6106 9.7792 11.748 15.553 21.085 19.298 2.7612 1.0924 5.6729 1.6645 8.6349 1.6645h51.559c2.2089 0 4.3677-0.26008 6.4762-0.83227 2.1085-0.57219 4.3175-0.83227 6.4762-0.83227h68.879c-2.5102 3.2771-7.0786 9.7792-4.9199 11.6 0.60244 0.52017 1.8073 0.67622 2.0081 0.67622 0.30122 0.052018 1.7069 0.20807 3.5644-0.67622 5.0705-2.3408 7.1288-9.051 7.7815-11.08 0.050204-0.10403 0.10041-0.3121 0.15061-0.52017h54.119c2.962 0 5.924-0.62421 8.6349-1.8726 4.3175-1.9767 7.9321-5.3578 10.241-9.6752 4.4179-8.3748 10.844-23.668 10.844-42.342 0.050203-18.622-6.3758-33.915-10.794-42.29zm-186.3-4.4735h101.66c0.65264 0 0.80325 0.93631 0.15061 1.1444l-26.457 7.9586c-2.2089 0.67622-4.5183 0.98833-6.8276 0.98833h-44.38c-3.5142 0-6.9782-0.78026-10.141-2.2888l-14.258-6.7102c-0.55223-0.26009-0.35142-1.0924 0.25102-1.0924zm-14.91 83.279c-1.8575-11.08-2.9118-23.46-2.9118-36.464s1.0543-25.384 2.9118-36.464c0.30122-1.7686 2.1085-2.7049 3.6648-1.9767l14.057 7.0223c1.0041 0.52017 1.6065 1.6125 1.4559 2.7569-1.1045 8.2707-1.7571 18.102-1.7571 28.609 0 10.507 0.65264 20.339 1.7571 28.609 0.15061 1.1444-0.45183 2.2888-1.4559 2.7569l-14.057 7.0223c-1.5563 0.88429-3.3636-0.10404-3.6648-1.8726zm116.57 10.351h-101.66c-0.60244 0-0.80325-0.83228-0.25102-1.1444l14.258-6.7102c3.1628-1.5085 6.6268-2.2888 10.141-2.2888h44.38c2.3093 0 4.6187 0.36412 6.8276 0.98833l26.457 7.9586c0.60244 0.20807 0.50203 1.1964-0.15061 1.1964zm12.551-7.5425c-0.70284 2.6009-3.3134 4.1094-5.8236 3.3811l-26.708-7.8026c-2.4097-0.72824-3.8656-3.2251-3.3134-5.7739 1.8073-8.5828 2.8114-18.518 2.8114-29.13 0-10.611-1.0041-20.547-2.8114-29.13-0.50203-2.5488 0.90366-5.0457 3.3134-5.7739l26.708-7.8026c2.5102-0.72824 5.1207 0.78026 5.8236 3.3811 3.3636 12.016 5.2211 25.28 5.2211 39.325 0 14.045-1.8575 27.361-5.2211 39.325z" fill="#fff" fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m59.277 54.594s6.1176 1.9503 15.529 0.97517l5.3646 0.29255s9.2234 7.5088 12.047 7.2163c2.8235-0.34131 7.7175-8.4352 7.7175-8.4352l10.635-19.503c-0.14118 0.24379-15.2 3.4131-22.164-1.414-6.0234-4.1932-10.682-10.824-11.482-17.846l-0.79999-4.8759s-9.3175-0.39007-12.329 6.5824c-3.0117 6.9725-6.5411 9.4592-6.5411 9.4592s-0.94116 10.629 0.79999 13.262c1.6941 2.5842 1.2235 14.286 1.2235 14.286z" fill={DAMAGE_STATUSES[damageReport['fender_rear_left'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path transform="translate(267.88 27.237) scale(-1) rotate(180) translate(-267.88 -27.237)" d="m234.26 49.983l53.188-9.0296s15.014-4.4657 16.577-8.6861c1.563-4.2204 2.3681-7.0176 1.563-10.109-0.80516-3.0917-2.8418-10.502-2.8418-10.502s3.3154-6.1833-0.61572-6.1833c-3.9311 0-15.958-0.98148-15.958-0.98148s2.3211 32.474-25.531 32.907c-25.568 0.39668-24.904-28.637-24.904-28.637h-5.8815s5.7309 23.212 0 41.222h4.4042z" fill={DAMAGE_STATUSES[damageReport['fender_front_left'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m305.44 252.31c-5.6227-4.3174-12.099-7.1784-19.027-8.3748l-43.928-7.6465-21.738-12.848c-18.174-10.768-38.757-16.437-59.691-16.437h-20.734c-5.8236 0.20807-12.701 0.83227-20.282 2.4968-0.60244 0.15605-1.2049 0.26009-1.8073 0.41614-11.095 2.6009-21.638 7.2824-31.327 13.576-2.6106 1.6645-5.1709 3.3811-7.7815 5.0457-0.55223 0.3121-1.2049 0.46816-1.8073 0.46816h-11.547c-3.2632 0-6.426 1.0403-9.0868 2.913-0.80325 0.57219-1.1045 1.5605-0.85345 2.4968 1.6065 6.4501-2.46 12.692-2.2089 19.142 0.10041 3.7452-1.6065 7.2824 0.25102 10.455 0.80325 0.88429 1.6567 1.8206 2.46 2.7049 1.8575 2.0287 3.4138 4.2654 4.6187 6.7622 0.70284 1.3524 1.7069 2.965 3.2632 4.4215 3.5644 3.3291 7.5807 3.7973 8.8859 3.9013l2.962 0.6242c1.4559 0.3121 2.8114-0.93631 2.711-2.4448-0.050203-0.67622-0.10041-1.3524-0.10041-2.0807 0-13.004 10.241-23.564 22.842-23.46 12.551 0.10403 22.642 11.288 22.491 24.292-0.050203 2.6009-0.15061 4.9936-0.50203 7.3344-0.20081 1.4045 0.85345 2.7049 2.2591 2.7049h110.55c1.3053 0 2.3595-1.1444 2.2591-2.4968-0.20081-2.7049-0.25102-5.3057-0.25102-8.3227 0-12.9 10.041-23.356 22.441-23.46 13.003-0.10403 23.244 11.34 22.842 24.76-0.050203 2.3928-0.30122 4.6295-0.50203 6.8142-0.15061 1.4565 1.0041 2.6529 2.4097 2.5488l19.931-1.1444c2.2089-0.10404 3.7652-2.1847 3.4138-4.4215l-0.40162-2.4448 2.8616-11.08c0.35142-1.3004 0.50203-2.5488 0.50203-3.8493 0-9.9353-6.3758-13.368-6.3758-13.368z" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path transform="translate(267.88 261.26) scale(-1, 1) rotate(180) translate(-267.88 -261.26)" d="m234.26 284.01l53.188-9.0296s15.014-4.4657 16.577-8.6861c1.563-4.2204 2.3681-7.0176 1.563-10.109-0.80516-3.0917-2.8418-10.502-2.8418-10.502s3.3154-6.1833-0.61572-6.1833c-3.9311 0-15.958-0.98148-15.958-0.98148s2.3211 32.474-25.531 32.907c-25.568 0.39668-24.904-28.637-24.904-28.637h-5.8815s5.7309 23.212 0 41.222h4.4042z" fill={DAMAGE_STATUSES[damageReport['fender_front_right'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m114.9 247.46l0.047425 0.098276c2.2764 3.9311 5.1693 7.4199 8.5838 10.319 1.7547 1.4741 3.2723 3.1448 4.5053 4.9138 1.233 1.7198 1.897 3.1448 2.6084 4.619 0.61652 1.2285 1.233 2.5552 2.229 4.1767 0.99592 1.5724 2.0867 3.0957 3.2723 4.5207 1.5176 1.8181 3.462 2.8992 5.3115 2.9483 2.4661 0.049138 5.8806 0.049138 10.196 0.049138 5.5961 0 11.287-0.049138 13.706-0.049138v-25.847c0-7.3707-0.66394-14.741-1.9918-21.965l-3.13-17.248h-13.469c-10.813 0-21.578 2.7517-31.158 7.9113l-4.6476 2.506c-2.2764 1.2285-3.9362 3.2431-4.7899 5.7492-0.33197 0.98276-0.1897 2.0638 0.33197 2.9974l8.3941 14.299zm-3.9837-16.904c0.94849-1.9164 2.4187-3.4888 4.2208-4.5699l3.13-1.8673c8.2044-4.9138 17.452-7.5673 26.937-7.7638l10.149-0.19655c1.5176-0.049138 2.8455 1.1302 3.0352 2.6535l2.4187 16.412c0.14227 0.83535-0.47425 1.5724-1.3279 1.5724h-40.548c-2.7032 0-5.2641-0.98276-7.3508-2.7517-0.94849-0.83535-1.233-2.3095-0.66394-3.4888z" fill={DAMAGE_STATUSES[damageReport['door_rear_right'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m169.03 253.22v25.886h57.66c0.85493 0 1.6149-0.63976 1.7574-1.5256l0.28498-1.7224c1.8049-11.811 1.0449-24.065-2.1848-35.531-1.1399-3.9862-3.6572-7.3819-7.0769-9.5472-15.911-9.9409-34.055-15.65-52.531-16.634l-2.9448-0.14764 3.0398 16.732c1.3299 7.3819 1.9948 14.961 1.9948 22.49zm-0.52246-36.86l7.0769 0.98425c16.054 2.2146 31.395 8.2185 44.836 17.52l0.37997 0.24606h-0.23748-7.3144c-2.2323 0-4.0372 1.8701-4.0372 4.1831v0.049213c0 2.0669 1.6149 3.7401 3.6097 3.7401h7.3144c0.47496 0 0.94992-0.098425 1.3774-0.29528 0.23748-0.098425 0.52246 0 0.61745 0.24606 0.094992 0.24606 0 0.54134-0.23748 0.63976-0.56996 0.24606-1.1399 0.34449-1.7574 0.34449h-7.3144c-2.4698 0-4.5121-2.0669-4.5121-4.6752v-0.049213l-34.055-1.9193c-1.7099-0.098425-3.1348-1.3287-3.5622-3.0512l-3.8472-15.994c-0.33247-1.0827 0.56996-2.1161 1.6624-1.9685z" fill={DAMAGE_STATUSES[damageReport['door_front_right'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m58.43 234.06s6.5264-2.0807 16.567-1.0403l5.7232-0.3121s9.8398-8.0106 12.852-7.6985c3.0122 0.36412 8.2333 8.999 8.2333 8.999l11.346 20.807c-0.15061-0.26008-16.216-3.6412-23.646 1.5085-6.426 4.4735-11.396 11.548-12.25 19.038l-0.85345 5.2017s-9.9402 0.41614-13.153-7.0223c-3.213-7.4385-6.9782-10.091-6.9782-10.091s-1.0041-11.34 0.85345-14.149c1.8073-2.7569 1.3053-15.241 1.3053-15.241z" fill={DAMAGE_STATUSES[damageReport['fender_rear_right'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m230 100s14.961 40.833 0 87.129h53.968s20.633-8.1667 18.876-43.07c-1.7571-34.904-18.876-44.059-18.876-44.059h-53.968z" fill={DAMAGE_STATUSES[damageReport['front_bonnet'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m95.64 100.03h-23.897s-10.743-1.3004-10.743 13.004v65.594s1.7069 8.7909 8.4843 8.7909h26.156s-8.5345-37.712 0-87.389z" fill={DAMAGE_STATUSES[damageReport['trunk'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m126.16 111s-10.794 28.349-1.1547 64.501h63.658s8.7855-32.771 0-64.501h-62.503z" fill={DAMAGE_STATUSES[damageReport['roof'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m361.78 111.14s0.050203-7.4385-2.6608-11.34c-2.711-3.9013-12.701-7.8026-12.701-7.8026s-2.9118 22.471 6.677 28.505c9.5888 6.034 8.6851-9.3631 8.6851-9.3631z" fill="#CBD5E1" fillRule="nonzero" />
+                              <path d="m361.78 179.77s0.050203 7.4385-2.6608 11.34-12.701 7.8026-12.701 7.8026-2.9118-22.471 6.677-28.505c9.5888-6.034 8.6851 9.3631 8.6851 9.3631z" fill="#CBD5E1" fillRule="nonzero" />
+                              <path d="m39.259 83.601c-4.2171-1.7166-8.6851-2.6009-13.254-2.6009h-17.822c-3.6648 0-6.7272 3.017-6.928 6.8142-0.80325 17.738-1.2551 36.256-1.2551 55.502v0.41614c0 19.402 0.45183 38.077 1.2551 55.918 0.15061 3.7973 3.213 6.8142 6.928 6.8142h17.822c4.5685 0 9.0366-0.88429 13.254-2.6009v-120.26z" stroke="#CBD5E1" strokeWidth="1.5" />
+                              <path d="m36.941 86.497c-3.7652-1.6125-7.7313-2.4968-11.798-2.4968h-15.864c-3.2632 0-5.9742 2.8609-6.1248 6.5021-0.70284 16.958-1.1547 34.643-1.1547 53.005v0.41614c0 18.518 0.40162 36.36 1.1547 53.422 0.15061 3.6412 2.8616 6.5021 6.1248 6.5021h15.864c4.0664 0 8.0325-0.83228 11.798-2.4968v-114.85z" fill={DAMAGE_STATUSES[damageReport['rear_bumper'] || 'ORIGINAL'].hex} fillRule="nonzero" stroke="#CBD5E1" strokeWidth="1.5" />
+                            </g>
+                          </g>
+                        </g>
+                      </svg>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-center gap-3 pt-3 text-[11px] font-bold text-slate-700">
+                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /><span>Orijinal</span></div>
+                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400" /><span>Boyalı</span></div>
+                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500" /><span>Lokal Boyalı</span></div>
+                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-600" /><span>Değişmiş</span></div>
+                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-200" /><span>Belirtilmemiş</span></div>
+                    </div>
+                  </div>
 
-                if (item.service_type) {
-                  let cleanSummary = item.summary || '';
-                  
-                  if (cleanSummary.includes(' - ')) {
-                    cleanSummary = cleanSummary.split(' - ').pop() || cleanSummary;
-                  }
-                  if (cleanSummary.includes(' / ')) {
-                    cleanSummary = cleanSummary.split(' / ').pop() || cleanSummary;
-                  }
-                  
-                  cleanSummary = cleanSummary.trim();
-
-                  if (cleanSummary.toLowerCase().includes(item.service_type.toLowerCase()) && cleanSummary.toLowerCase().includes('kaydı işlendi')) {
-                    titleStr = item.service_type;
-                    descStr = cleanSummary;
-                  } else {
-                    titleStr = `${item.service_type} - ${cleanSummary}`;
-                    descStr = cleanSummary || 'İşlem detayı belirtilmedi.';
-                  }
-                } else {
-                  if (item.summary && item.summary.includes(' - ')) {
-                    titleStr = item.summary.split(' - ')[0]?.trim();
-                    descStr = item.summary.split(' - ')[1]?.trim();
-                  } else {
-                    titleStr = item.summary || 'Bakım Kaydı';
-                    descStr = item.summary || 'İşlem detayı belirtilmedi.';
-                  }
-                }
-
-                return (
-                  <div 
-                    key={item.id || index}
-                    className="border border-gray-200 rounded-xl overflow-hidden bg-slate-50/40 transition-colors duration-200"
-                  >
-                    <div 
-                      onClick={() => setExpandedTileIndex(isExpanded ? null : index)}
-                      className="p-4 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors select-none"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center shrink-0 text-slate-500">
-                          <svg className="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.83-5.83m0 0a2.95 2.95 0 11-4.174-4.173 2.95 2.95 0 014.173 4.174zM6.637 10.07l-.223.184a3 3 0 01-4.078-.292l-.305-.305a3 3 0 01-.292-4.078l.184-.223A3 3 0 016.32 4.316l.306.305a3 3 0 01.291 4.078l-.183.223zm9.323 1.15l.222-.183a3 3 0 014.079.292l.305.305a3 3 0 01.292 4.078l-.184.222a3 3 0 01-4.078.714l-.306-.305a3 3 0 01-.292-4.078l.184-.222z" />
-                          </svg>
+                  {/* SAĞ: METİN LİSTESİ VE TRAMER KARTI */}
+                  <div className="lg:col-span-6 space-y-4">
+                    <div className="bg-slate-50/80 border border-slate-200/80 rounded-md p-4 space-y-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /><span>Orijinal ({groupedParts.ORIGINAL.length})</span>
                         </div>
-                        <div className="min-w-0">
-                          <h4 className="text-sm font-bold text-slate-900 truncate">{titleStr}</h4>
-                          <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
-                            Tarih: {item.service_date || '03/07/2026'} • Servis: {item.shop_name}
-                          </p>
-                        </div>
+                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.ORIGINAL.length > 0 ? groupedParts.ORIGINAL.join(' • ') : '-'}</p>
                       </div>
-
-                      <div className="flex items-center gap-4 shrink-0">
-                        <div className="text-right">
-                          <span className="text-sm font-bold text-slate-900">₺{item.cost?.toLocaleString('tr-TR')}</span>
-                          {invoiceUrl && (
-                            <span className="block text-[9px] font-bold text-emerald-600 text-right">MÜHÜRLÜ EVRAK</span>
-                          )}
+                      <div className="space-y-1 pt-1 border-t border-slate-200/60">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                          <span className="w-2.5 h-2.5 rounded-full bg-orange-500" /><span>Lokal Boyalı ({groupedParts.LOCAL_PAINTED.length})</span>
                         </div>
-                        <div className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                          </svg>
+                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.LOCAL_PAINTED.length > 0 ? groupedParts.LOCAL_PAINTED.join(' • ') : '-'}</p>
+                      </div>
+                      <div className="space-y-1 pt-1 border-t border-slate-200/60">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                          <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /><span>Boyalı ({groupedParts.PAINTED.length})</span>
                         </div>
+                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.PAINTED.length > 0 ? groupedParts.PAINTED.join(' • ') : '-'}</p>
+                      </div>
+                      <div className="space-y-1 pt-1 border-t border-slate-200/60">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                          <span className="w-2.5 h-2.5 rounded-full bg-rose-600" /><span>Değişmiş ({groupedParts.CHANGED.length})</span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.CHANGED.length > 0 ? groupedParts.CHANGED.join(' • ') : '-'}</p>
                       </div>
                     </div>
 
-                    {isExpanded && (
-                      <div className="bg-white border-t border-gray-100 p-4 space-y-4 animate-slideDown">
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-4 border-b border-gray-50 pb-3 text-xs">
-                          <div className="flex justify-between border-r border-gray-100 pr-4">
-                            <span className="text-slate-400 font-medium">İşlem Kilometresi:</span>
-                            <span className="font-bold text-slate-700">{item.km_at_service?.toLocaleString('tr-TR')} KM</span>
+                    <div className="bg-white border border-slate-200 rounded-md p-4 shadow-2xs space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={`p-1.5 rounded-md ${vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? 'bg-amber-50 text-amber-600 border border-amber-200/80' : 'bg-emerald-50 text-emerald-600 border border-emerald-200/80'}`}>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
                           </div>
-                          <div className="flex justify-between md:border-r border-gray-100 md:px-4">
-                            <span className="text-slate-400 font-medium">Servis / Nokta:</span>
-                            <span className="font-bold text-slate-700 truncate max-w-[120px]">{item.shop_name}</span>
+                          <span className="text-xs font-bold text-slate-800">Tramer Hasar Kaydı</span>
+                        </div>
+                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md ${vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                          {vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? 'Hasar Kaydı Var' : 'Hasar Kaydı Yok'}
+                        </span>
+                      </div>
+                      <div className="pt-2 border-t border-slate-100 flex items-baseline justify-between">
+                        <span className="text-xs text-slate-500 font-medium">Toplam Hasar Tutarı</span>
+                        <span className="text-base font-black font-mono text-slate-900">{vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? `${vehicle.tramer_amount || '0'} TL` : '0 TL'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. BÖLÜM: ARAÇ BİLGİLERİ */}
+              <div id="sec-info" className="space-y-4 pt-10 scroll-mt-24">
+                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2 mb-5">
+                  <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
+                  <span>Araç Bilgileri</span>
+                </h3>
+
+                <div className="bg-white border border-slate-200 rounded-md shadow-2xs overflow-hidden">
+                  
+                  {/* GENEL BAKIŞ */}
+                  <div className="space-y-0.5 divide-y divide-slate-100">
+                    <div className="flex justify-between items-center py-2.5 px-4 bg-slate-50/50">
+                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-wider">GENEL BAKIŞ</span>
+                      <span className="text-[11px] font-black text-emerald-600 font-mono">%100 Tescilli</span>
+                    </div>
+
+                    {[
+                      { label: 'Model Yılı', value: vehicle.year },
+                      { label: 'Kilometre', value: `${activeKm} KM`, isMono: true },
+                      { label: 'Yakıt Tipi', value: vehicle.fuel_type || vehicle.fuel },
+                      { label: 'Vites Tipi', value: vehicle.transmission },
+                      { label: 'Kasa Tipi', value: vehicle.body_type || vehicle.bodyType },
+                      { label: 'Renk', value: typeof vehicle.color === 'object' ? (vehicle.color?.name || '') : (vehicle.color || '') },
+                      { 
+                        label: 'Plaka Durumu', 
+                        value: rawPlate || 'Tescilli Plaka', 
+                        isMono: true, 
+                        textClass: 'text-indigo-600 font-extrabold' 
+                      },
+                      { label: 'Sahiplik Durumu', value: vehicle.is_first_owner || vehicle.isFirstOwner ? 'İlk Sahibi' : 'Tescilli Sahip' },
+                      { 
+                        label: 'Tramer Hasar Kaydı', 
+                        value: vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? `${vehicle.tramer_amount || 0} TL` : 'Tramer Yok', 
+                        textClass: vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? 'text-amber-700' : 'text-emerald-700 font-bold' 
+                      },
+                    ].map((item, index) => (
+                      <div key={item.label} className={`flex justify-between items-baseline py-2.5 px-5 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>
+                        <span className="text-xs font-medium text-slate-600 w-2/5">{item.label}</span>
+                        <span className={`text-xs font-semibold ${item.textClass || 'text-slate-900'} ${item.isMono ? 'font-mono' : ''} text-right w-3/5 truncate`}>
+                          {item.value || 'Belirtilmemiş'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* TESCİL VE BELGE DURUMU */}
+                  <div className="space-y-0.5 divide-y divide-slate-100 border-t border-slate-200">
+                    <div className="flex justify-between items-center py-2.5 px-4 bg-slate-50/50 mt-0.5">
+                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-wider">TESCİL VE BELGE DURUMU</span>
+                    </div>
+
+                    {(() => {
+                      const rawInspection = vehicle.inspection_end_date || vehicle.inspectionDate;
+                      const rawInsurance = vehicle.traffic_insurance_end_date || vehicle.insuranceDate;
+                      const rawKasko = vehicle.kasko_end_date || vehicle.kaskoDate;
+
+                      const inspectionStatus = getDynamicStatus(rawInspection, 'Muayeneli');
+                      const insuranceStatus = getDynamicStatus(rawInsurance, 'Sigortalı');
+                      const kaskoStatus = getDynamicStatus(rawKasko, 'Kaskolu');
+
+                      return [
+                        { 
+                          label: 'Muayene Durumu', 
+                          value: inspectionStatus.text, 
+                          textClass: inspectionStatus.class 
+                        },
+                        { 
+                          label: 'Zorunlu Trafik Sigortası', 
+                          value: insuranceStatus.text, 
+                          textClass: insuranceStatus.class 
+                        },
+                        { 
+                          label: 'Kasko Durumu', 
+                          value: kaskoStatus.text, 
+                          textClass: kaskoStatus.class 
+                        },
+                        { label: 'Yedek Anahtar', value: vehicle.spare_key || vehicle.spareKey || 'Var' },
+                        { label: 'Garanti / İthalat Durumu', value: vehicle.warranty || 'Bayi Çıkışlı' },
+                      ].map((item, index) => (
+                        <div key={item.label} className={`flex justify-between items-baseline py-2.5 px-5 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>
+                          <span className="text-xs font-medium text-slate-600 w-2/5">{item.label}</span>
+                          <span className={`text-xs ${item.textClass || 'text-slate-900 font-semibold'} text-right w-3/5 truncate`}>
+                            {item.value}
+                          </span>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+
+                </div>
+              </div>
+
+              {/* 4. BÖLÜM: DİNAMİK & KATEGORİZE EDİLMİŞ DONANIM MATRİSİ */}
+              <div id="sec-features" className="space-y-6 pt-8 scroll-mt-24">
+                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                  <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
+                  <span>Donanım Özellikleri</span>
+                </h3>
+
+                <div className="bg-white border border-slate-200/90 rounded-md p-4 sm:p-5 shadow-2xs space-y-6">
+                  
+                  {extraFeatures.length > 0 && (
+                    <div className="space-y-3 bg-emerald-50/40 p-3.5 rounded-md border border-emerald-200/80">
+                      <div className="flex items-center justify-between border-l-2 border-emerald-600 pl-2.5">
+                        <span className="text-xs font-black text-emerald-900 uppercase tracking-wider">
+                          Öne Çıkan & Ekstra Seçilen Donanımlar ({extraFeatures.length})
+                        </span>
+                        <span className="text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
+                          Tescilli Seçimler
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1">
+                        {extraFeatures.map((extFeat, exIdx) => (
+                          <div 
+                            key={exIdx} 
+                            className="flex items-center justify-between p-2.5 rounded bg-white border border-emerald-300 text-slate-900 font-extrabold text-xs shadow-2xs"
+                          >
+                            <span className="truncate pr-2">{extFeat}</span>
+                            <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">
+                              ✓
+                            </span>
                           </div>
-                          <div className="flex justify-between md:pl-4 col-span-2 md:col-span-1">
-                            <span className="text-slate-400 font-medium">Kayıt Tarihi:</span>
-                            <span className="font-bold text-slate-700">{item.service_date}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {FEATURE_CATALOG.map((catGroup, cIdx) => (
+                    <div key={cIdx} className="space-y-3 border-b border-slate-100 last:border-0 pb-5 last:pb-0">
+                      <div className="flex items-center gap-2 border-l-2 border-indigo-600 pl-2.5">
+                        <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                          {catGroup.category}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-2.5 pt-1">
+                        {catGroup.items.map((featName, fIdx) => {
+                          const isSelected = userSelectedFeatures.some(
+                            sf => String(sf).trim().toLowerCase() === String(featName).trim().toLowerCase()
+                          );
+
+                          return (
+                            <div 
+                              key={fIdx} 
+                              className={`flex items-center justify-between p-2.5 rounded transition-all text-xs ${
+                                isSelected 
+                                  ? 'bg-emerald-50/80 border border-emerald-200 text-slate-900 font-extrabold shadow-2xs' 
+                                  : 'bg-slate-50/40 border border-slate-100 text-slate-400 font-normal opacity-60'
+                              }`}
+                            >
+                              <span className="truncate pr-2">{featName}</span>
+                              {isSelected ? (
+                                <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">
+                                  ✓
+                                </span>
+                              ) : (
+                                <span className="text-slate-300 font-bold px-1.5 select-none">−</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* PANEL 3: BAKIM GEÇMİŞİ SİCİLİ (SUPABASE CANLI) */}
+          <div id="sec-service" className="bg-white border border-slate-200 rounded-md p-5 sm:p-6 shadow-2xs space-y-4 scroll-mt-24">
+            
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="space-y-0.5">
+                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                  <span className="w-1.5 h-4 bg-emerald-600 rounded-full" />
+                  <span>Bakım Geçmişi Sicili (OTO.CV Onaylı)</span>
+                </h3>
+                <p className="text-xs text-slate-500 font-medium pl-3.5">
+                  Usta faturaları, periyodik değişimler ve servis işlemlerinin zaman damgalı dökümü.
+                </p>
+              </div>
+              <span className="text-[11px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-md shrink-0">
+                {maintenanceRecords.length} Onaylı İşlem
+              </span>
+            </div>
+
+            {loadingRecords ? (
+              <div className="text-center py-10 text-xs font-semibold text-slate-500 flex items-center justify-center gap-2">
+                <span className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                <span>Bakım kayıtları veritabanından çekiliyor...</span>
+              </div>
+            ) : maintenanceRecords.length === 0 ? (
+              <div className="text-center py-10 text-xs font-semibold text-slate-400 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                Bu araca ait henüz kayıtlı bir sanayi veya servis sicili eklenmemiştir.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                
+                {/* TOPLAM BELGELENMİŞ BAKIM YATIRIMI KARTI */}
+                <div className="bg-slate-50/80 border border-slate-200/90 p-3.5 sm:p-4 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-md bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 9h3.75m4.5 1.5h.008v.008H17.25v-.008zm0 3h.008v.008H17.25v-.008zm0 3h.008v.008H17.25v-.008zM4.5 19.5h15a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25h-15A2.25 2.25 0 002.25 6v11.25A2.25 2.25 0 004.5 19.5z" />
+                      </svg>
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="text-[10px] font-bold text-indigo-900 tracking-wider uppercase block">
+                        TOPLAM BELGELENMİŞ SERVİS YATIRIMI
+                      </span>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        Araca yapılan tüm şeffaf bakımların belgelenmiş maliyet toplamı.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="self-end sm:self-center bg-white border border-slate-200 px-3 py-1 rounded-md text-sm font-black font-mono text-indigo-700 shadow-2xs">
+                    {formattedTotalCost}
+                  </div>
+                </div>
+
+                {/* SUPABASE SERVİS AKERDİYON DÖNGÜSÜ */}
+                {maintenanceRecords.map((item, index) => {
+                  const isExpanded = expandedTileIndex === index;
+                  let invoiceUrl = item.invoice_url || null;
+
+                  let titleStr = item.service_type || 'Mekanik Bakım Kaydı';
+                  let descStr = item.summary || item.details || 'İşlem detayı belirtilmedi.';
+                  
+                  let costFormatted = '₺0';
+                  if (item.cost) {
+                    costFormatted = typeof item.cost === 'number' 
+                      ? `₺${item.cost.toLocaleString('tr-TR')}` 
+                      : `₺${String(item.cost).replace('₺', '').trim()}`;
+                  }
+
+                  const kmVal = item.km_at_service || item.km || 0;
+
+                  return (
+                    <div 
+                      key={item.id || item.idx || index}
+                      className="border border-slate-200 rounded-lg overflow-hidden bg-white transition-all duration-150 hover:border-slate-300"
+                    >
+                      <div 
+                        onClick={() => setExpandedTileIndex(isExpanded ? null : index)}
+                        className="p-3.5 sm:p-4 flex justify-between items-center cursor-pointer select-none gap-3 hover:bg-slate-50/50"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded border border-indigo-100 shrink-0">
+                            {kmVal ? `${kmVal.toLocaleString('tr-TR')} KM` : '0 KM'}
+                          </span>
+
+                          <div className="min-w-0">
+                            <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{titleStr}</h4>
+                            <p className="text-[11px] text-slate-500 font-medium mt-0.5 flex items-center gap-2">
+                              <span>📍 {item.shop_name || 'Özel Servis'}</span>
+                              <span>•</span>
+                              <span>🗓️ {item.service_date || 'Belirtilmemiş'}</span>
+                            </p>
                           </div>
                         </div>
 
-                        <div className="space-y-1">
-                          <span className="text-[10px] font-semibold text-slate-400 tracking-wider block">USTA AÇIKLAMASI & EK İŞLEMLER</span>
-                          <p className="text-xs md:text-sm text-slate-600 font-medium leading-relaxed bg-slate-50 p-3 rounded-lg border border-gray-100/60">
-                            {descStr}
-                          </p>
-                        </div>
-
-                        {/* =========================================================================
-                            🚀 ADIM BOMBARDIMANI: 2. Kullanıcı İçin Fatura / Evrak Paywall Engelleyici Maskesi
-                            ========================================================================= */}
-                        {invoiceUrl && (
-                          <div className="space-y-2 pt-1">
-                            <span className="text-[10px] font-semibold text-slate-400 tracking-wider block">RESMİ SİCİL EVRAKI (FATURA MAKBUNU)</span>
-                            
-                            {isPublicView ? (
-                              /* A SENARYOSU: Alıcı Sorgulaması (Premium Paywall Duvarı) */
-                              <div 
-                                onClick={() => setShowPremiumModal(true)}
-                                className="w-full max-w-[160px] h-24 bg-slate-100 border border-gray-200 rounded-xl overflow-hidden cursor-pointer relative group shadow-inner transition-all hover:border-indigo-300"
-                              >
-                                <img src={invoiceUrl} alt="Bakım Faturası Kilitli" className="w-full h-full object-cover blur-[5px] opacity-40 select-none pointer-events-none" />
-                                <div className="absolute inset-0 bg-indigo-950/40 flex flex-col items-center justify-center text-center p-2 space-y-1">
-                                  <svg className="w-4 h-4 text-amber-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
-                                  <span className="text-white text-[9px] font-black tracking-wide uppercase leading-tight">Premium Evrak Kilidi</span>
-                                </div>
-                              </div>
-                            ) : (
-                              /* B SENARYOSU: Araç Sahibi Görünümü (Sınırsız Tam Yetki) */
-                              <div 
-                                onClick={() => {
-                                  setLightboxImages([invoiceUrl]); 
-                                  setFullscreenIndex(0);
-                                  setIsFullscreenGallery(true);
-                                }}
-                                className="w-full max-w-[120px] h-20 bg-slate-50 border border-gray-200/80 rounded-xl overflow-hidden cursor-zoom-in relative group shadow-inner"
-                              >
-                                <img src={invoiceUrl} alt="Bakım Faturası Açık" className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[9px] font-semibold text-center p-1">
-                                  İNCELE
-                                </div>
-                              </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className="text-right">
+                            <span className="text-xs sm:text-sm font-bold font-mono text-slate-900">{costFormatted}</span>
+                            {invoiceUrl && (
+                              <span className="flex items-center justify-end gap-1 text-[10px] font-bold text-emerald-600 mt-0.5">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                                Mühürlü Evrak
+                              </span>
                             )}
                           </div>
-                        )}
+
+                          <div className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                          </div>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+
+                      {isExpanded && (
+                        <div className="bg-slate-50/60 border-t border-slate-100 p-4 space-y-3 animate-fadeIn">
+                          
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white p-3 rounded-md border border-slate-200/80 text-xs">
+                            <div>
+                              <span className="text-slate-400 font-medium block text-[10px] uppercase">İşlem KM</span>
+                              <span className="font-bold text-slate-800 font-mono">{kmVal ? kmVal.toLocaleString('tr-TR') : '0'} KM</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 font-medium block text-[10px] uppercase">Servis Noktası</span>
+                              <span className="font-bold text-slate-800 truncate block">{item.shop_name || 'Belirtilmedi'}</span>
+                            </div>
+                            <div className="col-span-2 sm:col-span-1">
+                              <span className="text-slate-400 font-medium block text-[10px] uppercase">İşlem Tarihi</span>
+                              <span className="font-bold text-slate-800">{item.service_date || 'Belirtilmedi'}</span>
+                            </div>
+                          </div>
+
+                          {descStr && (
+                            <div className="space-y-1">
+                              <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">İşlem Detayı & Usta Notu</span>
+                              <p className="text-xs text-slate-700 font-normal leading-relaxed bg-white p-3 rounded-md border border-slate-200/80">
+                                {descStr}
+                              </p>
+                            </div>
+                          )}
+
+                          {invoiceUrl && (
+                            <div className="space-y-1.5 pt-1">
+                              <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">Servis Faturası / Evrak</span>
+                              <button
+                                type="button"
+                                onClick={() => setInvoiceModalUrl(invoiceUrl)}
+                                className="flex items-center gap-2 bg-white border border-slate-200 hover:border-indigo-300 p-1.5 pr-3 rounded-md text-xs font-bold text-indigo-600 transition-all cursor-pointer shadow-2xs group"
+                              >
+                                <img src={invoiceUrl} alt="Fatura Önizleme" className="w-10 h-10 object-cover rounded border border-slate-100" />
+                                <span className="group-hover:underline">Fatura / Evrak Görselini Büyüt</span>
+                              </button>
+                            </div>
+                          )}
+
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+              </div>
+            )}
+
+          </div>
+
         </div>
 
-      </div>
-
-      {/* =========================================================================
-          🚀 PREMIUM SIMÜLASYON MODAL DIALOG PORTALI (INVESTOR-READY MOCKUP)
-          ========================================================================= */}
-      {showPremiumModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white border border-gray-100 rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center space-y-5 select-none relative animate-scaleUp">
-            <button type="button" onClick={() => setShowPremiumModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-sm font-bold">✕</button>
-            
-            <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
-              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.251.11a3.371 3.375 0 003.498 0A3.373 3.372 0 0015 12a3.374 3.374 0 00-2.251-3.182.25.25 0 01-.25-.224V4.5m0 4.5a3.37 3.37 0 00-3.498 0M12 9.75V14.25" /></svg>
+        {/* 📞 SAĞ BAĞIMSIZ KART: RUHSAT SAHİBİ & İLETİŞİM PANELİ (3 KOLON) */}
+        <div className="lg:col-span-3 space-y-4">
+          <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-2xs space-y-4 sticky top-6">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+              <div className="w-11 h-11 rounded-full bg-slate-900 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs border border-slate-800">
+                {sellerName.substring(0, 2).toUpperCase()}
+              </div>
+              <div className="space-y-0.5 overflow-hidden">
+                <h3 className="text-sm font-black text-slate-900 tracking-tight truncate">{sellerName}</h3>
+                <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-semibold">
+                  <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 font-mono">Ruhsat Sahibi</span>
+                  <span>• {memberSince}</span>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <h3 className="text-base font-black text-slate-900 tracking-tight">Oto.CV Premium Rapor Kilidi</h3>
-              <p className="text-xs text-slate-400 font-semibold leading-relaxed px-2">
-                Araca ait noter tasdikli usta fatura makbuzlarını and resmi evrak asıllarını görüntülemek için paket seçin.
+            <div className="space-y-2">
+              <button type="button" onClick={() => setShowPhone(!showPhone)} className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm py-3 px-4 rounded transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2">
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.828-1.42-5.11-3.702-6.53-6.529l1.294-.97c.362-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
+                <span>{showPhone ? sellerPhone : `İletişim Numarasını Göster`}</span>
+              </button>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200/80 rounded p-3 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-indigo-700 font-bold text-xs">
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 2.714z" /></svg>
+                <span>OTO.CV Güvenlik İpucu</span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                Bu aracın şasi ve tescil sorgulaması OTO-CV garaj veritabanında doğrulanmış aktif kayıttır.
               </p>
             </div>
-
-            <div className="bg-slate-50 border border-gray-200/60 p-4 rounded-xl text-left flex justify-between items-center">
-              <div>
-                <span className="text-[10px] bg-indigo-100 text-indigo-700 font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider">TEK SEFERLİK</span>
-                <h4 className="text-xs font-black text-slate-900 mt-1">Bu Aracın Evrak Kilidini Aç</h4>
-              </div>
-              <span className="text-lg font-mono font-black text-slate-900">₺149</span>
-            </div>
-
-            <button 
-              type="button" 
-              onClick={() => alert("Siber Ödeme Entegrasyonu Yakında Aktif Olacak Kanka!")}
-              className="w-full bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold text-xs py-3.5 rounded-xl transition-all shadow-md shadow-indigo-600/10"
-            >
-              Güvenli Ödeme Yap (Simüle)
-            </button>
           </div>
         </div>
-      )}
 
-      {/* LIGHTBOX GALERİ SÜRÜCÜSÜ */}
-      {isFullscreenGallery && lightboxImages.length > 0 && (
-        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 select-none animate-fadeIn">
-          <button onClick={() => setIsFullscreenGallery(false)} className="absolute top-6 right-6 z-50 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full transition-colors active:scale-95 text-xs font-bold">Kapat</button>
-          {lightboxImages.length > 1 && (
-            <button onClick={handlePrevFullscreenImage} className="absolute left-6 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full transition-colors flex items-center justify-center font-bold text-md">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-            </button>
-          )}
-          <div className="max-w-4xl max-h-[80vh] flex items-center justify-center overflow-hidden">
-            <img src={lightboxImages[fullscreenIndex]} alt="Sonsuz Galeri" className="max-w-full max-h-[80vh] object-contain" />
-          </div>
-          {lightboxImages.length > 1 && (
-            <button onClick={handleNextFullscreenImage} className="absolute right-6 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full transition-colors flex items-center justify-center font-bold text-md">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-            </button>
-          )}
-          <div className="absolute bottom-6 bg-white/10 text-white text-xs font-mono font-bold px-3 py-1.5 rounded-full">{fullscreenIndex + 1} / {lightboxImages.length}</div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// INTERNAL SPEC CARD (TEKNİK ÖZELLİK HÜCRESİ)
-function SpecCard({ title, value, isSuccess = false }) {
-  return (
-    <div className="bg-white border border-gray-200/80 rounded-xl p-4 flex items-center gap-3 shadow-sm">
-      <div className={`w-1 h-5 rounded-full shrink-0 ${isSuccess ? 'bg-emerald-500' : 'bg-indigo-600'}`} />
-      <div className="min-w-0">
-        <span className="text-slate-400 text-[10px] font-bold tracking-wider block uppercase">{title}</span>
-        <span className={`text-xs md:text-sm font-bold truncate block mt-0.5 ${isSuccess ? 'text-emerald-700' : 'text-slate-800'}`}>
-          {value}
-        </span>
       </div>
+
+      {/* 🚀 LIGHTBOX GALERİ MODALI */}
+      {isFullscreen && imageList.length > 0 && (
+        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 select-none animate-fadeIn">
+          <button type="button" onClick={() => setIsFullscreen(false)} className="absolute top-6 right-6 z-50 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full font-bold cursor-pointer">✕ Kapat</button>
+          {imageList.length > 1 && <button type="button" onClick={() => setFullscreenIndex((prev) => (prev - 1 + imageList.length) % imageList.length)} className="absolute left-6 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full font-bold cursor-pointer">‹</button>}
+          <div className="max-w-5xl max-h-[85vh] flex items-center justify-center overflow-hidden">
+            <img src={imageList[fullscreenIndex]} alt="Galeri Büyütülmüş" className="max-w-full max-h-[85vh] object-contain" />
+          </div>
+          {imageList.length > 1 && <button type="button" onClick={() => setFullscreenIndex((prev) => (prev + 1) % imageList.length)} className="absolute right-6 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full font-bold cursor-pointer">›</button>}
+          <div className="absolute bottom-6 bg-white/10 text-white text-xs font-mono font-bold px-3 py-1.5 rounded-full">
+            {fullscreenIndex + 1} / {imageList.length}
+          </div>
+        </div>
+      )}
+
+      {/* 📑 FATURA GÖRSELİ ÖN İZLEME MODALI */}
+      {invoiceModalUrl && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 select-none animate-fadeIn">
+          <button type="button" onClick={() => setInvoiceModalUrl(null)} className="absolute top-6 right-6 z-50 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full font-bold text-xs cursor-pointer">
+            ✕ Kapat
+          </button>
+          <div className="max-w-4xl max-h-[85vh] bg-white p-2 rounded-xl overflow-hidden shadow-2xl flex items-center justify-center">
+            <img src={invoiceModalUrl} alt="Fatura Evrakı" className="max-w-full max-h-[80vh] object-contain" />
+          </div>
+        </div>
+      )}
+
+      {/* 🚀 YUKARI ÇIK BUTONU */}
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-50 bg-slate-900/90 hover:bg-slate-900 text-white p-3 rounded-full shadow-lg backdrop-blur transition-all duration-300 hover:scale-110 cursor-pointer flex items-center justify-center group border border-slate-700/50"
+          title="Yukarı Çık"
+        >
+          <svg className="w-5 h-5 transition-transform duration-200 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+          </svg>
+        </button>
+      )}
+
     </div>
   );
 }

@@ -175,7 +175,7 @@ const getDynamicStatus = (dateInput, validLabel = 'Geçerli') => {
 // =========================================================================
 // 🚀 ANA BİLEŞEN: SINGLE SHOWROOM PANEL
 // =========================================================================
-export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }) {
+export default function Step4PreviewAndPublish({ formData = {}, updateFormData, onBack, onEdit, onSuccess, user = {} }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [thumbPage, setThumbPage] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -235,18 +235,14 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
 
   const formattedTotalCost = `${totalMaintenanceCost.toLocaleString('tr-TR')} TL`;
 
-  // =========================================================================
-  // ⚙️ TEK VE TEMİZ SCROLL KONTROLCÜSÜ (Sticky Header, ScrollToTop & Observer)
-  // =========================================================================
+  // ⚙️ TEK VE TEMİZ SCROLL KONTROLCÜSÜ (89px Offset Hizalı)
   useEffect(() => {
     const handleScroll = () => {
-      // 1. Sticky Bar Tespiti
       if (navRef.current) {
         const top = navRef.current.getBoundingClientRect().top;
-        setIsSticky(top <= 1);
+        setIsSticky(top <= 91);
       }
 
-      // 2. Yüzen Yukarı Çık Butonunun Tespiti (400px kaydırılınca görünür)
       if (window.scrollY > 400) {
         setShowScrollTop(true);
       } else {
@@ -256,11 +252,10 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
 
     window.addEventListener('scroll', handleScroll);
 
-    // Section Observer (ScrollSpy)
     const sections = ['sec-description', 'sec-damage', 'sec-info', 'sec-features', 'sec-service'];
     const observerOptions = {
       root: null,
-      rootMargin: '-110px 0px -40% 0px',
+      rootMargin: '-190px 0px -40% 0px',
       threshold: 0
     };
 
@@ -290,12 +285,13 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
     }
     const el = document.getElementById(sectionId);
     if (el) {
-      const yOffset = -110;
+      const yOffset = -190;
       const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
 
+  // 🛠️ KAPORTA PARÇALARI GRUPLAMA FONKSİYONU VE DEĞİŞKENİ (BURAYA EKLENDİ)
   const getGroupedParts = () => {
     const grouped = { ORIGINAL: [], PAINTED: [], LOCAL_PAINTED: [], CHANGED: [], UNSPECIFIED: [] };
     CAR_PARTS.forEach((part) => {
@@ -311,8 +307,8 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
   return (
     <div className="w-full max-w-[1280px] mx-auto font-sans antialiased select-none space-y-4 relative">
       
-      {/* 📜 2. ADIM: ARKA PLAN ÇAPRAZ FİLİGRAN (WATERMARK) KATMANI */}
-      <div className="absolute inset-0 pointer-events-none select-none z-10 overflow-hidden flex flex-col justify-around opacity-[0.035] space-y-32 py-20">
+      {/* 📜 2. ADIM: ARKA PLAN ÇAPRAZ FİLİGRAN (WATERMARK) KATMANI (ONARILMIŞ ÖN KATMAN) */}
+      <div className="absolute inset-0 pointer-events-none select-none z-30 overflow-hidden flex flex-col justify-around opacity-[0.05] space-y-32 py-20">
         <div className="rotate-[-25deg] whitespace-nowrap text-slate-900 font-black text-4xl sm:text-6xl tracking-widest uppercase">
           OTO.CV TESCİL ÖN İZLEME • RESMİ GEÇERLİLİĞİ YOKTUR • OTO.CV TESCİL ÖN İZLEME
         </div>
@@ -490,21 +486,51 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
           {/* PANEL 2: DETAYLAR KARTI (STICKY HEADER) */}
           <div className="bg-white border border-slate-200 rounded-md shadow-2xs relative">
             
+            {/* 📡 GÖRÜNMEZ SENSÖR */}
             <div ref={navRef} className="absolute -top-px left-0 w-full h-[1px] opacity-0 pointer-events-none" />
 
-            <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm flex flex-col w-full transition-all duration-300">
-              <div className={`w-full flex items-center justify-between px-5 transition-all duration-300 overflow-hidden bg-slate-50/50 ${isSticky ? 'h-[64px] border-b border-slate-200 opacity-100' : 'h-0 opacity-0 border-transparent'}`}>
-                <div className="flex items-center gap-4">
-                  <img src={imageList[0]} alt="Kapak" className="w-[64px] h-10 object-cover rounded border border-slate-200 shadow-xs" />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-extrabold text-slate-800 tracking-tight">
+            {/* 📌 YAPIŞKAN (STICKY TOP BANNER) - TAM HİZALANDI (top-[89px]) */}
+            <div className="sticky top-[89px] z-25 bg-white border-b border-slate-200 shadow-sm flex flex-col w-full transition-all duration-300">
+              
+              {/* ÜST KATMAN: Araç Resmi & Başlığı (Sığdırılmış Görsel & Ferah Tipografi) */}
+              <div className={`w-full flex items-center justify-between px-4 sm:px-6 transition-all duration-300 overflow-hidden bg-slate-50/95 backdrop-blur-md ${isSticky ? 'h-[76px] sm:h-[80px] border-b border-slate-200/90 opacity-100' : 'h-0 opacity-0 border-transparent'}`}>
+                <div className="flex items-center gap-4 min-w-0 py-2">
+                  
+                  {/* Fotoğraf Çerçevesi: object-contain ile tam sığdırma */}
+                  <div className="w-18 h-12 sm:w-20 sm:h-13 rounded-lg overflow-hidden bg-slate-200/60 border border-slate-300/80 shrink-0 shadow-2xs flex items-center justify-center p-0.5 relative">
+                    <img 
+                      src={imageList[0]} 
+                      alt="Kapak" 
+                      className="w-full h-full object-contain object-center" 
+                      onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-car.jpg'; }}
+                    />
+                  </div>
+
+                  {/* Araç Başlığı, Tescil Rozeti ve Araç Metaları */}
+                  <div className="flex flex-col min-w-0 justify-center gap-1.5">
+                    <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight leading-snug truncate max-w-[280px] sm:max-w-[520px]">
                       {formData.title || `${formData.selectedBrand?.name || ''} ${formData.selectedSeries?.name || ''} ${formData.selectedModel?.name || ''}`}
-                    </span>
-                    <span className="text-[11px] font-mono font-black text-rose-600 tracking-wider">OTO.CV TESCİLLİ</span>
+                    </h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      
+                      <span className="text-xs text-slate-600 font-semibold font-mono leading-none hidden sm:inline">
+                         {formData.selectedYear || ''} • {activeKm} KM
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Sağ Taraf: Karne Rozet Puanı */}
+                <div className="hidden sm:flex items-center gap-2 shrink-0 py-2">
+                  <div className="bg-white border border-slate-200/90 px-3.5 py-1.5 rounded-lg flex items-center gap-2 shadow-2xs">
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase font-mono tracking-wider leading-none">KARNE PUANI</span>
+                    <span className="text-xs sm:text-sm font-black font-mono text-emerald-600 leading-none">{otocvScore}/100</span>
                   </div>
                 </div>
               </div>
 
+              {/* ALT KATMAN: Sekmeler Barı */}
               <div className="w-full flex items-center overflow-x-auto scrollbar-none px-5 bg-white">
                 {[
                   { id: 'sec-description', label: 'Açıklama' },
@@ -1047,11 +1073,11 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
 
       </div>
 
-      {/* 🚀 ALT AKSİYON BUTONLARI (SİHİRBAZ BÜTÜNSELLİĞİ) */}
+     {/* 🚀 ALT AKSİYON BUTONLARI */}
       <div className="flex items-center justify-between pt-6 pb-12 relative z-20">
         <button
           type="button"
-          onClick={onEdit || (() => window.history.back())}
+          onClick={onBack || onEdit || (() => window.history.back())}
           className="bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 font-bold text-xs sm:text-sm px-6 py-3.5 rounded-lg transition-all cursor-pointer select-none"
         >
           ‹ 3. Adıma Dön
@@ -1059,7 +1085,7 @@ export default function SingleShowroomPanel({ formData = {}, onEdit, user = {} }
 
         <button 
           type="button"
-          onClick={() => alert("Kayıt onaylandı! Vehicle tablosuna aktarılıyor...")}
+          onClick={onSuccess}
           className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm py-3.5 px-8 rounded-lg transition-all shadow-sm cursor-pointer select-none active:scale-98 flex items-center gap-2"
         >
           <span>Onayla ve Tescille</span>

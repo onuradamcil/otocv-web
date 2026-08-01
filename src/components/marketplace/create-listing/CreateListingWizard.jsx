@@ -2,7 +2,7 @@
 // OTO-CV İLAN & GARAJ SİHİRBAZI: MİMARİ ORKESTRA ŞEFİ (CreateListingWizard.jsx)
 // İşlev: Step 1-4 Persistent DB Kaydı, Storage Görsel Yükleyici, Katı Validasyonlar,
 //        Zırhlı Storage Purge (RLS & JSON Parse Korumalı), Boşluksuz Mükerrer Plaka
-//        Modalı (TR Plaka Görselli), Storage Purge ve Global Loader.
+//        Modalı (TR Plaka Görselli), Storage Purge, Vehicles & Maintenance DB Tescil Motoru.
 // =========================================================================
 
 'use client';
@@ -43,7 +43,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   const [showDuplicatePlateModal, setShowDuplicatePlateModal] = useState(false);
   const [duplicatePlateNumber, setDuplicatePlateNumber] = useState('');
 
-  // TÜM İLAN SİHİRBAZININ MERKEZİ VERİ HAFIZASI (VARSAYILANLAR SEÇİNİZ / BOŞ SIFIRLANDI)
+  // TÜM İLAN SİHİRBAZININ MERKEZİ VERİ HAFIZASI
   const [formData, setFormData] = useState({
     // 1. Adım Verileri
     photos: [],
@@ -64,17 +64,17 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     inspection_end_date: '',
     registration_file: null,
 
-    // 2. Adım Verileri (VARSAYILANLAR TEMİZLENDİ -> SEÇİNİZ)
+    // 2. Adım Verileri
     title: '',
-    transmission: '',     // 'Otomatik' -> Boş (Seçiniz)
-    bodyType: '',         // 'Sedan' -> Boş (Seçiniz)
-    color: null,          // Renk Seçiniz
-    vehicleStatus: '',    // 'İkinci El' -> Boş (Seçiniz)
-    warranty: '',         // Boş
-    swap: '',             // Boş
-    city: '',             // 'İstanbul' -> Boş (İl Seçiniz)
-    district: '',         // 'Kadıköy' -> Boş (İlçe Seçiniz)
-    tramerStatus: '',     // 'Tramer Yok' -> Boş
+    transmission: '',
+    bodyType: '',
+    color: null,
+    vehicleStatus: '',
+    warranty: '',
+    swap: '',
+    city: '',
+    district: '',
+    tramerStatus: '',
     tramerAmount: '',
     isFullyOriginal: false,
     damageReport: {},
@@ -112,7 +112,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     console.log(`🔍 Storage Temizlik İsteği Başlatıldı: Klasör -> '${folderName}'`);
 
     try {
-      // 1. Klasördeki tüm dosyaları listele
       const { data: fileList, error: listError } = await supabase.storage
         .from('vehicle-images')
         .list(folderName);
@@ -125,7 +124,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       if (fileList && fileList.length > 0) {
         const pathsToDelete = fileList.map(file => `${folderName}/${file.name}`);
         
-        // 2. Dosyaları sil
         const { error: deleteError } = await supabase.storage
           .from('vehicle-images')
           .remove(pathsToDelete);
@@ -223,7 +221,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   // =========================================================================
   // 📊 3. BLOK: KÜRESEL İLERLEME SENSÖRÜ (4 ADIM BAZLI CANLI PROGRESS)
   // =========================================================================
-
   const calculateGlobalProgress = () => {
     let progress = 0;
 
@@ -276,7 +273,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   // =========================================================================
   // 💾 4. BLOK: 'vehicle_drafts' TABLOSUNA BUTON BAZLI DRAFT KAYDI
   // =========================================================================
-  
   const hasCheckedDraftRef = useRef(false);
 
   useEffect(() => {
@@ -428,8 +424,134 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     }
   };
 
+ // =========================================================================
+  // 🏛️ NİHAİ TESCİL MOTORU (VERİTABANI GERÇEK ŞEMASINA %100 UYARLANMIŞ)
   // =========================================================================
-  // 5. BLOK: MERKEZİ ADIM GEÇİŞİ VE GLOBAL LOADER TETİKLEYİCİSİ
+  const handleFinalPublish = async () => {
+    if (!user?.id) {
+      alert("Tescil işlemi için oturum açmış olmanız gerekmektedir.");
+      return;
+    }
+
+    setStepLoader({
+      isLoading: true,
+      title: "Dijital Araç Karneniz Tescilleniyor",
+      subtitle: "Aracınız OTO-CV veritabanına tescil ediliyor ve garajınıza aktarılıyor..."
+    });
+
+    try {
+      const generatedPinCode = `CV-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      
+      // 🟢 Plaka boşlukları tamamen temizlenir (Örn: "01 ONR 0001" -> "01ONR0001")
+      const cleanPlate = (formData.plate || formData.plate_number || '').trim().replace(/\s+/g, '').toUpperCase();
+      
+      const firstPhotoUrl = Array.isArray(formData.photos) && formData.photos.length > 0 
+        ? formData.photos[0] 
+        : (typeof formData.photos === 'string' ? formData.photos.split(',')[0] : '/placeholder-car.jpg');
+
+      // 🟢 'vehicles' TABLOSUNUN BİREBİR GERÇEK SÜTUNLARI
+      const vehiclePayload = {
+        user_id: user.id,
+        plate_number: cleanPlate,
+        brand: formData.selectedBrand?.name || formData.selectedBrand || '',
+        series: formData.selectedSeries?.name || formData.selectedSeries || '',
+        model: formData.selectedModel?.name || formData.selectedModel || '',
+        package: formData.selectedPackage?.name || formData.selectedPackage || '',
+        year: parseInt(formData.selectedYear, 10) || new Date().getFullYear(),
+        km: parseInt(String(formData.mileage || formData.km).replace(/\D/g, ''), 10) || 0,
+        fuel_type: formData.selectedFuel || '',
+        transmission: formData.transmission || '',
+        color: typeof formData.color === 'object' ? (formData.color?.name || '') : (formData.color || ''),
+        traffic_insurance_end_date: formData.traffic_insurance_end_date || formData.insuranceDate || '',
+        kasko_end_date: formData.kasko_end_date || formData.kaskoDate || '',
+        inspection_end_date: formData.inspection_end_date || formData.inspectionDate || '',
+        tramer_status: formData.tramerStatus || 'Hasarsız',
+        tramer_amount: formData.tramerAmount ? String(formData.tramerAmount) : '0',
+        trust_score: formData.otocv_score || 92,
+        image_url: firstPhotoUrl,
+        pin_code: generatedPinCode,
+      };
+
+      console.log("🚀 Supabase 'vehicles' Tablosuna Kayıt Atılıyor:", vehiclePayload);
+
+      const { data: insertedVehicle, error: vehicleInsertError } = await supabase
+        .from('vehicles')
+        .insert([vehiclePayload])
+        .select()
+        .single();
+
+      if (vehicleInsertError) {
+        console.error("🔴 'vehicles' Tablosuna Kayıt Hatası:", vehicleInsertError.message);
+        alert(`Tescil sırasında bir hata oluştu: ${vehicleInsertError.message}`);
+        setStepLoader({ isLoading: false, title: '', subtitle: '' });
+        return;
+      }
+
+      console.log("🟢 Araç 'vehicles' Tablosuna Başarıyla Tescillendi!");
+
+      // 📌 2. AŞAMA: STEP 3 BAKIM KAYITLARINI 'maintenance_records' TABLOSUNA AKTARMA
+      const serviceRecords = formData.service_records || formData.service_history || [];
+      
+      if (serviceRecords.length > 0) {
+        const validRecords = serviceRecords.filter(rec => rec.shop_name?.trim() || rec.km || rec.cost);
+
+        if (validRecords.length > 0) {
+          const maintenancePayloads = validRecords.map(rec => {
+            let parsedCost = "0.00";
+            if (typeof rec.cost === 'number') parsedCost = rec.cost.toFixed(2);
+            else if (typeof rec.cost === 'string') {
+              const numVal = parseFloat(rec.cost.replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '')) || 0;
+              parsedCost = numVal.toFixed(2);
+            }
+
+            return {
+              vehicle_plate: cleanPlate, // 🟢 BİREBİR GERÇEK SÜTUN ADI ('vehicle_plate')
+              shop_name: rec.shop_name || 'Özel Servis',
+              km_at_service: parseInt(String(rec.km || rec.km_at_service || 0).replace(/\D/g, ''), 10) || 0, // 🟢 HATAYI ÇÖZEN YER: 'km_at_service' SÜTÜNÜ
+              cost: parsedCost,
+              summary: rec.summary || rec.details || `${rec.service_type || 'Bakım'} Kaydı İşlendi`,
+              service_date: rec.service_date || '',
+              service_type: rec.service_type || 'Periyodik Bakım',
+              invoice_url: typeof rec.invoice_file === 'string' ? rec.invoice_file : (rec.invoice_url || null)
+            };
+          });
+
+          console.log("🛠️ Servis Kayıtları 'maintenance_records' Tablosuna Aktarılıyor:", maintenancePayloads);
+
+          const { error: serviceInsertError } = await supabase
+            .from('maintenance_records')
+            .insert(maintenancePayloads);
+
+          if (serviceInsertError) {
+            console.error("🔴 Bakım kayıtları aktarılırken hata oluştu:", serviceInsertError.message);
+          } else {
+            console.log(`🟢 ${maintenancePayloads.length} Adet Bakım Kaydı 'maintenance_records' Tablosuna Eklendi!`);
+          }
+        }
+      }
+
+      setStepLoader({
+        isLoading: true,
+        title: "Tescil Başarıyla Tamamlandı! 🎉",
+        subtitle: "Dijital araç karneniz oluşturuldu, dijital garajınıza yönlendiriliyorsunuz..."
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      await handleDiscardDraft(false);
+      setStepLoader({ isLoading: false, title: '', subtitle: '' });
+
+      if (onSuccess) {
+        await onSuccess(insertedVehicle);
+      }
+
+    } catch (err) {
+      console.error("Nihai tescil sırasında beklenmeyen hata:", err);
+      alert("Tescil işlemi tamamlanırken bir hata oluştu.");
+      setStepLoader({ isLoading: false, title: '', subtitle: '' });
+    }
+  };
+  // =========================================================================
+  // 6. BLOK: MERKEZİ ADIM GEÇİŞİ VE GLOBAL LOADER TETİKLEYİCİSİ
   // =========================================================================
   
   const checkIsStep2ValidDirectly = () => {
@@ -446,14 +568,13 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   };
 
   const handleNextStep = async () => {
-    // 📌 STEP 1 -> STEP 2 GEÇİŞİ (ZIRHLI & BOŞLUKSUZ MÜKERRER PLAKA SENSÖRÜ)
+    // 📌 STEP 1 -> STEP 2 GEÇİŞİ
     if (currentStep === 1) {
       if (!isStep1Valid) return;
 
       const rawPlate = (formData.plate || formData.plate_number || '').trim();
       const cleanInputPlate = rawPlate.replace(/\s+/g, '').toUpperCase();
 
-      // 1. AŞAMA: OTO-CV SİSTEMİNDE (vehicles TABLOSUNDA) MÜKERRER PLAKA SORGUSU
       setStepLoader({
         isLoading: true,
         title: 'Plaka Tescili Sorgulanıyor',
@@ -471,18 +592,16 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
           return;
         }
 
-        // Hem veritabanındaki hem girdiği plakadaki TÜM BOŞLUKLARI TEMİZLEYİP KARŞILAŞTIR
         const duplicateVehicle = (allVehicles || []).find(v => {
           const dbPlateClean = (v.plate_number || '').replace(/\s+/g, '').toUpperCase();
           return dbPlateClean === cleanInputPlate;
         });
 
-        // 🛑 EĞER ARAÇ 'vehicles' TABLOSUNDA ZATEN VARSA İŞLEMİ ANINDA DURDUR!
         if (duplicateVehicle) {
-          setStepLoader({ isLoading: false, title: '', subtitle: '' }); // LOADER ANINDA KAPANIR
-          setDuplicatePlateNumber(rawPlate); // Plakayı kaydet
-          setShowDuplicatePlateModal(true);  // Özel Modalı Aç!
-          return; // Fotoğraf yüklemesini ve Step 2'ye geçişi KESİNLİKLE BLOKE ET!
+          setStepLoader({ isLoading: false, title: '', subtitle: '' });
+          setDuplicatePlateNumber(rawPlate);
+          setShowDuplicatePlateModal(true);
+          return;
         }
       } catch (err) {
         console.error("Plaka kontrolünde beklenmeyen hata:", err);
@@ -490,7 +609,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         return;
       }
 
-      // 2. AŞAMA: PLAKA TEMİZSE GÖRSELLERİ BULUTA YÜKLE
       setIsUploadingPhotos(true);
       setStepLoader({
         isLoading: true,
@@ -673,7 +791,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
           </div>
 
           <div className="flex flex-col items-end gap-1.5 shrink-0">
-            {currentStep < 4 && (
+            {currentStep < 4 ? (
               <button 
                 disabled={
                   isUploadingPhotos ||
@@ -698,6 +816,28 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                   </>
                 )}
               </button>
+            ) : (
+              /* 🚀 STEP 4 STICKY BAR 'ONAYLA VE KAYDET' BUTONU */
+              <button
+                type="button"
+                disabled={stepLoader.isLoading}
+                onClick={handleFinalPublish}
+                className="w-64 sm:w-72 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm py-2.5 sm:py-3 px-5 rounded-md transition-all shadow-xs text-center cursor-pointer flex items-center justify-center gap-2"
+              >
+                {stepLoader.isLoading ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Tescilleniyor...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                    <span>Onayla ve Kaydet</span>
+                  </>
+                )}
+              </button>
             )}
 
             <div className="w-64 sm:w-72 h-3 bg-slate-200/80 rounded-sm overflow-hidden">
@@ -711,7 +851,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         </div>
       </div>
 
-      {/* ADIM BİLEŞENLERİ KAPSAYICISI (DİNAMİK GENİŞLİK SENSÖRLÜ) */}
+      {/* ADIM BİLEŞENLERİ KAPSAYICISI */}
       <div className={`${currentStep === 4 ? 'max-w-[1280px]' : 'max-w-5xl'} mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6 transition-all duration-300`}>
         {currentStep === 1 && (
           <Step1VehicleAndPhotos
@@ -749,22 +889,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
             updateFormData={updateFormData}
             onBack={handlePrevStep}
             user={user}
-            onSuccess={async () => {
-              setStepLoader({
-                isLoading: true,
-                title: "Araç Karneniz Tescilleniyor",
-                subtitle: "İlanınız başarıyla tescil ediliyor ve OTO-CV dijital garajınıza aktarılıyor..."
-              });
-
-              try {
-                await handleDiscardDraft(false);
-                if (onSuccess) await onSuccess();
-              } catch (err) {
-                console.error("Yayınlama hatası:", err);
-              } finally {
-                setStepLoader({ isLoading: false, title: '', subtitle: '' });
-              }
-            }}
+            onSuccess={handleFinalPublish}
           />
         )}
       </div>
@@ -839,12 +964,11 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         </div>
       )}
 
-      {/* 🛑 MÜKERRER PLAKA UYARI MODAL BİLEŞENİ (MERKEZİ VE SADELEŞTİRİLMİŞ UI) */}
+      {/* 🛑 MÜKERRER PLAKA UYARI MODAL BİLEŞENİ */}
       {showDuplicatePlateModal && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4 animate-fadeIn font-sans antialiased">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-6 relative border border-slate-100">
             
-            {/* Kapat Butonu */}
             <button 
               onClick={() => setShowDuplicatePlateModal(false)}
               className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center font-semibold text-lg cursor-pointer"
@@ -852,7 +976,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               ✕
             </button>
 
-            {/* ÜSTE ORTALANMIŞ İKON VE BAŞLIK BLOĞU */}
             <div className="flex flex-col items-center text-center space-y-3 pt-1">
               <div className="w-12 h-12 rounded-full bg-rose-50 border border-rose-200/80 flex items-center justify-center text-rose-600 shrink-0 shadow-2xs">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
@@ -870,7 +993,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               </div>
             </div>
 
-            {/* SADECE ORTALANMIŞ VE ÖN PLANDA DURAN PLAKA ROZETİ */}
             <div className="bg-slate-100/80 p-4 sm:p-5 rounded-xl flex items-center justify-center">
               <div className="inline-flex items-center bg-white border-2 border-slate-900 rounded-lg overflow-hidden shadow-xs h-11 sm:h-12">
                 <div className="bg-[#003399] text-white px-3 h-full flex items-center justify-center font-mono font-black text-xs sm:text-sm select-none border-r border-slate-900">
@@ -882,7 +1004,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               </div>
             </div>
 
-            {/* İKAZ / DESTEK BİLGİ KUTUSU */}
             <div className="bg-rose-50/70 border border-rose-100 p-3.5 rounded-xl flex items-start gap-3">
               <div className="p-1.5 bg-rose-100/80 text-rose-600 rounded-lg shrink-0 mt-0.5">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -897,7 +1018,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               </div>
             </div>
 
-            {/* AKSİYON BUTONU */}
             <div className="pt-1">
               <button
                 type="button"
@@ -911,7 +1031,8 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
           </div>
         </div>
       )}
-      {/* GLOBAL STEP LOADER OVERLAY (TÜM ADIM GEÇİŞLERİ VE ONAY İÇİN) */}
+
+      {/* GLOBAL STEP LOADER OVERLAY */}
       <GlobalStepLoader 
         isLoading={stepLoader.isLoading}
         title={stepLoader.title}
