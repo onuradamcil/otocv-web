@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { publishVehicleListing, unpublishVehicleListing } from '../../services/marketplaceService';
 import { TURKEY_LOCATIONS } from '../../data/turkeyLocations';
+import Icon from '../common/icons';
 
 export default function PublishListingModal({ isOpen, onClose, vehicle, onSuccess }) {
   // =========================================================================
@@ -498,9 +499,9 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
             >
               <div className="flex items-center gap-3">
                 <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
-                  isFeatured ? 'bg-amber-400 border-amber-500 text-slate-950 font-black' : 'bg-white border-slate-300'
+                  isFeatured ? 'bg-amber-400 border-amber-500 text-slate-950' : 'bg-white border-slate-300'
                 }`}>
-                  {isFeatured && <span className="text-xs">✓</span>}
+                  {isFeatured && <Icon name="onay" size="xs" strokeWidth={3} />}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">

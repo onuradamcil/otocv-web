@@ -14,8 +14,11 @@ import Step2ListingDetails from './Step2ListingDetails';
 import Step3MedicalHistory from './Step3MedicalHistory';
 import Step4PreviewAndPublish from './Step4PreviewAndPublish';
 import GlobalStepLoader from '../../common/GlobalStepLoader';
+import { useToast } from '../../../context/ToastContext';
+import Icon from '../../common/icons';
 
 export default function CreateListingWizard({ onBack, onSuccess, user }) {
+  const toast = useToast();
   // =========================================================================
   // 1. BLOK: AKILLI STEP TAKİBİ VE GLOBAL FORM STATE'İ (4 ADIMLI MASTER)
   // =========================================================================
@@ -469,7 +472,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   // =========================================================================
   const handleFinalPublish = async () => {
     if (!user?.id) {
-      alert("Tescil işlemi için oturum açmış olmanız gerekmektedir.");
+      toast.hata('Tescil işlemi için oturum açmanız gerekiyor.');
       return;
     }
 
@@ -529,7 +532,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
       if (vehicleInsertError) {
         console.error("🔴 'vehicles' Tablosuna Kayıt Hatası:", vehicleInsertError.message);
-        alert(`Tescil sırasında bir hata oluştu: ${vehicleInsertError.message}`);
+        toast.hata('Araç tescil edilemedi. Lütfen bilgileri kontrol edip tekrar deneyin.');
         setStepLoader({ isLoading: false, title: '', subtitle: '' });
         return;
       }
@@ -583,7 +586,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
       setStepLoader({
         isLoading: true,
-        title: "Tescil Başarıyla Tamamlandı! 🎉",
+        title: "Tescil başarıyla tamamlandı",
         subtitle: "Dijital araç karneniz oluşturuldu, dijital garajınıza yönlendiriliyorsunuz..."
       });
 
@@ -597,7 +600,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
     } catch (err) {
       console.error("Nihai tescil sırasında beklenmeyen hata:", err);
-      alert("Tescil işlemi tamamlanırken bir hata oluştu.");
+      toast.hata('Tescil tamamlanamadı. Lütfen tekrar deneyin.');
       setStepLoader({ isLoading: false, title: '', subtitle: '' });
     }
   };
@@ -956,9 +959,10 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
             
             <button 
               onClick={() => handleDiscardDraft(true)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center font-semibold text-lg cursor-pointer"
+              aria-label="Pencereyi kapat"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors w-11 h-11 rounded-full hover:bg-slate-100 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
             >
-              ✕
+              <Icon name="kapat" size="md" />
             </button>
 
             <div className="space-y-3">
@@ -1026,9 +1030,10 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
             
             <button 
               onClick={() => setShowDuplicatePlateModal(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center font-semibold text-lg cursor-pointer"
+              aria-label="Pencereyi kapat"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors w-11 h-11 rounded-full hover:bg-slate-100 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
             >
-              ✕
+              <Icon name="kapat" size="md" />
             </button>
 
             <div className="flex flex-col items-center text-center space-y-3 pt-1">

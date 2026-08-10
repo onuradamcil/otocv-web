@@ -10,9 +10,12 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { calculatePolicyStatus } from '../utils/dateHelper';
 import PolicyOfferModal from './garage/PolicyOfferModal';
+import { useToast } from '../context/ToastContext';
 import PublishListingModal from './garage/PublishListingModal'; // 🚀 İLAN MODALI ENJEKTE EDİLDİ
+import Icon from './common/icons';
 
 export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMaintenance, onNavigateToAdd }) {
+  const toast = useToast();
   // =========================================================================
   // 1. BLOK: REAKTİF DURUM VE VERİTABANI HAFIZASI
   // =========================================================================
@@ -161,7 +164,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
 
             <div className="flex items-center gap-3 shrink-0">
               <button 
-                onClick={() => alert('Sigorta teklif robotuna yönlendiriliyorsunuz kanka!')}
+                onClick={() => toast.bilgi('Sigorta teklifleri yakında bu ekranda listelenecek.')}
                 className="bg-white hover:bg-red-50 text-red-600 text-xs font-black px-4 py-2 rounded-xl transition-all active:scale-95 shadow-sm cursor-pointer"
               >
                 Hemen Teklif Al
@@ -213,8 +216,9 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
           </div>
           
           <div className="bg-[#F8FAFC] border border-gray-200 px-4 py-2.5 rounded-xl flex flex-col items-end shrink-0 w-full sm:w-auto">
-            <span className={`text-xs font-black ${userProfile?.is_premium ? 'text-amber-600' : 'text-[#0f172a]'}`}>
-              {userProfile?.is_premium ? '★ Premium Kurumsal Üyelik' : 'Standart Kurumsal Üyelik'}
+            <span className={`text-xs font-black flex items-center gap-1 ${userProfile?.is_premium ? 'text-amber-600' : 'text-[#0f172a]'}`}>
+              {userProfile?.is_premium && <Icon name="yildiz" size="sm" />}
+              {userProfile?.is_premium ? 'Premium Kurumsal Üyelik' : 'Standart Kurumsal Üyelik'}
             </span>
             <span className="text-[#6F7887] text-[10px] font-bold mt-0.5">Sorgu Limiti: Sınırsız</span>
           </div>
@@ -248,12 +252,16 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-600 border-t-transparent" />
           </div>
         ) : error ? (
-          <div className="text-center py-10 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-bold">
-            ⚠️ Veritabanı Bağlantı Hatası: {error}
+          <div
+            role="alert"
+            className="py-10 px-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-bold flex items-center justify-center gap-2"
+          >
+            <Icon name="uyari" size="md" />
+            <span>Veritabanı bağlantı hatası: {error}</span>
           </div>
         ) : vehicles.length === 0 ? (
           <div className="py-20 flex flex-col items-center text-center space-y-3 bg-white rounded-2xl border border-dashed border-gray-300">
-            <div className="text-2xl text-gray-300">📁</div>
+            <Icon name="klasor" size="2xl" className="text-gray-300" />
             <div>
               <h3 className="text-sm font-black text-[#0F172A]">Garajınız Henüz Boş</h3>
               <p className="text-xs text-[#6F7887] mt-1 font-medium">Sisteme kayıtlı doğrulanmış aracınız bulunmamaktadır.</p>

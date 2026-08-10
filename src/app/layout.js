@@ -6,6 +6,7 @@
 
 import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { NotificationProvider } from "../context/NotificationContext";
+import { ToastProvider } from "../context/ToastContext";
 import "./globals.css";
 
 // =========================================================================
@@ -82,7 +83,9 @@ export default function RootLayout({ children }) {
                      elemanlarına gerçek zamanlı veri akışı sağlar.
            ========================================================================= */}
         <NotificationProvider>
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </NotificationProvider>
 
       </body>

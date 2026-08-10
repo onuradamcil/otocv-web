@@ -10,6 +10,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { toPng } from 'html-to-image'; 
 import AdvertisingCard from './AdvertisingCard'; 
 import OfficialReportView from './OfficialReportView';
+import Icon from '../common/icons';
 // MİMARİ BAĞLANTI: İki üst dizindeki merkezi Supabase kalkanı içeri davet edildi
 import { supabase } from '../../lib/supabase';
 
@@ -195,7 +196,9 @@ export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }
             
             <div className="lg:col-span-7 space-y-6 print:hidden select-none">
               <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
-                <div className="w-8 h-8 bg-amber-50 border border-amber-100 rounded-xl flex items-center justify-center text-amber-600 font-bold text-xs">✓</div>
+                <div className="w-8 h-8 bg-amber-50 border border-amber-100 rounded-xl flex items-center justify-center text-amber-600">
+                  <Icon name="karne" size="md" />
+                </div>
                 <div className="space-y-1">
                   <h3 className="text-base font-extrabold text-slate-900 tracking-tight">Pazaryeri Satış Operasyonlarınızı Hızlandırın</h3>
                   <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed">
@@ -244,7 +247,14 @@ export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }
           <div className="bg-white border border-gray-100 rounded-2xl p-5 w-full max-w-sm shadow-xl space-y-4">
             <div className="flex justify-between items-center border-b border-gray-100 pb-2">
               <h3 className="text-xs font-bold text-[#0F172A]">Doğrulama Bağlantısı</h3>
-              <button onClick={() => setShowShareModal(false)} className="text-slate-400 hover:text-slate-600 font-bold text-xs">✕</button>
+              <button
+                type="button"
+                onClick={() => setShowShareModal(false)}
+                aria-label="Pencereyi kapat"
+                className="w-9 h-9 grid place-items-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+              >
+                <Icon name="kapat" size="md" />
+              </button>
             </div>
             <div onClick={copyVerificationLink} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-gray-200 hover:bg-slate-100 cursor-pointer transition-all">
               <div className="flex-1 min-w-0">

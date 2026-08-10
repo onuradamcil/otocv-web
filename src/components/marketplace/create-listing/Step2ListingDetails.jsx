@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { TURKEY_LOCATIONS as turkeyLocations } from '../../../data/turkeyLocations';
+import Icon from '../../common/icons';
 
 // =========================================================================
 // 🏛️ 1. BLOK: MODÜL SABİTLERİ (PANEL KATALOGLARI - COMPONENT DIŞI)
@@ -1424,9 +1425,10 @@ useEffect(() => {
                           <button
                             type="button"
                             onClick={() => setActivePartPopover(null)}
-                            className="text-slate-400 hover:text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded cursor-pointer transition-colors"
+                            aria-label="Parça seçimini kapat"
+                            className="text-slate-400 hover:text-white w-6 h-6 flex items-center justify-center rounded cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                           >
-                            ✕
+                            <Icon name="kapat" size="xs" strokeWidth={3} />
                           </button>
                         </div>
 
@@ -1637,7 +1639,8 @@ useEffect(() => {
                             }}
                             className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 cursor-pointer bg-indigo-50/60 px-2.5 py-1 rounded-md border border-indigo-100/60"
                           >
-                            <span>{isAllCatSelected ? '✓ Tümünü Kaldır' : '＋ Tümünü Seç'}</span>
+                            <Icon name={isAllCatSelected ? 'onay' : 'arti'} size="xs" strokeWidth={3} />
+                            <span>{isAllCatSelected ? 'Tümünü Kaldır' : 'Tümünü Seç'}</span>
                           </button>
                         </div>
 
@@ -1805,11 +1808,12 @@ useEffect(() => {
                             onClick={() => handleResetColor('text')}
                             className="w-7 h-7 bg-white rounded border border-slate-300 flex items-center justify-center text-rose-500 font-bold cursor-pointer"
                             title="Rengi Sıfırla"
+                            aria-label="Rengi Sıfırla"
                           >
-                            ╱
+                            <Icon name="yasak" size="sm" />
                           </button>
                           <label className="w-7 h-7 bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 flex items-center justify-center cursor-pointer transition-colors" title="Özel Renk Seç">
-                            🎨
+                            <Icon name="boya" size="sm" className="text-slate-600" />
                             <input
                               type="color"
                               onChange={(e) => handleApplyTextColor(e.target.value)}
@@ -1864,11 +1868,12 @@ useEffect(() => {
                             onClick={() => handleResetColor('bg')}
                             className="w-7 h-7 bg-white rounded border border-slate-300 flex items-center justify-center text-rose-500 font-bold cursor-pointer"
                             title="Vurguyu Kaldır"
+                            aria-label="Vurguyu Kaldır"
                           >
-                            ╱
+                            <Icon name="yasak" size="sm" />
                           </button>
                           <label className="w-7 h-7 bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 flex items-center justify-center cursor-pointer transition-colors" title="Özel Vurgu Rengi">
-                            🎨
+                            <Icon name="boya" size="sm" className="text-slate-600" />
                             <input
                               type="color"
                               onChange={(e) => handleApplyBgColor(e.target.value)}

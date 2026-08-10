@@ -9,6 +9,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchMarketplaceListings } from '../../services/marketplaceService';
 import PublishListingModal from '../garage/PublishListingModal';
+import Icon from '../common/icons';
 
 export default function MyListingsScreen({ user, onNavigateToGarage }) {
   const [listings, setListings] = useState([]);
@@ -65,7 +66,9 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
         </div>
       ) : listings.length === 0 ? (
         <div className="py-20 flex flex-col items-center justify-center text-center space-y-3 bg-white rounded-3xl border border-dashed border-slate-200">
-          <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 font-mono text-xl">🚗</div>
+          <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400">
+            <Icon name="arac" size="xl" />
+          </div>
           <h3 className="text-sm font-extrabold text-slate-900">Aktif Yayında İlanınız Bulunmamaktadır</h3>
           <p className="text-xs text-slate-400 max-w-sm">Garajınızdaki araçları pazaryerine çıkararak ilanlarınızı buradan yönetebilirsiniz.</p>
           <button 

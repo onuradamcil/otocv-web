@@ -6,6 +6,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import Icon from '../../common/icons';
 
 // --- İKON BİLEŞENLERİ (GOOGLE STITCH VEKTÖRLERİ) ---
 const FileTextIcon = () => (
@@ -394,8 +395,8 @@ const Step3Medical = forwardRef(({
                           <div className="flex items-center gap-3 min-w-0">
                             {/* DİNAMİK STATUS İKONU: GEÇERLİYSE YEŞİL TİK, EKSİKSE TURUNCU ÜNLEM */}
                             {recordValid ? (
-                              <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-extrabold shrink-0" title="Tamamlanmış Kayıt">
-                                ✓
+                              <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0" title="Tamamlanmış Kayıt">
+                                <Icon name="onay" size="xs" strokeWidth={3} />
                               </span>
                             ) : (
                               <span className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-extrabold shrink-0" title="Eksik Bilgi">
@@ -654,8 +655,8 @@ const Step3Medical = forwardRef(({
                                 </div>
                               ) : (
                                 <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
-                                  <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center font-extrabold text-[9px]">
-                                    ✓
+                                  <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                                    <Icon name="onay" className="w-2.5 h-2.5" strokeWidth={3} />
                                   </span>
                                   <span>Fatura Belgesi Bağlandı:</span>
                                   <span className="font-mono font-semibold text-slate-600 truncate max-w-xs">

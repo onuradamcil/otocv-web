@@ -16,6 +16,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import NotificationDropdown from '@/context/NotificationDropdown';
 import MobileDrawer from './MobileDrawer';
+import Icon from '@/components/common/icons';
 
 const ODAK = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2';
 
@@ -146,7 +147,9 @@ export default function Header() {
                       className={`bg-[#FFFDF0] hover:bg-[#FFF9D6] border border-amber-200/80 rounded-lg p-4 transition-all group flex flex-col justify-between ${ODAK}`}
                     >
                       <div>
-                        <div className="w-10 h-10 rounded-full bg-amber-400 text-slate-950 font-black text-base flex items-center justify-center mx-auto mb-2 shadow-sm group-hover:scale-110 transition-transform">📋</div>
+                        <div className="w-10 h-10 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center mx-auto mb-2 shadow-sm group-hover:scale-110 transition-transform">
+                          <Icon name="ilan" size="lg" />
+                        </div>
                         <h4 className="text-sm font-black text-slate-900 text-center mb-2 tracking-tight">Sıfırdan Araç Kaydet</h4>
                         <p className="text-[11px] text-slate-600 font-semibold text-center leading-relaxed">Kataloğumuzdan aracı seç, 4 adımda sicilini oluştur.</p>
                       </div>
@@ -159,7 +162,9 @@ export default function Header() {
                       className={`bg-[#F0F5FF] hover:bg-[#E2ECFF] border border-indigo-200/80 rounded-lg p-4 transition-all group flex flex-col justify-between ${ODAK}`}
                     >
                       <div>
-                        <div className="w-10 h-10 rounded-full bg-indigo-600 text-white font-black text-base flex items-center justify-center mx-auto mb-2 shadow-sm group-hover:scale-110 transition-transform">🚗</div>
+                        <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center mx-auto mb-2 shadow-sm group-hover:scale-110 transition-transform">
+                          <Icon name="arac" size="lg" />
+                        </div>
                         <h4 className="text-sm font-black text-slate-900 text-center mb-2 tracking-tight">Garajımdan Seç</h4>
                         <p className="text-[11px] text-slate-600 font-semibold text-center leading-relaxed">Tescilli aracını garajdan seç, bilgiler otomatik yüklensin.</p>
                       </div>

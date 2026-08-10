@@ -9,8 +9,11 @@
 
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../../context/ToastContext';
+import Icon from '../common/icons';
 
 export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClose, onRecordAdded }) {
+  const toast = useToast();
   // =========================================================================
   // 1. BLOK: FORM KONTROLCÜLERİ VE YENİ NESİL REAKTİF HAFIZA
   // =========================================================================
@@ -163,7 +166,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
 
     } catch (err) {
       console.error(err);
-      alert(`Hata oluştu kankam: ${err.message}`);
+      toast.hata('Bakım kaydı işlenemedi. Lütfen bilgileri kontrol edip tekrar deneyin.');
     } finally {
       setIsSaving(false);
     }
@@ -237,7 +240,12 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
                 }`}
                 onChange={(e) => handleDateChange(e.target.value)}
               />
-              {dateError && <p className="text-[10px] text-red-600 font-bold tracking-wide mt-1">⚠️ {dateError}</p>}
+              {dateError && (
+                <p role="alert" className="text-[10px] text-red-600 font-bold tracking-wide mt-1 flex items-center gap-1">
+                  <Icon name="uyari" size="xs" />
+                  {dateError}
+                </p>
+              )}
               {!dateError && submitAttempted && !serviceDate && <p className="text-[10px] text-red-500 font-bold mt-1">Takvim tarihi zorunludur.</p>}
             </div>
 

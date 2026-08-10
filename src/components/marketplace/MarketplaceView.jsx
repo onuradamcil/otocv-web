@@ -8,6 +8,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { fetchMarketplaceListings } from '../../services/marketplaceService';
+import { useToast } from '../../context/ToastContext';
+import Icon from '../common/icons';
 
 export default function MarketplaceView({ 
   onSelectVehicle, 
@@ -17,6 +19,7 @@ export default function MarketplaceView({
   onNavigateToMaintenance,
   onOpenCreateListingModal
 }) {
+  const toast = useToast();
   // =========================================================================
   // 1. BLOK: REAKTİF VERİ VE FİLTRE HAFIZASI
   // =========================================================================
@@ -159,7 +162,14 @@ export default function MarketplaceView({
               className="w-full bg-transparent border-none outline-none text-xs text-slate-900 font-semibold placeholder:text-slate-400 pl-0.5" 
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="text-slate-400 hover:text-slate-600 text-xs px-1">✕</button>
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="Aramayı temizle"
+                className="w-8 h-8 grid place-items-center rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+              >
+                <Icon name="kapat" size="sm" />
+              </button>
             )}
             <button type="button" className="bg-[#0F172A] hover:bg-slate-800 text-white font-bold text-xs px-5 py-2 rounded-md transition-all active:scale-95 shrink-0 cursor-pointer">
               İlan Ara
@@ -287,13 +297,14 @@ export default function MarketplaceView({
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 
                 {/* KART 1: GARAJ */}
-                <div 
+                <button
+                  type="button"
                   onClick={onNavigateToGarage}
-                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px]"
+                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px] text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600"
                 >
                   <div>
-                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-[11px] flex items-center justify-center mb-2 shadow-xs">
-                      ₺
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center mb-2 shadow-xs">
+                      <Icon name="arac" size="sm" />
                     </div>
                     <h4 className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                       Tescilli Garajım
@@ -305,16 +316,17 @@ export default function MarketplaceView({
                   <div className="mt-2 text-[10px] font-bold text-blue-600 border-b-2 border-blue-600 w-max opacity-80 group-hover:opacity-100 transition-all">
                     Garajıma Git &gt;
                   </div>
-                </div>
+                </button>
 
                 {/* KART 2: KÜNYE */}
-                <div 
+                <button
+                  type="button"
                   onClick={onNavigateToVerify}
-                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px]"
+                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px] text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600"
                 >
                   <div>
-                    <div className="w-6 h-6 rounded-full bg-rose-600 text-white font-black text-[11px] flex items-center justify-center mb-2 shadow-xs">
-                      ?
+                    <div className="w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center mb-2 shadow-xs">
+                      <Icon name="pinKod" size="sm" />
                     </div>
                     <h4 className="text-xs font-bold text-slate-900 group-hover:text-rose-600 transition-colors">
                       Künye Sorgula
@@ -326,16 +338,17 @@ export default function MarketplaceView({
                   <div className="mt-2 text-[10px] font-bold text-rose-600 border-b-2 border-rose-600 w-max opacity-80 group-hover:opacity-100 transition-all">
                     Sorgulama Yap &gt;
                   </div>
-                </div>
+                </button>
 
                 {/* KART 3: SİGORTA */}
-                <div 
+                <button
+                  type="button"
                   onClick={onNavigateToInsurance}
-                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px]"
+                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px] text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600"
                 >
                   <div>
-                    <div className="w-6 h-6 rounded-full bg-[#1e293b] text-white font-black text-[10px] flex items-center justify-center mb-2 shadow-xs">
-                      🚗
+                    <div className="w-6 h-6 rounded-full bg-[#1e293b] text-white flex items-center justify-center mb-2 shadow-xs">
+                      <Icon name="kalkan" size="sm" />
                     </div>
                     <h4 className="text-xs font-bold text-slate-900 group-hover:text-slate-900 transition-colors">
                       Sigorta & Kasko
@@ -347,16 +360,17 @@ export default function MarketplaceView({
                   <div className="mt-2 text-[10px] font-bold text-slate-900 border-b-2 border-slate-900 w-max opacity-80 group-hover:opacity-100 transition-all">
                     Teklif Al &gt;
                   </div>
-                </div>
+                </button>
 
                 {/* KART 4: BAKIM */}
-                <div 
+                <button
+                  type="button"
                   onClick={onNavigateToMaintenance}
-                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px]"
+                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px] text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600"
                 >
                   <div>
-                    <div className="w-6 h-6 rounded-full bg-slate-500 text-white font-black text-[11px] flex items-center justify-center mb-2 shadow-xs">
-                      ✓
+                    <div className="w-6 h-6 rounded-full bg-slate-500 text-white flex items-center justify-center mb-2 shadow-xs">
+                      <Icon name="anahtar" size="sm" />
                     </div>
                     <h4 className="text-xs font-bold text-slate-900 group-hover:text-slate-700 transition-colors">
                       Bakım Takvimi
@@ -368,16 +382,17 @@ export default function MarketplaceView({
                   <div className="mt-2 text-[10px] font-bold text-slate-700 border-b-2 border-slate-700 w-max opacity-80 group-hover:opacity-100 transition-all">
                     Randevu Al &gt;
                   </div>
-                </div>
+                </button>
 
                 {/* KART 5: AI DEĞERLEME */}
-                <div 
-                  onClick={() => alert('Yapay Zeka Fiyat Endeksi Yakında Aktif Edilecek!')}
-                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px] col-span-2 md:col-span-1"
+                <button
+                  type="button"
+                  onClick={() => toast.bilgi('Yapay zeka fiyat endeksi yakında açılacak.')}
+                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px] text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600 col-span-2 md:col-span-1"
                 >
                   <div>
-                    <div className="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black text-[11px] flex items-center justify-center mb-2 shadow-xs">
-                      a
+                    <div className="w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center mb-2 shadow-xs">
+                      <Icon name="parlama" size="sm" />
                     </div>
                     <h4 className="text-xs font-bold text-slate-900 group-hover:text-amber-600 transition-colors">
                       AI Değerleme
@@ -389,7 +404,7 @@ export default function MarketplaceView({
                   <div className="mt-2 text-[10px] font-bold text-amber-600 border-b-2 border-amber-500 w-max opacity-80 group-hover:opacity-100 transition-all">
                     Fiyat Öğren &gt;
                   </div>
-                </div>
+                </button>
 
               </div>
             </div>

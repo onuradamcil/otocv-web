@@ -8,6 +8,7 @@
 
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import Icon from './common/icons';
 
 export default function ResetPasswordScreen({ onSuccess, onBack }) {
   const [password, setPassword] = useState('');
@@ -24,12 +25,12 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
     setSuccessMessage('');
 
     if (password.length < 6) {
-      setErrorMessage('Güvenliğiniz için şifre en az 6 karakter olmalıdır kanka.');
+      setErrorMessage('Şifreniz en az 6 karakter olmalıdır.');
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMessage('Girdiğin şifreler birbiriyle eşleşmiyor brom.');
+      setErrorMessage('Girdiğiniz şifreler birbiriyle eşleşmiyor.');
       return;
     }
 
@@ -45,7 +46,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
         onSuccess();
       }, 2500);
     } catch (err) {
-      setErrorMessage(`Şifre tescil edilemedi kanka: ${err.message}`);
+      setErrorMessage('Şifre güncellenemedi. Bağlantınızın süresi dolmuş olabilir; giriş ekranından yeni bağlantı isteyin.');
     } finally {
       setLoading(false);
     }
@@ -68,14 +69,16 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
           </div>
 
           {errorMessage && (
-            <div className="bg-red-50 border border-red-100 text-red-600 text-[11px] font-semibold px-4 py-2.5 rounded-xl flex items-start gap-2 animate-fadeIn">
-              <span>⚠️ {errorMessage}</span>
+            <div role="alert" className="bg-red-50 border border-red-100 text-red-600 text-[11px] font-semibold px-4 py-2.5 rounded-xl flex items-start gap-2 animate-fadeIn">
+              <Icon name="uyari" size="sm" className="mt-0.5" />
+              <span>{errorMessage}</span>
             </div>
           )}
 
           {successMessage && (
-            <div className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-[11px] font-semibold px-4 py-2.5 rounded-xl flex items-start gap-2 animate-fadeIn">
-              <span>✓ {successMessage}</span>
+            <div role="status" className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-[11px] font-semibold px-4 py-2.5 rounded-xl flex items-start gap-2 animate-fadeIn">
+              <Icon name="onay" size="sm" className="mt-0.5" />
+              <span>{successMessage}</span>
             </div>
           )}
 
@@ -84,8 +87,16 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
               <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider pl-0.5">Yeni Şifre</label>
               <div className="relative">
                 <input type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none shadow-sm" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0F172A]">
-                  {showPassword ? '👁' : '👁‍🗨'}
+                {/* Etiket ikonda değil BUTONDA: içeriği tek başına ikon olan
+                    butonun adını ekran okuyucu ancak buradan öğrenir. */}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
+                  aria-pressed={showPassword}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 grid place-items-center rounded-lg text-slate-400 hover:text-[#0F172A] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]"
+                >
+                  <Icon name={showPassword ? 'gozKapali' : 'goz'} size="md" />
                 </button>
               </div>
             </div>

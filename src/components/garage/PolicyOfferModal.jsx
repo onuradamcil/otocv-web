@@ -8,8 +8,11 @@
 
 import React from 'react';
 import { generateGoogleCalendarUrl, parseVehicleDate } from '../../utils/dateHelper';
+import { useToast } from '../../context/ToastContext';
+import Icon from '../common/icons';
 
 export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType, statusInfo }) {
+  const toast = useToast();
   if (!isOpen || !vehicle) return null;
 
   // =========================================================================
@@ -62,8 +65,8 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
 
         {/* BAŞLIK VE İKON ALANI */}
         <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 ${statusInfo.bgClass}`}>
-            {statusInfo.status === 'expired' ? '⚠️' : '🔔'}
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${statusInfo.bgClass}`}>
+            <Icon name={statusInfo.status === 'expired' ? 'uyari' : 'zil'} size="lg" />
           </div>
           <div>
             <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase font-mono">DİJİTAL SİCİL RADARI</span>
@@ -111,7 +114,7 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
             <button
               onClick={() => {
                 onClose();
-                alert(`${vehicle.plate_number} plakalı araç için teklif robotuna yönlendiriliyorsunuz kanka!`);
+                toast.bilgi(`${vehicle.plate_number} için sigorta teklifleri yakında bu ekranda listelenecek.`);
               }}
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-xs shadow-lg shadow-indigo-600/20 transition-all active:scale-98 flex items-center justify-center gap-2"
             >
@@ -137,7 +140,8 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
             rel="noreferrer"
             className="w-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 block text-center"
           >
-            <span>📅 Google Takvimime Ekle</span>
+            <Icon name="takvim" size="sm" />
+            <span>Google Takvimime Ekle</span>
           </a>
         </div>
 

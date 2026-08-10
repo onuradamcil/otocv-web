@@ -8,6 +8,7 @@
 
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase'; // 🚀 CANLI BAĞLANTI: Merkezi bulut kalkanı davet edildi
+import Icon from './common/icons';
 
 export default function VehicleVerificationScreen({ onVehicleFound, initialPin = '', initialError = '' }) {
   // =========================================================================
@@ -117,7 +118,8 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
       {/* BAŞLIK VE KÜNYE ALANI */}
       <div className="text-center space-y-3 max-w-2xl mx-auto">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-indigo-600 text-[10px] font-black tracking-wider uppercase">
-          🛡️ GÜVENLİ SİCİL SORGULAMA
+          <Icon name="kalkan" size="sm" />
+          GÜVENLİ SİCİL SORGULAMA
         </span>
         <h1 className="text-3xl font-black text-slate-900 tracking-tight">Oto-Karne Doğrula</h1>
         <p className="text-xs md:text-sm text-slate-400 font-medium leading-relaxed">

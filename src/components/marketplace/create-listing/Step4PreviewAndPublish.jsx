@@ -7,6 +7,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useToast } from '../../../context/ToastContext';
+import Icon from '../../common/icons';
 
 // =========================================================================
 // 🎨 SABİTLER VE YARDIMCI FONKSİYONLAR
@@ -176,6 +178,7 @@ const getDynamicStatus = (dateInput, validLabel = 'Geçerli') => {
 // 🚀 ANA BİLEŞEN: SINGLE SHOWROOM PANEL
 // =========================================================================
 export default function Step4PreviewAndPublish({ formData = {}, updateFormData, onBack, onEdit, onSuccess, user = {} }) {
+  const toast = useToast();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [thumbPage, setThumbPage] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -379,13 +382,15 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                   {formData.title || `${formData.selectedYear || ''} ${formData.selectedBrand?.name || ''} ${formData.selectedSeries?.name || ''} ${formData.selectedModel?.name || ''}`}
                 </h1>
                 <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
-                  <span>📍 {formData.city || 'Aksaray'}, {formData.district || 'Ağaçören'}</span>
+                  <Icon name="konum" size="sm" />
+                  <span>{formData.city || 'Aksaray'}, {formData.district || 'Ağaçören'}</span>
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                 {onEdit && (
                   <button type="button" onClick={onEdit} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border border-slate-200/80">
-                    ✏️ Bilgileri Düzenle
+                    <Icon name="duzenle" size="sm" />
+                    Bilgileri Düzenle
                   </button>
                 )}
                 <span className="text-xs font-mono font-bold bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-md border border-indigo-100">
@@ -876,8 +881,8 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                             className="flex items-center justify-between p-2.5 rounded bg-white border border-emerald-300 text-slate-900 font-extrabold text-xs shadow-2xs"
                           >
                             <span className="truncate pr-2">{extFeat}</span>
-                            <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">
-                              ✓
+                            <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                              <Icon name="onay" size="xs" strokeWidth={3} />
                             </span>
                           </div>
                         ))}
@@ -910,8 +915,8 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                             >
                               <span className="truncate pr-2">{featName}</span>
                               {isSelected ? (
-                                <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">
-                                  ✓
+                                <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                                  <Icon name="onay" size="xs" strokeWidth={3} />
                                 </span>
                               ) : (
                                 <span className="text-slate-300 font-bold px-1.5 select-none">−</span>
@@ -1018,9 +1023,15 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                           <div className="min-w-0">
                             <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{titleStr}</h4>
                             <p className="text-[11px] text-slate-500 font-medium mt-0.5 flex items-center gap-2">
-                              <span>📍 {item.shop_name || 'Özel Servis'}</span>
-                              <span>•</span>
-                              <span>🗓️ {item.service_date || 'Belirtilmemiş'}</span>
+                              <span className="inline-flex items-center gap-1">
+                                <Icon name="anahtar" size="xs" />
+                                {item.shop_name || 'Özel Servis'}
+                              </span>
+                              <span aria-hidden="true">•</span>
+                              <span className="inline-flex items-center gap-1">
+                                <Icon name="takvim" size="xs" />
+                                {item.service_date || 'Belirtilmemiş'}
+                              </span>
                             </p>
                           </div>
                         </div>
@@ -1121,7 +1132,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.828-1.42-5.11-3.702-6.53-6.529l1.294-.97c.362-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
                 <span>{showPhone ? sellerPhone : `Cep Telefonunu Göster`}</span>
               </button>
-              <button type="button" onClick={() => alert("Mesaj modülü açılıyor...")} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-2.5 px-4 rounded transition-all cursor-pointer flex items-center justify-center gap-2 border border-slate-200/80">
+              <button type="button" onClick={() => toast.bilgi('Mesajlaşma yakında açılacak.')} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-2.5 px-4 rounded transition-all cursor-pointer flex items-center justify-center gap-2 border border-slate-200/80">
                 <svg className="w-4 h-4 text-slate-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
                 <span>Satıcıya Mesaj Gönder</span>
               </button>
@@ -1164,7 +1175,10 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
       {/* 🚀 LIGHTBOX GALERİ MODALI */}
       {isFullscreen && imageList.length > 0 && (
         <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 select-none animate-fadeIn">
-          <button type="button" onClick={() => setIsFullscreen(false)} className="absolute top-6 right-6 z-50 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full font-bold cursor-pointer">✕ Kapat</button>
+          <button type="button" onClick={() => setIsFullscreen(false)} className="absolute top-6 right-6 z-50 bg-white/10 hover:bg-white/20 text-white px-4 py-2 min-h-[44px] rounded-full font-bold text-xs cursor-pointer inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+            <Icon name="kapat" size="md" />
+            Kapat
+          </button>
           {imageList.length > 1 && <button type="button" onClick={() => setFullscreenIndex((prev) => (prev - 1 + imageList.length) % imageList.length)} className="absolute left-6 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full font-bold cursor-pointer">‹</button>}
           <div className="max-w-5xl max-h-[85vh] flex items-center justify-center overflow-hidden">
             <img src={imageList[fullscreenIndex]} alt="Galeri Büyütülmüş" className="max-w-full max-h-[85vh] object-contain" />
@@ -1179,8 +1193,9 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
       {/* 📑 FATURA GÖRSELİ ÖN İZLEME MODALI */}
       {invoiceModalUrl && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 select-none animate-fadeIn">
-          <button type="button" onClick={() => setInvoiceModalUrl(null)} className="absolute top-6 right-6 z-50 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full font-bold text-xs cursor-pointer">
-            ✕ Kapat
+          <button type="button" onClick={() => setInvoiceModalUrl(null)} className="absolute top-6 right-6 z-50 bg-white/20 hover:bg-white/30 text-white px-4 py-2 min-h-[44px] rounded-full font-bold text-xs cursor-pointer inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+            <Icon name="kapat" size="md" />
+            Kapat
           </button>
           <div className="max-w-4xl max-h-[85vh] bg-white p-2 rounded-xl overflow-hidden shadow-2xl flex items-center justify-center">
             <img src={invoiceModalUrl} alt="Fatura Evrakı" className="max-w-full max-h-[80vh] object-contain" />

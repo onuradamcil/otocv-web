@@ -9,6 +9,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { useToast } from '../../../context/ToastContext';
+import Icon from '../../common/icons';
 
 // =========================================================================
 // SABİT KATALOG SİMÜLASYON VERİLERİ VE STİL SABİTLERİ
@@ -23,6 +25,7 @@ const arrowTabStyle = {
 };
 
 export default function Step1VehicleAndPhotos({ formData, updateFormData, userPackage, onNext }) {
+  const toast = useToast();
   // =========================================================================
   // 1. BLOK: PROPS & MERKEZİ FORM HAFIZA BAĞLANTILARI
   // =========================================================================
@@ -285,7 +288,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
     if (!validFiles || validFiles.length === 0) return;
 
     if (photos.length + validFiles.length > 15) {
-      alert("En fazla 15 adet fotoğraf ekleyebilirsiniz.");
+      toast.hata('En fazla 15 fotoğraf ekleyebilirsiniz.');
       return;
     }
 
@@ -372,11 +375,11 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
 
             <button
               type="button"
-              onClick={() => alert("Ekstra İlan Hakkı ve Üyelik Paketleri Sayfası Yakında Buraya Bağlanacak Kanka!")}
+              onClick={() => toast.bilgi('Üyelik paketleri yakında açılacak.')}
               className="bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-950 font-black text-xs px-3 py-1.5 rounded-lg transition-all shadow-2xs border border-amber-500/40 flex items-center gap-1 cursor-pointer"
             >
               <span>Paketi Yükselt</span>
-              <span>⚡</span>
+              <Icon name="simsek" size="sm" />
             </button>
           </div>
         </div>
@@ -458,9 +461,10 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                       <button 
                         type="button"
                         onClick={() => handleRemovePhoto(idx)}
-                        className="absolute top-1 right-1 bg-slate-900/80 hover:bg-rose-600 text-white w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center transition-colors cursor-pointer"
+                        aria-label={`${idx + 1}. fotoğrafı kaldır`}
+                        className="absolute top-1 right-1 bg-slate-900/80 hover:bg-rose-600 text-white w-6 h-6 rounded-full flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                       >
-                        ✕
+                        <Icon name="kapat" size="xs" strokeWidth={3} />
                       </button>
                     </div>
                   ))}
@@ -661,7 +665,8 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   </span>
                 </div>
                 <span className="text-[9px] font-extrabold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md border border-indigo-100 uppercase tracking-wider">
-                  ✨ AI ONAYLI ROZET
+                  <Icon name="parlama" size="xs" className="inline-block mr-1 -mt-px" />
+                  AI ONAYLI ROZET
                 </span>
               </div>
 
@@ -672,8 +677,8 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
               }`}>
                 {registration_file ? (
                   <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
-                    <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-extrabold text-[10px]">
-                      ✓
+                    <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                      <Icon name="onay" size="xs" strokeWidth={3} />
                     </span>
                     <span>Ruhsat Fotoğrafı Yüklendi! (AI Güven Rozeti Aktif)</span>
                   </div>

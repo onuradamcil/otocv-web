@@ -7,6 +7,7 @@
 'use client';
 
 import React from 'react';
+import Icon from '../common/icons';
 
 export default function AdvertisingCard({ vehicle }) {
   // =========================================================================
@@ -150,10 +151,16 @@ function InfoChip({ value }) {
 function StoreBadge({ title, sub, type }) {
   return (
     <div className="flex-1 bg-[#1E222B] border border-[#2B303B] rounded-xl py-1.5 px-1 flex flex-col items-center justify-center text-center min-w-0">
-      <div className="text-white text-[11px] mb-0.5">
-        {type === 'apple' && ''}
-        {type === 'play' && '▶'}
-        {type === 'web' && '🌐'}
+      {/* Bu kart karne PNG'sinin İÇİNDE ve kullanıcının kendi makinesinde
+          rasterize ediliyor. Önceden Apple logosu için U+F8FF (özel kullanım
+          alanı) karakteri basılıyordu; o karakter YALNIZCA Apple cihazlarda
+          çiziliyor, Windows ve Android'de boş kutu oluyor. Yani karnenin bir
+          köşesi kullanıcının işletim sistemine göre bozuk çıkıyordu.
+          Üçü de artık SVG; marka logosu taklit edilmiyor. */}
+      <div className="text-white mb-0.5 h-3 flex items-center justify-center">
+        {type === 'web'
+          ? <Icon name="kure" className="w-2.5 h-2.5" />
+          : <Icon name="indir" className="w-2.5 h-2.5" />}
       </div>
       <span className="text-[8px] text-white font-black tracking-tight truncate w-full">{title}</span>
       <span className="text-[6.5px] text-[#6F7887] font-bold truncate w-full mt-px">{sub}</span>
