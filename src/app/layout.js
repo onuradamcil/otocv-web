@@ -4,19 +4,44 @@
 //        yapar ve bildirim motoru sarmalayıcısını projeye enjekte eder.
 // =========================================================================
 
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { NotificationProvider } from "../context/NotificationContext";
 import "./globals.css";
 
-// 🧠 BİLGİ: Projenin kurumsal yazı tiplerini sisteme tanımlıyoruz kanka
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+// =========================================================================
+// 🔤 YAZI TİPİ SİSTEMİ
+//
+// Önceki durum: Geist + Geist Mono next/font ile indiriliyordu ama hiçbir
+// yerde kullanılmıyordu; Inter, Space Grotesk ve JetBrains Mono ise
+// globals.css'ten Google Fonts CDN'i üzerinden çekiliyordu. Yani dört
+// aileden ikisi boşuna iniyordu ve CDN isteği sayfa çizimini geciktiriyordu.
+//
+// Şimdi: üçü de next/font ile self-host ediliyor. Üçü de DEĞİŞKEN font,
+// yani ağırlıkları tek tek istemek yerine tam aralık tek dosyada geliyor.
+// Bu, kod tabanında 238 yerde kullanılan font-black (900) ve
+// font-extrabold (800) ağırlıklarının sahte kalınlaştırma yerine gerçek
+// ağırlıkla çizilmesini sağlıyor — CDN isteği yalnızca 700'e kadar
+// ağırlık indirdiği için o 238 kullanım tarayıcı uydurmasıydı.
+//
+// subsets: Türkçe için latin YETMEZ. ğ ş ı İ karakterleri latin-ext'te.
+// display: swap — font inerken metin görünmez kalmıyor.
+// =========================================================================
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
 });
 
 // 👑 TESCİL: Uygulamanın arama motoru optimizasyonu (SEO) temeli
@@ -46,7 +71,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="tr"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#FFFDFB] text-[#0F172A]">
         

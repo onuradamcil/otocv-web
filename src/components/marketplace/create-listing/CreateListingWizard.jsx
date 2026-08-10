@@ -808,7 +808,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
             aria-label="Sihirbazdan çık ve garaja dön"
             className="flex items-center gap-2 select-none group py-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
           >
-            <span className="text-xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
+            <span className="text-xl font-display font-bold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
               OTO.CV
             </span>
           </button>

@@ -28,7 +28,7 @@ export default function AuthHeader() {
           <span>Anasayfa</span>
         </Link>
 
-        <Link href="/" className={`text-base font-black tracking-tight text-slate-900 rounded ${ODAK}`}>
+        <Link href="/" className={`text-base font-display font-bold tracking-tight text-slate-900 rounded ${ODAK}`}>
           OTO.CV
         </Link>
       </div>

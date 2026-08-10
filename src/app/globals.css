@@ -1,7 +1,25 @@
-/* ✍️ GOOGLE FONTS ENJEKSİYONU (MÜTLAKA EN TEPEDE, HER ŞEYDEN ÖNCE OLMALI) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700;900&family=JetBrains+Mono:wght@500;700&display=swap');
-
 @import "tailwindcss";
+
+/* =========================================================================
+   🔤 YAZI TİPİ TEMASI
+   Fontlar artık Google Fonts CDN'inden @import ile değil, next/font ile
+   self-host ediliyor (bkz. app/layout.js). Kaldırılan @import üçüncü taraf
+   bir alan adına bağlantı açıp sayfa çizimini geciktiriyordu.
+
+   @theme bloğu ŞART: Tailwind v4 yardımcı sınıfları bu blokta üretiyor.
+   Önceden --font-display yalnızca :root içindeydi, dolayısıyla font-display
+   diye bir yardımcı sınıf HİÇ üretilmiyordu — Space Grotesk iniyor ama
+   hiçbir yere uygulanmıyordu. Artık font-display gerçek bir sınıf.
+
+   --font-sans ve --font-mono zaten çalışıyordu (Tailwind'in kendi
+   yardımcıları bu değişkenleri okuyor); onlar next/font değişkenlerine
+   bağlandı.
+   ========================================================================= */
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
 
 /* 🎨 HIGH-CONTRAST STANDART CSS3 PREMIUM TASARIM MOTORU */
 :root {
@@ -11,11 +29,6 @@
   --color-premium-amber: #D97706;  /* Tescilli Altın / Kehribar */
   --color-verified-green: #059669; /* Doğrulanmış Yeşil / Mint */
   --color-muted-slate: #64748B;    /* Yardımcı Metin Grisi */
-
-  /* Yazı Tiplerimiz */
-  --font-sans: 'Inter', sans-serif;
-  --font-display: 'Space Grotesk', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
 }
 
 /* 🏢 KÜRESEL TARAYICI GÖVDE MÜHÜRLERİ & PIKSEL NETLİK KALKANLARI */

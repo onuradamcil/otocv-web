@@ -56,7 +56,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
 
           <div className="space-y-3">
-            <span className="text-base font-black tracking-tight text-slate-900 block">OTO.CV</span>
+            <span className="text-base font-display font-bold tracking-tight text-slate-900 block">OTO.CV</span>
             <p className="text-[11px] text-slate-500 font-medium leading-relaxed max-w-[240px]">
               Aracınızın bakım geçmişini dijital sicil olarak tutun, sigorta ve muayene
               tarihlerini kaçırmayın, karnenizi tek bağlantıyla paylaşın.

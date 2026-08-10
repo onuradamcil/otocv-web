@@ -96,7 +96,7 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
 
           <div className="flex items-center gap-8">
-            <Link href="/" onClick={closeMenus} className={`text-base font-black tracking-tight text-slate-900 rounded ${ODAK}`}>
+            <Link href="/" onClick={closeMenus} className={`text-base font-display font-bold tracking-tight text-slate-900 rounded ${ODAK}`}>
               OTO.CV
             </Link>
 

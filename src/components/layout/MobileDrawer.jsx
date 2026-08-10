@@ -95,7 +95,7 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
         className="absolute right-0 top-0 h-full w-[82%] max-w-[320px] bg-white shadow-2xl flex flex-col animate-drawerIn"
       >
         <div className="h-14 pl-4 pr-2 flex items-center justify-between border-b border-slate-200 shrink-0">
-          <span className="text-sm font-black tracking-tight text-slate-900">OTO.CV</span>
+          <span className="text-sm font-display font-bold tracking-tight text-slate-900">OTO.CV</span>
           <button
             type="button"
             onClick={onClose}
