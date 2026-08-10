@@ -172,8 +172,10 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
   const cleanPlateNumber = rawPlate.replace(/\s+/g, '').toUpperCase();
 
   // 🔒 KVKK: Plaka, araç sahibine ulaşılabilecek kişisel veridir. Ziyaretçiye
-  // hiçbir koşulda gösterilmez; yalnızca ruhsat sahibi kendi plakasını görür.
-  const plateDisplay = isPublicView ? 'TR (Gizli)' : (rawPlate || 'Tescilli Plaka');
+  // hiç gösterilmez — "gizli" etiketi bile konmaz. Sebebi: güven ekranında
+  // eksik bir alana dikkat çekmek şüphe uyandırır, yokluk ise nötrdür.
+  // Aracın kimliğini doğrulama işini PIN kodu üstlenir.
+  const ownerPlate = rawPlate || 'Tescilli Plaka';
   const pinCode = vehicle.pin_code || 'CV-RESMI';
 
   const sellerName = vehicle.owner_name || 'Tescilli Araç Sahibi';
@@ -538,11 +540,13 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                       <span className="text-slate-800 font-normal capitalize">{typeof vehicle.color === 'object' ? (vehicle.color?.name || 'Belirtilmedi') : (vehicle.color || 'Belirtilmedi')}</span>
                     </div>
 
-                    {/* 🚘 PLAKA DURUMU SIKITŞTIRILMIŞ VE TAŞMAYAN HİZALAMA */}
-                    <div className="flex justify-between items-center py-1">
-                      <span className="text-slate-900 font-medium">Plaka Durumu</span>
-                      <span className="font-mono text-slate-800 font-semibold text-[11px] uppercase bg-slate-200/60 px-1.5 py-0.5 rounded">{plateDisplay}</span>
-                    </div>
+                    {/* 🚘 PLAKA: yalnızca ruhsat sahibine. Ziyaretçide satır hiç basılmaz. */}
+                    {!isPublicView && (
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-slate-900 font-medium">Plaka</span>
+                        <span className="font-mono text-slate-800 font-semibold text-[11px] uppercase bg-slate-200/60 px-1.5 py-0.5 rounded">{ownerPlate}</span>
+                      </div>
+                    )}
 
                     <div className="flex justify-between py-1">
                       <span className="text-slate-900 font-medium">Sahiplik</span>
@@ -783,12 +787,13 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                       { label: 'Vites Tipi', value: vehicle.transmission },
                       { label: 'Kasa Tipi', value: vehicle.body_type || vehicle.bodyType },
                       { label: 'Renk', value: typeof vehicle.color === 'object' ? (vehicle.color?.name || '') : (vehicle.color || '') },
-                      { 
-                        label: 'Plaka Durumu',
-                        value: plateDisplay,
+                      // 🔒 KVKK: plaka satırı ziyaretçide diziye hiç eklenmez
+                      ...(isPublicView ? [] : [{
+                        label: 'Plaka',
+                        value: ownerPlate,
                         isMono: true,
-                        textClass: isPublicView ? 'text-slate-500 font-bold' : 'text-indigo-600 font-extrabold'
-                      },
+                        textClass: 'text-indigo-600 font-extrabold'
+                      }]),
                       { label: 'Sahiplik Durumu', value: vehicle.is_first_owner || vehicle.isFirstOwner ? 'İlk Sahibi' : 'Tescilli Sahip' },
                       { 
                         label: 'Tramer Hasar Kaydı', 

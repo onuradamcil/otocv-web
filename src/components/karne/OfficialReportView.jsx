@@ -19,8 +19,12 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
   
   // 🔒 KVKK: Resmi sicil belgesi ziyaretçiye de açık olduğu için plaka yalnızca
   // ruhsat sahibine gösterilir. Belgenin doğrulama işlevini PIN kodu üstlenir.
+  //
+  // Neden burada satır silinmiyor: bu bir resmi evrak düzeni. Eksik satır
+  // belgeyi kusurlu gösterir, oysa sebebi yazan bir değer okuyucuyu bilgilendirir.
+  // Künye tablolarında ise satır tamamen kaldırılıyor, çünkü orada yokluk nötrdür.
   const plateNumber = isPublicView
-    ? 'TR (Gizli)'
+    ? 'KVKK kapsamında paylaşılmaz'
     : (vehicle?.plate_number || 'Tescilli Plaka');
   const vin = vehicle?.vin || 'WBA0M3T2MGM******';
   const engineNumber = vehicle?.engine_number || 'N20B20A******'; 
