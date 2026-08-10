@@ -9,14 +9,15 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase'; // 🚀 CANLI BAĞLANTI: Merkezi bulut kalkanı davet edildi
 
-export default function VehicleVerificationScreen({ mockVehicles, onVehicleFound }) {
+export default function VehicleVerificationScreen({ onVehicleFound, initialPin = '', initialError = '' }) {
   // =========================================================================
   // 1. BLOK: PORTAL İÇİ REAKTİF DURUM KONTROLLERİ VE HAFIZA ODASI
   // =========================================================================
   const [verifyTab, setVerifyTab] = useState('pin'); // 'pin' | 'qr'
-  const [searchPin, setSearchPin] = useState('');
+  const [searchPin, setSearchPin] = useState(initialPin);
   const [isQrScanning, setIsQrScanning] = useState(false);
   const [loading, setLoading] = useState(false); // Canlı sorgu için siber yükleme zırhı
+  const [searchError, setSearchError] = useState(initialError); // Bulunamadı / hata geri bildirimi
 
   // =========================================================================
   // 2. BLOK: ARKA PLAN RADAR VE CANLI VERİTABANI SORGULAMA MOTORU
@@ -25,39 +26,31 @@ export default function VehicleVerificationScreen({ mockVehicles, onVehicleFound
   // Standart PIN Arama Form Tetikleyicisi
   const handlePinSearch = async (e) => {
     if (e) e.preventDefault();
-    if (!searchPin) return;
-    
-    try {
-      setLoading(true);
+    const cleanPin = searchPin.trim();
+    if (!cleanPin) return;
 
-      // 🧠 ADIM 1: Önce gerçek bulut veritabanında (Supabase) ara
-      const { data: realVehicles, error: dbError } = await supabase
+    setSearchError('');
+    setLoading(true);
+
+    try {
+      // Büyük/küçük harf duyarsız canlı sorgu radar kalkanı
+      const { data, error } = await supabase
         .from('vehicles')
         .select('*')
-        .ilike('pin_code', searchPin.trim()); // Büyük/küçük harf duyarsız canlı sorgu radar kalkanı
+        .ilike('pin_code', cleanPin);
 
-      if (realVehicles && realVehicles.length > 0) {
-        // 🚀 ROL MÜHÜRÜ: Araç bulundu! page.js'e hem aracı hem de public (alıcı) rolünü uçuruyoruz
-        onVehicleFound(realVehicles[0], 'public'); 
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        // 🚀 ROL MÜHÜRÜ: Araç bulundu, çağıran sayfaya uçuruyoruz
+        onVehicleFound(data[0], 'public');
         return;
       }
 
-      // 🧠 ADIM 2: Eğer canlı veritabanında yoksa, pazaryerindeki simüle ilanlara bak (Geriye Dönük Uyumluluk)
-      const mockFound = mockVehicles.find(
-        c => c.pin_code.toLowerCase() === searchPin.trim().toLowerCase()
-      );
-      
-      if (mockFound) {
-        onVehicleFound(mockFound, 'public');
-      } else {
-        alert('Oto.CV bulut veritabanında ve doğrulama havuzunda bu PIN koduna ait aktif bir araç kaydı bulunamadı kanka.');
-      }
-
+      setSearchError('Bu PIN koduna ait aktif bir araç kaydı bulunamadı. Kodu kontrol edip tekrar deneyin.');
     } catch (err) {
-      console.error("Sorgulama esnasında siber hata:", err);
-      // Beklenmedik bir durumda sistem çökmesin diye fallback koruması
-      const mockFound = mockVehicles.find(c => c.pin_code.toLowerCase() === searchPin.trim().toLowerCase());
-      if (mockFound) onVehicleFound(mockFound, 'public');
+      console.error('Sorgulama hatası:', err);
+      setSearchError('Sorgulama sırasında bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
       setLoading(false);
     }
@@ -66,16 +59,29 @@ export default function VehicleVerificationScreen({ mockVehicles, onVehicleFound
   // Onboarding Hızlı Çipleri Canlı Sorgu Tetikleyicisi
   const handleQuickChipQuery = async (code) => {
     setSearchPin(code);
+    setSearchError('');
     setLoading(true);
-    
-    const { data } = await supabase.from('vehicles').select('*').ilike('pin_code', code);
-    if (data && data.length > 0) {
-      onVehicleFound(data[0], 'public');
-    } else {
-      const mockFound = mockVehicles.find(c => c.pin_code === code);
-      if (mockFound) onVehicleFound(mockFound, 'public');
+
+    try {
+      const { data, error } = await supabase
+        .from('vehicles')
+        .select('*')
+        .ilike('pin_code', code);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        onVehicleFound(data[0], 'public');
+        return;
+      }
+
+      setSearchError(`${code} koduna ait bir araç kaydı bulunamadı.`);
+    } catch (err) {
+      console.error('Sorgulama hatası:', err);
+      setSearchError('Sorgulama sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   // Simüle Kamera ve Yeşil Lazer QR Tarama Zamanlayıcısı
@@ -93,8 +99,8 @@ export default function VehicleVerificationScreen({ mockVehicles, onVehicleFound
         setIsQrScanning(false);
         if (data && data.length > 0) {
           onVehicleFound(data[0], 'public'); // Buluttaki gerçek taze aracı public modda açar!
-        } else if (mockVehicles && mockVehicles.length > 1) {
-          onVehicleFound(mockVehicles[1], 'public'); // DB bomboşsa yedek fake ilanı açar
+        } else {
+          setSearchError('Taranacak tescilli araç bulunamadı.');
         }
       }, 2000);
     } catch (err) {
@@ -165,11 +171,18 @@ export default function VehicleVerificationScreen({ mockVehicles, onVehicleFound
                   value={searchPin}
                   maxLength={9} // CV-XXXXXX formatı için esnetildi kardo
                   disabled={loading}
-                  onChange={(e) => setSearchPin(e.target.value)}
+                  onChange={(e) => { setSearchPin(e.target.value); if (searchError) setSearchError(''); }}
                   placeholder="ÖRN: CV-A89B2C"
                   className="w-full py-5 px-6 bg-slate-50 border-2 border-gray-200 focus:border-indigo-500 rounded-2xl text-center font-mono text-xl font-bold tracking-widest text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 transition-all shadow-inner uppercase"
                 />
               </div>
+
+              {searchError && (
+                <div className="bg-rose-50 border border-rose-100 rounded-xl px-4 py-3 flex gap-2.5 items-start">
+                  <span className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0 mt-1.5" />
+                  <p className="text-[11px] font-semibold text-rose-700 leading-relaxed">{searchError}</p>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <span className="text-[10px] font-bold text-slate-400 tracking-wide uppercase">HIZLI TEST ÖRNEKLERİ</span>

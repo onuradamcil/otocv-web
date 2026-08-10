@@ -117,10 +117,13 @@ export default function OtoKarneScreen({ vehicle, onBack }) {
     }
   };
 
+  // Alıcının göreceği doğrulama adresi. Karne görselindeki PIN ile aynı kodu taşır.
+  const verificationUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/verify/${encodeURIComponent(pinCode)}`
+    : `/verify/${pinCode}`;
+
   const copyVerificationLink = () => {
-    // 🚀 UX DEVRİMİ: Güvenli sorgulama geçidi artık bağımsız verify odasına tetik fırlatıyor!
-    const secureLink = `${window.location.origin}/?verify=true&pin=${pinCode}`;
-    navigator.clipboard.writeText(secureLink);
+    navigator.clipboard.writeText(verificationUrl);
     setShowShareModal(false);
     showToast('Sorgulama bağlantısı panoya kopyalandı.', 'success');
   };
@@ -243,7 +246,7 @@ export default function OtoKarneScreen({ vehicle, onBack }) {
             <div onClick={copyVerificationLink} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-gray-200 hover:bg-slate-100 cursor-pointer transition-all">
               <div className="flex-1 min-w-0">
                 <span className="text-xs font-bold text-[#0F172A] block">Linki Kopyala</span>
-                <span className="text-[10px] text-indigo-600 font-mono truncate block mt-0.5">https://oto.cv/verify/{pinCode}</span>
+                <span className="text-[10px] text-indigo-600 font-mono truncate block mt-0.5">{verificationUrl}</span>
               </div>
             </div>
           </div>
