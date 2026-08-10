@@ -7,13 +7,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import GarageScreen from '../components/GarageScreen'; 
+import { useRouter } from 'next/navigation';
+import GarageScreen from '../components/GarageScreen';
 import OtoKarneScreen from '../components/karne/OtoKarneScreen';
 import VehicleDetailsScreen from '../components/VehicleDetailsScreen';
 import ResetPasswordScreen from '../components/ResetPasswordScreen'; 
 
 // Alt bileşenler ve Modüler Entegrasyonlar
-import AddVehicleWizard from '../components/add-vehicle/AddVehicleWizard';
+// NOT: Eski add-vehicle sihirbazı kaldırıldı. Araç kaydı artık
+//      create-listing sihirbazıyla /add-vehicle/step1 route'unda yapılıyor.
 import MaintenanceDialog from '../components/garage/MaintenanceDialog';
 import VehicleVerificationScreen from '../components/VehicleVerificationScreen'; 
 import VehicleAuthScreen from '../components/VehicleAuthScreen'; 
@@ -27,7 +29,8 @@ export default function Home() {
   // =========================================================================
   // 1. BLOK: ROTASYON STATE'LERİ VE ORKESTRASYON MERKEZİ
   // =========================================================================
-  const [viewState, setViewState] = useState('landing'); 
+  const router = useRouter();
+  const [viewState, setViewState] = useState('landing');
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [activeMaintenanceVehicle, setActiveMaintenanceVehicle] = useState(null);
   const [isPublicMode, setIsPublicMode] = useState(false);
@@ -188,15 +191,6 @@ export default function Home() {
   if (viewState === 'karne' && selectedVehicle) {
     return (
       <OtoKarneScreen vehicle={selectedVehicle} onBack={() => setViewState('details')} isPublicView={isPublicMode} />
-    );
-  }
-
-  if (viewState === 'add-vehicle') {
-    return (
-      <AddVehicleWizard 
-        onBack={() => setViewState('garage')} 
-        onWizardComplete={() => setViewState('garage')}
-      />
     );
   }
 
@@ -385,7 +379,7 @@ export default function Home() {
             onViewDetails={(car) => { setSelectedVehicle(car); setIsPublicMode(false); setViewState('details'); }}
             onViewKarne={(car) => { setSelectedVehicle(car); setViewState('karne'); }}
             onOpenMaintenance={(incomingVehicle) => setActiveMaintenanceVehicle(incomingVehicle)}
-            onNavigateToAdd={() => setViewState('add-vehicle')}
+            onNavigateToAdd={() => router.push('/add-vehicle/step1')}
           />
           {activeMaintenanceVehicle && (
             <MaintenanceDialog isOpen={true} vehicle={activeMaintenanceVehicle} onClose={() => setActiveMaintenanceVehicle(null)} onRecordAdded={() => {}} />
