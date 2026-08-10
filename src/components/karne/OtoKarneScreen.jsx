@@ -13,7 +13,7 @@ import OfficialReportView from './OfficialReportView';
 // MİMARİ BAĞLANTI: İki üst dizindeki merkezi Supabase kalkanı içeri davet edildi
 import { supabase } from '../../lib/supabase';
 
-export default function OtoKarneScreen({ vehicle, onBack }) {
+export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }) {
   // =========================================================================
   // 1. BLOK: REAKTİF STATE VE VERİTABANI HAFIZA ODASI
   // =========================================================================
@@ -228,7 +228,7 @@ export default function OtoKarneScreen({ vehicle, onBack }) {
                 </div>
               ) : (
                 /* 🚀 CANLI PASLAMA: Resmi döküm alanına taze veri bağları ulaştırıldı */
-                <OfficialReportView vehicle={vehicle} maintenanceRecords={maintenanceRecords} />
+                <OfficialReportView vehicle={vehicle} maintenanceRecords={maintenanceRecords} isPublicView={isPublicView} />
               )}
             </div>
           </div>

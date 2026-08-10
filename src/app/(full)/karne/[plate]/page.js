@@ -17,6 +17,7 @@ export default function KarnePage() {
   const plate = decodeURIComponent(params.plate);
 
   const [vehicle, setVehicle] = useState(null);
+  const [isOwner, setIsOwner] = useState(false);
   const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'notfound'
 
   useEffect(() => {
@@ -38,7 +39,13 @@ export default function KarnePage() {
         return;
       }
 
+      // Rol, detay sayfasıyla aynı mantıkla sahiplikten türetiliyor (spec 7.3).
+      // Resmi sicil belgesindeki plaka yalnızca ruhsat sahibine görünür.
+      const { data: { user } } = await supabase.auth.getUser();
+      if (cancelled) return;
+
       setVehicle(data);
+      setIsOwner(!!user && user.id === data.user_id);
       setStatus('ready');
     };
 
@@ -75,5 +82,5 @@ export default function KarnePage() {
     );
   }
 
-  return <OtoKarneScreen vehicle={vehicle} onBack={() => router.back()} />;
+  return <OtoKarneScreen vehicle={vehicle} onBack={() => router.back()} isPublicView={!isOwner} />;
 }

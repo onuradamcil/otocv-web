@@ -187,7 +187,7 @@ export default function Home() {
 
   if (viewState === 'karne' && selectedVehicle) {
     return (
-      <OtoKarneScreen vehicle={selectedVehicle} onBack={() => setViewState('details')} />
+      <OtoKarneScreen vehicle={selectedVehicle} onBack={() => setViewState('details')} isPublicView={isPublicMode} />
     );
   }
 

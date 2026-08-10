@@ -98,6 +98,7 @@ export default function VehicleDetailsPage() {
       isPublicView={!isOwner}
       onBack={() => router.back()}
       onViewKarne={() => router.push(`/karne/${encodeURIComponent(plate)}`)}
+      onManageInGarage={isOwner ? () => router.push('/garage') : undefined}
     />
   );
 }

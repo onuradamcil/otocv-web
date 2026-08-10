@@ -8,7 +8,7 @@
 
 import React from 'react';
 
-export default function OfficialReportView({ vehicle, maintenanceRecords = [] }) {
+export default function OfficialReportView({ vehicle, maintenanceRecords = [], isPublicView = false }) {
   // =========================================================================
   // 1. BLOK: SAF BULUT SÖZLEŞME VE BİLGİ HARİTALAMA GEÇİDİ
   // =========================================================================
@@ -17,7 +17,11 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [] })
   // 🚀 SİBER ENTEGRASYON: Eski 4 haneli geçici fallback yok edildi, canlı bulut kodu mühürlendi!
   const pinCode = vehicle?.pin_code || 'CV-PENDING';
   
-  const plateNumber = vehicle?.plate_number || '34 ABC 123';
+  // 🔒 KVKK: Resmi sicil belgesi ziyaretçiye de açık olduğu için plaka yalnızca
+  // ruhsat sahibine gösterilir. Belgenin doğrulama işlevini PIN kodu üstlenir.
+  const plateNumber = isPublicView
+    ? 'TR (Gizli)'
+    : (vehicle?.plate_number || 'Tescilli Plaka');
   const vin = vehicle?.vin || 'WBA0M3T2MGM******';
   const engineNumber = vehicle?.engine_number || 'N20B20A******'; 
   const registrationNo = vehicle?.registration_no || 'AA012345'; 

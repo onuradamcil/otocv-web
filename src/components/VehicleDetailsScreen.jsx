@@ -137,7 +137,7 @@ const getDynamicStatus = (dateInput, validLabel = 'Geçerli') => {
 // =========================================================================
 // 🚀 ANA BİLEŞEN: VEHICLE DETAILS SCREEN
 // =========================================================================
-export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isPublicView = false }) {
+export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isPublicView = false, onManageInGarage }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [thumbPage, setThumbPage] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -170,6 +170,10 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
   const rawPlate = vehicle.plate_number || vehicle.plate || vehicle.vehicle_plate || '';
   // 🟢 BOŞLUKSUZ PLAKA TEMİZLEYİCİ
   const cleanPlateNumber = rawPlate.replace(/\s+/g, '').toUpperCase();
+
+  // 🔒 KVKK: Plaka, araç sahibine ulaşılabilecek kişisel veridir. Ziyaretçiye
+  // hiçbir koşulda gösterilmez; yalnızca ruhsat sahibi kendi plakasını görür.
+  const plateDisplay = isPublicView ? 'TR (Gizli)' : (rawPlate || 'Tescilli Plaka');
   const pinCode = vehicle.pin_code || 'CV-RESMI';
 
   const sellerName = vehicle.owner_name || 'Tescilli Araç Sahibi';
@@ -537,7 +541,7 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                     {/* 🚘 PLAKA DURUMU SIKITŞTIRILMIŞ VE TAŞMAYAN HİZALAMA */}
                     <div className="flex justify-between items-center py-1">
                       <span className="text-slate-900 font-medium">Plaka Durumu</span>
-                      <span className="font-mono text-slate-800 font-semibold text-[11px] uppercase bg-slate-200/60 px-1.5 py-0.5 rounded">TR (Gizlenmiş)</span>
+                      <span className="font-mono text-slate-800 font-semibold text-[11px] uppercase bg-slate-200/60 px-1.5 py-0.5 rounded">{plateDisplay}</span>
                     </div>
 
                     <div className="flex justify-between py-1">
@@ -780,10 +784,10 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                       { label: 'Kasa Tipi', value: vehicle.body_type || vehicle.bodyType },
                       { label: 'Renk', value: typeof vehicle.color === 'object' ? (vehicle.color?.name || '') : (vehicle.color || '') },
                       { 
-                        label: 'Plaka Durumu', 
-                        value: rawPlate || 'Tescilli Plaka', 
-                        isMono: true, 
-                        textClass: 'text-indigo-600 font-extrabold' 
+                        label: 'Plaka Durumu',
+                        value: plateDisplay,
+                        isMono: true,
+                        textClass: isPublicView ? 'text-slate-500 font-bold' : 'text-indigo-600 font-extrabold'
                       },
                       { label: 'Sahiplik Durumu', value: vehicle.is_first_owner || vehicle.isFirstOwner ? 'İlk Sahibi' : 'Tescilli Sahip' },
                       { 
@@ -1113,26 +1117,56 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
               </div>
             </div>
 
-            <div className="space-y-2">
-              <button type="button" onClick={() => setShowPhone(!showPhone)} className="w-full bg-rose-600 hover:bg-rose-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm py-3 px-4 rounded transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2">
-                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.828-1.42-5.11-3.702-6.53-6.529l1.294-.97c.362-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
-                <span>{showPhone ? sellerPhone : `Cep Telefonunu Göster`}</span>
-              </button>
-              <button type="button" onClick={() => alert("Mesaj modülü açılıyor...")} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-2.5 px-4 rounded transition-all cursor-pointer flex items-center justify-center gap-2 border border-slate-200/80">
-                <svg className="w-4 h-4 text-slate-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
-                <span>Satıcıya Mesaj Gönder</span>
-              </button>
-            </div>
+            {/* ROL AYRIMI: iletişim paneli yalnızca ziyaretçiye gösterilir.
+                Sahip kendi aracına mesaj atmaz; onun aksiyonları garaj kartlarında. */}
+            {isPublicView ? (
+              <>
+                <div className="space-y-2">
+                  <button type="button" onClick={() => setShowPhone(!showPhone)} className="w-full bg-rose-600 hover:bg-rose-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm py-3 px-4 rounded transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.828-1.42-5.11-3.702-6.53-6.529l1.294-.97c.362-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
+                    <span>{showPhone ? sellerPhone : `Cep Telefonunu Göster`}</span>
+                  </button>
+                  <button type="button" onClick={() => alert("Mesaj modülü açılıyor...")} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-2.5 px-4 rounded transition-all cursor-pointer flex items-center justify-center gap-2 border border-slate-200/80">
+                    <svg className="w-4 h-4 text-slate-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+                    <span>Satıcıya Mesaj Gönder</span>
+                  </button>
+                </div>
 
-            <div className="bg-slate-50 border border-slate-200/80 rounded p-3 space-y-1.5">
-              <div className="flex items-center gap-1.5 text-indigo-700 font-bold text-xs">
-                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 2.714z" /></svg>
-                <span>OTO.CV Güvenlik İpucu</span>
+                <div className="bg-slate-50 border border-slate-200/80 rounded p-3 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-indigo-700 font-bold text-xs">
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 2.714z" /></svg>
+                    <span>OTO.CV Güvenlik İpucu</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                    Güvenliğiniz için aracı görmeden, ruhsat sahibini doğrulamadan kapora veya ödeme yapmayınız.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3">
+                <div className="bg-indigo-50 border border-indigo-100 rounded p-3 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-indigo-700 font-bold text-xs">
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 2.714z" /></svg>
+                    <span>Bu araç sizin garajınızda</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                    Ziyaretçiler bu sayfada plakanızı ve iletişim bilgilerinizi göremez. Bakım kaydı ekleme,
+                    karne üretme ve vitrine çıkarma işlemlerini garajınızdaki araç kartından yapabilirsiniz.
+                  </p>
+                </div>
+
+                {onManageInGarage && (
+                  <button
+                    type="button"
+                    onClick={onManageInGarage}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm py-3 px-4 rounded transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
+                    <span>Garajımda Yönet</span>
+                  </button>
+                )}
               </div>
-              <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                Güvenliğiniz için aracı görmeden, ruhsat sahibini doğrulamadan kapora veya ödeme yapmayınız.
-              </p>
-            </div>
+            )}
           </div>
         </div>
 
