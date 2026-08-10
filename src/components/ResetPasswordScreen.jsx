@@ -70,7 +70,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
           
           <div className="space-y-1.5 text-center">
             <h2 className="text-xl font-semibold tracking-tight text-[#0F172A]">Yeni Şifre Belirle</h2>
-            <p className="text-xs text-slate-400 font-medium leading-relaxed">Hesap güvenliğiniz için akılda kalıcı and güçlü bir şifre tescil edin.</p>
+            <p className="text-xs text-slate-400 font-medium leading-relaxed">Hesap güvenliğiniz için akılda kalıcı ve güçlü bir şifre tescil edin.</p>
           </div>
 
           {errorMessage && (
@@ -102,7 +102,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
             </div>
 
             <button type="submit" disabled={loading} className="w-full bg-[#0F172A] hover:bg-slate-800 text-white py-3 rounded-xl font-semibold text-xs tracking-wide shadow-sm transition-colors mt-2">
-              {loading ? 'Şifre Güncelleniyor...' : 'Şifreyi Güncelle and Kilidi Aç'}
+              {loading ? 'Şifre Güncelleniyor...' : 'Şifreyi Güncelle'}
             </button>
           </form>
 
