@@ -118,9 +118,10 @@ export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }
   };
 
   // Alıcının göreceği doğrulama adresi. Karne görselindeki PIN ile aynı kodu taşır.
+  // Plaka yerine PIN kullanılır: plaka kişisel veridir, URL'de taşınmaz.
   const verificationUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/verify/${encodeURIComponent(pinCode)}`
-    : `/verify/${pinCode}`;
+    ? `${window.location.origin}/details/${encodeURIComponent(pinCode)}`
+    : `/details/${pinCode}`;
 
   const copyVerificationLink = () => {
     navigator.clipboard.writeText(verificationUrl);

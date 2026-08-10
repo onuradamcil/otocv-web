@@ -1,7 +1,11 @@
 // =========================================================================
-// OTO-CV KARNE ROUTE'U ((full)/karne/[plate]/page.js)
-// İşlev: URL'deki plakayla aracı çeker ve Oto-Karne ekranını açar.
-// Not:   Next.js 16'da params bir Promise'tir; useParams() ile okuyoruz.
+// OTO-CV KARNE ROUTE'U ((full)/karne/[pin]/page.js)
+// İşlev: URL'deki PIN kodu ile aracı çeker ve Oto-Karne ekranını açar.
+//
+// 🔒 NEDEN PIN, PLAKA DEĞİL: bkz. (full)/details/[pin]/page.js — plaka
+//    kişisel veri olduğu için URL'de taşınmaz.
+//
+// Not: Next.js 16'da params bir Promise'tir; useParams() ile okuyoruz.
 // =========================================================================
 
 'use client';
@@ -14,7 +18,7 @@ import OtoKarneScreen from '@/components/karne/OtoKarneScreen';
 export default function KarnePage() {
   const router = useRouter();
   const params = useParams();
-  const plate = decodeURIComponent(params.plate);
+  const pin = decodeURIComponent(params.pin);
 
   const [vehicle, setVehicle] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
@@ -29,29 +33,31 @@ export default function KarnePage() {
       const { data, error } = await supabase
         .from('vehicles')
         .select('*')
-        .eq('plate_number', plate)
-        .maybeSingle();
+        .ilike('pin_code', pin)
+        .limit(1);
 
       if (cancelled) return;
 
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         setStatus('notfound');
         return;
       }
+
+      const found = data[0];
 
       // Rol, detay sayfasıyla aynı mantıkla sahiplikten türetiliyor (spec 7.3).
       // Resmi sicil belgesindeki plaka yalnızca ruhsat sahibine görünür.
       const { data: { user } } = await supabase.auth.getUser();
       if (cancelled) return;
 
-      setVehicle(data);
-      setIsOwner(!!user && user.id === data.user_id);
+      setVehicle(found);
+      setIsOwner(!!user && user.id === found.user_id);
       setStatus('ready');
     };
 
     loadVehicle();
     return () => { cancelled = true; };
-  }, [plate]);
+  }, [pin]);
 
   if (status === 'loading') {
     return (
@@ -68,7 +74,7 @@ export default function KarnePage() {
         <div className="bg-white border border-gray-200 rounded-2xl p-8 max-w-md w-full text-center space-y-4 shadow-sm">
           <h1 className="text-lg font-black text-slate-900 tracking-tight">Karne bulunamadı</h1>
           <p className="text-xs text-slate-500 font-medium leading-relaxed">
-            <span className="font-mono font-bold text-slate-700">{plate}</span> plakasına ait tescilli bir kayıt yok.
+            <span className="font-mono font-bold text-slate-700">{pin}</span> koduna ait tescilli bir kayıt yok.
           </p>
           <button
             type="button"

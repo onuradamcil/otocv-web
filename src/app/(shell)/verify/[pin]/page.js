@@ -25,14 +25,16 @@ export default function VerifyWithPinPage() {
     const lookup = async () => {
       const { data, error } = await supabase
         .from('vehicles')
-        .select('plate_number')
-        .ilike('pin_code', pin);
+        .select('pin_code')
+        .ilike('pin_code', pin)
+        .limit(1);
 
       if (cancelled) return;
 
       if (!error && data && data.length > 0) {
-        // replace: geri tuşunda sorgulama ekranına düşmemesi için
-        router.replace(`/details/${encodeURIComponent(data[0].plate_number)}`);
+        // Veritabanındaki kanonik yazımı kullan (kullanıcı küçük harfle yazmış olabilir).
+        // replace: geri tuşunda sorgulama ekranına düşmemesi için.
+        router.replace(`/details/${encodeURIComponent(data[0].pin_code)}`);
         return;
       }
 
@@ -61,7 +63,7 @@ export default function VerifyWithPinPage() {
       <VehicleVerificationScreen
         initialPin={pin}
         initialError={`${pin} koduna ait aktif bir araç kaydı bulunamadı. Kodu kontrol edip tekrar deneyin.`}
-        onVehicleFound={(car) => router.push(`/details/${encodeURIComponent(car.plate_number)}`)}
+        onVehicleFound={(car) => router.push(`/details/${encodeURIComponent(car.pin_code)}`)}
       />
     </div>
   );

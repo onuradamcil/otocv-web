@@ -15,7 +15,7 @@ export default function VerifyPage() {
   return (
     <div className="animate-fadeIn">
       <VehicleVerificationScreen
-        onVehicleFound={(car) => router.push(`/details/${encodeURIComponent(car.plate_number)}`)}
+        onVehicleFound={(car) => router.push(`/details/${encodeURIComponent(car.pin_code)}`)}
       />
     </div>
   );
