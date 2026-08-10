@@ -76,8 +76,12 @@ export function NotificationProvider({ children }) {
       today.setHours(0, 0, 0, 0);
 
       for (const car of userVehicles) {
-        // 🚀 GARANTİLİ VEHICLE_ID ATAMASI (idx veya id hangisi varsa)
-        const targetVehicleId = car.idx ?? car.id ?? null;
+        // NOT: burada eskiden `car.idx ?? car.id ?? null` vardi. vehicles
+        // tablosunda ne idx ne id kolonu var (birincil anahtar plate_number),
+        // dolayisiyla sonuc DAIMA null oluyordu. Ustelik notifications.vehicle_id
+        // tipi uuid, arac kimligi ise varchar plaka — doldurulsa bile uyumsuz.
+        // Bildirimden araca gitme ozelligi bir sema degisikligi gerektiriyor;
+        // o zamana kadar alan hic yazilmiyor.
 
         const policyCheckList = [
           { typeName: 'Trafik Sigortası', dateStr: car.traffic_insurance_end_date },
@@ -136,7 +140,6 @@ export function NotificationProvider({ children }) {
                 .from('notifications')
                 .insert({
                   user_id: currentUserId,
-                  vehicle_id: targetVehicleId, // 🚀 VEHICLE_ID KESİNLİKLE EKLENİYOR
                   title: notifPayload.title,
                   message: notifPayload.message,
                   type: notifPayload.type,
@@ -145,8 +148,6 @@ export function NotificationProvider({ children }) {
 
               if (insertErr) {
                 console.error('❌ Supabase Bildirim Yazma Hatası:', insertErr.message);
-              } else {
-                console.log(`⚡ [Oto.CV Bot] '${cleanTitle}' veritabanına mühürlendi (Vehicle ID: ${targetVehicleId}).`);
               }
             }
           }

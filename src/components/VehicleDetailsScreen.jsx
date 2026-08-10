@@ -222,7 +222,6 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
 
       try {
         setLoadingRecords(true);
-        console.log("🔍 Bakım kayıtları çekiliyor. Aranan Boşluksuz Plaka:", cleanPlateNumber);
 
         // 🟢 Tablodaki 'vehicle_plate' sütununa tam uyan boşluksuz sorgu
         const { data, error } = await supabase
@@ -235,8 +234,7 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
           console.error('🔴 Bakım geçmişi sorgu hatası:', error.message);
           setMaintenanceRecords([]);
         } else {
-          console.log(`🟢 ${data?.length || 0} Adet Bakım Kaydı Başarıyla Çekildi!`, data);
-          setMaintenanceRecords(data || []);
+            setMaintenanceRecords(data || []);
         }
       } catch (err) {
         console.error('Bakım geçmişi yüklenirken beklenmeyen hata:', err);

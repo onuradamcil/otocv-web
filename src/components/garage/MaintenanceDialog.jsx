@@ -127,7 +127,9 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
         shop_name: shopName.trim(),
         km_at_service: parseInt(km.replace(/\./g, ''), 10) || 0,
         cost: parseFloat(cost.replace(/\./g, '')) || 0.0,
-        summary: `${serviceType} / ${summary.trim()} - ${summary.trim()}`,
+        // Ozet yalnizca bir kez yaziliyor. Onceden `${serviceType} / ${summary} - ${summary}`
+        // seklindeydi: hem tekrar ediyordu hem de service_type zaten ayri kolon.
+        summary: summary.trim(),
         invoice_url: invoiceUrl,
         service_date: serviceDate.trim(),
         service_type: serviceType,

@@ -109,8 +109,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     const folderName = plateToClean.replace(/[^a-zA-Z0-9]/g, '_');
     if (!folderName || folderName === 'drafts') return;
 
-    console.log(`🔍 Storage Temizlik İsteği Başlatıldı: Klasör -> '${folderName}'`);
-
     try {
       const { data: fileList, error: listError } = await supabase.storage
         .from('vehicle-images')
@@ -130,11 +128,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
         if (deleteError) {
           console.error(`🔴 Storage dosyaları silinirken RLS veya İzin Hatası:`, deleteError.message);
-        } else {
-          console.log(`🟢 Storage Temizlendi: '${folderName}' klasöründeki ${pathsToDelete.length} ölü görsel silindi!`);
         }
-      } else {
-        console.log(`ℹ️ '${folderName}' klasöründe silinecek görsel bulunamadı.`);
       }
     } catch (err) {
       console.error('Storage purge hatası:', err);
@@ -206,7 +200,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
           .getPublicUrl(filePath);
 
         if (publicUrlData?.publicUrl) {
-          console.log(`🟢 Fotoğraf Supabase Storage'a yüklendi (${i + 1}/${photosToUpload.length}):`, publicUrlData.publicUrl);
           uploadedUrls.push(publicUrlData.publicUrl);
         }
       } catch (err) {
@@ -402,8 +395,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
         if (error) {
           console.error("🔴 Supabase 'vehicle_drafts' Kayıt Hatası:", error.message);
-        } else {
-          console.log(`🟢 Supabase 'vehicle_drafts' Adım ${stepToSave} Başarıyla Kaydedildi!`);
         }
       } catch (err) {
         console.error("Supabase draft kaydedilemedi:", err);
@@ -441,7 +432,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
           .from('vehicle_drafts')
           .delete()
           .eq('user_id', user.id);
-        console.log("🧹 'vehicle_drafts' tablosundaki geçici taslak silindi.");
       } catch (err) {
         console.error("Supabase draft silinemedi:", err);
       }
@@ -468,7 +458,9 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         });
       }
     } catch (err) {
-      console.log("Profil paket verisi varsayılan değerde tutuldu:", err);
+      // NOT: profiles tablosunda subscription_tier / listing_quota kolonlari
+      // yok, bu yuzden sorgu 400 donuyor. Kok neden ayri bir is kalemi.
+      console.error('Profil paket verisi okunamadi, varsayilan kullaniliyor:', err?.message || err);
     }
   };
 
@@ -529,8 +521,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         pin_code: generatedPinCode,
       };
 
-      console.log("🚀 Supabase 'vehicles' Tablosuna Kayıt Atılıyor:", vehiclePayload);
-
       const { data: insertedVehicle, error: vehicleInsertError } = await supabase
         .from('vehicles')
         .insert([vehiclePayload])
@@ -543,8 +533,6 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         setStepLoader({ isLoading: false, title: '', subtitle: '' });
         return;
       }
-
-      console.log("🟢 Araç 'vehicles' Tablosuna Başarıyla Tescillendi! IDX:", insertedVehicle.idx);
 
       // 📌 2. AŞAMA: STEP 3 BAKIM KAYITLARINI & FATURALARI 'maintenance_records' TABLOSUNA AKTARMA
       const serviceRecords = formData.service_records || formData.service_history || [];
@@ -583,16 +571,12 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
             });
           }
 
-          console.log("🛠️ Servis Kayıtları 'maintenance_records' Tablosuna Aktarılıyor:", maintenancePayloads);
-
           const { error: serviceInsertError } = await supabase
             .from('maintenance_records')
             .insert(maintenancePayloads);
 
           if (serviceInsertError) {
             console.error("🔴 Bakım kayıtları aktarılırken hata oluştu:", serviceInsertError.message);
-          } else {
-            console.log(`🟢 ${maintenancePayloads.length} Adet Bakım Kaydı ve Faturası 'maintenance_records' Tablosuna Eklendi!`);
           }
         }
       }
