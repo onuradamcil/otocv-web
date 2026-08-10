@@ -267,7 +267,10 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
     const handleScroll = () => {
       if (navRef.current) {
         const top = navRef.current.getBoundingClientRect().top;
-        setIsSticky(top <= 10);
+        // Eşik site header'ının yüksekliğine (h-16 = 64px) hizalı.
+        // Eskiden 10'du; sayfa çatısız olduğu için doğruydu. Header geldikten
+        // sonra 10'da kalsa kompakt başlık ~54px gecikmeyle açılır, zıplama olur.
+        setIsSticky(top <= 66);
       }
 
       if (window.scrollY > 400) {
@@ -572,7 +575,8 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
             <div ref={navRef} className="absolute -top-px left-0 w-full h-[1px] opacity-0 pointer-events-none" />
 
             {/* 📌 YAPIŞKAN (STICKY TOP BANNER) */}
-            <div className="sticky top-0 z-25 bg-white border-b border-slate-200 shadow-sm flex flex-col w-full transition-all duration-300">
+            {/* top-16: site header'ı (h-16 = 64px) sticky olduğu için onun altına hizalanır */}
+            <div className="sticky top-16 z-25 bg-white border-b border-slate-200 shadow-sm flex flex-col w-full transition-all duration-300">
               
               {/* ÜST KATMAN: Araç Resmi & Başlığı */}
               <div className={`w-full flex items-center justify-between px-4 sm:px-6 transition-all duration-300 overflow-hidden bg-slate-50/95 backdrop-blur-md ${isSticky ? 'h-[76px] sm:h-[80px] border-b border-slate-200/90 opacity-100' : 'h-0 opacity-0 border-transparent'}`}>

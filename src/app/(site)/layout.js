@@ -13,6 +13,7 @@
 import React from 'react';
 import SkipLink from '@/components/layout/SkipLink';
 import Header from '@/components/layout/Header';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 import Footer from '@/components/layout/Footer';
 
 export default function SiteLayout({ children }) {
@@ -20,6 +21,7 @@ export default function SiteLayout({ children }) {
     <div className="min-h-screen flex flex-col bg-[#FFFDFB] text-[#0F172A] font-sans antialiased tracking-tight">
       <SkipLink />
       <Header />
+      <Breadcrumb />
       <main id="icerik" className="flex-1">
         {children}
       </main>

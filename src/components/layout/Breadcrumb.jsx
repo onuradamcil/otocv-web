@@ -1,0 +1,56 @@
+// =========================================================================
+// OTO-CV KIRINTI YOL (Breadcrumb.jsx)
+// İşlev: Derin sayfalarda konum bildirir ve anasayfaya dönüş yolu verir.
+//        Dış siteden karne linkiyle gelen ziyaretçi için önemli.
+//
+// Anasayfada ve tek seviyeli sayfalarda BASILMAZ — orada bilgi taşımaz,
+// yalnızca gürültü olur (UX kuralı: breadcrumb derinlik varsa anlamlıdır).
+//
+// KVKK: dinamik segment (PIN kodu) yol metnine yazılmaz.
+// =========================================================================
+
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+const ETIKET = {
+  garage: 'Garajım',
+  'my-listings': 'Aktif İlanlarım',
+  verify: 'Karne Sorgula',
+  details: 'Araç Detayı',
+  karne: 'Oto-Karne',
+  dashboard: 'Bana Özel Özet',
+  'query-history': 'Sorgulama Geçmişim',
+  packages: 'Paketlerim & Ödemeler',
+  account: 'Hesabım',
+  'insurance-offer': 'Sigorta Teklifleri',
+  'maintenance-planner': 'Bakım Planlayıcı',
+};
+
+export default function Breadcrumb() {
+  const pathname = usePathname();
+  const parcalar = pathname.split('/').filter(Boolean);
+
+  // Yalnızca iki veya daha derin yollarda göster (/details/CV-XXXXXX gibi)
+  if (parcalar.length < 2) return null;
+
+  const etiket = ETIKET[parcalar[0]];
+  if (!etiket) return null;
+
+  return (
+    <nav aria-label="Konum" className="border-b border-slate-100 bg-white/60 print:hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center gap-1.5 text-[11px] font-semibold">
+        <Link
+          href="/"
+          className="text-slate-500 hover:text-indigo-600 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+        >
+          Anasayfa
+        </Link>
+        <span className="text-slate-300" aria-hidden="true">›</span>
+        <span className="text-slate-900 font-bold" aria-current="page">{etiket}</span>
+      </div>
+    </nav>
+  );
+}
