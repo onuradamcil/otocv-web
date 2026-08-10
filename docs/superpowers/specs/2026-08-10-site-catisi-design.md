@@ -117,16 +117,21 @@ src/components/layout/
 sorumlulukları ondan ayrılır. Gerekçe: tek dosyada üst şerit + masaüstü menü + mobil
 çekmece + hesap menüsü toplanırsa dosya yine şişer ve üzerinde çalışmak zorlaşır.
 
-## 6. Üst şerit içeriği
+## 6. Üst şerit: uygulanmadı, kaldırıldı
 
-İnce şerit. Solda **"Karne PIN'i ile araç sorgula"**, sağda "Kurumsal Çözümler".
+**Karar tersine döndü.** Üst şerit ilk tasarımda vardı (solda "Karne PIN'i ile araç
+sorgula", sağda "Kurumsal Çözümler") ve Görev 1'de uygulandı. Kullanıcı canlı gördükten
+sonra beğenmedi ve kaldırılmasını istedi: **logonun üstünde hiçbir katman olmayacak.**
 
-Gerekçe iş modeli: alıcı, rakip ilan sitesindeki karne görselinden gelip PIN'i girecek.
-Bu kapı ürünün tek kazanım kanalı, dolayısıyla her sayfada ve en üstte olmalı.
+Kaldırıldı (`TopBar.jsx` silindi). Gerekçe kullanıcı tercihi; sektör tarafında da
+dayanağı var — sahibinden.com üst şerit kullanmıyor, her şeyi tek header'da topluyor.
 
-**Mobilde:** yalnızca "Karne PIN'i ile sorgula" bağlantısı kalır, "Kurumsal Çözümler"
-çekmeceye taşınır. Şerit tamamen gizlenmez — alıcı çoğunlukla telefondan geliyor ve
-kazanım kapısının orada olması gerekiyor.
+**Kazanım hunisi korundu.** Üst şeridin varlık sebebi PIN sorgulama kapısıydı; o kapı
+iki yerde ayakta:
+- Header'daki **"Karne Sorgula"** ana menü öğesi (Görev 1'de eklendi)
+- Mobil çekmecedeki **"Karne PIN Sorgula"** satırı
+
+Yani şerit gitti, işlev gitmedi.
 
 Sektör karşılaştırması: arabam.com üst şerit kullanır, sahibinden.com kullanmaz.
 İkisi de geçerli desen; burada kazanım kanalı belirleyici oldu.
@@ -243,7 +248,9 @@ Veritabanına dokunulmadığı için veri kaybı riski yoktur.
 | Karar | Seçim | Gerekçe |
 |---|---|---|
 | Çatı sayısı | Üç | Sektör standardı: auth'ta menü dikkat dağıtır, sihirbazda kullanıcı akıştan çıkmamalı |
-| Üst şerit | PIN sorgulama vurgusu | Kazanım hunisinin girişi her sayfada görünür olmalı |
+| Üst şerit | ~~PIN sorgulama vurgusu~~ → **kaldırıldı** | Canlı görüldükten sonra kullanıcı tercihiyle iptal. PIN kapısı header ve çekmecede duruyor (bkz. 6. bölüm) |
+| Dokunma alanı | En az 44×44px | `ui-ux-pro-max` veritabanında yüksek önemli kural. İlk uygulamada hamburger ve kapat butonu 36px'ti, düzeltildi. |
+| Animasyon tanımları | `globals.css`'e eklendi | `animate-fadeIn` 58 yerde kullanılıyordu ama keyframes tanımı yoktu; Tailwind v4 bu sınıfı üretmiyor, 60 animasyon sessizce çalışmıyordu |
 | Mobil menü | Yandan çekmece | 2026 baskın deseni; sahibinden ve arabam ikisi de kullanıyor |
 | Footer içeriği | Yapı kurulur, içerik yer tutucu | Gerçek bilgi yok; sahte link koymak profesyonellik değil |
 | Çerez banner'ı | Eklenmiyor | Takip kodu yok, zorunlu çerezler onay gerektirmez |
