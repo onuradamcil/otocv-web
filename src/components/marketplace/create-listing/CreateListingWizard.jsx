@@ -817,14 +817,17 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       {/* TOP HEADER BARI */}
       <div className="relative z-20 bg-white border-b border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.04)]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <div 
-            onClick={onBack} 
-            className="flex items-center gap-2 cursor-pointer select-none group py-1"
+          {/* div -> button: klavyeyle odaklanabilir ve Enter'a cevap verir */}
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="Sihirbazdan çık ve garaja dön"
+            className="flex items-center gap-2 select-none group py-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
           >
-            <span className="text-xl font-black tracking-tight text-slate-900 font-display group-hover:text-indigo-600 transition-colors">
+            <span className="text-xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
               OTO.CV
             </span>
-          </div>
+          </button>
 
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">
             <span className="text-xs font-semibold text-slate-500">Adım {currentStep} / 4</span>
