@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import GarageScreen from '@/components/GarageScreen';
 import MaintenanceDialog from '@/components/garage/MaintenanceDialog';
+import GlobalStepLoader from '@/components/common/GlobalStepLoader';
 
 export default function GaragePage() {
   const router = useRouter();
@@ -38,12 +39,10 @@ export default function GaragePage() {
   }, [router]);
 
   if (authState === 'checking') {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
-        <div className="animate-spin rounded-full h-6 w-6 border-2 border-indigo-600 border-t-transparent" />
-        <span className="text-[11px] font-bold text-slate-400 tracking-wide">Garajınız hazırlanıyor...</span>
-      </div>
-    );
+    // Tek çark yerine iskelet: gelen içeriğin şeklini taşır.
+    // gecikmeMs=200 -> bekleme 200 ms'den kısaysa hiç gösterge çıkmaz;
+    // kullanıcı 100 ms'i anlık sayar, orada gösterge yavaş hissettirir.
+    return <GlobalStepLoader mode="iskelet" varyant="kart" gecikmeMs={200} />;
   }
 
   return (

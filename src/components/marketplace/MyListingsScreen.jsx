@@ -10,6 +10,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchMarketplaceListings } from '../../services/marketplaceService';
 import PublishListingModal from '../garage/PublishListingModal';
 import Icon from '../common/icons';
+import GlobalStepLoader from '../common/GlobalStepLoader';
 
 export default function MyListingsScreen({ user, onNavigateToGarage }) {
   const [listings, setListings] = useState([]);
@@ -61,9 +62,8 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
 
       {/* İLAN DİZİLİM İÇERİĞİ */}
       {loading ? (
-        <div className="py-20 flex justify-center items-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-600 border-t-transparent" />
-        </div>
+        /* Ilan kartlari bekleniyor -> kart iskeleti. */
+        <GlobalStepLoader mode="iskelet" varyant="kart" kapsayici={false} baslik={false} adet={3} />
       ) : listings.length === 0 ? (
         <div className="py-20 flex flex-col items-center justify-center text-center space-y-3 bg-white rounded-3xl border border-dashed border-slate-200">
           <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400">

@@ -17,6 +17,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import CreateListingWizard from '@/components/marketplace/create-listing/CreateListingWizard';
+import GlobalStepLoader from '@/components/common/GlobalStepLoader';
 
 export default function AddVehiclePage() {
   const router = useRouter();
@@ -40,12 +41,10 @@ export default function AddVehiclePage() {
   }, [router]);
 
   if (authState === 'checking') {
-    return (
-      <div className="min-h-screen bg-[#FFFDFB] flex flex-col items-center justify-center gap-3">
-        <div className="animate-spin rounded-full h-6 w-6 border-2 border-indigo-600 border-t-transparent" />
-        <span className="text-[11px] font-bold text-slate-400 tracking-wide">Sihirbaz hazırlanıyor...</span>
-      </div>
-    );
+    // Tek çark yerine iskelet: gelen içeriğin şeklini taşır.
+    // gecikmeMs=200 -> bekleme 200 ms'den kısaysa hiç gösterge çıkmaz;
+    // kullanıcı 100 ms'i anlık sayar, orada gösterge yavaş hissettirir.
+    return <GlobalStepLoader mode="iskelet" varyant="form" gecikmeMs={200} />;
   }
 
   return (

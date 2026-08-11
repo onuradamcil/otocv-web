@@ -13,6 +13,7 @@ import OfficialReportView from './OfficialReportView';
 import Icon from '../common/icons';
 // MİMARİ BAĞLANTI: İki üst dizindeki merkezi Supabase kalkanı içeri davet edildi
 import { supabase } from '../../lib/supabase';
+import GlobalStepLoader from '../common/GlobalStepLoader';
 
 export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }) {
   // =========================================================================
@@ -226,9 +227,11 @@ export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }
             </div>
             <div className="w-full max-w-[740px] print:max-w-none print:w-full">
               {loadingRecords ? (
-                <div className="py-20 bg-white border border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 shadow-sm">
-                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-indigo-600 border-t-transparent" />
-                  <span className="text-[11px] font-bold text-slate-400 tracking-wide animate-pulse">Resmi Sicil Bilanço Verileri Derleniyor...</span>
+                /* Gelen sey bakim kayitlarindan olusan resmi dokum -> satir
+                   listesi iskeleti. Kutu cercevesi korunuyor ki karnenin
+                   belge gorunumu yuklenirken de bozulmasin. */
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <GlobalStepLoader mode="iskelet" varyant="liste" kapsayici={false} adet={5} />
                 </div>
               ) : (
                 /* 🚀 CANLI PASLAMA: Resmi döküm alanına taze veri bağları ulaştırıldı */

@@ -13,6 +13,7 @@ import PolicyOfferModal from './garage/PolicyOfferModal';
 import { useToast } from '../context/ToastContext';
 import PublishListingModal from './garage/PublishListingModal'; // 🚀 İLAN MODALI ENJEKTE EDİLDİ
 import Icon from './common/icons';
+import GlobalStepLoader from './common/GlobalStepLoader';
 
 export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMaintenance, onNavigateToAdd }) {
   const toast = useToast();
@@ -246,9 +247,10 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
 
         {/* DİZİLİM MOTORU */}
         {loading ? (
-          <div className="py-20 flex justify-center items-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-600 border-t-transparent" />
-          </div>
+          /* Tek cark yerine kart iskeleti: gelen sey arac KARTLARI oldugu icin
+             yer tutucu da o sekli tasir. baslik={false} cunku sayfa basligi
+             zaten yukarida basili. */
+          <GlobalStepLoader mode="iskelet" varyant="kart" kapsayici={false} baslik={false} adet={3} />
         ) : error ? (
           <div
             role="alert"

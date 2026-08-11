@@ -10,6 +10,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { fetchMarketplaceListings } from '../../services/marketplaceService';
 import { useToast } from '../../context/ToastContext';
 import Icon from '../common/icons';
+import GlobalStepLoader from '../common/GlobalStepLoader';
 
 export default function MarketplaceView({ 
   onSelectVehicle, 
@@ -435,9 +436,8 @@ export default function MarketplaceView({
 
               {/* İLAN LİSTELEME GRİDİ */}
               {loading ? (
-                <div className="py-24 flex justify-center items-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-600 border-t-transparent" />
-                </div>
+                /* Vitrin kart izgarasi bekleniyor -> kart iskeleti. */
+                <GlobalStepLoader mode="iskelet" varyant="kart" kapsayici={false} baslik={false} adet={6} />
               ) : displayedVitrinListings.length === 0 ? (
                 <div className="py-16 flex flex-col items-center justify-center text-center space-y-2 bg-white rounded-md border border-dashed border-slate-200 p-6">
                   <h4 className="text-xs font-bold text-slate-900">Anasayfa Vitrininde İlan Bulunamadı</h4>
