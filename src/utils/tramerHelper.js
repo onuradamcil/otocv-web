@@ -88,6 +88,33 @@ export function tramerDurumu(vehicle) {
 
   const kucuk = etiket.toLocaleLowerCase('tr-TR');
 
+  // ÖNCE AÇIK "BİLİNMİYOR" LİSTESİ — anahtar kelime sezgisinden ÖNCE.
+  //
+  // Neden: sezgi alt dizi araması yapıyor ve bazı "bilgi yok" ifadeleri
+  // olumsuzlama kelimesini İÇERİYOR. İlk yazımda görüntüleme varsayılanını
+  // 'Beyan Yok' yapmıştım; içinde "yok" geçtiği için yardımcı onu "hasar
+  // yok" sayıp karneye "Kayıt Bulunmamaktadır (Temiz)" bastırıyordu —
+  // yani düzeltmeye çalıştığım hatanın aynısını geri getiriyordu.
+  //
+  // Bu liste sezgiden önce denetlendiği için o tuzak kapanıyor. Yeni bir
+  // "bilgi yok" ifadesi eklerken buraya yazılmalı.
+  const BILINMIYOR_ISARETLERI = [
+    'bilmiyorum',
+    'bilinmiyor',
+    'beyan yok',
+    'beyan edilmemiş',
+    'beyan edilmemis',
+    'belirtilmemiş',
+    'belirtilmemis',
+    'sorgulanamadı',
+    'sorgulanamadi',
+    'seçiniz',
+    'seciniz',
+  ];
+  if (BILINMIYOR_ISARETLERI.some((isaret) => kucuk.includes(isaret))) {
+    return TRAMER_DURUM.BILINMIYOR;
+  }
+
   // SIRA KRİTİK — olumsuzlama önce denetlenir.
   // 'Hasarsız' kelimesi 'hasar' İÇERİR. Sıra ters olsa hasarsız bir araç
   // hasarlı sayılırdı. Aynı şekilde 'Tramer Yok' hem "yok" hem "tramer"

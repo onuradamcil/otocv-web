@@ -29,7 +29,9 @@ export default function AdvertisingCard({ vehicle }) {
   // Binlik sayı formatlama (TÜVTÜRK Standart Uyumu)
   const formattedKm = kmValue.toLocaleString('tr-TR');
   const packageStr = vehicle?.package || 'Standart Paket';
-  const tramerStr = vehicle?.tramer_status || 'Hasarsız';
+  // Bu kart karne PNG'sinin içinde ve ilan sitelerine yükleniyor. Veri
+  // yokken 'Hasarsız' basmak, alıcıya yapılmamış bir beyanı sunmak olur.
+  const tramerStr = vehicle?.tramer_status || 'Beyan Edilmemiş';
 
   // =========================================================================
   // 2. BLOK: INTERFACE ARAYÜZ KATMANI (16:9 DİKEY GLOW MİZANPAJI)

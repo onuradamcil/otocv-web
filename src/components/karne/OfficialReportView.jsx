@@ -30,7 +30,9 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
   const vin = vehicle?.vin || 'WBA0M3T2MGM******';
   const engineNumber = vehicle?.engine_number || 'N20B20A******'; 
   const registrationNo = vehicle?.registration_no || 'AA012345'; 
-  const tramer = vehicle?.tramer_status || 'Hasarsız / Değişensiz / Orijinal';
+  // RESMİ BELGE. Veri yokken 'Hasarsız / Değişensiz / Orijinal' basmak,
+  // belgeye asılsız bir beyan koymak demektir. Bilgi yoksa yokluğu yazılır.
+  const tramer = vehicle?.tramer_status || 'Beyan Edilmemiş';
   const kmValue = vehicle?.km ?? 0;
   const formattedKm = kmValue.toLocaleString('tr-TR');
   

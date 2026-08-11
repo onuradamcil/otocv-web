@@ -72,7 +72,9 @@ export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }
       pin_code: vehicle.pin_code || vehicle.pinCode || 'CV-PENDING',
       
       vin: vehicle.vin ?? 'WBA0M3T2MGM******',
-      tramer_status: vehicle.tramer_status ?? vehicle.tramerStatus ?? 'Hasarsız',
+      // Veri yokken 'Hasarsız' varsayılmaz — beyan edilmemiş bilgi,
+      // hasarsızlık beyanı değildir.
+      tramer_status: vehicle.tramer_status ?? vehicle.tramerStatus ?? 'Bilmiyorum',
       brand: vehicle.brand ?? 'Belirsiz',
       model: vehicle.model ?? 'Belirsiz',
       year: vehicle.year ?? 2026

@@ -517,7 +517,11 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         traffic_insurance_end_date: formData.traffic_insurance_end_date || formData.insuranceDate || '',
         kasko_end_date: formData.kasko_end_date || formData.kaskoDate || '',
         inspection_end_date: formData.inspection_end_date || formData.inspectionDate || '',
-        tramer_status: formData.tramerStatus || 'Hasarsız',
+        // Beyan yoksa 'Hasarsız' YAZILMAZ. tramerStatus zorunlu alan değil;
+        // kullanıcı seçim yapmazsa aracı hasarsız kaydetmek, onun adına
+        // yapılmamış bir beyanı veritabanına işlemek olur. Karne de o kaydı
+        // haklı olarak "Temiz" diye basar. 'Bilmiyorum' dürüst karşılık.
+        tramer_status: formData.tramerStatus || 'Bilmiyorum',
         tramer_amount: formData.tramerAmount ? String(formData.tramerAmount) : '0',
         trust_score: formData.otocv_score || 92,
         image_url: photoUrls,
