@@ -720,7 +720,7 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                     </div>
                   </div>
 
-                  {/* SAĞ: METİN LİSTESİ VE TRAMER KARTI */}
+                  {/* SAĞ: METİN lLİSTESİ VE TRAMER KARTI */}
                   <div className="lg:col-span-6 space-y-4">
                     <div className="bg-slate-50/80 border border-slate-200/80 rounded-md p-4 space-y-3">
                       <div className="space-y-1">
