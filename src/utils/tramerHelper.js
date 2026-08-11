@@ -60,7 +60,11 @@ export const TRAMER_DURUM = {
  * @returns {number} tutar; okunamıyorsa 0
  */
 export function tramerTutari(vehicle) {
-  const ham = vehicle?.tramer_amount;
+  // İki adlandırma da kabul edilir: veritabanı satırı snake_case
+  // (tramer_amount), sihirbazın form durumu camelCase (tramerAmount).
+  // Aksi hâlde Step4 ön izlemesi yardımcıyı kullanamaz ve orada yine
+  // elle metin karşılaştırması yapılırdı — düzelttiğimiz hatanın kaynağı.
+  const ham = vehicle?.tramer_amount ?? vehicle?.tramerAmount;
   if (ham === null || ham === undefined || ham === '') return 0;
   if (typeof ham === 'number') return Number.isFinite(ham) ? ham : 0;
 
@@ -79,21 +83,43 @@ export function tramerDurumu(vehicle) {
   if (tramerTutari(vehicle) > 0) return TRAMER_DURUM.VAR;
 
   // 2. Etiket — sabit metinle değil, anahtar kelimeyle
-  const etiket = (vehicle?.tramer_status ?? '').toString().trim();
+  const etiket = (vehicle?.tramer_status ?? vehicle?.tramerStatus ?? '').toString().trim();
   if (!etiket) return TRAMER_DURUM.BILINMIYOR;
 
   const kucuk = etiket.toLocaleLowerCase('tr-TR');
 
-  // Olumsuzlama önce denetlenir: 'Tramer Yok' ifadesi hem "yok" hem
-  // "tramer" içeriyor, sıra ters olsa yanlış cevap gelirdi.
+  // SIRA KRİTİK — olumsuzlama önce denetlenir.
+  // 'Hasarsız' kelimesi 'hasar' İÇERİR. Sıra ters olsa hasarsız bir araç
+  // hasarlı sayılırdı. Aynı şekilde 'Tramer Yok' hem "yok" hem "tramer"
+  // içeriyor.
   if (kucuk.includes('yok') || kucuk.includes('hasarsız') || kucuk.includes('hasarsiz')) {
     return TRAMER_DURUM.YOK;
   }
-  if (kucuk.includes('var') || kucuk.includes('mevcut')) {
+
+  // Hasar belirten anahtar kelimeler. 'hasar' burada, olumsuzlama
+  // denetiminden SONRA güvenli.
+  //
+  // 'hasarlı' ve 'pert' listede olmak zorunda: sihirbazın seçenekleri
+  // (Step2ListingDetails.jsx -> TRAMER_OPTIONS) şu an
+  //     ['Bilmiyorum', 'Tramer Yok', 'Tramer Var', 'Ağır Hasarlı']
+  // ve 'Ağır Hasarlı' ilk yazımda gözden kaçmıştı; yardımcı onu
+  // "bilinmiyor" sayıyordu. En ağır hasar durumunun karnede
+  // "Sorgulanamadı" diye geçmesi kabul edilemez.
+  //
+  // Bu listeye dokunacak olan: TRAMER_OPTIONS'a yeni bir seçenek eklerken
+  // buranın da kapsadığını doğrula.
+  if (
+    kucuk.includes('var') ||
+    kucuk.includes('mevcut') ||
+    kucuk.includes('hasar') ||
+    kucuk.includes('pert') ||
+    kucuk.includes('ağır') ||
+    kucuk.includes('agir')
+  ) {
     return TRAMER_DURUM.VAR;
   }
 
-  // 3. Tanınmayan etiket: temiz beyanı VERİLMEZ
+  // 3. Tanınmayan etiket ('Bilmiyorum' gibi): temiz beyanı VERİLMEZ
   return TRAMER_DURUM.BILINMIYOR;
 }
 

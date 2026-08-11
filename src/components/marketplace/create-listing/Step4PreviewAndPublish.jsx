@@ -9,6 +9,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '../../../context/ToastContext';
 import Icon from '../../common/icons';
+import { tramerVarMi } from '../../../utils/tramerHelper';
 
 // =========================================================================
 // 🎨 SABİTLER VE YARDIMCI FONKSİYONLAR
@@ -542,7 +543,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                     <div className="flex justify-between py-1">
                       <span className="text-slate-900 font-medium">Tramer Kaydı</span>
                       <span className="text-emerald-600 font-medium">
-                        {formData.tramerStatus === 'Tramer Var' ? `${formData.tramerAmount || 0} TL` : 'Tramer Yok'}
+                        {tramerVarMi(formData) ? `${formData.tramerAmount || 0} TL` : 'Tramer Yok'}
                       </span>
                     </div>
                     <div className="flex justify-between py-1">
@@ -743,18 +744,18 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                     <div className="bg-white border border-slate-200 rounded-md p-4 shadow-2xs space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className={`p-1.5 rounded-md ${formData.tramerStatus === 'Tramer Var' ? 'bg-amber-50 text-amber-600 border border-amber-200/80' : 'bg-emerald-50 text-emerald-600 border border-emerald-200/80'}`}>
+                          <div className={`p-1.5 rounded-md ${tramerVarMi(formData) ? 'bg-amber-50 text-amber-600 border border-amber-200/80' : 'bg-emerald-50 text-emerald-600 border border-emerald-200/80'}`}>
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
                           </div>
                           <span className="text-xs font-bold text-slate-800">Tramer Hasar Kaydı</span>
                         </div>
-                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md ${formData.tramerStatus === 'Tramer Var' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                          {formData.tramerStatus === 'Tramer Var' ? 'Hasar Kaydı Var' : 'Hasar Kaydı Yok'}
+                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md ${tramerVarMi(formData) ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                          {tramerVarMi(formData) ? 'Hasar Kaydı Var' : 'Hasar Kaydı Yok'}
                         </span>
                       </div>
                       <div className="pt-2 border-t border-slate-100 flex items-baseline justify-between">
                         <span className="text-xs text-slate-500 font-medium">Toplam Hasar Tutarı</span>
-                        <span className="text-base font-black font-mono text-slate-900">{formData.tramerStatus === 'Tramer Var' ? `${formData.tramerAmount || '0'} TL` : '0 TL'}</span>
+                        <span className="text-base font-black font-mono text-slate-900">{tramerVarMi(formData) ? `${formData.tramerAmount || '0'} TL` : '0 TL'}</span>
                       </div>
                     </div>
                   </div>
@@ -793,8 +794,8 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                       { label: 'Sahiplik Durumu', value: formData.isFirstOwner === 'Evet' ? 'İlk Sahibi' : 'İlk Sahibi Değilim' },
                       { 
                         label: 'Tramer Hasar Kaydı', 
-                        value: formData.tramerStatus === 'Tramer Var' ? `${formData.tramerAmount} TL` : 'Tramer Yok', 
-                        textClass: formData.tramerStatus === 'Tramer Var' ? 'text-amber-700' : 'text-emerald-700 font-bold' 
+                        value: tramerVarMi(formData) ? `${formData.tramerAmount} TL` : 'Tramer Yok', 
+                        textClass: tramerVarMi(formData) ? 'text-amber-700' : 'text-emerald-700 font-bold' 
                       },
                       { label: 'Takas Durumu', value: formData.swap },
                     ].map((item, index) => (
