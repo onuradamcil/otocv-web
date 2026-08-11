@@ -7,7 +7,7 @@
 'use client';
 
 import React from 'react';
-import { tramerVarMi, tramerMetni } from '../../utils/tramerHelper';
+import { tramerDurumu, tramerMetni, TRAMER_DURUM } from '../../utils/tramerHelper';
 
 export default function OfficialReportView({ vehicle, maintenanceRecords = [], isPublicView = false }) {
   // =========================================================================
@@ -33,6 +33,14 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
   // RESMİ BELGE. Veri yokken 'Hasarsız / Değişensiz / Orijinal' basmak,
   // belgeye asılsız bir beyan koymak demektir. Bilgi yoksa yokluğu yazılır.
   const tramer = vehicle?.tramer_status || 'Beyan Edilmemiş';
+
+  // Hasar bulgusunun BELGE İÇİNDEKİ görsel durumu. Üç değerli olması şart:
+  // beyan edilmemiş bir alanı "temiz" gibi yeşil basmak, belge adına
+  // yapılmamış bir iddiada bulunmak olur.
+  const tramerSatirDurumu =
+    tramerDurumu(vehicle) === TRAMER_DURUM.VAR ? 'dikkat'
+    : tramerDurumu(vehicle) === TRAMER_DURUM.YOK ? 'iyi'
+    : 'bilinmiyor';
   const kmValue = vehicle?.km ?? 0;
   const formattedKm = kmValue.toLocaleString('tr-TR');
   
@@ -153,7 +161,7 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
                 kaynaktan belirleniyor. Önceden `!== 'Tramer Kaydı Var'`
                 yazıyordu; veritabanında 'Tramer Var' yazan araçlar (10'un
                 4'ü) bu yüzden hasarsız gibi yeşil basılıyordu. */}
-            <SpecRow label="TRAMER HASAR DURUMU" value={tramer} isSuccess={!tramerVarMi(vehicle)} />
+            <SpecRow label="TRAMER HASAR DURUMU" value={tramer} durum={tramerSatirDurumu} />
           </div>
 
           <div className="bg-[#F1EDE4]/40 border border-[#E5DECE] rounded-xl p-5 space-y-3.5">
@@ -167,7 +175,7 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
                   Tutar da artık doğru okunuyor: '65.756' metnini Number()
                   ile çevirmek 65.756 üretiyordu (nokta Türkçe'de binlik
                   ayracı, JavaScript'te ondalık). */}
-              <TableRow label="Geçmiş Hasar, Ağır Hasar & Pert Kaydı Sorgusu" status={tramerMetni(vehicle)} isSuccess={!tramerVarMi(vehicle)} />
+              <TableRow label="Geçmiş Hasar, Ağır Hasar & Pert Kaydı Sorgusu" status={tramerMetni(vehicle)} durum={tramerSatirDurumu} />
               <TableRow label="Mülkiyet, Haciz, Rehin & Hak Mahrumiyeti Kontrolü" status="Hak Mahrumiyeti Yoktur (Satışa Engel Değil)" />
               <TableRow label="Adalet Bakanlığı UYAP Çalınma / Aranma Kaydı Taraması" status="Temiz (Aranma İhbarı Yoktur)" />
               <TableRow label="Periyodik Servis / Sanayi Faturaları Tescil Uyumluluğu" status={totalMaintenanceCost > 0 ? `${formattedTotalCost} Yatırım Onaylı` : "AutoID Güvencesiyle Onaylanmış"} />
@@ -223,44 +231,86 @@ function DocStatRow({ label, value }) {
   );
 }
 
-// isSuccess ÜÇ DEĞERLİ ve artık metinden türetilmiyor:
-//   undefined -> nötr bilgi (yakıt, şanzıman, renk gibi)
-//   true      -> olumlu/temiz bulgu, yeşil
-//   false     -> dikkat gerektiren bulgu, amber
+// =========================================================================
+// BELGE SATIRLARININ ÜÇ DURUMU
 //
+// Resmi araç geçmiş raporlarının (Carfax, AutoCheck, carVertical) ortak
+// kuralı: BİLGİ YOKLUĞU olumlu bir bulgu gibi gösterilmez. Carfax veri
+// bulunmayan alanı gri çizgiyle geçer, asla onay işaretiyle.
+//
+// Bizde ise durum İKİLİ idi: "temiz değilse amber, değilse yeşil". Bu
+// yüzden "Sorgulanamadı (Beyan Yok)" satırı YEŞİL ONAY TİKİYLE basılıyordu.
+// Yeşil tik bir iddiadır; beyan edilmemiş bir alan için o iddiayı belge
+// adına yapmak, düzelttiğimiz "hasarlıya temiz demek" hatasının daha
+// yumuşak hâli.
+//
+// Üç durum, üç ayrı görsel dil:
+//   'iyi'        yeşil + onay tiki      -> beyan edilmiş olumlu bulgu
+//   'dikkat'     amber + uyarı işareti  -> beyan edilmiş, dikkat gerektiren
+//   'bilinmiyor' gri + bilgi işareti    -> BEYAN YOK. iddia yok.
+//   undefined    eski davranış (sabit metinli satırlar için)
+// =========================================================================
+
+const SATIR_DURUM = {
+  iyi:        { renk: 'text-emerald-600', ikon: 'text-emerald-500', kenar: 'border-[#E5DECE]/50' },
+  dikkat:     { renk: 'text-amber-600',   ikon: 'text-amber-500',   kenar: 'border-amber-200' },
+  bilinmiyor: { renk: 'text-slate-400',   ikon: 'text-slate-300',   kenar: 'border-slate-200' },
+};
+
+// durum verilmezse nötr (yakıt, şanzıman, renk gibi bilgi satırları).
 // Önceden değer metniyle karşılaştırma yapılıyordu
-// (value === 'Hasarsız / Değişensiz / Orijinal'). Metnin bir harfi
-// değişince renk sessizce yanlışa dönüyordu; resmi belgede kabul edilemez.
-function SpecRow({ label, value, isSuccess }) {
-  const dikkat = isSuccess === false;
-  const iyi = isSuccess === true;
+// (value === 'Hasarsız / Değişensiz / Orijinal'); metnin bir harfi
+// değişince renk sessizce yanlışa dönüyordu.
+function SpecRow({ label, value, durum }) {
+  const s = SATIR_DURUM[durum];
   return (
-    <div className={`border rounded-xl p-3 flex flex-col justify-center shadow-sm select-none bg-white ${dikkat ? 'border-amber-200' : 'border-[#E5DECE]/50'}`}>
+    <div className={`border rounded-xl p-3 flex flex-col justify-center shadow-sm select-none bg-white ${s ? s.kenar : 'border-[#E5DECE]/50'}`}>
       <span className="text-slate-400 text-[9px] font-bold tracking-wider block leading-none">{label}</span>
-      <span className={`text-xs font-bold truncate block mt-1 ${dikkat ? 'text-amber-600' : iyi ? 'text-emerald-600' : 'text-[#1E1B4B]'}`}>{value}</span>
+      <span className={`text-xs font-bold truncate block mt-1 ${s ? s.renk : 'text-[#1E1B4B]'}`}>{value}</span>
     </div>
   );
 }
 
-// isSuccess verilmezse eski davranış korunur (sabit metinli satırlar için).
-// Verilirse metne HİÇ bakılmaz — çağıran taraf zaten gerçeği biliyor.
-// Bu ayrım önemliydi: metinden çıkarım yapan eski hâl, "Sorgulanamadı
-// (Beyan Yok)" gibi yeni bir metni olumlu sanıp yeşil basardı.
-function TableRow({ label, status, isSuccess }) {
-  const isDanger =
-    isSuccess === undefined
-      ? status.includes('Kayıt Var')
-      : isSuccess === false;
+function TableRow({ label, status, durum }) {
+  // durum verilmezse eski metin sezgisi korunur — sabit metinli satırlar
+  // (UYAP taraması, hak mahrumiyeti vb.) hep aynı değeri basıyor.
+  const cozulen =
+    durum ?? (status.includes('Kayıt Var') ? 'dikkat' : 'iyi');
+  const s = SATIR_DURUM[cozulen] || SATIR_DURUM.iyi;
+
   return (
     <div className="flex justify-between items-center border-b border-gray-300/10 pb-0.5">
       <span className="text-slate-600 font-medium tracking-tight">{label}</span>
       <div className="flex items-center gap-1">
-        <svg className={`w-3.5 h-3.5 shrink-0 ${isDanger ? 'text-amber-500' : 'text-emerald-500'}`} fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-        </svg>
-        <span className={`font-bold ${isDanger ? 'text-amber-600' : 'text-[#1E1B4B]'}`}>{status}</span>
+        <DurumIkonu durum={cozulen} className={s.ikon} />
+        <span className={`font-bold ${cozulen === 'iyi' ? 'text-[#1E1B4B]' : s.renk}`}>{status}</span>
       </div>
     </div>
+  );
+}
+
+// Her durumun KENDİ işareti var. Aynı tiki boyayıp geçmek yetmez: belge
+// gri tonlu yazdırıldığında ya da renk körü bir okuyucuda renk kaybolur,
+// biçim kalır. Bu yüzden ayrım renge değil ŞEKLE de bindirildi.
+function DurumIkonu({ durum, className }) {
+  if (durum === 'dikkat') {
+    return (
+      <svg className={`w-3.5 h-3.5 shrink-0 ${className}`} fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+        <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.19-1.458-1.517-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+      </svg>
+    );
+  }
+  if (durum === 'bilinmiyor') {
+    return (
+      <svg className={`w-3.5 h-3.5 shrink-0 ${className}`} fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM6.75 9.25a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5z" clipRule="evenodd" />
+      </svg>
+    );
+  }
+  return (
+    <svg className={`w-3.5 h-3.5 shrink-0 ${className}`} fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+    </svg>
   );
 }
 
