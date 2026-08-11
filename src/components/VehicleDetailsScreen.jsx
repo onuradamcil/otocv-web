@@ -10,6 +10,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
 import Icon from './common/icons';
+import { tramerVarMi, tramerTutari } from '../utils/tramerHelper';
 
 // =========================================================================
 // 🎨 SABİTLER VE YARDIMCI FONKSİYONLAR
@@ -558,7 +559,7 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                     </div>
                     <div className="flex justify-between py-1">
                       <span className="text-slate-900 font-medium">Tramer Kaydı</span>
-                      <span className="text-emerald-600 font-medium">{vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? `${vehicle.tramer_amount || 0} TL` : 'Tramer Yok'}</span>
+                      <span className="text-emerald-600 font-medium">{tramerVarMi(vehicle) ? `${vehicle.tramer_amount || 0} TL` : 'Tramer Yok'}</span>
                     </div>
                     <div className="flex justify-between py-1">
                       <span className="text-slate-900 font-medium">Garanti / Takas</span>
@@ -751,18 +752,18 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                     <div className="bg-white border border-slate-200 rounded-md p-4 shadow-2xs space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className={`p-1.5 rounded-md ${vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? 'bg-amber-50 text-amber-600 border border-amber-200/80' : 'bg-emerald-50 text-emerald-600 border border-emerald-200/80'}`}>
+                          <div className={`p-1.5 rounded-md ${tramerVarMi(vehicle) ? 'bg-amber-50 text-amber-600 border border-amber-200/80' : 'bg-emerald-50 text-emerald-600 border border-emerald-200/80'}`}>
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
                           </div>
                           <span className="text-xs font-bold text-slate-800">Tramer Hasar Kaydı</span>
                         </div>
-                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md ${vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                          {vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? 'Hasar Kaydı Var' : 'Hasar Kaydı Yok'}
+                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md ${tramerVarMi(vehicle) ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                          {tramerVarMi(vehicle) ? 'Hasar Kaydı Var' : 'Hasar Kaydı Yok'}
                         </span>
                       </div>
                       <div className="pt-2 border-t border-slate-100 flex items-baseline justify-between">
                         <span className="text-xs text-slate-500 font-medium">Toplam Hasar Tutarı</span>
-                        <span className="text-base font-black font-mono text-slate-900">{vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? `${vehicle.tramer_amount || '0'} TL` : '0 TL'}</span>
+                        <span className="text-base font-black font-mono text-slate-900">{tramerVarMi(vehicle) ? `${vehicle.tramer_amount || '0'} TL` : '0 TL'}</span>
                       </div>
                     </div>
                   </div>
@@ -802,8 +803,8 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                       { label: 'Sahiplik Durumu', value: vehicle.is_first_owner || vehicle.isFirstOwner ? 'İlk Sahibi' : 'Tescilli Sahip' },
                       { 
                         label: 'Tramer Hasar Kaydı', 
-                        value: vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? `${vehicle.tramer_amount || 0} TL` : 'Tramer Yok', 
-                        textClass: vehicle.tramer_status === 'Tramer Var' || vehicle.tramer_status === 'Tramer Kaydı Var' ? 'text-amber-700' : 'text-emerald-700 font-bold' 
+                        value: tramerVarMi(vehicle) ? `${vehicle.tramer_amount || 0} TL` : 'Tramer Yok', 
+                        textClass: tramerVarMi(vehicle) ? 'text-amber-700' : 'text-emerald-700 font-bold' 
                       },
                     ].map((item, index) => (
                       <div key={item.label} className={`flex justify-between items-baseline py-2.5 px-5 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>

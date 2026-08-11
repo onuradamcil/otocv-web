@@ -7,6 +7,7 @@
 'use client';
 
 import React from 'react';
+import { tramerVarMi, tramerMetni } from '../../utils/tramerHelper';
 
 export default function OfficialReportView({ vehicle, maintenanceRecords = [], isPublicView = false }) {
   // =========================================================================
@@ -146,14 +147,25 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
             <SpecRow label="YAKIT BESLEME SİSTEMİ" value={fuelType} />
             <SpecRow label="ŞANZIMAN / TRANSMİSYON" value={transmission} />
             <SpecRow label="TESCİLLİ GÖVDE RENGİ" value={color} />
-            <SpecRow label="TRAMER HASAR DURUMU" value={tramer} isSuccess={vehicle?.tramer_status !== 'Tramer Kaydı Var'} />
+            {/* isSuccess artık serbest metin karşılaştırmasıyla değil, tek
+                kaynaktan belirleniyor. Önceden `!== 'Tramer Kaydı Var'`
+                yazıyordu; veritabanında 'Tramer Var' yazan araçlar (10'un
+                4'ü) bu yüzden hasarsız gibi yeşil basılıyordu. */}
+            <SpecRow label="TRAMER HASAR DURUMU" value={tramer} isSuccess={!tramerVarMi(vehicle)} />
           </div>
 
           <div className="bg-[#F1EDE4]/40 border border-[#E5DECE] rounded-xl p-5 space-y-3.5">
             <h4 className="text-[10px] font-bold text-[#1E1B4B] tracking-widest uppercase">MERKEZİ VERİ TABANI SORGULAMA SONUÇLARI</h4>
             <div className="space-y-3 text-xs">
               <TableRow label="TÜVTÜRK Muayene Geçerlilik Durumu" status="Aktif (Kilometre Verisi Tutarlı)" />
-              <TableRow label="Geçmiş Hasar, Ağır Hasar & Pert Kaydı Sorgusu" status={vehicle?.tramer_status === 'Tramer Kaydı Var' ? `Kayıt Var (${vehicle?.tramer_amount || '0'} TL)` : "Kayıt Bulunmamaktadır (Temiz)"} />
+              {/* BU SATIR RESMİ BİR BEYAN. Önceden yalnızca tek yazımı
+                  ('Tramer Kaydı Var') tanıdığı için 'Tramer Var' yazan
+                  araçlarda "Kayıt Bulunmamaktadır (Temiz)" basıyordu —
+                  65.756 TL hasarı olan araç karnede hasarsız görünüyordu.
+                  Tutar da artık doğru okunuyor: '65.756' metnini Number()
+                  ile çevirmek 65.756 üretiyordu (nokta Türkçe'de binlik
+                  ayracı, JavaScript'te ondalık). */}
+              <TableRow label="Geçmiş Hasar, Ağır Hasar & Pert Kaydı Sorgusu" status={tramerMetni(vehicle)} isSuccess={!tramerVarMi(vehicle)} />
               <TableRow label="Mülkiyet, Haciz, Rehin & Hak Mahrumiyeti Kontrolü" status="Hak Mahrumiyeti Yoktur (Satışa Engel Değil)" />
               <TableRow label="Adalet Bakanlığı UYAP Çalınma / Aranma Kaydı Taraması" status="Temiz (Aranma İhbarı Yoktur)" />
               <TableRow label="Periyodik Servis / Sanayi Faturaları Tescil Uyumluluğu" status={totalMaintenanceCost > 0 ? `${formattedTotalCost} Yatırım Onaylı` : "AutoID Güvencesiyle Onaylanmış"} />
@@ -209,17 +221,34 @@ function DocStatRow({ label, value }) {
   );
 }
 
-function SpecRow({ label, value, isSuccess = false }) {
+// isSuccess ÜÇ DEĞERLİ ve artık metinden türetilmiyor:
+//   undefined -> nötr bilgi (yakıt, şanzıman, renk gibi)
+//   true      -> olumlu/temiz bulgu, yeşil
+//   false     -> dikkat gerektiren bulgu, amber
+//
+// Önceden değer metniyle karşılaştırma yapılıyordu
+// (value === 'Hasarsız / Değişensiz / Orijinal'). Metnin bir harfi
+// değişince renk sessizce yanlışa dönüyordu; resmi belgede kabul edilemez.
+function SpecRow({ label, value, isSuccess }) {
+  const dikkat = isSuccess === false;
+  const iyi = isSuccess === true;
   return (
-    <div className={`border rounded-xl p-3 flex flex-col justify-center shadow-sm select-none bg-white ${isSuccess && value !== 'Hasarsız / Değişensiz / Orijinal' ? 'border-amber-200' : 'border-[#E5DECE]/50'}`}>
+    <div className={`border rounded-xl p-3 flex flex-col justify-center shadow-sm select-none bg-white ${dikkat ? 'border-amber-200' : 'border-[#E5DECE]/50'}`}>
       <span className="text-slate-400 text-[9px] font-bold tracking-wider block leading-none">{label}</span>
-      <span className={`text-xs font-bold truncate block mt-1 ${isSuccess ? (value === 'Hasarsız / Değişensiz / Orijinal' ? 'text-emerald-600' : 'text-amber-600') : 'text-[#1E1B4B]'}`}>{value}</span>
+      <span className={`text-xs font-bold truncate block mt-1 ${dikkat ? 'text-amber-600' : iyi ? 'text-emerald-600' : 'text-[#1E1B4B]'}`}>{value}</span>
     </div>
   );
 }
 
-function TableRow({ label, status }) {
-  const isDanger = status.includes('Kayi') || status.includes('Kayıt Var');
+// isSuccess verilmezse eski davranış korunur (sabit metinli satırlar için).
+// Verilirse metne HİÇ bakılmaz — çağıran taraf zaten gerçeği biliyor.
+// Bu ayrım önemliydi: metinden çıkarım yapan eski hâl, "Sorgulanamadı
+// (Beyan Yok)" gibi yeni bir metni olumlu sanıp yeşil basardı.
+function TableRow({ label, status, isSuccess }) {
+  const isDanger =
+    isSuccess === undefined
+      ? status.includes('Kayıt Var')
+      : isSuccess === false;
   return (
     <div className="flex justify-between items-center border-b border-gray-300/10 pb-0.5">
       <span className="text-slate-600 font-medium tracking-tight">{label}</span>
