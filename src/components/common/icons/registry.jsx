@@ -11,12 +11,18 @@
 //
 // İKİ AİLE:
 //   1) GENEL ARAYÜZ İKONLARI — onay, kapat, uyarı, takvim… Heroicons
-//      "outline" dilinde. Kod tabanındaki mevcut 127 inline SVG de bu dilde
+//      "outline" dilinde. Kod tabanındaki elle yazılmış SVG'ler de bu dilde
 //      olduğu için kütüphane onlarla yan yana durduğunda fark edilmiyor.
-//   2) ALANA ÖZGÜ İKONLAR — plaka, karne, kilometre, tramer, muayene,
-//      anahtar. Bunlar hazır kütüphanelerde YOK; OtoCV'nin işini anlatan
-//      kavramlar oldukları için buraya elle çizildi. Sitenin ikon dilini
-//      "genel bir SaaS" değil "taşıt sicili" yapan kısım budur.
+//   2) ALANA ÖZGÜ İKONLAR — arac, karne, anahtar, pinKod. Bunlar hazır
+//      kütüphanelerde YOK; OtoCV'nin işini anlatan kavramlar oldukları için
+//      buraya elle çizildi. Sitenin ikon dilini "genel bir SaaS" değil
+//      "taşıt sicili" yapan kısım budur.
+//
+// KULLANILMAYAN İKON BURADA DURMAZ. CIZIMLER tek bir nesne olduğu için
+// paketleyici tek tek özellikleri ayıklayamaz — kayıtlı her ikon, hiçbir
+// yerde kullanılmasa bile her ziyaretçinin tarayıcısına iniyor. İlk turda
+// plaka/kilometre/tramer/muayene çizilmiş ama hiçbir yere bağlanmamıştı;
+// bu yüzden kaldırıldılar. Gerekince geri eklenir, maliyeti bir çizim.
 //
 // Bir çizim eklerken: canlı alanı taşırma, 2 birim boşluğu koru, düz çizgi
 // yerine yuvarlak birleşim kullan ve 14px'te (size="sm") okunduğunu kontrol
@@ -58,6 +64,20 @@ export const CIZIMLER = {
   arti: (
     <>
       <path d="M12 5v14M5 12h14" />
+    </>
+  ),
+
+  // Gezinme okları. Kod tabanında aşağı ok 10, geri oku 3 ayrı yerde elle
+  // yazılmıştı — hepsi aynı şekli farklı kalınlıklarla çiziyordu.
+  asagi: (
+    <>
+      <path d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+    </>
+  ),
+
+  geri: (
+    <>
+      <path d="M15.75 19.5L8.25 12l7.5-7.5" />
     </>
   ),
 
@@ -201,16 +221,6 @@ export const CIZIMLER = {
     </>
   ),
 
-  // PLAKA — Türk tescil plakası: dış çerçeve, solda il bandı ayırıcısı,
-  // sağda iki karakter satırı. Plakanın kendisi KVKK kapsamında olduğu için
-  // ikon soyut kalır, rakam basmaz.
-  plaka: (
-    <>
-      <rect x="2.6" y="7" width="18.8" height="10" rx="2" />
-      <path d="M7.4 7v10" />
-      <path d="M10 11h8.6M10 13.8h5.4" />
-    </>
-  ),
 
   // KARNE — sitenin ürünü: köşesi kıvrık resmi belge + onay işareti.
   karne: (
@@ -221,34 +231,8 @@ export const CIZIMLER = {
     </>
   ),
 
-  // KİLOMETRE — kadran yayı, ibre ve göbek. Aracın km bilgisi için;
-  // takvim/saat ikonlarıyla karışmaz.
-  kilometre: (
-    <>
-      <path d="M4 17.5a8 8 0 0116 0" />
-      <path d="M12 17.5l4.2-4.4" />
-      <circle cx="12" cy="17.5" r="1.1" />
-      <path d="M12 9.4v1.5M5.1 13.6l1.3.8M18.9 13.6l-1.3.8" />
-    </>
-  ),
 
-  // TRAMER — çarpma/hasar kaydı. İlk deneme merkez halka + ışınlar şeklindeydi
-  // ama GÜNEŞ gibi okunuyordu. Kapalı zikzak siluet darbe izlenimini veriyor
-  // ve uyarı üçgeniyle karışmıyor.
-  tramer: (
-    <>
-      <path d="M4.6 12.6l3.2-1.2-1.6-3 4 .4L9 5.2l3 2.6 2.4-2.2.4 3.8 3.6-.8-1.4 3.4 3.4 1.4-3 2 1.8 3.2-3.8-.6-.6 3.6-2.8-2.4-2.6 2.4-.6-3.6-3.8.8 1.8-3.2z" />
-    </>
-  ),
 
-  // MUAYENE — resmi muayene/kontrol: askılı pano + onay.
-  muayene: (
-    <>
-      <path d="M9 4.6H7.2A1.7 1.7 0 005.5 6.3v13A1.7 1.7 0 007.2 21h9.6a1.7 1.7 0 001.7-1.7v-13a1.7 1.7 0 00-1.7-1.7H15" />
-      <rect x="9" y="2.9" width="6" height="3.4" rx="1.2" />
-      <path d="M9.2 13.4l2.1 2.1 3.9-4.4" />
-    </>
-  ),
 
   // ANAHTAR — servis/bakım. Bakım satırlarında servis adının yanında
   // konum iğnesi yerine bu kullanılır: orada anlatılan şey bir yer değil,

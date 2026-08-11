@@ -889,9 +889,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                   </>
                 ) : (
                   <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
+                    <Icon name="onay" size="md" strokeWidth={2.5} />
                     <span>Onayla ve Kaydet</span>
                   </>
                 )}

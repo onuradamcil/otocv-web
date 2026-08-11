@@ -346,9 +346,7 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
             onClick={onBack || (() => window.history.back())}
             className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer border border-slate-700 flex items-center gap-2 active:scale-98"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
+            <Icon name="geri" size="md" strokeWidth={2.5} />
             <span>{isPublicView ? 'Doğrulama Havuzuna Dön' : 'Garaja Güvenli Dön'}</span>
           </button>
           
@@ -1049,18 +1047,14 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                             <span className="text-xs sm:text-sm font-bold font-mono text-slate-900">{costFormatted}</span>
                             {invoiceUrl && (
                               <span className="flex items-center justify-end gap-1 text-[10px] font-bold text-emerald-600 mt-0.5">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                </svg>
+                                <Icon name="onay" size="xs" strokeWidth={2.5} />
                                 Mühürlü Evrak
                               </span>
                             )}
                           </div>
 
                           <div className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                            </svg>
+                            <Icon name="asagi" size="md" />
                           </div>
                         </div>
                       </div>

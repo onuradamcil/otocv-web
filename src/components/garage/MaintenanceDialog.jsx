@@ -185,9 +185,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
             <h3 className="font-black text-base tracking-wide">Servis & Bakım Kaydı İşle</h3>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors p-1">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <Icon name="kapat" size="lg" strokeWidth={2.5} />
           </button>
         </div>
 
@@ -323,7 +321,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
                 </>
               ) : (
                 <>
-                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                  <Icon name="onay" size="lg" className="text-emerald-600" strokeWidth={2.5} />
                   <span className="text-xs font-bold truncate max-w-[280px]">Belge Eklendi ({invoiceFile.name})</span>
                 </>
               )}
@@ -373,9 +371,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : isSuccess ? (
               <>
-                <svg className="w-4 h-4 text-white animate-scaleUp" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
+                <Icon name="onay" size="md" className="text-white animate-scaleUp" strokeWidth={3} />
                 Mühürlendi!
               </>
             ) : (
