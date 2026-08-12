@@ -57,6 +57,20 @@ async function supabaseIstemcisi() {
   return sb;
 }
 
+/**
+ * OTURUM AÇMAMIŞ Supabase istemcisi — saldırgan rolü.
+ *
+ * Anon anahtarı istemci paketinin içinde, yani pratikte herkese açık.
+ * Güvenlik testlerinin çıkış noktası tam olarak bu: elinde yalnızca herkesin
+ * görebildiği anahtar olan biri neye erişebiliyor?
+ */
+function anonIstemcisi() {
+  return createClient(
+    ortam('NEXT_PUBLIC_SUPABASE_URL'),
+    ortam('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  );
+}
+
 /** Arayüz üzerinden giriş yapar. Gerçek kullanıcı yolunu test eder. */
 async function girisYap(page) {
   await page.goto('/login');
@@ -146,6 +160,7 @@ module.exports = {
   belgeSekmesiniAc,
   hamMetin,
   supabaseIstemcisi,
+  anonIstemcisi,
   TEST_ISARETI,
   ORNEK_PIN,
   ORNEK_PLAKA,

@@ -128,12 +128,20 @@ jobs:
           # .env.local de gerekli: `npm run dev` onu okuyor.
           cp .env.test .env.local
 
-      # 2. AŞAMAYA KADAR: veritabanına YAZAN paket (03-formlar) CI'da
-      # koşmuyor. Okuma yapan paketler koşuyor. Yerel Supabase kurulduğunda
-      # bu satırdaki dosya listesi kaldırılıp tüm paketler açılacak.
-      - name: Testleri koş (yazma yapmayan paketler)
+      # 2. AŞAMAYA KADAR: veritabanına ÇOK YAZAN paket (03-formlar) CI'da
+      # koşmuyor. Yerel Supabase kurulduğunda bu satırdaki dosya listesi
+      # kaldırılıp tüm paketler açılacak.
+      #
+      # 05-guvenlik BİLEREK LİSTEDE: iki tek kullanımlık kayıt yazıyor ama
+      # her ikisi de `afterAll` içinde, benzersiz işaretle siliniyor. Bu
+      # istisnanın gerekçesi: güvenlik açığı, her push'ta denetlenmezse
+      # sessizce geri gelir — bir politika düzenlemesi ya da "şunu da
+      # açalım" diyen bir migration yeter. Yüz binlerce kullanıcı hedefleyen
+      # bir üründe veri sızıntısının bedeli, iki satır geçici kaydın
+      # yanında hesaba gelmez.
+      - name: Testleri koş (okuma + güvenlik paketleri)
         if: steps.anahtar.outputs.var == 'true'
-        run: npx playwright test tests/01-rota-erisim.spec.js tests/02-karne-butunlugu.spec.js tests/04-mobil.spec.js
+        run: npx playwright test tests/01-rota-erisim.spec.js tests/02-karne-butunlugu.spec.js tests/04-mobil.spec.js tests/05-guvenlik.spec.js
         env:
           CI: true
 

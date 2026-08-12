@@ -9,6 +9,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '../../../context/ToastContext';
 import Icon from '../../common/icons';
+import FaturaOnizleme from '../../common/FaturaOnizleme';
 import { tramerVarMi } from '../../../utils/tramerHelper';
 import { parseVehicleDate, formatTrDate } from '../../../utils/dateHelper';
 
@@ -991,9 +992,14 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                     else if (item.invoice_file instanceof File || item.invoice_file instanceof Blob) {
                       try { invoiceUrl = URL.createObjectURL(item.invoice_file); } catch (e) { invoiceUrl = null; }
                     }
-                  } else if (item.invoice_url) {
-                    invoiceUrl = item.invoice_url;
                   }
+                  // Depoda duran bir kayıt (yalnızca bucket içi yol elde var).
+                  // Eskiden burada `item.invoice_url` — tam public URL —
+                  // doğrudan <img src> olarak basılıyordu. O URL'ler artık
+                  // geçersiz; erişim imzalı bağlantıyla veriliyor ve onu
+                  // FaturaOnizleme hallediyor.
+                  const faturaYolu = !invoiceUrl ? (item.invoice_path || null) : null;
+                  const belgeVar = !!invoiceUrl || !!faturaYolu;
 
                   let titleStr = item.service_type || item.title || 'Mekanik Bakım Kaydı';
                   let descStr = item.summary || item.details || 'İşlem detayı belirtilmedi.';
@@ -1037,7 +1043,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                         <div className="flex items-center gap-3 shrink-0">
                           <div className="text-right">
                             <span className="text-xs sm:text-sm font-bold font-mono text-slate-900">{costFormatted}</span>
-                            {invoiceUrl && (
+                            {belgeVar && (
                               <span className="flex items-center justify-end gap-1 text-[10px] font-bold text-emerald-600 mt-0.5">
                                 <Icon name="onay" size="xs" strokeWidth={2.5} />
                                 Mühürlü Evrak
@@ -1084,12 +1090,19 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                               <button
                                 type="button"
                                 onClick={() => setInvoiceModalUrl(invoiceUrl)}
-                                className="flex items-center gap-2 bg-white border border-slate-200 hover:border-indigo-300 p-1.5 pr-3 rounded-md text-xs font-bold text-indigo-600 transition-all cursor-pointer shadow-2xs group"
+                                className="flex items-center gap-2 bg-white border border-slate-200 hover:border-indigo-300 p-1.5 pr-3 rounded-lg text-xs font-bold text-indigo-600 transition-colors group"
                               >
-                                <img src={invoiceUrl} alt="Fatura Önizleme" className="w-10 h-10 object-cover rounded border border-slate-100" />
+                                {/* Yerel dosya önizlemesi (blob:). Henüz yüklenmedi,
+                                    imzalı bağlantı gerekmez. */}
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={invoiceUrl} alt="" className="w-10 h-10 object-cover rounded border border-slate-100" />
                                 <span className="group-hover:underline">Fatura / Evrak Görselini Büyüt</span>
                               </button>
                             </div>
+                          )}
+
+                          {faturaYolu && (
+                            <FaturaOnizleme yol={faturaYolu} onBuyut={setInvoiceModalUrl} />
                           )}
 
                         </div>

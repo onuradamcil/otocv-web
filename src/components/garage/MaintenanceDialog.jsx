@@ -108,21 +108,42 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
 
     try {
       setIsSaving(true);
-      let invoiceUrl = null;
+      let invoiceUrl = null; // aslinda bucket ici YOL tutuyor (asagida aciklandi)
 
+      // =====================================================================
+      // FATURA YÜKLEME — ÖZEL BUCKET, YOL ŞEMASI <user_id>/<plaka>/<dosya>
+      //
+      // ÖNCEKİ HÂLİ AÇIKTI: dosya `vehicle-images` (PUBLIC) bucket'ına
+      // yükleniyor ve `getPublicUrl` ile tam URL veritabanına yazılıyordu.
+      // Fatura görselleri araç sahibinin adını, adresini ve plakasını
+      // taşır; public bucket onları URL'yi bilen herkese KALICI olarak
+      // açıyordu. URL'nin kendisini saklamak da sızıntıydı — değeri
+      // döndüren her sorgu dosyaya kalıcı erişim dağıtıyordu.
+      //
+      // NEDEN KLASÖR PLAKA DEĞİL KULLANICI KİMLİĞİ: iki yükleme yolu aynı
+      // araç için farklı klasör adı üretiyordu (sihirbaz plakayı temizliyor,
+      // burası ham kullanıyordu). Canlı veride kanıtlandı: bir dosya
+      // `41_IHH_434/` klasöründeydi ama plaka `41IHH434`. Klasör adını
+      // plakayla karşılaştıran bir güvenlik politikası o dosyada başarısız
+      // olurdu. Kullanıcı kimliği biçimlendirmeye bağlı değil.
+      // =====================================================================
       if (invoiceFile) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Fatura yüklemek için oturum gerekli.');
+
         const fileExt = invoiceFile.name.split('.').pop();
         const fileName = `invoice_${Date.now()}.${fileExt}`;
-        const filePath = `${activePlate}/${fileName}`;
+        const filePath = `${user.id}/${activePlate}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from('vehicle-images')
-          .upload(filePath, invoiceFile);
+          .from('vehicle-invoices')
+          .upload(filePath, invoiceFile, { upsert: true });
 
         if (uploadError) throw uploadError;
 
-        const { data } = supabase.storage.from('vehicle-images').getPublicUrl(filePath);
-        invoiceUrl = data.publicUrl;
+        // Tam URL DEĞİL, yalnızca bucket içi yol saklanıyor. Erişim her
+        // istekte imzalı bağlantıyla, 60 saniyelik ömürle veriliyor.
+        invoiceUrl = filePath;
       }
 
       // 🚀 PLAN ENTEGRASYONU: summary verisi "Kategori - Özet" formatında birleştirilerek mühürlendi
@@ -134,7 +155,8 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
         // Ozet yalnizca bir kez yaziliyor. Onceden `${serviceType} / ${summary} - ${summary}`
         // seklindeydi: hem tekrar ediyordu hem de service_type zaten ayri kolon.
         summary: summary.trim(),
-        invoice_url: invoiceUrl,
+        // Kolon adi invoice_path: artik tam URL degil, bucket ici yol.
+        invoice_path: invoiceUrl,
         // ISO olarak yazılıyor. Kolon artık Postgres 'date' tipinde ve
         // '08/05/2023' gibi biçimlendirilmiş metin göndermek sunucunun
         // DateStyle ayarına bağlı bir kumar olurdu ('05/06/2023' sessizce

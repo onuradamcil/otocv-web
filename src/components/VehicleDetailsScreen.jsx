@@ -12,6 +12,8 @@ import { useToast } from '../context/ToastContext';
 import Icon from './common/icons';
 import { tramerVarMi, tramerTutari } from '../utils/tramerHelper';
 import { parseVehicleDate, formatTrDate } from '../utils/dateHelper';
+import useSicil from '../hooks/useSicil';
+import FaturaOnizleme from './common/FaturaOnizleme';
 
 // =========================================================================
 // 🎨 SABİTLER VE YARDIMCI FONKSİYONLAR
@@ -147,8 +149,6 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
   const [isSticky, setIsSticky] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   
-  const [maintenanceRecords, setMaintenanceRecords] = useState([]);
-  const [loadingRecords, setLoadingRecords] = useState(true);
   const [expandedTileIndex, setExpandedTileIndex] = useState(0);
   const [invoiceModalUrl, setInvoiceModalUrl] = useState(null);
 
@@ -175,39 +175,23 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
   // 🟢 BOŞLUKSUZ PLAKA TEMİZLEYİCİ
   const cleanPlateNumber = rawPlate.replace(/\s+/g, '').toUpperCase();
 
-  // 📡 SUPABASE 'maintenance_records' CANLI ÇEKİM MOTORU (BOŞLUKSUZ PLAKA SENSÖRLÜ)
-  useEffect(() => {
-    const fetchMaintenanceHistory = async () => {
-      if (!cleanPlateNumber) {
-        setLoadingRecords(false);
-        return;
-      }
-
-      try {
-        setLoadingRecords(true);
-
-        // 🟢 Tablodaki 'vehicle_plate' sütununa tam uyan boşluksuz sorgu
-        const { data, error } = await supabase
-          .from('maintenance_records')
-          .select('*')
-          .eq('vehicle_plate', cleanPlateNumber)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('🔴 Bakım geçmişi sorgu hatası:', error.message);
-          setMaintenanceRecords([]);
-        } else {
-            setMaintenanceRecords(data || []);
-        }
-      } catch (err) {
-        console.error('Bakım geçmişi yüklenirken beklenmeyen hata:', err);
-      } finally {
-        setLoadingRecords(false);
-      }
-    };
-
-    fetchMaintenanceHistory();
-  }, [cleanPlateNumber]);
+  // =========================================================================
+  // BAKIM SİCİLİ — PIN İLE, sicil_getir() ÜZERİNDEN
+  //
+  // Eskiden `maintenance_records` tablosu doğrudan plakayla sorgulanıyordu.
+  // O sorgu RLS açıldığında ziyaretçi için 0 satır döndürür; tabloya
+  // doğrudan erişim artık yalnızca araç sahibine açık. Genel okuma yolu
+  // `sicil_getir(pin)` fonksiyonu ve mantık useSicil hook'unda.
+  //
+  // Sıralama da düzeldi: eskiden `created_at desc` idi, yani kaydın SİSTEME
+  // GİRİLDİĞİ ana göre. Kullanıcı üç yıl önceki bir bakımı bugün girdiğinde
+  // listenin başına çıkıyordu. Artık işlem tarihine göre.
+  // =========================================================================
+  const {
+    kayitlar: maintenanceRecords,
+    yukleniyor: loadingRecords,
+    hata: sicilHatasi,
+  } = useSicil(vehicle?.pin_code);
 
   // ⚙️ SCROLL & Observer Kontrolcüsü
   useEffect(() => {
@@ -984,6 +968,17 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                 <span className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                 <span>Bakım kayıtları veritabanından çekiliyor...</span>
               </div>
+            ) : sicilHatasi ? (
+              // Hata ile "kayıt yok" AYNI görünmemeli. Aşağıdaki boş durum
+              // metni "eklenmemiştir" diyor — bu bir beyandır. Sorgu
+              // başarısızken o beyanı basmak, bilmediğimiz bir şeyi
+              // söylemek olur: araçta kayıt olabilir, biz okuyamadık.
+              <div className="text-center py-10 px-4 text-xs font-semibold text-slate-500 border border-dashed border-amber-300 rounded-xl bg-amber-50/50 space-y-1">
+                <p className="text-slate-700">Bakım sicili şu an okunamadı.</p>
+                <p className="font-normal text-slate-500">
+                  Bu, kayıt olmadığı anlamına gelmez. Sayfayı yenilemeyi deneyin.
+                </p>
+              </div>
             ) : maintenanceRecords.length === 0 ? (
               <div className="text-center py-10 text-xs font-semibold text-slate-400 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
                 Bu araca ait henüz kayıtlı bir sanayi veya servis sicili eklenmemiştir.
@@ -1017,7 +1012,10 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                 {/* SUPABASE SERVİS AKERDİYON DÖNGÜSÜ */}
                 {maintenanceRecords.map((item, index) => {
                   const isExpanded = expandedTileIndex === index;
-                  let invoiceUrl = item.invoice_url || null;
+                  // Fatura yolu YALNIZCA araç sahibine döner (sicil_getir).
+                  // Ziyaretçide null; `faturali` ise belgenin VARLIĞINI
+                  // söyler ve görseli açığa çıkarmaz.
+                  const faturaYolu = item.invoice_path || null;
 
                   let titleStr = item.service_type || 'Mekanik Bakım Kaydı';
                   let descStr = item.summary || item.details || 'İşlem detayı belirtilmedi.';
@@ -1064,7 +1062,10 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                         <div className="flex items-center gap-3 shrink-0">
                           <div className="text-right">
                             <span className="text-xs sm:text-sm font-bold font-mono text-slate-900">{costFormatted}</span>
-                            {invoiceUrl && (
+                            {/* `faturali` belgenin varlığını söyler ve ziyaretçide de
+                                dolu gelir; `invoice_path` yalnızca sahibe döner. Nişan
+                                için varlık bilgisi yeterli — görsel açığa çıkmıyor. */}
+                            {item.faturali && (
                               <span className="flex items-center justify-end gap-1 text-[10px] font-bold text-emerald-600 mt-0.5">
                                 <Icon name="onay" size="xs" strokeWidth={2.5} />
                                 Mühürlü Evrak
@@ -1105,18 +1106,8 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                             </div>
                           )}
 
-                          {invoiceUrl && (
-                            <div className="space-y-1.5 pt-1">
-                              <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">Servis Faturası / Evrak</span>
-                              <button
-                                type="button"
-                                onClick={() => setInvoiceModalUrl(invoiceUrl)}
-                                className="flex items-center gap-2 bg-white border border-slate-200 hover:border-indigo-300 p-1.5 pr-3 rounded-md text-xs font-bold text-indigo-600 transition-all cursor-pointer shadow-2xs group"
-                              >
-                                <img src={invoiceUrl} alt="Fatura Önizleme" className="w-10 h-10 object-cover rounded border border-slate-100" />
-                                <span className="group-hover:underline">Fatura / Evrak Görselini Büyüt</span>
-                              </button>
-                            </div>
+                          {faturaYolu && (
+                            <FaturaOnizleme yol={faturaYolu} onBuyut={setInvoiceModalUrl} />
                           )}
 
                         </div>

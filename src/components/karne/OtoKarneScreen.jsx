@@ -13,6 +13,7 @@ import OfficialReportView from './OfficialReportView';
 import Icon from '../common/icons';
 // MİMARİ BAĞLANTI: İki üst dizindeki merkezi Supabase kalkanı içeri davet edildi
 import { supabase } from '../../lib/supabase';
+import useSicil from '../../hooks/useSicil';
 import GlobalStepLoader from '../common/GlobalStepLoader';
 
 export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }) {
@@ -24,8 +25,6 @@ export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   
   // YENİ NESİL ENTEGRASYON: Çökmeyi önleyen dinamik bakım veri havuzları
-  const [maintenanceRecords, setMaintenanceRecords] = useState([]);
-  const [loadingRecords, setLoadingRecords] = useState(true);
   
   const cardRef = useRef(null);
 
@@ -33,31 +32,24 @@ export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }
   const plateNumber = vehicle?.plate_number || vehicle?.plate || '';
 
   // =========================================================================
-  // 2. BLOK: VERİTABANI BAĞLANTI MOTORU (FRANKFURT DB SİCİL FETCH)
+  // 2. BLOK: BAKIM SİCİLİ — PIN İLE, sicil_getir() ÜZERİNDEN
+  //
+  // Eskiden `maintenance_records` tablosu doğrudan plakayla sorgulanıyordu.
+  // O sorgu RLS açıldığında ziyaretçi için 0 satır döndürür — karne boş
+  // görünürdü. Genel okuma yolu artık `sicil_getir(pin)` fonksiyonu;
+  // mantık useSicil hook'unda ve araç detayı ekranıyla paylaşılıyor.
+  //
+  // Sıralama da düzeldi: eskiden `km_at_service desc` idi, yani kilometreye
+  // göre. Bakım geçmişi işlem TARİHİNE göre okunur; kilometre sıralaması
+  // hem listeyi yanlış gösteriyordu hem de kilometre tutarlılığı hesabını
+  // yanıltma riski taşıyordu (karneHelper artık kendi içinde tarihe göre
+  // sıralayarak o tuzağı kapatıyor).
   // =========================================================================
-  useEffect(() => {
-    if (plateNumber) {
-      fetchVehicleMaintenanceHistory();
-    }
-  }, [plateNumber]);
-
-  const fetchVehicleMaintenanceHistory = async () => {
-    try {
-      setLoadingRecords(true);
-      const { data, error } = await supabase
-        .from('maintenance_records')
-        .select('*')
-        .eq('vehicle_plate', plateNumber)
-        .order('km_at_service', { ascending: false });
-
-      if (error) throw error;
-      setMaintenanceRecords(data || []);
-    } catch (err) {
-      console.error('Karne katmanında bakım geçmişi derlenirken hata:', err.message);
-    } finally {
-      setLoadingRecords(false);
-    }
-  };
+  const {
+    kayitlar: maintenanceRecords,
+    yukleniyor: loadingRecords,
+    hata: sicilHatasi,
+  } = useSicil(vehicle?.pin_code);
 
   // =========================================================================
   // 3. BLOK: CANLI BULUT VERİ HARİTALAMA VE FORMAT SÜRÜCÜLERİ

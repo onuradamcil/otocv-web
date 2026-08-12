@@ -219,9 +219,32 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   // =========================================================================
   // 📸 FATURA EVRAKI BULUT DEPOLAMA YÜKLEYİCİ MOTORU
   // =========================================================================
-  const uploadInvoiceToStorage = async (fileObj, plateFolder) => {
+  // =========================================================================
+  // FATURA YÜKLEME — ÖZEL BUCKET, YOL ŞEMASI <user_id>/<plaka>/<dosya>
+  //
+  // ÖNCEKİ HÂLİ AÇIKTI: dosya `vehicle-images` (PUBLIC) bucket'ına yükleniyor
+  // ve tam public URL veritabanına yazılıyordu. Fatura görselleri araç
+  // sahibinin adını, adresini ve plakasını taşır; URL'yi bir kez gören
+  // herkes dosyaya SÜRESİZ erişiyordu.
+  //
+  // Klasör adı artık plaka değil KULLANICI KİMLİĞİ. Sebep: iki yükleme yolu
+  // aynı araç için farklı klasör adı üretiyordu (burası plakayı regex ile
+  // temizliyor, bakım popup'ı ham kullanıyordu). Canlı veride kanıtlandı:
+  // bir dosya `41_IHH_434/` altındaydı ama plaka `41IHH434`. Klasör adını
+  // plakayla karşılaştıran bir güvenlik politikası o dosyada başarısız
+  // olurdu. Kullanıcı kimliği biçimlendirmeye bağlı değil.
+  //
+  // Dönüş değeri tam URL DEĞİL, bucket içi yol. Erişim her istekte imzalı
+  // bağlantıyla, kısa ömürle veriliyor.
+  // =========================================================================
+  const uploadInvoiceToStorage = async (fileObj, userId, plate) => {
     if (!fileObj) return null;
-    if (typeof fileObj === 'string' && fileObj.startsWith('http')) return fileObj;
+    // Zaten depoda olan bir kayıt: elde bucket İÇİ YOL var, yeniden
+    // yüklemeye gerek yok. Eskiden burada `startsWith('http')` denetimi
+    // vardı çünkü tam public URL saklanıyordu; o URL'ler artık geçersiz
+    // (dosyalar özel bucket'a taşındı, public kopyalar silindi).
+    if (typeof fileObj === 'string' && !fileObj.startsWith('http')) return fileObj;
+    if (typeof fileObj === 'string') return null;
 
     let blobOrFile = null;
     if (fileObj instanceof File || fileObj instanceof Blob) {
@@ -242,10 +265,14 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     try {
       const fileExt = blobOrFile.type ? (blobOrFile.type.split('/')[1] || 'png') : 'png';
       const fileName = `invoice_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${plateFolder}/${fileName}`;
+      if (!userId) {
+        console.error("🔴 Fatura yüklenemedi: oturum kimliği yok.");
+        return null;
+      }
+      const filePath = `${userId}/${plate}/${fileName}`;
 
       const { error: uploadErr } = await supabase.storage
-        .from('vehicle-images')
+        .from('vehicle-invoices')
         .upload(filePath, blobOrFile, { upsert: true, contentType: blobOrFile.type || 'image/png' });
 
       if (uploadErr) {
@@ -253,11 +280,8 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         return null;
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from('vehicle-images')
-        .getPublicUrl(filePath);
-
-      return publicUrlData?.publicUrl || null;
+      // Tam URL değil, yalnızca yol.
+      return filePath;
     } catch (err) {
       console.error("Fatura yükleme beklenmeyen hata:", err);
       return null;
@@ -509,7 +533,11 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       
       const rawPlate = formData.plate || formData.plate_number || '';
       const cleanPlate = rawPlate.trim().replace(/\s+/g, '').toUpperCase();
-      const folderPlate = rawPlate.trim().replace(/[^a-zA-Z0-9]/g, '_') || 'drafts';
+      // NOT: eskiden bir `folderPlate` türetmesi vardı — plakayı `_` ile
+      // temizleyip storage klasör adı olarak kullanıyordu. Kaldırıldı:
+      // fatura klasörü artık kullanıcı kimliği. O türetme zaten tutarsızdı,
+      // `41 IHH 434` -> `41_IHH_434` üretirken kaydın plakası `41IHH434`
+      // oluyordu ve iki değer birbirini tutmuyordu.
 
       const photoUrls = Array.isArray(formData.photos) 
         ? formData.photos.join(',') 
@@ -592,12 +620,13 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               parsedCost = numVal.toFixed(2);
             }
 
-            // 🟢 FATURA GÖRSELİNİ BULUT DEPOLAMAYA YÜKLE VE URL AL
-            let uploadedInvoiceUrl = null;
+            // 🟢 FATURA GÖRSELİNİ ÖZEL DEPOYA YÜKLE VE BUCKET İÇİ YOLU AL
+            let uploadedInvoicePath = null;
             if (rec.invoice_file) {
-              uploadedInvoiceUrl = await uploadInvoiceToStorage(rec.invoice_file, folderPlate);
-            } else if (rec.invoice_url) {
-              uploadedInvoiceUrl = rec.invoice_url;
+              uploadedInvoicePath = await uploadInvoiceToStorage(rec.invoice_file, user.id, cleanPlate);
+            } else if (rec.invoice_path) {
+              // Depoda zaten duran bir kayıt: yol korunuyor.
+              uploadedInvoicePath = rec.invoice_path;
             }
 
             maintenancePayloads.push({
@@ -609,7 +638,8 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               // Bakım kayıtları da ISO'ya çevrilerek aktarılıyor.
               service_date: toIsoDate(rec.service_date),
               service_type: rec.service_type || 'Periyodik Bakım',
-              invoice_url: uploadedInvoiceUrl
+              // Kolon adı invoice_path: tam URL değil, bucket içi yol.
+              invoice_path: uploadedInvoicePath
             });
           }
 

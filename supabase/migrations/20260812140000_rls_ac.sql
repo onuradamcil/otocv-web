@@ -36,11 +36,39 @@
 
 alter table public.maintenance_records enable row level security;
 
--- Tablo sahibi bile politikalara tabi olsun. Bu satır olmadan tablo
--- sahibiyle çalışan bir bağlantı politikaları atlar; "sahibi zaten güvenilir"
--- varsayımı, sunucu tarafı bir hata durumunda sessiz veri sızıntısına
--- dönüşebilir.
-alter table public.maintenance_records force row level security;
+-- =========================================================================
+-- `force row level security` BİLEREK KULLANILMIYOR
+--
+-- İlk yazımda bu dosyada şu satır vardı:
+--
+--   alter table public.maintenance_records force row level security;
+--
+-- Gerekçesi şuydu: "tablo sahibi bile politikalara tabi olsun". Kulağa
+-- daha güvenli geliyor ama UYGULANIRSA KARNEYİ BOZAR. Sebebi:
+--
+--   · tablonun sahibi          -> postgres
+--   · sicil_getir()            -> security definer, sahibi postgres
+--
+-- `force`, RLS'i TABLO SAHİBİNE de uygular. `sicil_getir` definer olduğu
+-- için gövdesindeki sorgular postgres yetkisiyle koşuyor — yani tam olarak
+-- `force`un hedef aldığı rol. Politikalar `to authenticated` ve
+-- `arac_sahibi_mi(...)` koşullu; ziyaretçi çağrısında ikisi de tutmaz.
+-- Sonuç: fonksiyon 0 bakım kaydı döndürür ve ziyaretçide karne boş görünür.
+--
+-- Yani `force`, korumak istediği şeyi kilitliyordu. Uygulamadan önce
+-- pg_class üzerinden sahiplik kontrol edildi ve satır kaldırıldı.
+--
+-- KAYBEDİLEN NE: `force`, tablo sahibi rolüyle kurulan bir bağlantının
+-- politikaları atlamasını engellerdi. Bu mimaride öyle bir bağlantı yok —
+-- uygulama PostgREST üzerinden yalnızca `anon` ve `authenticated` rolleriyle
+-- bağlanıyor; `postgres` rolü sadece migration ve bakım işleri için
+-- kullanılıyor. Dolayısıyla var olmayan bir senaryoya karşı koruma
+-- uğruna, gerçek ve kullanıcıyı etkileyen bir arıza satın alınmış olurdu.
+--
+-- İleride tablo erişimi gereken bir sunucu tarafı iş olursa doğru yol
+-- `force` değil, o iş için ayrı bir `security definer` fonksiyon ve dar
+-- kapsamlı yetki.
+-- =========================================================================
 
 -- =========================================================================
 -- UYGULADIKTAN SONRA DOĞRULANACAKLAR (saldırgan testleri)

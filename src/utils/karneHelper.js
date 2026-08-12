@@ -144,7 +144,14 @@ export function kayitSurekliligi(kayitlar = []) {
     .filter((d) => d && !isNaN(d.getTime()))
     .sort((a, b) => a - b);
 
-  const faturali = liste.filter((k) => !!k?.invoice_url).length;
+  // `faturali` sicil_getir() tarafından üretilen boolean — belgenin
+  // VARLIĞINI söyler ve ziyaretçide de dolu gelir. `invoice_path` ise
+  // yalnızca araç sahibine döner, dolayısıyla tek başına saymak ziyaretçide
+  // her aracı "belgesiz" gösterirdi. `invoice_url` eski kolon; taşıma
+  // doğrulanana kadar geri dönüş yolu olarak listede.
+  const faturali = liste.filter(
+    (k) => k?.faturali === true || !!k?.invoice_path || !!k?.invoice_url
+  ).length;
 
   if (tarihler.length === 0) {
     return {
