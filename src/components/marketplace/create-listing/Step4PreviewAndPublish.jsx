@@ -10,6 +10,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '../../../context/ToastContext';
 import Icon from '../../common/icons';
 import { tramerVarMi } from '../../../utils/tramerHelper';
+import { parseVehicleDate, formatTrDate } from '../../../utils/dateHelper';
 
 // =========================================================================
 // 🎨 SABİTLER VE YARDIMCI FONKSİYONLAR
@@ -151,18 +152,12 @@ const getDynamicStatus = (dateInput, validLabel = 'Geçerli') => {
     return { text: 'Süresi Dolmuş', class: 'text-rose-600 font-bold' };
   }
 
-  let parsedDate;
-  if (dateStr.includes('/')) {
-    const parts = dateStr.split('/');
-    if (parts.length === 3) {
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1;
-      const year = parseInt(parts[2], 10);
-      parsedDate = new Date(year, month, day);
-    }
-  } else {
-    parsedDate = new Date(dateStr);
-  }
+  // Kendi ayristiricisi yerine tek kaynak kullaniliyor.
+  // Onceki hali ISO tarihi (veritabani 'date' kolonu artik ISO donduruyor)
+  // new Date('2027-12-12') ile ayristiriyordu; o ifade UTC gece yarisi demek
+  // ve saat dilimine gore gunu kaydirabiliyor. parseVehicleDate ISO'yu yerel
+  // bilesenlerden kuruyor.
+  const parsedDate = parseVehicleDate(dateStr);
 
   if (!parsedDate || isNaN(parsedDate.getTime())) {
     return { text: 'Belirtilmemiş', class: 'text-slate-500 font-medium' };
@@ -1031,7 +1026,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                               <span aria-hidden="true">•</span>
                               <span className="inline-flex items-center gap-1">
                                 <Icon name="takvim" size="xs" />
-                                {item.service_date || 'Belirtilmemiş'}
+                                {formatTrDate(item.service_date, 'Belirtilmemiş')}
                               </span>
                             </p>
                           </div>
@@ -1068,7 +1063,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                             </div>
                             <div className="col-span-2 sm:col-span-1">
                               <span className="text-slate-400 font-medium block text-[10px] uppercase">İşlem Tarihi</span>
-                              <span className="font-bold text-slate-800">{item.service_date || 'Belirtilmedi'}</span>
+                              <span className="font-bold text-slate-800">{formatTrDate(item.service_date, 'Belirtilmedi')}</span>
                             </div>
                           </div>
 

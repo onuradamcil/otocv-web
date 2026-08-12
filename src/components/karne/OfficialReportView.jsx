@@ -8,6 +8,7 @@
 
 import React from 'react';
 import { tramerDurumu, tramerMetni, TRAMER_DURUM } from '../../utils/tramerHelper';
+import { formatTrDate } from '../../utils/dateHelper';
 
 export default function OfficialReportView({ vehicle, maintenanceRecords = [], isPublicView = false }) {
   // =========================================================================
@@ -183,9 +184,18 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <DateMatrixBox title="ZORUNLU TRAFİK SİGORTASI SÜRESİ" date={vehicle?.traffic_insurance_end_date?.split(' ')[0] || '12/12/2029'} />
-            <DateMatrixBox title="KASKO POLİÇESİ GEÇERLİLİK" date={vehicle?.kasko_end_date?.split(' ')[0] || 'Opsiyonel / Belirtilmedi'} />
-            <DateMatrixBox title="TÜVTÜRK MUAYENE GEÇERLİLİK" date={vehicle?.inspection_end_date?.split(' ')[0] || '12/12/2029'} />
+            {/* UYDURMA VARSAYILAN KALDIRILDI.
+                Önceden tarih yoksa belgeye '12/12/2029' basılıyordu — yani
+                RESMİ BELGEYE var olmayan bir poliçe tarihi yazılıyordu. Alıcı
+                o tarihe güvenip aracın sigortalı olduğunu sanabilirdi. Tramer
+                kusuruyla aynı sınıf: bilgi yokken iddia üretmek.
+
+                Ayrıca .split(' ')[0] gereksiz kaldı: kolonlar artık 'date'
+                tipinde, saat bileşeni taşımıyor. formatTrDate ISO'yu GG/AA/YYYY
+                biçimine çeviriyor. */}
+            <DateMatrixBox title="ZORUNLU TRAFİK SİGORTASI SÜRESİ" date={formatTrDate(vehicle?.traffic_insurance_end_date, 'Beyan Edilmemiş')} />
+            <DateMatrixBox title="KASKO POLİÇESİ GEÇERLİLİK" date={formatTrDate(vehicle?.kasko_end_date, 'Opsiyonel / Belirtilmedi')} />
+            <DateMatrixBox title="TÜVTÜRK MUAYENE GEÇERLİLİK" date={formatTrDate(vehicle?.inspection_end_date, 'Beyan Edilmemiş')} />
           </div>
 
           <div className="text-[10px] text-slate-400 font-medium leading-relaxed bg-white border border-gray-200/80 p-4 rounded-xl">

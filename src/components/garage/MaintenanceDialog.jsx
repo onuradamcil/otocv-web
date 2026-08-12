@@ -11,6 +11,7 @@ import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../../context/ToastContext';
 import Icon from '../common/icons';
+import { toIsoDate } from '../../utils/dateHelper';
 
 export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClose, onRecordAdded }) {
   const toast = useToast();
@@ -134,7 +135,11 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
         // seklindeydi: hem tekrar ediyordu hem de service_type zaten ayri kolon.
         summary: summary.trim(),
         invoice_url: invoiceUrl,
-        service_date: serviceDate.trim(),
+        // ISO olarak yazılıyor. Kolon artık Postgres 'date' tipinde ve
+        // '08/05/2023' gibi biçimlendirilmiş metin göndermek sunucunun
+        // DateStyle ayarına bağlı bir kumar olurdu ('05/06/2023' sessizce
+        // 6 Mayıs'a dönebilir). ISO tek kesin biçim.
+        service_date: toIsoDate(serviceDate),
         service_type: serviceType,
         next_service_km: nextServiceKm ? parseInt(nextServiceKm.replace(/\./g, ''), 10) : null
       });

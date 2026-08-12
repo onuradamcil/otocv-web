@@ -11,10 +11,31 @@
 export function parseVehicleDate(dateString) {
   if (!dateString) return null;
 
+  // Supabase 'date' tipli kolonu Date nesnesi olarak da verebilir.
+  if (dateString instanceof Date) {
+    return isNaN(dateString.getTime()) ? null : dateString;
+  }
+
   try {
     const str = dateString.toString().trim();
 
-    // 1. ISO Formatı Kontrolü (YYYY-MM-DD)
+    // 1. ISO Formatı (YYYY-MM-DD) — veritabanı 'date' kolonları bu biçimde gelir.
+    //
+    // DİKKAT, BURADA BİR SAAT DİLİMİ TUZAĞI VAR:
+    // new Date('2027-12-12') ifadesi tarihi UTC GECE YARISI olarak ayrıştırır.
+    // UTC+3'te (Türkiye) bu yerel 03:00 olur ve gün doğru kalır. Ama UTC-5'te
+    // bir kullanıcıda yerel saat 2027-12-11 19:00 olur — yani tarih BİR GÜN
+    // GERİYE kayar. Poliçe bitiş tarihi bir gün erken görünür.
+    //
+    // Bu yüzden ISO metni parçalara ayırıp YEREL tarih olarak kuruyoruz.
+    // Tarih-only değerlerde doğru olan yöntem bu; saat bilgisi taşımayan bir
+    // veriyi saat dilimine tabi kılmak baştan hatalı.
+    const isoEslesme = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoEslesme) {
+      const [, yil, ay, gun] = isoEslesme;
+      return new Date(Number(yil), Number(ay) - 1, Number(gun));
+    }
+
     if (str.includes('-')) {
       return new Date(str);
     }
@@ -54,6 +75,58 @@ export function parseVehicleDate(dateString) {
     console.error("Tarih ayrıştırma katmanında beklenmeyen hata:", error.message);
     return null;
   }
+}
+
+/**
+ * 1.b BLOK: VERİTABANINA YAZMA BİÇİMİ (ISO)
+ *
+ * NEDEN GEREKLİ: tarih kolonları artık Postgres 'date' tipinde. Formlar ise
+ * kullanıcıya TR biçiminde (DD/MM/YYYY) maskelenmiş giriş yaptırıyor. O metni
+ * doğrudan göndermek olmaz:
+ *
+ *   Postgres '12/12/2027' ifadesini sunucunun DateStyle ayarına göre yorumlar.
+ *   Varsayılan MDY ayarında bu "12 Aralık" değil "12. ayın 12'si" olarak
+ *   şanslıca aynı çıkar — ama '25/06/2027' MDY'de GEÇERSİZ AY hatası verir,
+ *   '05/06/2027' ise sessizce 5 Haziran yerine 6 Mayıs olur.
+ *
+ * Yani tarihi biçimlendirilmiş metin olarak göndermek, sunucu ayarına bağlı
+ * bir kumar. ISO ('YYYY-MM-DD') tek kesin biçim.
+ *
+ * @returns {string|null} 'YYYY-MM-DD' veya ayrıştırılamazsa null
+ */
+export function toIsoDate(value) {
+  if (!value) return null;
+
+  const d = parseVehicleDate(value);
+  if (!d || isNaN(d.getTime())) return null;
+
+  // toISOString() KULLANILMAZ: o UTC'ye çevirir ve yerel tarihi bir gün
+  // kaydırabilir. Yerel bileşenlerden elle kuruyoruz.
+  const yil = d.getFullYear();
+  const ay = String(d.getMonth() + 1).padStart(2, '0');
+  const gun = String(d.getDate()).padStart(2, '0');
+  return `${yil}-${ay}-${gun}`;
+}
+
+/**
+ * 1.c BLOK: EKRANDA GÖSTERME BİÇİMİ (TR)
+ *
+ * Veritabanı 'date' kolonu ISO döndürüyor ('2027-12-12'). Kullanıcıya bunu
+ * olduğu gibi göstermek olmaz — Türkiye'de tarih GG/AA/YYYY okunur. Önceden
+ * kolonlar metin olduğu için ekranda zaten TR biçimindeydi; tip değişikliğiyle
+ * bu biçimlendirme sorumluluğu koda geçti.
+ *
+ * @returns {string} 'GG/AA/YYYY' veya ayrıştırılamazsa yedek metin
+ */
+export function formatTrDate(value, yedek = 'Belirtilmemiş') {
+  const d = parseVehicleDate(value);
+  if (!d || isNaN(d.getTime())) return yedek;
+
+  return d.toLocaleDateString('tr-TR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 }
 
 /**

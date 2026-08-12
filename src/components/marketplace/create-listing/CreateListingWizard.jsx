@@ -16,6 +16,8 @@ import Step4PreviewAndPublish from './Step4PreviewAndPublish';
 import GlobalStepLoader from '../../common/GlobalStepLoader';
 import { useToast } from '../../../context/ToastContext';
 import Icon from '../../common/icons';
+import { tramerTutari } from '../../../utils/tramerHelper';
+import { toIsoDate } from '../../../utils/dateHelper';
 
 export default function CreateListingWizard({ onBack, onSuccess, user }) {
   const toast = useToast();
@@ -444,27 +446,47 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     setShowDraftModal(false);
   };
 
+  // =========================================================================
+  // KULLANICI PAKET BILGISI
+  //
+  // ONCEKI HALI KIRIKTI: sorgu 'subscription_tier, listing_quota' kolonlarini
+  // istiyordu ama profiles tablosunda o kolonlar YOK. Veritabani her cagrida
+  //     "column profiles.subscription_tier does not exist"
+  // donuyordu. Cokme olmuyordu cunku hata yakalaniyordu, ama sonuc su: paket
+  // paneli HER kullaniciya "Standart Paket, 1 ilan" yaziyordu -- gercek veriye
+  // hic bakmadan. Premium bir kullanici bile standart goruyordu.
+  //
+  // NEDEN KOLON EKLEMEK YERINE SORGU INDIRILDI: gelir modeli "2. arac icin
+  // premium" seklinde, yani bir ACIK/KAPALI kapi -- kota degil. profiles'ta
+  // hazir duran is_premium bunu tam karsiliyor. Kullanilmayacak iki kolonu
+  // simdiden tasimak, YAGNI ihlali olurdu. Gercekten birden fazla paket
+  // kademesi olustugunda kolon eklemek bir dakikalik is.
+  // =========================================================================
   const fetchUserProfilePackage = async () => {
     if (!user) return;
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('subscription_tier, listing_quota')
-        .eq('id', user.id)
-        .single();
 
-      if (data && !error) {
-        setUserPackage({
-          tierName: data.subscription_tier || 'Standart Paket',
-          remainingQuota: data.listing_quota ?? 1,
-          totalQuota: data.listing_quota ?? 1
-        });
-      }
-    } catch (err) {
-      // NOT: profiles tablosunda subscription_tier / listing_quota kolonlari
-      // yok, bu yuzden sorgu 400 donuyor. Kok neden ayri bir is kalemi.
-      console.error('Profil paket verisi okunamadi, varsayilan kullaniliyor:', err?.message || err);
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('is_premium')
+      .eq('id', user.id)
+      .single();
+
+    if (error) {
+      // Profil okunamadiysa en kisitlayici varsayim kullanilir: standart.
+      // Aksi halde okunamayan bir profil kullaniciya premium hak verirdi.
+      console.error('Profil paket verisi okunamadi:', error.message);
+      return;
     }
+
+    const premium = data?.is_premium === true;
+    // Sinirsiz -> null. Infinity kullanilmiyor: arayuze dogrudan basildiginda
+    // ekranda "Infinity Adet" yaziyordu. null, "sayi yok" demenin dogru yolu
+    // ve arayuz onu "Sinirsiz" diye gosteriyor.
+    setUserPackage({
+      tierName: premium ? 'Premium Üyelik' : 'Standart Paket',
+      remainingQuota: premium ? null : 1,
+      totalQuota: premium ? null : 1
+    });
   };
 
   // =========================================================================
@@ -514,15 +536,27 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         description: formData.description || '',
         damage_report: formData.damageReport || formData.damage_report || {},
         selected_features: formData.selectedFeatures || formData.selected_features || [],
-        traffic_insurance_end_date: formData.traffic_insurance_end_date || formData.insuranceDate || '',
-        kasko_end_date: formData.kasko_end_date || formData.kaskoDate || '',
-        inspection_end_date: formData.inspection_end_date || formData.inspectionDate || '',
+        // Tarihler ISO olarak yazılıyor (kolonlar 'date' tipinde).
+        // Formlar kullanıcıya GG/AA/YYYY maskesiyle giriş yaptırıyor; o metni
+        // doğrudan göndermek sunucu DateStyle ayarına bağımlı olurdu.
+        // Boş değer '' değil null gönderilir — 'date' kolonu boş metni kabul etmez.
+        traffic_insurance_end_date: toIsoDate(formData.traffic_insurance_end_date || formData.insuranceDate),
+        kasko_end_date: toIsoDate(formData.kasko_end_date || formData.kaskoDate),
+        inspection_end_date: toIsoDate(formData.inspection_end_date || formData.inspectionDate),
         // Beyan yoksa 'Hasarsız' YAZILMAZ. tramerStatus zorunlu alan değil;
         // kullanıcı seçim yapmazsa aracı hasarsız kaydetmek, onun adına
         // yapılmamış bir beyanı veritabanına işlemek olur. Karne de o kaydı
         // haklı olarak "Temiz" diye basar. 'Bilmiyorum' dürüst karşılık.
         tramer_status: formData.tramerStatus || 'Bilmiyorum',
-        tramer_amount: formData.tramerAmount ? String(formData.tramerAmount) : '0',
+        // TAM SAYI yazılıyor, biçimlendirilmiş metin DEĞİL.
+        //
+        // Neden: form alanı Intl.NumberFormat('tr-TR') ile biçimlendiriyor,
+        // yani formData.tramerAmount '100.000' gibi geliyor. Önceden bu
+        // metin olduğu gibi yazılıyordu. Kolon sayısal tipe geçtiğinde
+        // Postgres '100.000' ifadesini ONDALIK sayar ve 100 olarak kaydeder —
+        // 100.000 TL'lik hasar 100 TL olurdu. tramerTutari rakam dışı her
+        // karakteri attığı için doğru tam sayıyı üretiyor.
+        tramer_amount: tramerTutari(formData),
         trust_score: formData.otocv_score || 92,
         image_url: photoUrls,
         pin_code: generatedPinCode,
@@ -572,7 +606,8 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               km_at_service: parseInt(String(rec.km || rec.km_at_service || 0).replace(/\D/g, ''), 10) || 0, // 🟢 GERÇEK DB SÜTÜN ADI ('km_at_service')
               cost: parsedCost,
               summary: rec.summary || rec.details || `${rec.service_type || 'Bakım'} Kaydı İşlendi`,
-              service_date: rec.service_date || '',
+              // Bakım kayıtları da ISO'ya çevrilerek aktarılıyor.
+              service_date: toIsoDate(rec.service_date),
               service_type: rec.service_type || 'Periyodik Bakım',
               invoice_url: uploadedInvoiceUrl
             });

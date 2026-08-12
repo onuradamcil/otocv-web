@@ -369,7 +369,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
             <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-lg">
               <span className="text-xs font-semibold text-slate-500">Kalan Ücretsiz Hak:</span>
               <span className="text-xs font-black text-indigo-600 bg-white px-2 py-0.5 rounded border border-slate-200/60 shadow-2xs font-mono">
-                {userPackage?.remainingQuota ?? 1} Adet
+                {userPackage?.remainingQuota === null ? 'Sınırsız' : `${userPackage?.remainingQuota ?? 1} Adet`}
               </span>
             </div>
 
