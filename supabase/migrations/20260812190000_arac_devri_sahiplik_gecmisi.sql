@@ -219,8 +219,9 @@ create index if not exists devir_deneme_kullanici_idx
 alter table public.devir_deneme_log enable row level security;
 revoke all on table public.devir_deneme_log from anon, authenticated;
 
--- Fonksiyon gövdeleri (devir_kodu_uret, devir_tamamla) panele uygulandı;
--- ayrıntılı gerekçeler yukarıda.
+-- ⚠ GÖVDELER BU DOSYADA DEĞİL — 20260812210000_sema_kaymasi_giderildi.sql'de.
+-- İlk yazımda "panele uygulandı" yazmıştım; sonuç olarak depodan kurulan bir
+-- veritabanında araç devri hiç oluşmuyordu. Gerekçeler yukarıda geçerli.
 
 -- =========================================================================
 -- UÇTAN UCA DOĞRULANDI (iki gerçek hesap arasında, sonra geri alındı)

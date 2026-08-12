@@ -86,8 +86,11 @@ comment on column public.vehicles.trust_breakdown is
 -- BEFORE tetikleyici içinden NEW değerleriyle çağrılıyor: henüz yazılmamış
 -- değerlerle hesap yapılabilsin.
 --
--- Gövde 20260812170000 tarihli migration ile panele uygulandı. Ayrıntılı
--- kural tablosu yukarıda.
+-- ⚠ GÖVDE BU DOSYADA DEĞİL — 20260812210000_sema_kaymasi_giderildi.sql'de.
+-- İlk yazımda buraya "panele uygulandı" yazmıştım; sonuç olarak depodan
+-- kurulan bir veritabanında sicil puanı hiç hesaplanmıyordu. Migration'lar
+-- ekleme-only olmalı, o yüzden bu dosya düzenlenmedi; gövde ayrı bir dosyada
+-- yakalandı. Kural tablosu yukarıda geçerli.
 -- -------------------------------------------------------------------------
 --   create or replace function public.sicil_puani_hesapla(
 --     p_plaka text, p_tramer_status text, p_tramer_amount numeric,

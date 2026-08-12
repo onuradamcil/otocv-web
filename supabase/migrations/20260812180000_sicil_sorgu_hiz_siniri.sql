@@ -135,8 +135,10 @@ revoke all on table public.sicil_sorgu_log from anon, authenticated;
 -- 2) istemci_ip() · 3) sicil_hiz_siniri_asildi_mi() · 4) sicil_getir
 --    5) plaka_kayitli_mi yetkisi
 --
--- Gövdeler 20260812180000 tarihli migration ile panele uygulandı.
--- Ayrıntılı gerekçeler yukarıda.
+-- ⚠ GÖVDELER BU DOSYADA DEĞİL — 20260812210000_sema_kaymasi_giderildi.sql'de.
+-- İlk yazımda "panele uygulandı" yazmıştım; sonuç olarak depodan kurulan bir
+-- veritabanında istek hızı sınırı hiç çalışmıyordu ve sicil_getir eski
+-- sürümde kalıyordu. Gerekçeler yukarıda geçerli.
 -- -------------------------------------------------------------------------
 
 -- =========================================================================
