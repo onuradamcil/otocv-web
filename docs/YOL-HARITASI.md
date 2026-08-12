@@ -64,4 +64,4 @@ Dikkat edilecekler:
 | Tüm PIN'ler güçlü biçime geçirildi, testler PIN'den koparıldı | `b821130` |
 | `vehicles` kilitlendi: plaka + PIN sızıntısı, sahte ekleme açığı | `2e4ec6f` |
 | Sicil puanı kanıta bağlandı (sabit 92 ve "+5" numarası kaldırıldı) | `35bd9a7` |
-| PIN sorgusuna istek hızı sınırı (IP başına, veritabanı içinde) | bu commit |
+| PIN sorgusuna istek hızı sınırı (IP başına, veritabanı içinde) | `ab63d1f` |
