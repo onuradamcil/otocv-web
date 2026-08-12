@@ -123,12 +123,16 @@ jobs:
           OTOCV_TEST_EMAIL=${{ secrets.OTOCV_TEST_EMAIL }}
           OTOCV_TEST_PASSWORD=${{ secrets.OTOCV_TEST_PASSWORD }}
           OTOCV_TEST_PLAKA=${{ secrets.OTOCV_TEST_PLAKA }}
+          OTOCV_TEST_EMAIL2=${{ secrets.OTOCV_TEST_EMAIL2 }}
+          OTOCV_TEST_PASSWORD2=${{ secrets.OTOCV_TEST_PASSWORD2 }}
           EOF
           # .env.local de gerekli: `npm run dev` onu okuyor.
           cp .env.test .env.local
 
-      # 2. AŞAMAYA KADAR: veritabanına ÇOK YAZAN paket (03-formlar) CI'da
-      # koşmuyor. Yerel Supabase kurulduğunda bu satırdaki dosya listesi
+      # 2. AŞAMAYA KADAR: veritabanına ÇOK YAZAN paketler (03-formlar,
+      # 07-devir) CI'da koşmuyor. 07-devir canlı veride GERÇEK devir yapıyor ve
+      # temizlenemeyen sahiplik geçmişi bırakıyor (o tablolar bilerek istemciye
+      # kapalı). Ayrıntı: tests/07-devir.spec.js başlığı. Yerel Supabase kurulduğunda bu satırdaki dosya listesi
       # kaldırılıp tüm paketler açılacak.
       #
       # 05-guvenlik BİLEREK LİSTEDE: iki tek kullanımlık kayıt yazıyor ama

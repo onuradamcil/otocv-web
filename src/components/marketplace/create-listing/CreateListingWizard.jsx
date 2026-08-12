@@ -8,6 +8,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 import Step1VehicleAndPhotos from './Step1VehicleAndPhotos';
 import Step2ListingDetails from './Step2ListingDetails';
@@ -19,8 +20,11 @@ import Icon from '../../common/icons';
 import { tramerTutari } from '../../../utils/tramerHelper';
 import { toIsoDate } from '../../../utils/dateHelper';
 import { pinUret } from '../../../utils/pinUretici';
+import { plakaDurumu } from '../../../services/devirService';
+import AracDevralDialog from './AracDevralDialog';
 
 export default function CreateListingWizard({ onBack, onSuccess, user }) {
+  const router = useRouter();
   const toast = useToast();
   // =========================================================================
   // 1. BLOK: AKILLI STEP TAKİBİ VE GLOBAL FORM STATE'İ (4 ADIMLI MASTER)
@@ -48,6 +52,12 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   // 🛑 MÜKERRER PLAKA MODAL STATE'LERİ
   const [showDuplicatePlateModal, setShowDuplicatePlateModal] = useState(false);
   const [duplicatePlateNumber, setDuplicatePlateNumber] = useState('');
+  // Plaka KAYITLI ama KİMİN? Eskiden bu ayrım yoktu: kullanıcı KENDİ plakasını
+  // yazdığında da "Bu Araç Zaten Kayıtlı" görüyor ve onun kendi aracı olduğunu
+  // hiçbir yerden anlamıyordu. plaka_durumu bu ikisini ayırıyor.
+  const [duplicateBenimMi, setDuplicateBenimMi] = useState(false);
+  const [duplicatePin, setDuplicatePin] = useState(null);
+  const [devralDialogOpen, setDevralDialogOpen] = useState(false);
 
   // TÜM İLAN SİHİRBAZININ MERKEZİ VERİ HAFIZASI
   const [formData, setFormData] = useState({
@@ -747,18 +757,23 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         //
         // Normalleştirme de sunucuya taşındı: `41 IHH 434` ile `41IHH434`
         // karşılaştırması tek yerde yapılıyor.
-        const { data: plakaKayitli, error: plateCheckError } = await supabase
-          .rpc('plaka_kayitli_mi', { p_plaka: cleanInputPlate });
+        // plaka_durumu, plaka_kayitli_mi'nin YERİNE geliyor: yalnızca "kayıtlı
+        // mı" değil, "BENİM mi" sorusunu da cevaplıyor. Eskiden bu ayrım yoktu
+        // ve kullanıcı kendi aracını yeniden eklemeye çalıştığında "başkasında"
+        // muamelesi görüyordu.
+        const durum = await plakaDurumu(cleanInputPlate);
 
-        if (plateCheckError) {
-          console.error("🔴 Plaka sorgulama veritabanı hatası:", plateCheckError.message);
+        if (!durum.basarili) {
+          console.error("🔴 Plaka sorgulama hatası:", durum.hata);
           setStepLoader({ isLoading: false, title: '', subtitle: '' });
           return;
         }
 
-        if (plakaKayitli) {
+        if (durum.veri?.kayitli) {
           setStepLoader({ isLoading: false, title: '', subtitle: '' });
           setDuplicatePlateNumber(rawPlate);
+          setDuplicateBenimMi(durum.veri.benim_mi === true);
+          setDuplicatePin(durum.veri.pin_code || null);
           setShowDuplicatePlateModal(true);
           return;
         }
@@ -1173,26 +1188,78 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 </svg>
               </div>
               <div className="space-y-0.5 text-xs text-left">
-                <p className="font-bold text-rose-950">Araç sahibi siz misiniz?</p>
+                {/* ESKİ METİN: "devir işlemleri için destek ekibiyle iletişime
+                    geçebilirsiniz." Devir mekanizması ürünleştiği için o metin
+                    ARTIK YANLIŞ — kullanıcı işlemi kendisi yapabiliyor. */}
+                <p className="font-bold text-rose-950">
+                  {duplicateBenimMi ? 'Bu araç zaten sizin garajınızda' : 'Bu aracı satın aldıysanız devralabilirsiniz'}
+                </p>
                 <p className="text-rose-800/80 font-medium leading-relaxed">
-                  Sahiplik transferi, devir işlemleri veya plaka düzeltme talepleriniz için destek ekibiyle iletişime geçebilirsiniz.
+                  {duplicateBenimMi
+                    ? 'Aynı araç iki kez kaydedilemez. Bakım kaydı eklemek ya da ilan vermek için garajınızdaki karta gidin.'
+                    : 'Satıcı garajından bir devir kodu üretip size verir; kodu girdiğinizde araç ve tüm sicili size geçer. Satıcıya ulaşamıyorsanız devir talebi gönderebilirsiniz.'}
                 </p>
               </div>
             </div>
 
-            <div className="pt-1">
+            {/* Aksiyon bloğu duruma göre. Eskiden TEK düğme vardı ("Anladım,
+                Plakayı Düzelt") ve modal ÇIKIŞSIZDI: ikinci el alıcı aldığı
+                aracı sisteme hiç ekleyemiyordu. İki sütunlu grid, aynı
+                dosyadaki taslak modalının kalıbı. */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <button
                 type="button"
                 onClick={() => setShowDuplicatePlateModal(false)}
-                className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-xl transition-all cursor-pointer text-center shadow-xs"
+                className="w-full bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-800 font-bold text-sm py-3.5 px-4 rounded-xl transition-all cursor-pointer text-center"
               >
-                Anladım, Plakayı Düzelt
+                Plakayı Düzelt
               </button>
+              {duplicateBenimMi ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDuplicatePlateModal(false);
+                    router.push(duplicatePin ? `/details/${encodeURIComponent(duplicatePin)}` : '/garage');
+                  }}
+                  className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-xl transition-all cursor-pointer text-center shadow-xs"
+                >
+                  Aracıma Git
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => { setShowDuplicatePlateModal(false); setDevralDialogOpen(true); }}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-xl transition-all cursor-pointer text-center shadow-xs"
+                >
+                  Bu Aracı Devral
+                </button>
+              )}
             </div>
 
           </div>
         </div>
       )}
+
+      {/* ARAÇ DEVRAL DİYALOĞU — alıcı tarafı.
+
+          Koşullu render: kapalıyken hiç mount edilmiyor, böylece her açılışta
+
+          durumu sıfırdan kuruyor. */}
+
+      {devralDialogOpen && (
+
+        <AracDevralDialog
+
+          plaka={duplicatePlateNumber}
+
+          onClose={() => setDevralDialogOpen(false)}
+
+          onDevralindi={() => { setDevralDialogOpen(false); router.push('/garage'); }}
+
+        />
+
+      )}
+
 
       {/* GLOBAL STEP LOADER OVERLAY */}
       <GlobalStepLoader 

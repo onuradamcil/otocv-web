@@ -132,6 +132,28 @@ async function pinBul(plaka) {
   return data.pin_code;
 }
 
+
+/**
+ * İKİNCİ TEST HESABI — devir testleri için.
+ *
+ * Devir iki kullanıcı arasında olduğu için ikinci bir hesap şart. Her koşumda
+ * `signUp` ile yeni hesap açmak yerine SABİT bir hesap kullanılıyor: anon
+ * anahtarla auth kullanıcısı SİLİNEMEZ, yani açılan her hesap kalıcı çöp
+ * olurdu. Geliştirme sırasında beş tane birikti ve elle temizlemek gerekti.
+ */
+async function aliciIstemcisi() {
+  const sb = createClient(
+    ortam('NEXT_PUBLIC_SUPABASE_URL'),
+    ortam('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  );
+  const { error } = await sb.auth.signInWithPassword({
+    email: ortam('OTOCV_TEST_EMAIL2'),
+    password: ortam('OTOCV_TEST_PASSWORD2'),
+  });
+  if (error) throw new Error(`İkinci test hesabıyla oturum açılamadı: ${error.message}`);
+  return sb;
+}
+
 /** Arayüz üzerinden giriş yapar. Gerçek kullanıcı yolunu test eder. */
 async function girisYap(page) {
   await page.goto('/login');
@@ -222,6 +244,7 @@ module.exports = {
   hamMetin,
   supabaseIstemcisi,
   anonIstemcisi,
+  aliciIstemcisi,
   pinBul,
   TEST_ISARETI,
   ornekPin,

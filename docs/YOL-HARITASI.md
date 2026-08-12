@@ -54,52 +54,17 @@ Dikkat edilecekler:
   gerekli (şehir değişimi vb.); satışta plaka araçta kaldığı için Faz 1 asıl
   senaryoyu çözdü. Birincil anahtar değişimi demek: iki tablonun FK'si ve
   ~20 kod noktası. Canlı veride yedeksiz, dikkatli planlanmalı.
-- **Araç devri arayüzü — İKİ TARAFLI, her kullanıcı kendi durumunu görür.**
-
-  Faz 1'de bir boşluk kaldı: satıcı devir kodunu **yalnızca bir kez** görüyor
-  (fonksiyonun dönüş değerinde). `devir_kodlari` tablosu istemciye tamamen
-  kapalı olduğu için sayfayı kapatırsa kodu bir daha göremiyor, iptal
-  edemiyor, durumunu takip edemiyor. Alıcı tarafında da kodu girmeden ne
-  devraldığını göremiyor.
-
-  **Gereken iki okuma fonksiyonu** (tablo doğrudan açılmamalı):
-
-  `devir_durumu(p_plaka)` — SATICI tarafı. Kendi aracı için bekleyen devir
-  var mı: kod, kalan süre, durum (bekliyor / kullanıldı / süresi geçti /
-  iptal). Yalnızca aktif sahip çağırabilir. Satıcı buradan kodu yeniden
-  görür ve **iptal edebilir** — şu an iptal yolu yok, yalnızca yeni kod
-  üretmek eskisini iptal ediyor.
-
-  `devir_onizleme(p_kod)` — ALICI tarafı. Kodu girince, devri tamamlamadan
-  ne devraldığını görür: marka/model/yıl, bakım kaydı sayısı, belgeli kayıt
-  sayısı, sicil puanı, ve satıcının onayladığı rıza metni. Böyle bir ön
-  izleme olmadan alıcı gözü kapalı onaylıyor.
-
-  ⚠ **Bu fonksiyon bir kod oracle'ı — kaba kuvvet freni ZORUNLU.**
-  `devir_tamamla` kullanıcı başına deneme sayıyor; ön izleme onu saymazsa
-  saldırgan sınırsız kod deneyip geçerli olanı bulur, sonra tek seferde
-  tamamlar. İki fonksiyon **aynı sayacı** kullanmalı.
-
-  **Ekranlar:**
-  - Satıcı: garajdaki araç kartında "Aracı Devret" → rıza metni + onay
-    kutusu → kod ekranı (kopyala / paylaş / iptal et / kalan süre)
-  - Alıcı: sihirbazdaki "Bu Araç Zaten Kayıtlı" modalına **"Bu aracı
-    devraldım"** düğmesi (şu an modal çıkışsız) → kod girişi → ön izleme →
-    onay → yeni PIN gösterimi
-  - Her iki tarafta devir geçmişi: "bu araç 2 sahip gördü" bilgisi alıcı için
-    değerli ve `vehicle_ownerships` bunu zaten tutuyor.
-
-  **Bildirim:** devir tamamlandığında satıcıya bildirim düşmeli
-  (`notifications` tablosu var). Aracın elinden çıktığını öğrenmesi gerekir —
-  özellikle kod sızmışsa bu tek uyarısı olur.
-
-  Playwright testleri: iki taraflı akış, ön izlemenin devri tamamlamadığı,
-  iptal edilen kodun çalışmadığı, ön izlemenin kaba kuvvet frenine tabi olduğu.
 - **Karar gerekiyor — hesap silinince sicil de siliniyor.** `vehicles.user_id`
   FK'si `on delete cascade`: kullanıcı hesabını silerse araçları, bakım
   kayıtları ve sahiplik geçmişi de silinir. İkinci el alıcı için bu muhtemelen
   yanlış — aracın sicili sahibinin hesabından bağımsız yaşamalı. Test
   hesaplarını temizlerken fark edildi.
+- **`tests/07-devir.spec.js` temizlenemeyen artık bırakıyor.** Devir testleri
+  canlı veride gerçek devir yapıyor; `afterAll` aracı geri devrediyor ama
+  sahiplik geçmişi, devir kodları ve bildirimler kalıyor — o tablolar bilerek
+  istemciye kapalı (RLS açık, politika yok), test onları silemiyor. Koşumdan
+  sonra elle temizlik gerekiyor (SQL spec'in başlığında). CI'da koşmuyor.
+  Bu, aşağıdaki CI 2. aşaması için en güçlü gerekçe.
 - CI 2. aşama (yerel Supabase): **Docker gerekiyor, kurulu değil — en alta
   alındı.** Aciliyeti kalmadı: testler kendi çöpünü benzersiz işaretle
   temizliyor ve yıkıcı işlemler yalnızca testin kendi oluşturduğu kayda `id`
@@ -127,3 +92,6 @@ Dikkat edilecekler:
 | Hasar kataloğu tek kaynağa alındı (3 dosyada kaymıştı) | `de3d35a` |
 | Araç devri Faz 1: sahiplik geçmişi + devir kodları + rıza kaydı | `c4a4f80` |
 | Araç devri Faz 1.5: fatura dosyaları araca bağlandı (devirde geçiyor) | `d1ff6fa` |
+| Şema kayması giderildi: 8 fonksiyonun gövdesi depoya alındı | `6fd41f9` |
+| Devir: talep yolu, ön izleme, satıcı durum ekranı, yetki temizliği | `b0b0756` |
+| Devir arayüzü: iki taraflı akış, bildirimler, 9 test | bu commit |

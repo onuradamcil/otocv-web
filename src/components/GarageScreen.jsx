@@ -11,7 +11,8 @@ import { supabase } from '../lib/supabase';
 import { calculatePolicyStatus } from '../utils/dateHelper';
 import PolicyOfferModal from './garage/PolicyOfferModal';
 import { useToast } from '../context/ToastContext';
-import PublishListingModal from './garage/PublishListingModal'; // 🚀 İLAN MODALI ENJEKTE EDİLDİ
+import PublishListingModal from './garage/PublishListingModal';
+import AracDevretDialog from './garage/AracDevretDialog'; // 🚀 İLAN MODALI ENJEKTE EDİLDİ
 import Icon from './common/icons';
 import GlobalStepLoader from './common/GlobalStepLoader';
 
@@ -37,6 +38,12 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
 
   // 🚀 PAZARYERİ İLAN SİHİRBAZI MODAL STATE'İ
   const [listingModalOpen, setListingModalOpen] = useState(false);
+
+  // Devir diyalogu. PublishListingModal ile ayni kalip: state GarageScreen
+  // icinde, basari sonrasi fetchLiveVehicles cagriliyor. Route dosyasina
+  // dokunmadan calisiyor.
+  const [devirModalOpen, setDevirModalOpen] = useState(false);
+  const [selectedVehicleForDevir, setSelectedVehicleForDevir] = useState(null);
   const [selectedVehicleForListing, setSelectedVehicleForListing] = useState(null);
 
   useEffect(() => {
@@ -132,6 +139,11 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
   const handleOpenListingModal = (vehicle) => {
     setSelectedVehicleForListing(vehicle);
     setListingModalOpen(true);
+  };
+
+  const handleOpenDevirModal = (vehicle) => {
+    setSelectedVehicleForDevir(vehicle);
+    setDevirModalOpen(true);
   };
 
   const userInitials = userProfile ? `${userProfile.first_name[0]}${userProfile.last_name[0]}`.toUpperCase() : 'CV';
@@ -277,7 +289,8 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
                 onViewKarne={onViewKarne}
                 onOpenMaintenance={onOpenMaintenance}
                 onOpenModal={handleOpenModal}
-                onOpenListingModal={handleOpenListingModal} // 🚀 İLAN MODAL TETİKLEYİCİSİ
+                onOpenListingModal={handleOpenListingModal}
+              onOpenDevir={handleOpenDevirModal} // 🚀 İLAN MODAL TETİKLEYİCİSİ
               />
             ))}
           </div>
@@ -301,6 +314,18 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
         vehicle={selectedVehicleForListing}
         onSuccess={fetchLiveVehicles}
       />
+
+      {/* ARAÇ DEVRİ DİYALOĞU */}
+      {/* Koşullu render: diyalog kapalıyken hiç mount edilmiyor. Böylece her
+          açılışta durumu sıfırdan okuyor ve `useEffect` içinde senkron
+          setState çağırmak gerekmiyor. */}
+      {devirModalOpen && selectedVehicleForDevir && (
+        <AracDevretDialog
+          onClose={() => setDevirModalOpen(false)}
+          vehicle={selectedVehicleForDevir}
+          onSuccess={fetchLiveVehicles}
+        />
+      )}
     </div>
   );
 }
@@ -308,7 +333,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
 // =========================================================================
 // 5. BLOK: REAKTİF VE PAZARYERİ BAĞLANTILI ARAÇ KARTI (VehicleCard)
 // =========================================================================
-function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, onOpenModal, onOpenListingModal }) {
+function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, onOpenModal, onOpenListingModal, onOpenDevir}) {
   // Varsayilan 0: puan artik veritabaninda her zaman hesaplaniyor ve NULL olamaz.
   // Eskiden bu satirlar `?? 60`, `?? 92` ve `?? 94` idi -- AYNI arac icin uc
   // ayri sayi. Simdi olu kod; yine de 0 birakiliyor ki bir gun deger gelmezse
@@ -429,6 +454,22 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
           <span>Pazaryerinde Satışa Çıkar</span>
         </button>
       )}
+
+      {/* ARACI DEVRET — tam genişlik ikincil şerit.
+          Alt aksiyon satırı `grid-cols-3` ve dolu; dördüncü düğme eklemek o
+          düzeni bozardı. Bu yüzden ilan şeridinin (yukarıda) birebir kalıbı
+          kullanılıyor: kesikli çerçeveli, ikincil ağırlıkta, tam genişlik.
+
+          İlanda olan araç için de gösteriliyor: satıcı ilanı yayındayken
+          aracı devretmiş olabilir ve devir zaten ilanı kapatıyor. */}
+      <button
+        type="button"
+        onClick={() => onOpenDevir(vehicle)}
+        className="w-full bg-slate-50 hover:bg-amber-50 border border-dashed border-slate-300 hover:border-amber-300 text-slate-600 hover:text-amber-700 font-bold text-xs py-2.5 rounded-2xl transition-colors cursor-pointer flex items-center justify-center gap-2 group"
+      >
+        <Icon name="anahtar" size="sm" className="text-slate-400 group-hover:text-amber-600 transition-colors" />
+        <span>Aracı Devret</span>
+      </button>
 
       {/* EŞİT GENİŞLİKTE MİNİMALİST AKSİYON BUTONLARI */}
       <div className="grid grid-cols-3 gap-2 select-none pt-1">

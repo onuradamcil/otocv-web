@@ -29,7 +29,13 @@
 // gerçekten devreye girdiği bu dosyada, elle koşulur.
 // =========================================================================
 
-const { test, expect, anonIstemcisi } = require('./yardimcilar');
+const {
+  test,
+  expect,
+  anonIstemcisi,
+  supabaseIstemcisi,
+  aliciIstemcisi,
+} = require('./yardimcilar');
 
 test.describe('Hız sınırı gerçekten devreye giriyor', () => {
   test('numaralandırma denemesi engelleniyor', async () => {
@@ -88,5 +94,42 @@ test.describe('Hız sınırı gerçekten devreye giriyor', () => {
     // Var olduğunu bildiğimiz bir PIN'i sor: yine engellenmeli.
     const { data: araclar } = await anon.rpc('sicil_getir', { p_pin: 'CV-ZZ001-ZZZZZ' });
     expect(araclar?.hata, 'sınırlıyken sorgu geçti').toBe('cok_fazla_deneme');
+  });
+});
+
+test.describe('Devir kodu oracle testi: ön izleme sayacı paylaşıyor', () => {
+  // NİYE BU PAKETTE: bu test kaba kuvvet sayacını KASITEN dolduruyor ve
+  // alıcı hesabı 15 dakika boyunca devir işlemi yapamıyor. İlk yazımda
+  // 07-devir.spec.js içindeydi ve o paketi kendi kendini tekrar koşulamaz
+  // hâle getirdi: arkasındaki testler atlandı, sonraki koşumda öndeki testler
+  // kırıldı. Yan etkisi 15 dakika süren bir test, varsayılan takımda duramaz.
+  //
+  // TEST EDİLEN ŞEY: `devir_onizleme` bir kod oracle'ı — kodun geçerli olup
+  // olmadığını söyleyen ücretsiz bir sorgu. `devir_tamamla` ile AYNI sayacı
+  // kullanmazsa saldırgan ön izlemede sınırsız kod dener, geçerli olanı bulur
+  // ve tek seferde tamamlar; tamamlamadaki sınır hiç devreye girmez.
+
+  test('ön izleme kaba kuvvet frenine tabi ve sayaç devir_tamamla ile ortak', async () => {
+    test.setTimeout(120_000);
+    const alici = await aliciIstemcisi();
+
+    const rpc = async (fn, a) => {
+      const { data, error } = await alici.rpc(fn, a);
+      return error ? { hata_mesaji: error.message } : data;
+    };
+
+    let ilkEngelleme = null;
+    for (let i = 1; i <= 15; i++) {
+      const r = await rpc('devir_onizleme', { p_kod: `DV-QQ${String(i).padStart(2, '0')}-QQQQ` });
+      if (r?.hata === 'cok_fazla_deneme' && ilkEngelleme === null) ilkEngelleme = i;
+    }
+
+    expect(ilkEngelleme, '15 hatalı ön izlemede sınır devreye girmedi').not.toBeNull();
+
+    // ASIL İDDİA: sayaç ORTAK. Ön izlemede dolan sayaç, tamamlamayı da
+    // engellemeli. Ayrı sayaçlar olsaydı bu çağrı 'kod_gecersiz' dönerdi.
+    const tamam = await rpc('devir_tamamla', { p_kod: 'DV-ZZZZ-ZZZZ' });
+    expect(tamam?.hata, 'devir_tamamla AYRI bir sayaç kullanıyor — oracle açık')
+      .toBe('cok_fazla_deneme');
   });
 });
