@@ -1,0 +1,70 @@
+-- =========================================================================
+-- C ADIMI · RLS AÇILIYOR — BU MIGRATION EN SON UYGULANIR
+--
+-- -------------------------------------------------------------------------
+-- BU DOSYAYI UYGULAMADAN ÖNCE ŞUNLARIN HEPSİ BİTMİŞ OLMALI
+-- -------------------------------------------------------------------------
+--   [ ] 20260812120000  vehicle-invoices özel bucket + storage politikaları
+--   [ ] 20260812125000  invoice_path kolonu
+--   [ ] scripts/faturalari-tasi.mjs   dosyalar taşındı, invoice_path dolu
+--   [ ] 20260812130000  tablo politikaları + sicil_getir fonksiyonu
+--   [ ] İSTEMCİ: VehicleDetailsScreen ve OtoKarneScreen artık tabloyu
+--       değil sicil_getir() fonksiyonunu çağırıyor
+--   [ ] İSTEMCİ: fatura açma akışı createSignedUrl kullanıyor
+--   [ ] 48 test geçiyor
+--
+-- SIRA NEDEN BÖYLE: RLS açıldığı anda `maintenance_records` tablosuna
+-- doğrudan erişim yalnızca araç sahibine kalır. Ziyaretçinin okuma yolu
+-- (sicil_getir) ve istemcinin o yolu kullanması hazır DEĞİLSE, karne ve
+-- araç detayı sayfalarında bakım geçmişi BOŞ görünür. Kullanıcı için
+-- "veri kaybolmuş" gibi durur.
+--
+-- Bu yüzden RLS son adımdır. Bir tabloyu kilitlemek, kilidin arkasındaki
+-- kapıyı açmadan yapılmaz.
+--
+-- -------------------------------------------------------------------------
+-- SUPABASE DENETLEYİCİSİNİN İKİ HATASI DA BURADA KAPANIYOR
+-- -------------------------------------------------------------------------
+--   rls_disabled_in_public       public.maintenance_records
+--   policy_exists_rls_disabled   politikalar tanımlı ama RLS kapalı
+--
+-- İkincisi özellikle sinsiydi: tabloda `"Herkes bakım ekleyebilir"` diye
+-- bir politika duruyordu ve okuyan kişi tablonun korumalı olduğunu
+-- sanabilirdi. RLS kapalı olduğu için o politika hiç değerlendirilmiyordu.
+-- (O politika 20260812130000 içinde kaldırıldı.)
+-- =========================================================================
+
+alter table public.maintenance_records enable row level security;
+
+-- Tablo sahibi bile politikalara tabi olsun. Bu satır olmadan tablo
+-- sahibiyle çalışan bir bağlantı politikaları atlar; "sahibi zaten güvenilir"
+-- varsayımı, sunucu tarafı bir hata durumunda sessiz veri sızıntısına
+-- dönüşebilir.
+alter table public.maintenance_records force row level security;
+
+-- =========================================================================
+-- UYGULADIKTAN SONRA DOĞRULANACAKLAR (saldırgan testleri)
+--
+--   1. Anon anahtarıyla, oturum AÇMADAN:
+--        select * from maintenance_records
+--      -> 0 satır dönmeli. Satır dönüyorsa politika açık kalmış.
+--
+--   2. Oturum AÇMIŞ ama başka bir kullanıcının aracı için:
+--        select * from maintenance_records where vehicle_plate = '<baskasinin>'
+--      -> 0 satır dönmeli.
+--
+--   3. sicil_getir('<gecerli pin>') anon olarak:
+--      -> arac ve bakim_kayitlari dolu dönmeli
+--      -> arac.plate_number NULL olmalı
+--      -> her kayıtta invoice_path NULL, faturali alanı dolu olmalı
+--
+--   4. Kendi aracının PIN'iyle, oturum açmış sahip olarak:
+--      -> arac.plate_number DOLU olmalı
+--      -> invoice_path DOLU olmalı
+--
+--   5. Başka kullanıcının fatura yoluna imzalı bağlantı istemek:
+--      -> reddedilmeli (storage politikası)
+--
+-- Bunlar tests/05-guvenlik.spec.js dosyasına yazılacak; elle bir kez
+-- doğrulamak yeterli değil, her push'ta koşmalı.
+-- =========================================================================
