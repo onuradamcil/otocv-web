@@ -40,6 +40,18 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
   useEffect(() => {
     if (!open) return;
 
+    // Çekmece açılmadan ÖNCE odakta olan öğe saklanıyor (hamburger butonu).
+    // Kapanışta odak buraya geri verilir.
+    //
+    // Neden gerekli: modal kapanınca odak hiçbir yere atanmazsa tarayıcı onu
+    // <body>'ye düşürür. Klavyeyle gezen kullanıcı çekmeceyi kapattığında
+    // sayfanın en başına savrulur ve kaldığı yeri kaybeder. Ekran okuyucu
+    // kullanıcısı için de bağlam kopar.
+    //
+    // Bu dosyanın başlığında gereksinim olarak yazılıydı ama uygulanmamıştı;
+    // klavye testi yakaladı.
+    const oncekiOdak = document.activeElement;
+
     const onKeyDown = (e) => {
       if (e.key === 'Escape') {
         onClose();
@@ -73,6 +85,12 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
       document.removeEventListener('keydown', onKeyDown);
       document.body.style.overflow = oncekiOverflow;
       clearTimeout(t);
+
+      // Odağı açılıştaki öğeye geri ver. Öğe bu arada DOM'dan kalkmış
+      // olabilir (isConnected kontrolü), o durumda dokunulmaz.
+      if (oncekiOdak instanceof HTMLElement && oncekiOdak.isConnected) {
+        oncekiOdak.focus();
+      }
     };
   }, [open, onClose]);
 

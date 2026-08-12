@@ -246,7 +246,14 @@ export default function MarketplaceView({
             <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs space-y-4">
               <div className="flex justify-between items-center pb-2.5 border-b border-slate-100">
                 <h4 className="text-xs font-extrabold text-slate-900 tracking-tight">Filtreler</h4>
-                <button onClick={clearAllFilters} className="text-xs text-indigo-600 font-bold hover:underline cursor-pointer">Sıfırla</button>
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  aria-label="Tüm filtreleri sıfırla"
+                  className="inline-flex items-center min-h-[24px] px-1.5 -mx-1.5 rounded text-xs text-indigo-600 font-bold hover:underline cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+                >
+                  Sıfırla
+                </button>
               </div>
               
               <div className="space-y-1.5">

@@ -88,9 +88,18 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                 
                 <div className="space-y-3">
                   {/* FOTOĞRAF VE ROZETLER */}
+                  {/* alt HER ZAMAN bir dize olmalı. Önceden alt={item.title}
+                      yazıyordu; başlık boş geldiğinde React özniteliği hiç
+                      basmıyor ve görsel "alt'sız" kalıyordu — ekran okuyucu o
+                      zaman dosya adını okur. Yedek olarak marka/model, o da
+                      yoksa boş dize (süs görsel) kullanılıyor. */}
                   <div className="h-40 w-full bg-slate-100 rounded-xl overflow-hidden relative">
                     {firstPhoto ? (
-                      <img src={firstPhoto} alt={item.title} className="w-full h-full object-cover" />
+                      <img
+                        src={firstPhoto}
+                        alt={item.title || `${item.brand || ''} ${item.model || ''}`.trim() || ''}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-400">GÖRSEL YOK</div>
                     )}

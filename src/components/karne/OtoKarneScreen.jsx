@@ -155,9 +155,9 @@ export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }
           Geri Dön
         </button>
         
-        <h2 className="font-bold text-xs md:text-sm text-[#0F172A] tracking-tight">
+        <h1 className="font-bold text-xs md:text-sm text-[#0F172A] tracking-tight">
           Oto-Karne Veri Doğrulama <span className="text-indigo-600 font-mono font-bold">[{pinCode}]</span>
-        </h2>
+        </h1>
 
         <div className="flex items-center gap-2">
           <button onClick={handleOutputEngine} className="bg-[#4F46E5] hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-98">

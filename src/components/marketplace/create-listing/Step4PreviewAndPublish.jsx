@@ -419,8 +419,10 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                       const url = currentThumbnails[localIdx];
                       if (!url) return <div key={`empty-${localIdx}`} className="h-16 sm:h-18 opacity-0 pointer-events-none" />;
                       return (
-                        <button key={actualIdx} type="button" onClick={() => setSelectedIndex(actualIdx)} className={`h-16 sm:h-18 rounded overflow-hidden border bg-white relative cursor-pointer flex items-center justify-center p-0.5 ${selectedIndex === actualIdx ? 'border-indigo-600 ring-2 ring-indigo-600/30' : 'border-slate-200 opacity-85 hover:opacity-100'}`}>
-                          <img src={url} alt="Küçük" className="w-full h-full object-contain" />
+                        <button key={actualIdx} type="button" onClick={() => setSelectedIndex(actualIdx)}
+                          aria-label={`${actualIdx + 1}. fotoğrafı göster`}
+                          aria-current={selectedIndex === actualIdx ? 'true' : undefined} className={`h-16 sm:h-18 rounded overflow-hidden border bg-white relative cursor-pointer flex items-center justify-center p-0.5 ${selectedIndex === actualIdx ? 'border-indigo-600 ring-2 ring-indigo-600/30' : 'border-slate-200 opacity-85 hover:opacity-100'}`}>
+                          <img src={url} alt="" className="w-full h-full object-contain" />
                         </button>
                       );
                     })}
