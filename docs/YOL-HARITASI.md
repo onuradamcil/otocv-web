@@ -94,4 +94,4 @@ Dikkat edilecekler:
 | PIN sorgusuna istek hızı sınırı (IP başına, veritabanı içinde) | `ab63d1f` |
 | Next.js 16.3.0 + React 19.2.8; npm audit 6 yüksek → 0 | `8de5da2` |
 | Hasar kataloğu tek kaynağa alındı (3 dosyada kaymıştı) | `de3d35a` |
-| Araç devri Faz 1: sahiplik geçmişi + devir kodları + rıza kaydı | bu commit |
+| Araç devri Faz 1: sahiplik geçmişi + devir kodları + rıza kaydı | `c4a4f80` |
