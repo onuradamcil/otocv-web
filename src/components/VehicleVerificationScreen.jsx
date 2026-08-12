@@ -43,30 +43,22 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
     setLoading(true);
 
     try {
-      // `eq`, `ilike` DEĞİL.
+      // `vehicles` TABLOSU DEĞİL, sicil_getir() FONKSİYONU.
       //
-      // Önceki hâli `.ilike('pin_code', cleanPin)` idi ve bu bir açıktı:
-      // `ilike` desen karakterlerini yorumluyor. Kullanıcı PIN kutusuna
-      // `CV-%` yazdığında BÜTÜN araçlar eşleşiyor, sorgu ilk satırı
-      // döndürüyordu — yani oturum açmamış biri, plaka dahil rastgele bir
-      // aracın tam kaydını görebiliyordu.
+      // Tablo artık sahibine özel. Eskiden `select('*').ilike(...)` idi ve
+      // iki kusuru vardı: (1) oturum açmamış herkes tablonun tamamını
+      // okuyabiliyordu, (2) `ilike` desen karakterlerini yorumluyordu —
+      // `CV-%` bütün araçlarla eşleşiyor ve ilk satır dönüyordu.
       //
-      // `eq` hiçbir koşulda desen olarak yorumlanmaz. Ayrıca indeksi
-      // kullanır; `ilike` btree indeksini kullanamıyordu ve her sorgu
-      // tam tablo taramasıydı.
-      //
-      // Büyük/küçük harf duyarsızlık kaybolmuyor: pinNormalize girdiyi
-      // zaten büyütüyor ve PIN'ler büyük harfle saklanıyor.
-      const { data, error } = await supabase
-        .from('vehicles')
-        .select('*')
-        .eq('pin_code', cleanPin);
+      // Fonksiyon tek PIN kabul ediyor, girdiyi kendi içinde de doğruluyor
+      // ve ziyaretçiye plakayı vermiyor.
+      const { data: sicil, error } = await supabase.rpc('sicil_getir', { p_pin: cleanPin });
 
       if (error) throw error;
 
-      if (data && data.length > 0) {
-        // 🚀 ROL MÜHÜRÜ: Araç bulundu, çağıran sayfaya uçuruyoruz
-        onVehicleFound(data[0], 'public');
+      if (sicil?.arac) {
+        // Rol fonksiyondan geliyor: sahibi kendi aracını sahip olarak açar.
+        onVehicleFound(sicil.arac, sicil.arac.sahip_mi ? 'owner' : 'public');
         return;
       }
 
@@ -80,28 +72,27 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
   };
 
 
-  // Simüle Kamera ve Yeşil Lazer QR Tarama Zamanlayıcısı
+  // =========================================================================
+  // QR TARAMA — HENÜZ GERÇEK DEĞİL, ARTIK ÖYLE DAVRANMIYOR
+  //
+  // Önceki hâli "simülasyon" adı altında şunu yapıyordu:
+  //
+  //   supabase.from('vehicles').select('*').order('created_at', desc).limit(1)
+  //
+  // Yani veritabanına EN SON EKLENEN aracı çekip kullanıcıya "QR okundu"
+  // diye gösteriyordu. İki sorun:
+  //   · Gösterilen araç kullanıcının taradığı araç değil, bir YABANCININ
+  //     aracıydı. Ekranda "tescilli araç bulundu" yazıyordu — doğrudan
+  //     yanlış beyan.
+  //   · Tablo artık sahibine özel olduğu için sorgu zaten boş dönecekti.
+  //
+  // Gerçek QR okuma bir kamera kütüphanesi gerektiriyor. O gelene kadar
+  // düğme dürüstçe "hazır değil" diyor. Var olmayan bir özelliği varmış
+  // gibi göstermek, olmadığını söylemekten kötü.
+  // =========================================================================
   const triggerQrScannerSimulation = async () => {
-    setIsQrScanning(true);
-    try {
-      // Buluttaki en son eklenmiş gerçek tescilli aracı çekelim
-      const { data } = await supabase
-        .from('vehicles')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      setTimeout(() => {
-        setIsQrScanning(false);
-        if (data && data.length > 0) {
-          onVehicleFound(data[0], 'public'); // Buluttaki gerçek taze aracı public modda açar!
-        } else {
-          setSearchError('Taranacak tescilli araç bulunamadı.');
-        }
-      }, 2000);
-    } catch (err) {
-      setIsQrScanning(false);
-    }
+    setSearchError('QR ile okuma henüz hazır değil. Şimdilik PIN kodunu elle girebilirsiniz.');
+    setVerifyTab('pin');
   };
 
   // =========================================================================

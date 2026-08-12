@@ -34,43 +34,46 @@ export default function KarnePage() {
     const loadVehicle = async () => {
       setStatus('loading');
 
-      const { data, error } = await supabase
-        .from('vehicles')
-        .select('*')
-      // `eq`, `ilike` DEĞİL — bu bir güvenlik düzeltmesi.
+      // `vehicles` TABLOSU DEĞİL, sicil_getir() FONKSİYONU.
       //
-      // PIN doğrudan URL'den geliyor ve önceki hâli `.ilike('pin_code', pin)`
-      // idi. `ilike` desen karakterlerini yorumlar; `/details/CV-%25` adresi
-      // `pin = 'CV-%'` üretiyor ve bu BÜTÜN araçlarla eşleşiyordu. Sayfa
-      // `data[0]`'ı aldığı için ziyaretçi, plakası ve PIN'i dahil rastgele
-      // bir aracın tam kaydını görüyordu. Canlı veride doğrulandı: `CV-%`
-      // 10 aracın 10'uyla eşleşti.
+      // Tablo artık yalnızca araç sahibine açık. Eskiden `select('*')`
+      // yapılıyordu ve o sorgu oturum açmamış herkese ÇALIŞIYORDU: anon
+      // anahtarıyla tablonun tamamı, plakalar ve PIN'ler dahil okunabiliyordu.
+      // Bu, plakayı ziyaretçiden saklama ve PIN entropisini yükseltme
+      // çabalarının ikisini de boşa çıkarıyordu — listeleyebilen birinin
+      // tahmin etmesi gerekmez.
       //
-      // pinNormalize alfabe dışı karakteri reddediyor, `eq` de hiçbir
-      // koşulda desen olarak yorumlanmıyor. İki katman.
-      //
-      // Büyük/küçük harf duyarsızlık korunuyor: pinNormalize girdiyi
-      // büyütüyor, PIN'ler büyük harfle saklanıyor. Ek fayda: `eq` indeksi
-      // kullanır, `ilike` kullanamıyordu.
-        .eq('pin_code', pin)
-        .limit(1);
+      // Fonksiyon ziyaretçiye plakayı ve fatura yolunu vermiyor, sahibine
+      // veriyor. Sahiplik de `sahip_mi` alanıyla geliyor; kullanıcı kimliğini
+      // dışarı vermeye gerek kalmadı.
+      const { data: sicil, error } = await supabase.rpc('sicil_getir', { p_pin: pin });
 
       if (cancelled) return;
 
-      if (error || !data || data.length === 0) {
+      if (error || !sicil?.arac) {
         setStatus('notfound');
         return;
       }
 
-      const found = data[0];
+      const found = sicil.arac;
 
-      // Rol, detay sayfasıyla aynı mantıkla sahiplikten türetiliyor (spec 7.3).
-      // Resmi sicil belgesindeki plaka yalnızca ruhsat sahibine görünür.
-      const { data: { user } } = await supabase.auth.getUser();
+
+      // ROL, FONKSİYONUN DÖNDÜRDÜĞÜ `sahip_mi` ALANINDAN.
+      //
+      // Eskiden `user.id === found.user_id` karşılaştırılıyordu. Bu iki
+      // sebeple değişti:
+      //   · Fonksiyon `user_id` döndürmüyor (bilerek: storage klasör adları
+      //     da kullanıcı kimliği, dışarı vermek gereksiz ipucu). O yüzden
+      //     karşılaştırma HER ZAMAN false verirdi ve sahip kendi aracını
+      //     ziyaretçi gibi görürdü — plakası gizlenmiş hâlde.
+      //   · Sahiplik kararı artık sunucuda veriliyor. İstemcide karşılaştırma
+      //     yapmak, kararın istemciye bağlı olması demekti; sunucu zaten
+      //     plakayı ve fatura yolunu ona göre veriyor ya da vermiyor.
+      //     Karar tek yerde olsun.
       if (cancelled) return;
 
       setVehicle(found);
-      setIsOwner(!!user && user.id === found.user_id);
+      setIsOwner(found.sahip_mi === true);
       setStatus('ready');
     };
 

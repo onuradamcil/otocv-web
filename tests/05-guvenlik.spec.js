@@ -193,6 +193,107 @@ test.describe('Güvenlik · doğrudan tablo erişimi', () => {
   });
 });
 
+test.describe('Güvenlik · vehicles tablosu', () => {
+  // İKİ AÇIK KANITLANDI VE KAPATILDI:
+  //
+  //   1. `"Herkes araçları sorgulayabilir"` (SELECT true) — anon anahtarıyla
+  //      oturum açmadan 10 aracın hepsi döndü; plate_number VE pin_code
+  //      dahil. Bu, iki ayrı güvenlik çalışmasını boşa çıkarıyordu:
+  //      sicil_getir plakayı ziyaretçiden saklıyor (listeleyen için
+  //      anlamsız) ve PIN entropisi 50 bite çıkarıldı (listeleyenin tahmin
+  //      etmesi gerekmez).
+  //
+  //   2. `"Herkes araç ekleyebilir"` (INSERT check true) — anon, BAŞKA
+  //      kullanıcının adına 98 puanlı araç ekledi. Kanıtlandı, eklenen satır
+  //      silindi.
+  //
+  // Tuzak şuydu: yanlarında `auth.uid() = user_id` koşullu SIKI politikalar
+  // da duruyordu. Postgres'te aynı komut için birden fazla permissive
+  // politika VEYA'lanır, dolayısıyla açık olan sıkı olanı etkisiz kılıyordu.
+  // Sıkı politikanın varlığı, korunduğu izlenimini veriyordu.
+
+  const TEST_PLAKA = 'ZZTEST9999';
+
+  test.afterAll(async () => {
+    // Anon ekleme BAŞARILI olursa (yani açık geri gelmişse) satır burada
+    // temizlenir. Saldırı senaryosu kaydı test hesabının adına eklediği
+    // için sahibi onu silebiliyor.
+    const sb = await supabaseIstemcisi();
+    const { error } = await sb.from('vehicles').delete().like('plate_number', 'ZZTEST%');
+    if (error) console.warn('Test aracı silinemedi:', error.message);
+  });
+
+  test('anon anahtarı, oturum açmadan HİÇBİR aracı okuyamaz', async () => {
+    const anon = anonIstemcisi();
+    const { data, error } = await anon.from('vehicles').select('plate_number, pin_code');
+
+    expect(error || (data && data.length === 0)).toBeTruthy();
+    expect(data?.length ?? 0, 'anon anahtarıyla araç listesi okunabiliyor').toBe(0);
+  });
+
+  test('anon anahtarı başka kullanıcının adına araç EKLEYEMEZ', async () => {
+    const sb = await supabaseIstemcisi();
+    const { data: { user } } = await sb.auth.getUser();
+
+    const anon = anonIstemcisi();
+    const { error } = await anon.from('vehicles').insert({
+      plate_number: TEST_PLAKA,
+      user_id: user.id,                 // saldırı: başkasının kimliği
+      pin_code: 'CV-ZZTST-ZZTST',
+      brand: 'TEST', model: 'TEST', year: 2020, km: 1,
+      package: 'TEST', inspection_end_date: '2030-01-01',
+      trust_score: 98,                  // saldırı: puanı kendisi belirliyor
+    });
+
+    expect(error, 'anon anahtarıyla başkasının adına araç eklenebiliyor').toBeTruthy();
+  });
+
+  test('oturum açmış kullanıcı YALNIZCA kendi araçlarını görür', async () => {
+    const sb = await supabaseIstemcisi();
+    const { data: { user } } = await sb.auth.getUser();
+
+    const { data: araclar, error } = await sb.from('vehicles').select('plate_number, user_id');
+    expect(error).toBeFalsy();
+    expect(araclar?.length, 'kullanıcının hiç aracı okunamadı').toBeGreaterThan(0);
+
+    const yabanci = (araclar || []).filter((v) => v.user_id !== user.id);
+    expect(yabanci.map((v) => v.plate_number), 'başka kullanıcının aracı görünüyor').toEqual([]);
+  });
+
+  test('plaka_kayitli_mi yalnızca doğru/yanlış döner, plaka sızdırmaz', async () => {
+    // Sihirbazın tekillik kontrolü eskiden filtresiz `select('plate_number')`
+    // yapıyordu: sistemdeki BÜTÜN plakaları indiriyordu. Artık tek boolean.
+    const anon = anonIstemcisi();
+
+    const { data: yok, error: e1 } = await anon.rpc('plaka_kayitli_mi', {
+      p_plaka: 'ZZ YOK BOYLE 999',
+    });
+    expect(e1).toBeFalsy();
+    expect(typeof yok, 'dönüş tipi boolean olmalı').toBe('boolean');
+    expect(yok).toBe(false);
+
+    // Var olan bir plaka: sahibi bilir, sistem doğrular. Yeni bilgi sızmıyor.
+    const sb = await supabaseIstemcisi();
+    const { data: kendi } = await sb.from('vehicles').select('plate_number').limit(1);
+    const plaka = kendi?.[0]?.plate_number;
+    expect(plaka).toBeTruthy();
+
+    const { data: var_ } = await anon.rpc('plaka_kayitli_mi', { p_plaka: plaka });
+    expect(var_).toBe(true);
+
+    // Boşluklu yazım da bulmalı — normalleştirme sunucuda.
+    const bosluklu = plaka.replace(/^(\d\d)/, '$1 ');
+    const { data: var2 } = await anon.rpc('plaka_kayitli_mi', { p_plaka: bosluklu });
+    expect(var2, `"${bosluklu}" bulunamadı — sunucu normalleştirmesi çalışmıyor`).toBe(true);
+
+    // Joker karakter tüm plakalarla eşleşmemeli.
+    for (const joker of ['%', '_', '%%%']) {
+      const { data: r } = await anon.rpc('plaka_kayitli_mi', { p_plaka: joker });
+      expect(r, `joker "${joker}" eşleşti`).toBe(false);
+    }
+  });
+});
+
 test.describe('Güvenlik · sicil_getir() genel okuma yolu', () => {
   test('ziyaretçi karneyi görür ama PLAKA ve FATURA YOLU gelmez', async () => {
     const anon = anonIstemcisi();

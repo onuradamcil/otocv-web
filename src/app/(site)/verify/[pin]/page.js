@@ -26,33 +26,16 @@ export default function VerifyWithPinPage() {
     let cancelled = false;
 
     const lookup = async () => {
-      const { data, error } = await supabase
-        .from('vehicles')
-        .select('pin_code')
-      // `eq`, `ilike` DEĞİL — bu bir güvenlik düzeltmesi.
-      //
-      // PIN doğrudan URL'den geliyor ve önceki hâli `.ilike('pin_code', pin)`
-      // idi. `ilike` desen karakterlerini yorumlar; `/details/CV-%25` adresi
-      // `pin = 'CV-%'` üretiyor ve bu BÜTÜN araçlarla eşleşiyordu. Sayfa
-      // `data[0]`'ı aldığı için ziyaretçi, plakası ve PIN'i dahil rastgele
-      // bir aracın tam kaydını görüyordu. Canlı veride doğrulandı: `CV-%`
-      // 10 aracın 10'uyla eşleşti.
-      //
-      // pinNormalize alfabe dışı karakteri reddediyor, `eq` de hiçbir
-      // koşulda desen olarak yorumlanmıyor. İki katman.
-      //
-      // Büyük/küçük harf duyarsızlık korunuyor: pinNormalize girdiyi
-      // büyütüyor, PIN'ler büyük harfle saklanıyor. Ek fayda: `eq` indeksi
-      // kullanır, `ilike` kullanamıyordu.
-        .eq('pin_code', pin)
-        .limit(1);
+      // Yalnızca VARLIK kontrolü. `vehicles` tablosu artık sahibine özel;
+      // genel okuma yolu sicil_getir. Fonksiyon PIN'in kanonik yazımını da
+      // döndürüyor, dolayısıyla ayrı bir sorguya gerek yok.
+      const { data: sicil, error } = await supabase.rpc('sicil_getir', { p_pin: pin });
 
       if (cancelled) return;
 
-      if (!error && data && data.length > 0) {
-        // Veritabanındaki kanonik yazımı kullan (kullanıcı küçük harfle yazmış olabilir).
+      if (!error && sicil?.arac?.pin_code) {
         // replace: geri tuşunda sorgulama ekranına düşmemesi için.
-        router.replace(`/details/${encodeURIComponent(data[0].pin_code)}`);
+        router.replace(`/details/${encodeURIComponent(sicil.arac.pin_code)}`);
         return;
       }
 

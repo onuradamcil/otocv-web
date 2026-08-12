@@ -24,6 +24,7 @@ const {
   hamMetin,
   ornekPin,
   pinBul,
+  supabaseIstemcisi,
 } = require('./yardimcilar');
 
 // Belgeye ASLA girmemesi gereken ifadeler. Her biri bir kusurun izi.
@@ -97,27 +98,54 @@ test.describe('Belge, sorgulamadığı hiçbir şeyi beyan etmiyor', () => {
 });
 
 test.describe('Hasar beyanı doğru basılıyor', () => {
-  // Bu dört araç veritabanında hasar kaydı taşıyor. Kusurun ilk hâlinde
-  // hepsi karnede "temiz" beyan ediliyordu.
+  // HASARLI ARAÇ LİSTESİ VERİDEN TÜRETİLİYOR, SABİT DEĞİL.
   //
-  // Araçlar PLAKAYLA tanımlanıyor, PIN'le değil: PIN değişken bir değer ve
-  // yenilendiğinde bu liste sessizce geçersizleşiyordu. Plaka birincil
-  // anahtar; PIN çalışma anında pinBul() ile çözülüyor.
-  const HASARLI_ARACLAR = ['41IHH434', '34KNA929', '34FB1907', '01ONR0001'];
+  // Eskiden dört plaka elle yazılıydı: ['41IHH434','34KNA929','34FB1907',
+  // '01ONR0001']. İki sorunu vardı:
+  //
+  //   1. `34KNA929` test hesabına AİT DEĞİL — ikinci kullanıcının aracı.
+  //      Test onu yalnızca `vehicles` tablosu herkese açık olduğu için
+  //      okuyabiliyordu. Tablo sahibine özel hâle gelince test kırıldı ve
+  //      bu doğru davranış: test hesabının erişmemesi gereken bir veriye
+  //      dayanıyordu.
+  //   2. Kullanıcı hasarlı bir araç eklediğinde liste onu kapsamıyordu;
+  //      kapsam elle güncellenmeye bağlıydı.
+  //
+  // Artık test, hesabın KENDİ araçları arasından hasar taşıyanları buluyor.
+  // Yeni hasarlı araç eklendiğinde kapsama kendiliğinden giriyor.
+  test('hasar taşıyan her araçta kayıt "temiz" diye beyan edilmiyor', async ({ page }) => {
+    const sb = await supabaseIstemcisi();
+    const { data: araclar, error } = await sb
+      .from('vehicles')
+      .select('plate_number, pin_code, tramer_status, tramer_amount');
 
-  for (const plaka of HASARLI_ARACLAR) {
-    test(`${plaka} — hasar kaydı "temiz" diye beyan edilmiyor`, async ({ page }) => {
-      const pin = await pinBul(plaka);
-      await page.goto(`/karne/${pin}`);
+    expect(error).toBeFalsy();
+
+    // Hasar ölçütü: kanonik durum değeri ya da sıfırdan büyük tramer tutarı.
+    const hasarli = (araclar || []).filter(
+      (v) =>
+        v.tramer_status === 'Tramer Var' ||
+        v.tramer_status === 'Ağır Hasarlı' ||
+        Number(v.tramer_amount) > 0
+    );
+
+    // Kapsam sıfırsa test sessizce geçmemeli: hiç hasarlı araç yoksa bu
+    // paket hiçbir şeyi korumuyor demektir.
+    expect(hasarli.length, 'hesapta hiç hasarlı araç yok — test kör kalır')
+      .toBeGreaterThan(0);
+
+    for (const arac of hasarli) {
+      await page.goto(`/karne/${arac.pin_code}`);
       await page.waitForLoadState('networkidle');
       await belgeSekmesiniAc(page);
 
       const metin = await hamMetin(page);
-      expect(metin, `${plaka} hasarlı ama belgede "Kayıt Var" yok`).toContain('Kayıt Var');
-      expect(metin, `${plaka} hasarlı olduğu hâlde "temiz" beyan ediliyor`)
+      const etiket = `${arac.plate_number} (${arac.tramer_status}, ${arac.tramer_amount})`;
+      expect(metin, `${etiket} hasarlı ama belgede "Kayıt Var" yok`).toContain('Kayıt Var');
+      expect(metin, `${etiket} hasarlı olduğu hâlde "temiz" beyan ediliyor`)
         .not.toContain('Kayıt Bulunmamaktadır (Temiz)');
-    });
-  }
+    }
+  });
 });
 
 test.describe('Kilometre tutarlılığı gerçekten hesaplanıyor', () => {

@@ -711,9 +711,22 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       });
 
       try {
-        const { data: allVehicles, error: plateCheckError } = await supabase
-          .from('vehicles')
-          .select('plate_number');
+        // TEK BOOLEAN SORULUYOR, TÜM PLAKALAR İNDİRİLMİYOR.
+        //
+        // Önceki hâli filtresiz `select('plate_number')` idi: sistemdeki
+        // BÜTÜN plakaları istemciye indirip karşılaştırma orada yapılıyordu.
+        // İki sorun:
+        //   · Sızıntı — her kullanıcı tüm plakaları elde ediyordu. Plaka
+        //     kişisel veri; URL'lerden ve ziyaretçi arayüzünden KVKK
+        //     gerekçesiyle kaldırdığımız şey buradan akıyordu.
+        //   · Ölçek — yüz binlerce araçta her plaka kontrolü tüm tabloyu
+        //     indirmek demek. Tek bir doğru/yanlış cevabı için ödenen bu
+        //     bedel, kullanıcının internetine ve sunucuya yükleniyordu.
+        //
+        // Normalleştirme de sunucuya taşındı: `41 IHH 434` ile `41IHH434`
+        // karşılaştırması tek yerde yapılıyor.
+        const { data: plakaKayitli, error: plateCheckError } = await supabase
+          .rpc('plaka_kayitli_mi', { p_plaka: cleanInputPlate });
 
         if (plateCheckError) {
           console.error("🔴 Plaka sorgulama veritabanı hatası:", plateCheckError.message);
@@ -721,12 +734,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
           return;
         }
 
-        const duplicateVehicle = (allVehicles || []).find(v => {
-          const dbPlateClean = (v.plate_number || '').replace(/\s+/g, '').toUpperCase();
-          return dbPlateClean === cleanInputPlate;
-        });
-
-        if (duplicateVehicle) {
+        if (plakaKayitli) {
           setStepLoader({ isLoading: false, title: '', subtitle: '' });
           setDuplicatePlateNumber(rawPlate);
           setShowDuplicatePlateModal(true);
