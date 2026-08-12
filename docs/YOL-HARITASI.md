@@ -50,13 +50,6 @@ Dikkat edilecekler:
   bölge.
 - Sızmış şifre koruması (Supabase panelinden tek tık, denetleyici uyarısı).
 - Sigorta iş ortağı akışı.
-- **Araç devri Faz 1.5:** fatura dosyalarını araca bağlamak. Uçtan uca test
-  kanıtladı: devir sonrası alıcı `invoice_path`'i görüyor ama **dosyayı
-  açamıyor** — storage politikası `klasör = benim kimliğim` ve dosyalar
-  `<user_id>/<plaka>/` yolunda, yani satıcının klasöründe kalıyor. Çözüm:
-  yolu `<plaka>/<dosya>` yapmak ve politikayı "bu aracın şu anki sahibiyim"
-  kontrolüne çevirmek. O zaman devir hiçbir dosyaya dokunmaz. Bir kerelik
-  taşıma gerekiyor (`scripts/faturalari-tasi.mjs` aynı kalıp).
 - **Araç devri Faz 2:** `uuid` kimlik. Yalnızca **plaka değişikliği** için
   gerekli (şehir değişimi vb.); satışta plaka araçta kaldığı için Faz 1 asıl
   senaryoyu çözdü. Birincil anahtar değişimi demek: iki tablonun FK'si ve
@@ -133,3 +126,4 @@ Dikkat edilecekler:
 | Next.js 16.3.0 + React 19.2.8; npm audit 6 yüksek → 0 | `8de5da2` |
 | Hasar kataloğu tek kaynağa alındı (3 dosyada kaymıştı) | `de3d35a` |
 | Araç devri Faz 1: sahiplik geçmişi + devir kodları + rıza kaydı | `c4a4f80` |
+| Araç devri Faz 1.5: fatura dosyaları araca bağlandı (devirde geçiyor) | bu commit |

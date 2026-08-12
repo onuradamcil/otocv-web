@@ -111,29 +111,33 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
       let invoiceUrl = null; // aslinda bucket ici YOL tutuyor (asagida aciklandi)
 
       // =====================================================================
-      // FATURA YÜKLEME — ÖZEL BUCKET, YOL ŞEMASI <user_id>/<plaka>/<dosya>
+      // FATURA YÜKLEME
+      // YOL ARACA BAĞLI: `<storage_key>/<dosya>`
       //
-      // ÖNCEKİ HÂLİ AÇIKTI: dosya `vehicle-images` (PUBLIC) bucket'ına
-      // yükleniyor ve `getPublicUrl` ile tam URL veritabanına yazılıyordu.
-      // Fatura görselleri araç sahibinin adını, adresini ve plakasını
-      // taşır; public bucket onları URL'yi bilen herkese KALICI olarak
-      // açıyordu. URL'nin kendisini saklamak da sızıntıydı — değeri
-      // döndüren her sorgu dosyaya kalıcı erişim dağıtıyordu.
+      // Eskiden `<user_id>/<plaka>/<dosya>` idi ve storage politikası
+      // "klasör = benim kimliğim" diye bakıyordu. Araç devri uçtan uca test
+      // edildiğinde kanıtlandı: devirden sonra yeni sahip kayıtta
+      // invoice_path'i görüyor ama DOSYAYI AÇAMIYOR — dosya satıcının
+      // klasöründe kalıyordu. Devir yarım kalıyordu.
       //
-      // NEDEN KLASÖR PLAKA DEĞİL KULLANICI KİMLİĞİ: iki yükleme yolu aynı
-      // araç için farklı klasör adı üretiyordu (sihirbaz plakayı temizliyor,
-      // burası ham kullanıyordu). Canlı veride kanıtlandı: bir dosya
-      // `41_IHH_434/` klasöründeydi ama plaka `41IHH434`. Klasör adını
-      // plakayla karşılaştıran bir güvenlik politikası o dosyada başarısız
-      // olurdu. Kullanıcı kimliği biçimlendirmeye bağlı değil.
+      // `storage_key` aracın kimlik taşımayan uuid'si. Plaka DEĞİL: plaka
+      // kişisel veri ve imzalı URL'nin içinde görünüyor; ayrıca plaka
+      // değişirse yol kırılır.
+      //
+      // Politika artık "bu klasör benim sahip olduğum bir aracın anahtarı mı"
+      // diye bakıyor ve sahiplik kontrolünü `vehicles` tablosunun RLS'i
+      // yapıyor. Devir `vehicles.user_id`'yi güncellediği için erişim
+      // kendiliğinden yeni sahibe geçiyor — hiçbir dosya taşınmıyor.
       // =====================================================================
       if (invoiceFile) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('Fatura yüklemek için oturum gerekli.');
+        const depoAnahtari = vehicle?.storage_key;
+        if (!depoAnahtari) {
+          throw new Error('Aracın depo anahtarı okunamadı; fatura yüklenemedi.');
+        }
 
         const fileExt = invoiceFile.name.split('.').pop();
         const fileName = `invoice_${Date.now()}.${fileExt}`;
-        const filePath = `${user.id}/${activePlate}/${fileName}`;
+        const filePath = `${depoAnahtari}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('vehicle-invoices')
@@ -141,8 +145,8 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
 
         if (uploadError) throw uploadError;
 
-        // Tam URL DEĞİL, yalnızca bucket içi yol saklanıyor. Erişim her
-        // istekte imzalı bağlantıyla, 60 saniyelik ömürle veriliyor.
+        // Tam URL DEĞİL, yalnızca bucket içi yol. Erişim her istekte imzalı
+        // bağlantıyla, 5 dakikalık ömürle veriliyor.
         invoiceUrl = filePath;
       }
 
@@ -157,6 +161,10 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
         summary: summary.trim(),
         // Kolon adi invoice_path: artik tam URL degil, bucket ici yol.
         invoice_path: invoiceUrl,
+        // Belgeyi kim yükledi. Devirde DEĞİŞMEZ; KVKK silme hakkı bu kolonla
+        // uygulanıyor — satıcı ileride "faturalarımı silin" derse hangi
+        // dosyaların onun olduğu bilinir.
+        yukleyen_user_id: (await supabase.auth.getUser()).data?.user?.id ?? null,
         // ISO olarak yazılıyor. Kolon artık Postgres 'date' tipinde ve
         // '08/05/2023' gibi biçimlendirilmiş metin göndermek sunucunun
         // DateStyle ayarına bağlı bir kumar olurdu ('05/06/2023' sessizce

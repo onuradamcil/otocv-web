@@ -238,7 +238,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   // Dönüş değeri tam URL DEĞİL, bucket içi yol. Erişim her istekte imzalı
   // bağlantıyla, kısa ömürle veriliyor.
   // =========================================================================
-  const uploadInvoiceToStorage = async (fileObj, userId, plate) => {
+  const uploadInvoiceToStorage = async (fileObj, depoAnahtari) => {
     if (!fileObj) return null;
     // Zaten depoda olan bir kayıt: elde bucket İÇİ YOL var, yeniden
     // yüklemeye gerek yok. Eskiden burada `startsWith('http')` denetimi
@@ -266,11 +266,14 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     try {
       const fileExt = blobOrFile.type ? (blobOrFile.type.split('/')[1] || 'png') : 'png';
       const fileName = `invoice_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-      if (!userId) {
-        console.error("🔴 Fatura yüklenemedi: oturum kimliği yok.");
+      if (!depoAnahtari) {
+        console.error("🔴 Fatura yüklenemedi: aracın depo anahtarı yok.");
         return null;
       }
-      const filePath = `${userId}/${plate}/${fileName}`;
+      // YOL ARACA BAĞLI: <storage_key>/<dosya>. Eskiden <user_id>/<plaka>/ idi
+      // ve devirden sonra yeni sahip dosyayı açamıyordu (uçtan uca testte
+      // kanıtlandı) — dosya satıcının klasöründe kalıyordu.
+      const filePath = `${depoAnahtari}/${fileName}`;
 
       const { error: uploadErr } = await supabase.storage
         .from('vehicle-invoices')
@@ -638,7 +641,13 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
             // 🟢 FATURA GÖRSELİNİ ÖZEL DEPOYA YÜKLE VE BUCKET İÇİ YOLU AL
             let uploadedInvoicePath = null;
             if (rec.invoice_file) {
-              uploadedInvoicePath = await uploadInvoiceToStorage(rec.invoice_file, user.id, cleanPlate);
+              // insertedVehicle yukarida `.select().single()` ile dondu,
+              // dolayisiyla storage_key elde. Arac ONCE eklendigi icin sira
+              // dogru — yukleme aracin anahtarina yapiliyor.
+              uploadedInvoicePath = await uploadInvoiceToStorage(
+                rec.invoice_file,
+                insertedVehicle?.storage_key
+              );
             } else if (rec.invoice_path) {
               // Depoda zaten duran bir kayıt: yol korunuyor.
               uploadedInvoicePath = rec.invoice_path;
@@ -654,7 +663,10 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               service_date: toIsoDate(rec.service_date),
               service_type: rec.service_type || 'Periyodik Bakım',
               // Kolon adı invoice_path: tam URL değil, bucket içi yol.
-              invoice_path: uploadedInvoicePath
+              invoice_path: uploadedInvoicePath,
+              // Belgeyi kim yükledi. Devirde DEĞİŞMEZ; KVKK silme hakkı bu
+              // kolonla uygulanıyor.
+              yukleyen_user_id: user.id
             });
           }
 
