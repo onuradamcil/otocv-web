@@ -154,62 +154,26 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
 
   const navRef = useRef(null);
 
-  if (!vehicle) {
-    return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-xs font-semibold text-slate-400">
-        Araç sicil verileri yükleniyor...
-      </div>
-    );
-  }
-
-  // Veritabanı Temel Eşleştirmeleri
-  const imageList = parseSafeImageUrls(vehicle.image_url || vehicle.image || vehicle.photos);
-  const activeKm = vehicle.km ? Number(vehicle.km).toLocaleString('tr-TR') : '0';
-  const otocvScore = vehicle.trust_score ?? 92;
-  const rawPlate = vehicle.plate_number || vehicle.plate || vehicle.vehicle_plate || '';
+  // =========================================================================
+  // KANCALAR (HOOKS) ERKEN DÖNÜŞÜN ÜSTÜNDE OLMAK ZORUNDA
+  //
+  // Bu iki useEffect eskiden `if (!vehicle) return` satırının ALTINDAydı.
+  // React kancaları her render'da AYNI SIRADA ve AYNI SAYIDA çağrılmak
+  // zorundadır. Araç başta null gelip sonra dolduğunda ilk render 14 kanca,
+  // ikinci render 16 kanca çalıştırıyordu ve React "önceki render'dan daha
+  // fazla kanca" hatasıyla sayfayı çökertiyordu.
+  //
+  // Şu an tetiklenmiyor çünkü üst sayfa (details/[pin]/page.js) yükleme
+  // iskeletini gösterip aracı dolu geçiyor. Ama gizli bir tuzaktı: null
+  // geçen herhangi bir çağıran sayfayı çökertirdi. `if (!vehicle)` bloğunun
+  // var olması, birinin bu durumu beklediğini gösteriyor.
+  //
+  // Plaka türetmesi de buraya taşındı çünkü ilk efekt ona bağlı. `vehicle?.`
+  // ile null-güvenli yazıldı.
+  // =========================================================================
+  const rawPlate = vehicle?.plate_number || vehicle?.plate || vehicle?.vehicle_plate || '';
   // 🟢 BOŞLUKSUZ PLAKA TEMİZLEYİCİ
   const cleanPlateNumber = rawPlate.replace(/\s+/g, '').toUpperCase();
-
-  // 🔒 KVKK: Plaka, araç sahibine ulaşılabilecek kişisel veridir. Ziyaretçiye
-  // hiç gösterilmez — "gizli" etiketi bile konmaz. Sebebi: güven ekranında
-  // eksik bir alana dikkat çekmek şüphe uyandırır, yokluk ise nötrdür.
-  // Aracın kimliğini doğrulama işini PIN kodu üstlenir.
-  const ownerPlate = rawPlate || 'Tescilli Plaka';
-  const pinCode = vehicle.pin_code || 'CV-RESMI';
-
-  const sellerName = vehicle.owner_name || 'Tescilli Araç Sahibi';
-  const sellerPhone = vehicle.owner_phone || '0 (532) 123 45 67';
-  const memberSince = 'Mart 2026';
-
-  // 🛠️ HASAR RAPORU (DAMAGE REPORT) JSON PARSE ZIRHI
-  let rawDamageReport = vehicle.damage_report || vehicle.damageReport || {};
-  if (typeof rawDamageReport === 'string') {
-    try { rawDamageReport = JSON.parse(rawDamageReport); } catch (e) { rawDamageReport = {}; }
-  }
-  const damageReport = rawDamageReport || {};
-
-  // 🛠️ DONANIM SEÇİMLERİ (SELECTED FEATURES) JSON PARSE ZIRHI
-  let rawFeatures = vehicle.selected_features || vehicle.selectedFeatures || vehicle.features || [];
-  if (typeof rawFeatures === 'string') {
-    try {
-      rawFeatures = JSON.parse(rawFeatures);
-    } catch (e) {
-      rawFeatures = rawFeatures.split(',').map(s => s.trim());
-    }
-  }
-  const userSelectedFeatures = Array.isArray(rawFeatures) ? rawFeatures : [];
-
-  const catalogFlatItems = FEATURE_CATALOG.flatMap(cat => cat.items.map(i => String(i).trim().toLowerCase()));
-  const extraFeatures = userSelectedFeatures.filter(
-    sf => !catalogFlatItems.includes(String(sf).trim().toLowerCase())
-  );
-
-  const THUMBNAILS_PER_PAGE = 10;
-  const totalPages = Math.ceil(imageList.length / THUMBNAILS_PER_PAGE);
-  const currentThumbnails = imageList.slice(
-    thumbPage * THUMBNAILS_PER_PAGE,
-    (thumbPage + 1) * THUMBNAILS_PER_PAGE
-  );
 
   // 📡 SUPABASE 'maintenance_records' CANLI ÇEKİM MOTORU (BOŞLUKSUZ PLAKA SENSÖRLÜ)
   useEffect(() => {
@@ -244,20 +208,6 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
 
     fetchMaintenanceHistory();
   }, [cleanPlateNumber]);
-
-  // Bakım Harcamalarını Hesaplama
-  const totalMaintenanceCost = maintenanceRecords.reduce((sum, item) => {
-    let costVal = 0;
-    if (typeof item.cost === 'number') {
-      costVal = item.cost;
-    } else if (typeof item.cost === 'string') {
-      const cleanCost = item.cost.replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '');
-      costVal = parseFloat(cleanCost) || 0;
-    }
-    return sum + costVal;
-  }, 0);
-
-  const formattedTotalCost = `₺${totalMaintenanceCost.toLocaleString('tr-TR')}`;
 
   // ⚙️ SCROLL & Observer Kontrolcüsü
   useEffect(() => {
@@ -304,6 +254,77 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
       observer.disconnect();
     };
   }, []);
+
+
+  if (!vehicle) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-xs font-semibold text-slate-400">
+        Araç sicil verileri yükleniyor...
+      </div>
+    );
+  }
+
+  // Veritabanı Temel Eşleştirmeleri
+  const imageList = parseSafeImageUrls(vehicle.image_url || vehicle.image || vehicle.photos);
+  const activeKm = vehicle.km ? Number(vehicle.km).toLocaleString('tr-TR') : '0';
+  const otocvScore = vehicle.trust_score ?? 92;
+
+  // 🔒 KVKK: Plaka, araç sahibine ulaşılabilecek kişisel veridir. Ziyaretçiye
+  // hiç gösterilmez — "gizli" etiketi bile konmaz. Sebebi: güven ekranında
+  // eksik bir alana dikkat çekmek şüphe uyandırır, yokluk ise nötrdür.
+  // Aracın kimliğini doğrulama işini PIN kodu üstlenir.
+  const ownerPlate = rawPlate || 'Tescilli Plaka';
+  const pinCode = vehicle.pin_code || 'CV-RESMI';
+
+  const sellerName = vehicle.owner_name || 'Tescilli Araç Sahibi';
+  const sellerPhone = vehicle.owner_phone || '0 (532) 123 45 67';
+  const memberSince = 'Mart 2026';
+
+  // 🛠️ HASAR RAPORU (DAMAGE REPORT) JSON PARSE ZIRHI
+  let rawDamageReport = vehicle.damage_report || vehicle.damageReport || {};
+  if (typeof rawDamageReport === 'string') {
+    try { rawDamageReport = JSON.parse(rawDamageReport); } catch (e) { rawDamageReport = {}; }
+  }
+  const damageReport = rawDamageReport || {};
+
+  // 🛠️ DONANIM SEÇİMLERİ (SELECTED FEATURES) JSON PARSE ZIRHI
+  let rawFeatures = vehicle.selected_features || vehicle.selectedFeatures || vehicle.features || [];
+  if (typeof rawFeatures === 'string') {
+    try {
+      rawFeatures = JSON.parse(rawFeatures);
+    } catch (e) {
+      rawFeatures = rawFeatures.split(',').map(s => s.trim());
+    }
+  }
+  const userSelectedFeatures = Array.isArray(rawFeatures) ? rawFeatures : [];
+
+  const catalogFlatItems = FEATURE_CATALOG.flatMap(cat => cat.items.map(i => String(i).trim().toLowerCase()));
+  const extraFeatures = userSelectedFeatures.filter(
+    sf => !catalogFlatItems.includes(String(sf).trim().toLowerCase())
+  );
+
+  const THUMBNAILS_PER_PAGE = 10;
+  const totalPages = Math.ceil(imageList.length / THUMBNAILS_PER_PAGE);
+  const currentThumbnails = imageList.slice(
+    thumbPage * THUMBNAILS_PER_PAGE,
+    (thumbPage + 1) * THUMBNAILS_PER_PAGE
+  );
+
+
+  // Bakım Harcamalarını Hesaplama
+  const totalMaintenanceCost = maintenanceRecords.reduce((sum, item) => {
+    let costVal = 0;
+    if (typeof item.cost === 'number') {
+      costVal = item.cost;
+    } else if (typeof item.cost === 'string') {
+      const cleanCost = item.cost.replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '');
+      costVal = parseFloat(cleanCost) || 0;
+    }
+    return sum + costVal;
+  }, 0);
+
+  const formattedTotalCost = `₺${totalMaintenanceCost.toLocaleString('tr-TR')}`;
+
 
   const scrollToSection = (sectionId) => {
     setActiveSection(sectionId);

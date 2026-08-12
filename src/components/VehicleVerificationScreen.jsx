@@ -57,33 +57,6 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
     }
   };
 
-  // Onboarding Hızlı Çipleri Canlı Sorgu Tetikleyicisi
-  const handleQuickChipQuery = async (code) => {
-    setSearchPin(code);
-    setSearchError('');
-    setLoading(true);
-
-    try {
-      const { data, error } = await supabase
-        .from('vehicles')
-        .select('*')
-        .ilike('pin_code', code);
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        onVehicleFound(data[0], 'public');
-        return;
-      }
-
-      setSearchError(`${code} koduna ait bir araç kaydı bulunamadı.`);
-    } catch (err) {
-      console.error('Sorgulama hatası:', err);
-      setSearchError('Sorgulama sırasında bir hata oluştu. Lütfen tekrar deneyin.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Simüle Kamera ve Yeşil Lazer QR Tarama Zamanlayıcısı
   const triggerQrScannerSimulation = async () => {
@@ -167,6 +140,15 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                 </p>
               </div>
 
+              {/* FORM ETİKETİ EKLENDİ.
+                  Önceden <form> yoktu; kullanıcı PIN'i yazıp Enter'a bastığında
+                  HİÇBİR ŞEY olmuyordu. Sitenin çekirdek sorgu ekranında en doğal
+                  hareket çalışmıyordu. Tarayıcı Enter'ı ancak form içindeki bir
+                  submit butonuna iletir. */}
+              <form
+                onSubmit={(e) => { e.preventDefault(); handlePinSearch(); }}
+                className="space-y-6"
+              >
               <div className="relative">
                 <input 
                   type="text"
@@ -186,20 +168,9 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                 </div>
               )}
 
-              <div className="space-y-2">
-                <span className="text-[10px] font-bold text-slate-400 tracking-wide uppercase">HIZLI TEST ÖRNEKLERİ</span>
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => handleQuickChipQuery('CV-4383')} className="px-3 py-2 bg-slate-50 border border-gray-200 hover:border-indigo-300 rounded-xl text-xs font-mono font-bold text-slate-700 transition-all active:scale-95">
-                    CV-4383 <span className="text-[10px] text-slate-400 font-sans font-medium">(Tesla Model 3)</span>
-                  </button>
-                  <button type="button" onClick={() => handleQuickChipQuery('CV-1907')} className="px-3 py-2 bg-slate-50 border border-gray-200 hover:border-indigo-300 rounded-xl text-xs font-mono font-bold text-slate-700 transition-all active:scale-95">
-                    CV-1907 <span className="text-[10px] text-slate-400 font-sans font-medium">(BMW 3 Serisi)</span>
-                  </button>
-                </div>
-              </div>
 
               <button 
-                onClick={handlePinSearch}
+                type="submit"
                 disabled={loading}
                 className="w-full bg-[#4F46E5] hover:bg-indigo-700 active:scale-98 text-white py-4 rounded-xl font-bold text-xs shadow-lg shadow-indigo-600/10 flex items-center justify-center gap-2 transition-all mt-4"
               >
@@ -212,6 +183,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                   </>
                 )}
               </button>
+              </form>
             </div>
           ) : (
             <div className="space-y-5 animate-fadeIn flex-1 flex flex-col justify-between">

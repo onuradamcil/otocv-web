@@ -1,0 +1,152 @@
+// =========================================================================
+// OTO-CV TEST YARDIMCILARI (tests/yardimcilar.js)
+//
+// -------------------------------------------------------------------------
+// EN ÖNEMLİ KISIM: TESTLER KENDİ ÇÖPÜNÜ TEMİZLER
+// -------------------------------------------------------------------------
+// Form testi veritabanına gerçek bir bakım kaydı yazıyor ve aracın
+// trust_score'unu +5 yapıyor. Önceden bu temizliği elle yapıyordum — bir
+// oturumda beş kez. Bu kırılgan bir düzendi: bir kez atlanınca veritabanında
+// kalıcı çöp birikir, trust_score şişer ve karne yanlış puan gösterir.
+//
+// Artık `test.use({ temizlik: true })` diyen her dosya, koşum bitince
+// otomatik temizlenir — test BAŞARISIZ olsa, hata atsa, yarıda kesilse bile.
+// Playwright'ın fixture teardown mekanizması bunu garanti eder.
+//
+// Yazılan her kayıt BENZERSİZ bir işaret taşır (TEST_ISARETI). Böylece
+// temizlik yalnızca o koşumun ürettiğini siler; gerçek kullanıcı verisine
+// hiçbir koşulda dokunmaz. Bu, "sil" komutunun yanlış satırı bulma riskini
+// tamamen ortadan kaldırır.
+// =========================================================================
+
+const base = require('@playwright/test');
+const { createClient } = require('@supabase/supabase-js');
+
+require('dotenv').config({ path: '.env.test', quiet: true });
+
+// Bu koşuma özgü işaret. Zaman damgası + rastgele son ek: aynı anda iki
+// koşum olsa bile birbirinin verisini silmez.
+const TEST_ISARETI = `OTOCV-TEST-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+// Testlerin okuduğu sabit araç. Karne ve tramer testleri bu araca bakıyor.
+const ORNEK_PIN = process.env.OTOCV_TEST_PIN || 'CV-D7JMLH';
+const ORNEK_PLAKA = process.env.OTOCV_TEST_PLAKA || '41IHH434';
+
+function ortam(ad) {
+  const d = process.env[ad];
+  if (!d) {
+    throw new Error(
+      `${ad} tanımlı değil. .env.test dosyasını oluşturun ` +
+      `(.env.test.example dosyasını kopyalayıp doldurun).`
+    );
+  }
+  return d;
+}
+
+/** Oturum açmış Supabase istemcisi. Temizlik ve doğrulama için. */
+async function supabaseIstemcisi() {
+  const sb = createClient(
+    ortam('NEXT_PUBLIC_SUPABASE_URL'),
+    ortam('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  );
+  const { error } = await sb.auth.signInWithPassword({
+    email: ortam('OTOCV_TEST_EMAIL'),
+    password: ortam('OTOCV_TEST_PASSWORD'),
+  });
+  if (error) throw new Error(`Test hesabıyla oturum açılamadı: ${error.message}`);
+  return sb;
+}
+
+/** Arayüz üzerinden giriş yapar. Gerçek kullanıcı yolunu test eder. */
+async function girisYap(page) {
+  await page.goto('/login');
+  await page.waitForLoadState('networkidle');
+  await page.fill("input[type='email']", ortam('OTOCV_TEST_EMAIL'));
+  await page.fill("input[type='password']", ortam('OTOCV_TEST_PASSWORD'));
+  await page.click("button[type='submit']");
+  // URL değişmesini bekle — networkidle yetmez, istemci tarafı yönlendirme
+  // ondan sonra tamamlanıyor.
+  await page.waitForURL((u) => !u.toString().includes('/login'), { timeout: 30_000 });
+}
+
+/**
+ * Karne belgesinin "Detaylı" sekmesini açar.
+ * Belge varsayılan sekmede DEĞİL; ilk sekme ilan paylaşım kartı.
+ * Bu ayrımı bilmeyen bir test, belge hiç açılmadığı hâlde "yasaklı ifade
+ * bulunamadı" diye yanlış geçer.
+ */
+async function belgeSekmesiniAc(page) {
+  await page.locator('text=Detaylı Resmi Sicil Belgesi').first().click();
+  await page.waitForTimeout(1200);
+  await base.expect(page.locator('text=OTO.CV SİCİL BULGULARI')).toBeVisible();
+}
+
+/**
+ * CSS text-transform tuzağını atlatan metin okuyucu.
+ *
+ * inner_text() CSS'in `uppercase` dönüşümünü UYGULAR. Kaynak etiketleri
+ * ("Araç sahibi beyanı") uppercase sınıfı taşıdığı için inner_text ile
+ * arandığında bulunamıyor ve test yanlış başarısız oluyor. Bu tuzağa
+ * geliştirme sırasında iki kez düşüldü; bu yüzden yardımcı olarak sabitlendi.
+ */
+async function hamMetin(page) {
+  return page.locator('body').textContent();
+}
+
+// =========================================================================
+// FIXTURE: temizlik
+// Testin sonunda — geçse de geçmese de — bu koşumun yazdığı veriyi siler.
+// =========================================================================
+const test = base.test.extend({
+  /** Oturum açmış Supabase istemcisi (test içinde doğrulama için). */
+  sb: async ({}, use) => {
+    const sb = await supabaseIstemcisi();
+    await use(sb);
+  },
+
+  /**
+   * Bu fixture'ı isteyen test, veritabanına yazabilir. Koşum bitince
+   * yazdıkları TEST_ISARETI üzerinden silinir ve trust_score geri alınır.
+   */
+  temizlik: async ({ sb }, use) => {
+    const oncekiPuan = await puanOku(sb, ORNEK_PLAKA);
+
+    await use({ isaret: TEST_ISARETI, plaka: ORNEK_PLAKA });
+
+    // ---- TEARDOWN: test başarısız olsa bile çalışır ----
+    const { error: silHata } = await sb
+      .from('maintenance_records')
+      .delete()
+      .like('shop_name', 'OTOCV-TEST-%');
+    if (silHata) console.warn('Test kaydı silinemedi:', silHata.message);
+
+    if (oncekiPuan !== null) {
+      const { error: puanHata } = await sb
+        .from('vehicles')
+        .update({ trust_score: oncekiPuan })
+        .eq('plate_number', ORNEK_PLAKA);
+      if (puanHata) console.warn('trust_score geri alınamadı:', puanHata.message);
+    }
+  },
+});
+
+async function puanOku(sb, plaka) {
+  const { data } = await sb
+    .from('vehicles')
+    .select('trust_score')
+    .eq('plate_number', plaka)
+    .single();
+  return data?.trust_score ?? null;
+}
+
+module.exports = {
+  test,
+  expect: base.expect,
+  girisYap,
+  belgeSekmesiniAc,
+  hamMetin,
+  supabaseIstemcisi,
+  TEST_ISARETI,
+  ORNEK_PIN,
+  ORNEK_PLAKA,
+};

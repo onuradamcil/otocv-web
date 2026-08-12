@@ -351,7 +351,7 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
               satırlar araç sahibi tarafından bildirilmiştir ve bağımsız olarak doğrulanmamıştır.
               <span className="font-semibold text-slate-600"> “Belgeli”</span> etiketli satırların arkasında
               sisteme yüklenmiş fatura görseli bulunur.
-              <span className="font-semibold text-slate-600"> “Hesaplandı”</span> etiketli satırlar Oto.CV'nin
+              <span className="font-semibold text-slate-600"> “Hesaplandı”</span> etiketli satırlar Oto.CV&apos;nin
               kendi kayıtlarından türetilmiştir.
             </p>
             <p className="m-0">

@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "playwright test",
+    "test:rapor": "playwright show-report",
+    "test:izle": "playwright test --headed --project=masaustu",
+    "test:hizli": "playwright test --project=masaustu tests/01-rota-erisim.spec.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.2",
@@ -16,7 +20,9 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4"

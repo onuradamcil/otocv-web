@@ -10,6 +10,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import Link from 'next/link';
 
 const ODAK = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2';
 
@@ -22,9 +23,9 @@ export default function Error({ error, reset }) {
     <div className="min-h-screen bg-[#FFFDFB] text-[#0F172A] font-sans antialiased flex flex-col">
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center">
-          <a href="/" className={`text-base font-black tracking-tight text-slate-900 rounded ${ODAK}`}>
+          <Link href="/" className={`text-base font-black tracking-tight text-slate-900 rounded ${ODAK}`}>
             OTO.CV
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -50,12 +51,16 @@ export default function Error({ error, reset }) {
             >
               Tekrar Dene
             </button>
-            <a
+            {/* <a> yerine <Link>: ham <a> tam sayfa yenilemesi yapıyordu,
+                yani hata ekranından anasayfaya dönmek uygulamayı baştan
+                yüklüyordu. Link istemci tarafı geçiş yapar — hızlı ve
+                oturum durumu korunur. */}
+            <Link
               href="/"
               className={`flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs px-6 rounded-xl transition-colors ${ODAK}`}
             >
               Anasayfa
-            </a>
+            </Link>
           </div>
         </div>
       </main>

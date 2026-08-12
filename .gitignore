@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ornek dosya depoda kalmali — .env* kurali onu da gizliyordu
+!.env.test.example
+
+# playwright ciktilari (ekran goruntuleri, videolar, izler, HTML rapor)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

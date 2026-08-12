@@ -146,7 +146,7 @@ export default function MarketplaceView({
       <div className="bg-[#0F172A] text-white py-8 px-4 border-b border-slate-800 select-none">
         <div className="max-w-7xl mx-auto text-center space-y-3">
           <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-100">
-            Aracın DNA'sını Keşfedin, Güvenle Satın Alın
+            Aracın DNA&apos;sını Keşfedin, Güvenle Satın Alın
           </h1>
           
           <div className="max-w-2xl mx-auto bg-white p-1 rounded-md border border-slate-700 shadow-lg flex items-center gap-2">
@@ -340,7 +340,7 @@ export default function MarketplaceView({
                       Künye Sorgula
                     </h4>
                     <p className="text-[10px] text-slate-500 font-normal leading-tight mt-0.5">
-                      PIN ile tescilli araç DNA'sını doğrulayın.
+                      PIN ile tescilli araç DNA&apos;sını doğrulayın.
                     </p>
                   </div>
                   <div className="mt-2 text-[10px] font-bold text-rose-600 border-b-2 border-rose-600 w-max opacity-80 group-hover:opacity-100 transition-all">

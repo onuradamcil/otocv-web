@@ -1,0 +1,148 @@
+# =========================================================================
+# OTO-CV SÜREKLİ ENTEGRASYON
+#
+# NE YAPAR: Siz `git push` yaptığınız anda GitHub'da bir makine açılır,
+# projenizi indirir, derler ve testleri koşar. Sonucu commit'in yanına
+# yeşil tik ya da kırmızı çarpı olarak koyar. Siz hiçbir şey yapmazsınız.
+#
+# NEREDEN GÖRÜRSÜNÜZ: GitHub'da deponuzun "Actions" sekmesi. Ayrıca her
+# commit ve her pull request'in yanında küçük bir işaret çıkar.
+#
+# HATA OLURSA: koşum, başarısız testin ekran görüntüsünü, videosunu ve
+# iz kaydını "playwright-raporu" adıyla saklar. Actions sekmesinden
+# indirip açtığınızda testin tıkladığı her adımı görebilirsiniz.
+#
+# -------------------------------------------------------------------------
+# İKİ AŞAMALI KURULUM — şu an 1. aşamadayız
+# -------------------------------------------------------------------------
+# 1. AŞAMA (şu an): "kalite" işi her push'ta koşar — lint + derleme.
+#    Bu, geliştirme sırasında üç kez yapılan hatayı yakalar: `return (` ile
+#    eleman arasına JSX yorumu koymak ve eksik import bırakmak. İkisi de
+#    tüm sayfaları 500'e düşürüyordu ve ancak derleme elle çalıştırıldığında
+#    görülüyordu.
+#
+#    "testler" işi ise yalnızca gizli anahtarlar tanımlıysa koşar. Tanımlı
+#    değilse atlanır — koşum kırmızı olmaz, sadece o adım çalışmaz.
+#
+# 2. AŞAMA (sonraki adım): yerel Supabase (`supabase start`) koşum içinde
+#    ayağa kaldırılır ve testler ona yazar. Böylece CI canlı veritabanına
+#    hiç dokunmaz. Ön koşulu: `supabase/migrations/` içinde tabloları
+#    SIFIRDAN oluşturan bir temel migration olması. Şu an yalnızca ALTER
+#    içeren 5 migration var; tabloların ilk oluşturulma kaydı yok, çünkü
+#    panelden oluşturulmuşlar. `supabase db pull` bunu üretir.
+#
+# NEDEN CI CANLI VERİTABANINA YAZMIYOR: form testi gerçek bir bakım kaydı
+# oluşturuyor ve trust_score'u +5 yapıyor. Her push'ta bunun olması, canlı
+# veride sürekli çöp birikmesi demek. Testler kendi çöpünü temizliyor ama
+# CI'da bunun her seferinde kusursuz çalışmasına bel bağlamak doğru değil.
+# =========================================================================
+
+name: Test
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch: # Actions sekmesinden elle de başlatılabilir
+
+# Aynı dalda yeni push gelirse eskisini iptal et — boşuna makine çalışmasın.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kalite:
+    name: Lint ve derleme
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Bağımlılıkları kur
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # Derleme, ortam değişkeni olmadan da çalışmalı. Supabase anahtarları
+      # yalnızca çalışma zamanında gerekiyor; derleme sırasında bir sayfa
+      # onlara erişmeye çalışıyorsa bu bir kusurdur ve burada görülür.
+      - name: Derle
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+
+  testler:
+    name: Uçtan uca testler
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: kalite
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Bağımlılıkları kur
+        run: npm ci
+
+      # Gizli anahtarlar tanımlı mı? Değilse test adımları atlanır.
+      # Böylece depoyu klonlayan biri (ya da anahtarlar henüz girilmemişse)
+      # kırmızı koşum görmez.
+      - name: Gizli anahtarları denetle
+        id: anahtar
+        run: |
+          if [ -n "${{ secrets.OTOCV_TEST_EMAIL }}" ]; then
+            echo "var=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "var=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Test anahtarları tanımlı değil, uçtan uca testler atlandı."
+          fi
+
+      - name: Playwright tarayıcılarını kur
+        if: steps.anahtar.outputs.var == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Test ortamı dosyasını oluştur
+        if: steps.anahtar.outputs.var == 'true'
+        run: |
+          cat > .env.test <<EOF
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          OTOCV_TEST_EMAIL=${{ secrets.OTOCV_TEST_EMAIL }}
+          OTOCV_TEST_PASSWORD=${{ secrets.OTOCV_TEST_PASSWORD }}
+          OTOCV_TEST_PIN=${{ secrets.OTOCV_TEST_PIN }}
+          OTOCV_TEST_PLAKA=${{ secrets.OTOCV_TEST_PLAKA }}
+          EOF
+          # .env.local de gerekli: `npm run dev` onu okuyor.
+          cp .env.test .env.local
+
+      # 2. AŞAMAYA KADAR: veritabanına YAZAN paket (03-formlar) CI'da
+      # koşmuyor. Okuma yapan paketler koşuyor. Yerel Supabase kurulduğunda
+      # bu satırdaki dosya listesi kaldırılıp tüm paketler açılacak.
+      - name: Testleri koş (yazma yapmayan paketler)
+        if: steps.anahtar.outputs.var == 'true'
+        run: npx playwright test tests/01-rota-erisim.spec.js tests/02-karne-butunlugu.spec.js tests/04-mobil.spec.js
+        env:
+          CI: true
+
+      - name: Raporu sakla
+        if: always() && steps.anahtar.outputs.var == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-raporu
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
