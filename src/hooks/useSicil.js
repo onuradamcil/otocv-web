@@ -99,6 +99,15 @@ export function useSicil(pin) {
         setKayitlar([]);
         setArac(null);
         setSahipMi(false);
+      } else if (data?.hata === 'cok_fazla_deneme') {
+        // HIZ SINIRI. Bunu "bulunamadı"dan ayırmak zorunlu: aynı görünmesi,
+        // kullanıcıya "bu araç yok" yalanını söylemek olurdu. Fonksiyon bu
+        // yüzden null değil, işaretli bir nesne döndürüyor.
+        const dk = Math.ceil((data.yeniden_dene_saniye || 600) / 60);
+        setHata(`Çok fazla sorgu yapıldı. ${dk} dakika sonra tekrar deneyin.`);
+        setKayitlar([]);
+        setArac(null);
+        setSahipMi(false);
       } else if (!data) {
         // null = PIN bulunamadı ya da biçim geçersiz. Hata değil, boş sonuç.
         setKayitlar([]);

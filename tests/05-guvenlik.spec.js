@@ -263,7 +263,11 @@ test.describe('Güvenlik · vehicles tablosu', () => {
   test('plaka_kayitli_mi yalnızca doğru/yanlış döner, plaka sızdırmaz', async () => {
     // Sihirbazın tekillik kontrolü eskiden filtresiz `select('plate_number')`
     // yapıyordu: sistemdeki BÜTÜN plakaları indiriyordu. Artık tek boolean.
-    const anon = anonIstemcisi();
+    //
+    // OTURUMLU istemci kullanılıyor: fonksiyon anon'a kapatıldı, çünkü plaka
+    // uzayı PIN uzayından çok küçük ve bir keşif kapısıydı. Anon'un
+    // reddedildiğini ayrı bir test doğruluyor.
+    const anon = await supabaseIstemcisi();
 
     const { data: yok, error: e1 } = await anon.rpc('plaka_kayitli_mi', {
       p_plaka: 'ZZ YOK BOYLE 999',
@@ -273,7 +277,7 @@ test.describe('Güvenlik · vehicles tablosu', () => {
     expect(yok).toBe(false);
 
     // Var olan bir plaka: sahibi bilir, sistem doğrular. Yeni bilgi sızmıyor.
-    const sb = await supabaseIstemcisi();
+    const sb = anon;
     const { data: kendi } = await sb.from('vehicles').select('plate_number').limit(1);
     const plaka = kendi?.[0]?.plate_number;
     expect(plaka).toBeTruthy();
@@ -719,5 +723,57 @@ test.describe('Sicil puani kanita bagli', () => {
           .toBeLessThanOrEqual(55);
       }
     }
+  });
+});
+
+test.describe('Hiz siniri normal kullanimi bozmuyor', () => {
+  // Hız sınırının GERÇEKTEN devreye girdiği test ayrı dosyada
+  // (06-hiz-siniri.spec.js) ve varsayılan koşumda çalışmıyor: sınırı aşmak,
+  // koşan makinenin IP'sini 10 dakika engelliyor.
+  //
+  // Buradaki testler tersini kontrol ediyor ve asıl risk bu: sınır, mesru
+  // kullanıcıyı engelliyor mu? Bir hız sınırının en olası arızası saldırganı
+  // durdurmaması değil, kullanıcıyı durdurmasıdır.
+
+  test('gecerli PIN sorgusu sinira takilmiyor', async () => {
+    const anon = anonIstemcisi();
+    const pin = await ornekPin();
+
+    // Bir kullanıcının makul davranışı: aynı karneyi birkaç kez açmak.
+    for (let i = 0; i < 5; i++) {
+      const { data, error } = await anon.rpc('sicil_getir', { p_pin: pin });
+      expect(error).toBeFalsy();
+      expect(data?.hata, `${i + 1}. sorguda mesru kullanici engellendi`).toBeUndefined();
+      expect(data?.arac, `${i + 1}. sorguda arac donmedi`).toBeTruthy();
+    }
+  });
+
+  test('sinir log tablosu istemciye KAPALI', async () => {
+    // Tablo IP adresi ve hangi PIN'in sorgulandığını tutuyor: ikisi de
+    // kişisel veri. Okunabilir olsaydı, kimin hangi aracı sorguladığı
+    // dışarıdan görülebilirdi — sınırın kendisi bir sızıntıya dönüşürdü.
+    const anon = anonIstemcisi();
+    const { data, error } = await anon.from('sicil_sorgu_log').select('*');
+    expect(error || (data && data.length === 0)).toBeTruthy();
+    expect(data?.length ?? 0, 'sorgu kaydi tablosu okunabiliyor').toBe(0);
+
+    const sb = await supabaseIstemcisi();
+    const { data: d2, error: e2 } = await sb.from('sicil_sorgu_log').select('*');
+    expect(e2 || (d2 && d2.length === 0)).toBeTruthy();
+    expect(d2?.length ?? 0, 'oturumlu kullanici sorgu kaydini okuyabiliyor').toBe(0);
+  });
+
+  test('plaka_kayitli_mi anon icin KAPALI, oturumluya acik', async () => {
+    // Bu fonksiyon bir keşif kapısı: plaka uzayı PIN uzayından çok küçük,
+    // 34ABC001, 34ABC002... denenerek hangi araçların kayıtlı olduğu
+    // öğrenilebilirdi. İlan sihirbazı zaten oturum gerektiriyor.
+    const anon = anonIstemcisi();
+    const { error: anonHata } = await anon.rpc('plaka_kayitli_mi', { p_plaka: ORNEK_PLAKA });
+    expect(anonHata, 'plaka_kayitli_mi anon icin hala acik').toBeTruthy();
+
+    const sb = await supabaseIstemcisi();
+    const { data, error } = await sb.rpc('plaka_kayitli_mi', { p_plaka: ORNEK_PLAKA });
+    expect(error, 'oturumlu kullanici plaka kontrolu yapamiyor — sihirbaz kirilir').toBeFalsy();
+    expect(data).toBe(true);
   });
 });

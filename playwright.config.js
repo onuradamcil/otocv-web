@@ -71,7 +71,13 @@ module.exports = defineConfig({
       // hamburger butonu md:hidden olduğu için masaüstünde görünmüyor.
       // Projeye testMatch vermek yetmiyor, diğer projeye de testIgnore
       // gerekiyor; aksi halde dosya iki kez çalışır.
-      testIgnore: /.*mobil\.spec\.js/,
+      //
+      // 06-hiz-siniri de dışlanıyor ve bu KRİTİK: o paket hız sınırını
+      // gerçekten aşıyor, yani koşumu yapan makinenin IP'sini 10 DAKİKA
+      // engelliyor. Varsayılan takıma girseydi, ondan sonra koşan her karne
+      // testi kırılırdı ve takım 10 dakika yeniden koşulamazdı.
+      // Elle koşmak için: --project=hizsiniri
+      testIgnore: [/.*mobil\.spec\.js/, /.*hiz-siniri\.spec\.js/],
     },
     {
       name: 'mobil',
@@ -81,6 +87,27 @@ module.exports = defineConfig({
       // yazmak olurdu.
       testMatch: /.*mobil\.spec\.js/,
     },
+    // İSTEĞE BAĞLI PAKET — ortam değişkeni olmadan HİÇ TANIMLANMIYOR.
+    //
+    // İlk denemede projeyi normal şekilde eklemiştim ve varsayılan koşumda
+    // ÇALIŞTI: `testIgnore` yalnızca masaustu projesinden dışlıyor, yeni
+    // proje kendi başına koşuyor. Playwright'ta "bu projeyi elle çağırmadıkça
+    // koşma" diye bir bayrak yok; tek güvenilir yol projeyi hiç tanımlamamak.
+    //
+    // Neden bu kadar önemli: paket hız sınırını gerçekten aşıyor, yani koşan
+    // makinenin IP'sini 10 DAKİKA engelliyor. Varsayılan takıma girdiğinde
+    // ondan sonraki her karne testi kırılır.
+    //
+    // Koşmak için:
+    //   HIZ_SINIRI=1 npx playwright test --project=hizsiniri
+    // Sonrasında 10 dakika beklenir ya da sicil_sorgu_log temizlenir.
+    ...(process.env.HIZ_SINIRI
+      ? [{
+          name: 'hizsiniri',
+          use: { ...devices['Desktop Chrome'] },
+          testMatch: /.*hiz-siniri\.spec\.js/,
+        }]
+      : []),
   ],
 
   // Sunucu zaten açıksa yeniden başlatmaz (reuseExistingServer).

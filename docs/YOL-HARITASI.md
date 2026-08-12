@@ -11,40 +11,7 @@ yapılmadığı da bilgidir.
 
 ## Sırada
 
-### 1. Güven puanı kanıta bağlanacak  ⏳ devam ediyor
-
-Mevcut durum (tespit edildi):
-
-- İlan sihirbazı her yeni araca **sabit 92** yazıyor. Kod
-  `formData.otocv_score || 92` diyor ama `otocv_score` **hiçbir yerde set
-  edilmiyor** — yani her zaman 92.
-- Bakım kaydı eklenince **+5**, tavan 98
-  ([MaintenanceDialog.jsx](../src/components/garage/MaintenanceDialog.jsx)).
-- Puanı **düşüren hiçbir şey yok**. Hasarlı, muayenesi dolmuş, kilometresi
-  tutarsız bir araç kayıt ekleyerek 98'e çıkıyor.
-- Arayüzde varsayılan **üç farklı**: bazı ekranda 60, bazısında 92, ilan
-  kartında 94. Aynı araç için üç ayrı iddia.
-- Puan istemciden yazılıyordu; anon anahtarıyla 98 verilebildiği kanıtlandı
-  (o açık `2e4ec6f` ile kapandı).
-
-### 2. İstek hızı sınırı (rate limit)
-
-Entropi her denemenin şansını düşürür, rate limit **kaç deneme
-yapılabileceğini** sınırlar. İkisi çarpım halinde çalışır. PIN entropisi
-50 bite çıkarıldı ama deneme sınırı yok.
-
-Supabase'in hazır rate limit'i **yalnızca kimlik doğrulama uçlarına**
-uygulanıyor (IP başına token bucket, kapasite 30). `sicil_getir` Data API
-üzerinde ve orada hazır sınır yok; Supabase'in kendi dokümanı "IP başına
-rate limit" maddesini *kendiniz kurmanız gerekenler* listesinde sayıyor.
-
-**Mimari karar gerekiyor:** sınırı yalnızca web tarafına koymak yetmez —
-mobil uygulama doğrudan Supabase'e bağlandığında o kapı açık kalır. Doğru
-kurgu `sicil_getir`'i herkese açık olmaktan çıkarıp tek bir sunucu kapısının
-arkasına almak; web de mobil de aynı kapıdan geçer. Yan etkisi: Supabase
-denetleyicisinin iki `security definer` uyarısı da kapanır.
-
-### 3. Gerçek QR okuma
+### 1. Gerçek QR okuma
 
 Şu an "QR Kod Tarat" düğmesi dürüstçe "hazır değil" diyor. Önceki hâli
 veritabanına **en son eklenen aracı** çekip "tescilli araç bulundu" diye
@@ -71,7 +38,7 @@ Dikkat edilecekler:
   yalnızca PIN de.
 - Kütüphane seçimi CSP ve paket boyutu açısından değerlendirilmeli.
 
-### 4. Bekleyen küçük işler
+### 2. Bekleyen küçük işler
 
 - `Step2ListingDetails.jsx` 2.006 satır — bölünecek.
 - Sızmış şifre koruması (Supabase panelinden tek tık, denetleyici uyarısı).
@@ -96,3 +63,5 @@ Dikkat edilecekler:
 | PIN üretimi kriptografik, `ilike` joker açığı kapatıldı | `f9024f9` |
 | Tüm PIN'ler güçlü biçime geçirildi, testler PIN'den koparıldı | `b821130` |
 | `vehicles` kilitlendi: plaka + PIN sızıntısı, sahte ekleme açığı | `2e4ec6f` |
+| Sicil puanı kanıta bağlandı (sabit 92 ve "+5" numarası kaldırıldı) | `35bd9a7` |
+| PIN sorgusuna istek hızı sınırı (IP başına, veritabanı içinde) | bu commit |

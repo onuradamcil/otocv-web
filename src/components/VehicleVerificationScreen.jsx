@@ -56,6 +56,15 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
 
       if (error) throw error;
 
+      // Hız sınırı: "bulunamadı" mesajı göstermek yalan olurdu.
+      if (sicil?.hata === 'cok_fazla_deneme') {
+        const dk = Math.ceil((sicil.yeniden_dene_saniye || 600) / 60);
+        setSearchError(
+          `Kısa süre içinde çok fazla sorgu yapıldı. Yaklaşık ${dk} dakika sonra tekrar deneyin.`
+        );
+        return;
+      }
+
       if (sicil?.arac) {
         // Rol fonksiyondan geliyor: sahibi kendi aracını sahip olarak açar.
         onVehicleFound(sicil.arac, sicil.arac.sahip_mi ? 'owner' : 'public');

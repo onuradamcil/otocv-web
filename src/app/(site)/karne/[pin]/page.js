@@ -26,7 +26,7 @@ export default function KarnePage() {
 
   const [vehicle, setVehicle] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
-  const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'notfound'
+  const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'notfound' | 'cokfazla'
 
   useEffect(() => {
     let cancelled = false;
@@ -49,6 +49,14 @@ export default function KarnePage() {
       const { data: sicil, error } = await supabase.rpc('sicil_getir', { p_pin: pin });
 
       if (cancelled) return;
+
+      // HIZ SINIRI, "bulunamadı"dan AYRI bir durum. İkisini aynı göstermek
+      // kullanıcıya "böyle bir araç yok" yalanını söylemek olurdu — oysa araç
+      // var, yalnızca bu IP'den çok fazla sorgu geldi.
+      if (sicil?.hata === 'cok_fazla_deneme') {
+        setStatus('cokfazla');
+        return;
+      }
 
       if (error || !sicil?.arac) {
         setStatus('notfound');
@@ -86,6 +94,35 @@ export default function KarnePage() {
     // gecikmeMs=200 -> bekleme 200 ms'den kısaysa hiç gösterge çıkmaz;
     // kullanıcı 100 ms'i anlık sayar, orada gösterge yavaş hissettirir.
     return <GlobalStepLoader mode="iskelet" varyant="detay" gecikmeMs={200} />;
+  }
+
+  if (status === 'cokfazla') {
+    // "Araç bulunamadı" ekranından AYRI bir ekran. Aynı ekranı göstermek
+    // kullanıcıya "böyle bir araç yok" demek olurdu — oysa araç var, yalnızca
+    // bu IP'den kısa sürede çok fazla sorgu geldi. Yanlış bilgi vermek yerine
+    // gerçek sebebi ve ne yapması gerektiğini söylüyoruz.
+    return (
+      <div className="min-h-screen bg-[#FFFDFB] flex items-center justify-center p-4">
+        <div className="bg-white border border-amber-200 rounded-2xl p-8 max-w-md w-full text-center space-y-4 shadow-sm">
+          <h1 className="text-lg font-black text-slate-900 tracking-tight">Çok fazla sorgu yapıldı</h1>
+          <p className="text-xs text-slate-500 font-medium leading-relaxed">
+            Kısa süre içinde çok sayıda sicil sorgusu geldiği için bağlantınız
+            geçici olarak yavaşlatıldı. Yaklaşık <strong className="text-slate-700">10 dakika</strong> sonra
+            tekrar deneyebilirsiniz.
+          </p>
+          <p className="text-[11px] text-slate-400 leading-relaxed">
+            Bu sınır, araç sicillerinin toplu olarak taranmasını engellemek için var.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push('/')}
+            className="w-full bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs py-3 rounded-xl transition-colors"
+          >
+            Anasayfa
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (status === 'notfound') {
