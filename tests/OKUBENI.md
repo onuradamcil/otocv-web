@@ -96,7 +96,6 @@ NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 OTOCV_TEST_EMAIL
 OTOCV_TEST_PASSWORD
-OTOCV_TEST_PIN
 OTOCV_TEST_PLAKA
 ```
 
@@ -116,3 +115,18 @@ sırasında iki kez düşüldü.
 ilkini yakalar. Hamburger için `button[aria-label='Menüyü aç']` kullanın.
 Bu yüzden bir kez çekmecenin bozuk olduğu sanıldı; oysa yanlış butona
 tıklanıyordu.
+
+## PIN neden ortam değişkeninde tutulmuyor
+
+Testler eskiden `OTOCV_TEST_PIN` okuyordu. PIN güvenlik gerekçesiyle
+yenilendiğinde o değer sessizce eskidi ve 12 test var olmayan bir PIN'e gitti.
+
+Plaka birincil anahtar ve hiç değişmiyor. PIN'e ihtiyaç duyan test onu
+çalışma anında plakadan çözüyor:
+
+```js
+const pin = await pinBul('41IHH434');   // ya da: await ornekPin()
+```
+
+Sonuç: PIN döndürme (rotation) hiçbir test dosyasını etkilemiyor. Güvenlik
+işini ucuzlatan tam da bu — PIN yenilemek artık tek bir SQL komutu.

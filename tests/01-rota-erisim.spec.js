@@ -101,10 +101,11 @@ test.describe('Sistem sayfaları', () => {
 
 test.describe('PIN ile doğrulama akışı', () => {
   test('/verify/[pin] geçerli kodda araç detayına yönlendiriyor', async ({ page }) => {
-    const { ORNEK_PIN } = require('./yardimcilar');
-    await page.goto(`/verify/${ORNEK_PIN}`);
+    const { ornekPin } = require('./yardimcilar');
+    const pin = await ornekPin();
+    await page.goto(`/verify/${pin}`);
     await page.waitForURL((u) => u.toString().includes('/details/'), { timeout: 30_000 });
-    expect(page.url()).toContain(`/details/${ORNEK_PIN}`);
+    expect(page.url()).toContain(`/details/${pin}`);
   });
 
   test('geçersiz PIN forma hata mesajıyla dönüyor', async ({ page }) => {

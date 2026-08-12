@@ -29,8 +29,23 @@ require('dotenv').config({ path: '.env.test', quiet: true });
 const TEST_ISARETI = `OTOCV-TEST-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
 // Testlerin okuduğu sabit araç. Karne ve tramer testleri bu araca bakıyor.
-const ORNEK_PIN = process.env.OTOCV_TEST_PIN || 'CV-D7JMLH';
+//
+// YALNIZCA PLAKA SABİT — PIN DEĞİL.
+//
+// Eskiden burada `ORNEK_PIN` de vardı ve `.env.test`'ten okunuyordu. PIN
+// güvenlik gerekçesiyle yenilendiğinde o değer sessizce eskidi: 12 test
+// artık var olmayan bir PIN'e gidiyordu. Plaka ise birincil anahtar; hiç
+// değişmiyor. PIN'e ihtiyaç duyan test onu `pinBul(ORNEK_PLAKA)` ile
+// çalışma anında çözüyor.
+//
+// Bu, PIN döndürme (rotation) işleminin hiçbir test dosyasını
+// etkilemeyeceği anlamına geliyor — güvenlik işini ucuzlatan tam da bu.
 const ORNEK_PLAKA = process.env.OTOCV_TEST_PLAKA || '41IHH434';
+
+/** ORNEK_PLAKA'nın güncel PIN'i. */
+async function ornekPin() {
+  return pinBul(ORNEK_PLAKA);
+}
 
 function ortam(ad) {
   const d = process.env[ad];
@@ -209,6 +224,6 @@ module.exports = {
   anonIstemcisi,
   pinBul,
   TEST_ISARETI,
-  ORNEK_PIN,
+  ornekPin,
   ORNEK_PLAKA,
 };

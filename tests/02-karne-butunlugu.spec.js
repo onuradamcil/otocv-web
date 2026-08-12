@@ -22,7 +22,7 @@ const {
   expect,
   belgeSekmesiniAc,
   hamMetin,
-  ORNEK_PIN,
+  ornekPin,
   pinBul,
 } = require('./yardimcilar');
 
@@ -50,7 +50,8 @@ const YASAKLI_IFADELER = [
 
 test.describe('Belge, sorgulamadığı hiçbir şeyi beyan etmiyor', () => {
   test('yasaklı ifadelerin hiçbiri belgede yok', async ({ page }) => {
-    await page.goto(`/karne/${ORNEK_PIN}`);
+    const pin = await ornekPin();
+    await page.goto(`/karne/${pin}`);
     await page.waitForLoadState('networkidle');
     await belgeSekmesiniAc(page);
 
@@ -60,7 +61,8 @@ test.describe('Belge, sorgulamadığı hiçbir şeyi beyan etmiyor', () => {
   });
 
   test('her bulgu satırı kaynağını yazıyor', async ({ page }) => {
-    await page.goto(`/karne/${ORNEK_PIN}`);
+    const pin = await ornekPin();
+    await page.goto(`/karne/${pin}`);
     await page.waitForLoadState('networkidle');
     await belgeSekmesiniAc(page);
 
@@ -81,7 +83,8 @@ test.describe('Belge, sorgulamadığı hiçbir şeyi beyan etmiyor', () => {
   });
 
   test('belge sınırlarını açıkça yazıyor', async ({ page }) => {
-    await page.goto(`/karne/${ORNEK_PIN}`);
+    const pin = await ornekPin();
+    await page.goto(`/karne/${pin}`);
     await page.waitForLoadState('networkidle');
     await belgeSekmesiniAc(page);
 
@@ -162,7 +165,8 @@ test.describe('Veri yokken uydurma değer basılmıyor', () => {
 
 test.describe('KVKK: plaka ziyaretçiye gösterilmiyor', () => {
   test('çıkışta belge plaka yerine KVKK notu basıyor', async ({ page }) => {
-    await page.goto(`/karne/${ORNEK_PIN}`);
+    const pin = await ornekPin();
+    await page.goto(`/karne/${pin}`);
     await page.waitForLoadState('networkidle');
     await belgeSekmesiniAc(page);
 

@@ -53,7 +53,7 @@ const {
   girisYap,
   anonIstemcisi,
   supabaseIstemcisi,
-  ORNEK_PIN,
+  ornekPin,
   ORNEK_PLAKA,
 } = require('./yardimcilar');
 
@@ -196,7 +196,8 @@ test.describe('Güvenlik · doğrudan tablo erişimi', () => {
 test.describe('Güvenlik · sicil_getir() genel okuma yolu', () => {
   test('ziyaretçi karneyi görür ama PLAKA ve FATURA YOLU gelmez', async () => {
     const anon = anonIstemcisi();
-    const { data, error } = await anon.rpc('sicil_getir', { p_pin: ORNEK_PIN });
+    const pin = await ornekPin();
+    const { data, error } = await anon.rpc('sicil_getir', { p_pin: pin });
 
     expect(error).toBeFalsy();
     expect(data, 'fonksiyon boş döndü — karne ziyaretçide boş görünür').toBeTruthy();
@@ -219,7 +220,8 @@ test.describe('Güvenlik · sicil_getir() genel okuma yolu', () => {
 
   test('araç sahibi kendi PIN’inde plakayı ve fatura yolunu görür', async () => {
     const sb = await supabaseIstemcisi();
-    const { data, error } = await sb.rpc('sicil_getir', { p_pin: ORNEK_PIN });
+    const pin = await ornekPin();
+    const { data, error } = await sb.rpc('sicil_getir', { p_pin: pin });
 
     expect(error).toBeFalsy();
     expect(data?.arac?.sahip_mi).toBe(true);
@@ -403,17 +405,31 @@ test.describe('Güvenlik · PIN joker karakterle zorlanamaz', () => {
     await expect(page.locator(`text=${yeniPin}`).first()).toBeVisible({ timeout: 15_000 });
   });
 
-  test('sıralı PIN kalmadı', async () => {
-    // CV-000001, CV-000002, CV-000003 sıralıydı; bir saldırgan sırayla
-    // yazarak sicilleri gezebilirdi.
+  test('her PIN güçlü biçimde: sıralı yok, eski kısa biçim yok', async () => {
+    // İKİ KUSUR BİRDEN KONTROL EDİLİYOR:
+    //
+    // 1. SIRALI PIN. CV-000001/2/3 sıralıydı (PIN yapısı ilk kurulurken elle
+    //    girilmişti); bir saldırgan sırayla yazarak sicilleri gezebilirdi.
+    //
+    // 2. ESKİ KISA BİÇİM. `CV-XXXXXX` = 6 base36 karakteri ≈ 31 bit. Bugün
+    //    yeterli, hedeflenen ölçekte değil: 1 milyon araçla her ~2.200
+    //    denemede bir isabet demek. Ayrıca iki biçimin bir arada olması
+    //    normalleştirmede tuzak üretiyordu (eski PIN'ler base36 olduğu için
+    //    gerçekten L içerebiliyor, Crockford katlaması onları bozar).
+    //
+    // Beklenen biçim: `CV-XXXXX-XXXXX`, Crockford Base32 (I, L, O, U YOK).
+    const GECERLI = /^CV-[0-9A-HJKMNP-TV-Z]{5}-[0-9A-HJKMNP-TV-Z]{5}$/;
+
     const sb = await supabaseIstemcisi();
-    const { data } = await sb.from('vehicles').select('pin_code');
+    const { data, error } = await sb.from('vehicles').select('plate_number, pin_code');
+    expect(error).toBeFalsy();
+    expect(data?.length, 'hiç araç okunamadı — test kör kalır').toBeGreaterThan(0);
 
-    const sirali = (data || [])
-      .map((v) => v.pin_code)
-      .filter((p) => /^CV-\d+$/.test(p || ''));
+    const zayif = (data || [])
+      .filter((v) => !GECERLI.test(v.pin_code || ''))
+      .map((v) => `${v.plate_number}=${v.pin_code}`);
 
-    expect(sirali, `sıralı PIN geri gelmiş: ${sirali.join(', ')}`).toEqual([]);
+    expect(zayif, `zayıf biçimli PIN var: ${zayif.join(', ')}`).toEqual([]);
   });
 });
 
@@ -424,14 +440,15 @@ test.describe('Güvenlik · arayüz RLS’ten sonra çalışmaya devam ediyor', 
 
   test('ziyaretçi karne sayfasında bakım kayıtlarını görebiliyor', async ({ page }) => {
     // Oturum AÇMADAN. Ziyaretçi yolunun ta kendisi.
-    await page.goto(`/karne/${ORNEK_PIN}`);
+    const pin = await ornekPin();
+    await page.goto(`/karne/${pin}`);
     await page.waitForLoadState('networkidle');
 
     // "okunamadı" hata durumu görünmemeli.
     await expect(page.locator('text=Bakım sicili şu an okunamadı')).toHaveCount(0);
 
     // Sayfa açıldı ve PIN'i gösteriyor.
-    await expect(page.locator(`text=${ORNEK_PIN}`).first()).toBeVisible();
+    await expect(page.locator(`text=${pin}`).first()).toBeVisible();
   });
 
   test('araç sahibi fatura görselini imzalı bağlantıyla açabiliyor', async ({ page }) => {
@@ -439,7 +456,8 @@ test.describe('Güvenlik · arayüz RLS’ten sonra çalışmaya devam ediyor', 
     // olsa bile istemci yolu yanlışsa kullanıcı faturasını göremez —
     // "güvenli ama kullanılamaz" da bir arıza.
     await girisYap(page);
-    await page.goto(`/details/${ORNEK_PIN}`);
+    const pin = await ornekPin();
+    await page.goto(`/details/${pin}`);
     await page.waitForLoadState('networkidle');
 
     // Bakım kayıtları bölümündeki ilk kaydı aç. Akordeon kapalıysa fatura
@@ -466,7 +484,8 @@ test.describe('Güvenlik · arayüz RLS’ten sonra çalışmaya devam ediyor', 
   });
 
   test('ziyaretçi araç detayında bakım geçmişini görüyor, PLAKAYI görmüyor', async ({ page }) => {
-    await page.goto(`/details/${ORNEK_PIN}`);
+    const pin = await ornekPin();
+    await page.goto(`/details/${pin}`);
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('text=Bakım sicili şu an okunamadı')).toHaveCount(0);

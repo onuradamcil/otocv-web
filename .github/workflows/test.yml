@@ -122,7 +122,6 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           OTOCV_TEST_EMAIL=${{ secrets.OTOCV_TEST_EMAIL }}
           OTOCV_TEST_PASSWORD=${{ secrets.OTOCV_TEST_PASSWORD }}
-          OTOCV_TEST_PIN=${{ secrets.OTOCV_TEST_PIN }}
           OTOCV_TEST_PLAKA=${{ secrets.OTOCV_TEST_PLAKA }}
           EOF
           # .env.local de gerekli: `npm run dev` onu okuyor.
