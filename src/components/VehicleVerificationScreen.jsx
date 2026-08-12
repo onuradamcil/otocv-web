@@ -9,6 +9,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase'; // 🚀 CANLI BAĞLANTI: Merkezi bulut kalkanı davet edildi
 import Icon from './common/icons';
+import { pinNormalize } from '../utils/pinUretici';
 
 export default function VehicleVerificationScreen({ onVehicleFound, initialPin = '', initialError = '' }) {
   // =========================================================================
@@ -27,18 +28,39 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
   // Standart PIN Arama Form Tetikleyicisi
   const handlePinSearch = async (e) => {
     if (e) e.preventDefault();
-    const cleanPin = searchPin.trim();
-    if (!cleanPin) return;
+    if (!searchPin.trim()) return;
+
+    // GİRDİ NORMALLEŞTİRME. Boşluk/tire temizler, harfleri büyütür ve
+    // alfabe dışı karakteri REDDEDER (boş metin döner).
+    const cleanPin = pinNormalize(searchPin);
+
+    if (!cleanPin) {
+      setSearchError('PIN biçimi geçersiz. Kod yalnızca harf ve rakam içerir; örnek: CV-4TKMB-9XQ2R');
+      return;
+    }
 
     setSearchError('');
     setLoading(true);
 
     try {
-      // Büyük/küçük harf duyarsız canlı sorgu radar kalkanı
+      // `eq`, `ilike` DEĞİL.
+      //
+      // Önceki hâli `.ilike('pin_code', cleanPin)` idi ve bu bir açıktı:
+      // `ilike` desen karakterlerini yorumluyor. Kullanıcı PIN kutusuna
+      // `CV-%` yazdığında BÜTÜN araçlar eşleşiyor, sorgu ilk satırı
+      // döndürüyordu — yani oturum açmamış biri, plaka dahil rastgele bir
+      // aracın tam kaydını görebiliyordu.
+      //
+      // `eq` hiçbir koşulda desen olarak yorumlanmaz. Ayrıca indeksi
+      // kullanır; `ilike` btree indeksini kullanamıyordu ve her sorgu
+      // tam tablo taramasıydı.
+      //
+      // Büyük/küçük harf duyarsızlık kaybolmuyor: pinNormalize girdiyi
+      // zaten büyütüyor ve PIN'ler büyük harfle saklanıyor.
       const { data, error } = await supabase
         .from('vehicles')
         .select('*')
-        .ilike('pin_code', cleanPin);
+        .eq('pin_code', cleanPin);
 
       if (error) throw error;
 
@@ -136,7 +158,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
               <div className="space-y-1">
                 <h2 className="text-xl font-black text-slate-900">Dijital PIN Sorgulama</h2>
                 <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                  Ruhsat sahibinin size ilettiği benzersiz 6 haneli OTO.CV kodunu girin. Bu kod, aracın kilometresini, kaza geçmişini ve servis kayıtlarını tesciller.
+                  Ruhsat sahibinin size ilettiği benzersiz OTO.CV kodunu girin. Bu kod, aracın kilometresini, kaza geçmişini ve servis kayıtlarını tesciller.
                 </p>
               </div>
 
@@ -153,10 +175,13 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                 <input 
                   type="text"
                   value={searchPin}
-                  maxLength={9} // CV-XXXXXX formatı için esnetildi kardo
+                  // 14: `CV-XXXXX-XXXXX`. Eskiden 9 idi ve yeni biçim PIN'i
+                  // SESSİZCE KESİYORDU — kullanıcı doğru kodu yazsa bile
+                  // araç bulunamıyordu. Eski 6 haneli PIN'ler de sığıyor.
+                  maxLength={14}
                   disabled={loading}
                   onChange={(e) => { setSearchPin(e.target.value); if (searchError) setSearchError(''); }}
-                  placeholder="ÖRN: CV-A89B2C"
+                  placeholder="ÖRN: CV-4TKMB-9XQ2R"
                   className="w-full py-5 px-6 bg-slate-50 border-2 border-gray-200 focus:border-indigo-500 rounded-2xl text-center font-mono text-xl font-bold tracking-widest text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 transition-all shadow-inner uppercase"
                 />
               </div>

@@ -10,12 +10,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { pinNormalize } from '@/utils/pinUretici';
 import VehicleVerificationScreen from '@/components/VehicleVerificationScreen';
 
 export default function VerifyWithPinPage() {
   const router = useRouter();
   const params = useParams();
-  const pin = decodeURIComponent(params.pin);
+  // URL'den gelen PIN normalleştiriliyor: boşluk/tire temizlenir, harfler
+  // büyütülür ve alfabe dışı karakter REDDEDİLİR (boş metin döner).
+  const pin = pinNormalize(decodeURIComponent(params.pin || ''));
 
   const [status, setStatus] = useState('searching'); // 'searching' | 'notfound'
 
@@ -26,7 +29,22 @@ export default function VerifyWithPinPage() {
       const { data, error } = await supabase
         .from('vehicles')
         .select('pin_code')
-        .ilike('pin_code', pin)
+      // `eq`, `ilike` DEĞİL — bu bir güvenlik düzeltmesi.
+      //
+      // PIN doğrudan URL'den geliyor ve önceki hâli `.ilike('pin_code', pin)`
+      // idi. `ilike` desen karakterlerini yorumlar; `/details/CV-%25` adresi
+      // `pin = 'CV-%'` üretiyor ve bu BÜTÜN araçlarla eşleşiyordu. Sayfa
+      // `data[0]`'ı aldığı için ziyaretçi, plakası ve PIN'i dahil rastgele
+      // bir aracın tam kaydını görüyordu. Canlı veride doğrulandı: `CV-%`
+      // 10 aracın 10'uyla eşleşti.
+      //
+      // pinNormalize alfabe dışı karakteri reddediyor, `eq` de hiçbir
+      // koşulda desen olarak yorumlanmıyor. İki katman.
+      //
+      // Büyük/küçük harf duyarsızlık korunuyor: pinNormalize girdiyi
+      // büyütüyor, PIN'ler büyük harfle saklanıyor. Ek fayda: `eq` indeksi
+      // kullanır, `ilike` kullanamıyordu.
+        .eq('pin_code', pin)
         .limit(1);
 
       if (cancelled) return;

@@ -18,6 +18,7 @@ import { useToast } from '../../../context/ToastContext';
 import Icon from '../../common/icons';
 import { tramerTutari } from '../../../utils/tramerHelper';
 import { toIsoDate } from '../../../utils/dateHelper';
+import { pinUret } from '../../../utils/pinUretici';
 
 export default function CreateListingWizard({ onBack, onSuccess, user }) {
   const toast = useToast();
@@ -529,7 +530,11 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     });
 
     try {
-      const generatedPinCode = `CV-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      // PIN artık kriptografik üreteçle ve sabit uzunlukta üretiliyor.
+      // Eski hâli `Math.random().toString(36).substring(2, 8)` idi; üç kusuru
+      // vardı (tahmin edilebilir üreteç, değişken uzunluk, karışabilen
+      // karakterler). Gerekçe: src/utils/pinUretici.js
+      const generatedPinCode = pinUret();
       
       const rawPlate = formData.plate || formData.plate_number || '';
       const cleanPlate = rawPlate.trim().replace(/\s+/g, '').toUpperCase();

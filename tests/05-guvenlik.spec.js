@@ -324,6 +324,99 @@ test.describe('Güvenlik · fatura dosyaları (storage)', () => {
   });
 });
 
+test.describe('Güvenlik · PIN joker karakterle zorlanamaz', () => {
+  // KUSUR: PIN sorguları `.ilike('pin_code', pin)` kullanıyordu. `ilike`
+  // desen karakterlerini yorumluyor, yani `CV-%` BÜTÜN araçlarla eşleşiyor
+  // ve sayfalar `data[0]`'ı alıyordu. Sonuç: oturum açmamış biri, plakası ve
+  // PIN'i dahil rastgele bir aracın tam kaydını görebiliyordu. Canlı veride
+  // doğrulandı: `CV-%` 10 aracın 10'uyla eşleşti.
+  //
+  // Düzeltme iki katmanlı: pinNormalize alfabe dışı karakteri reddediyor,
+  // sorgular `eq` kullanıyor. Bu testler ikisinin de yerinde durduğunu
+  // kontrol ediyor.
+
+  const JOKER_GIRDILER = ['CV-%', 'CV-_', '%', 'CV-%25'];
+
+  for (const girdi of JOKER_GIRDILER) {
+    test(`/details/${girdi} araç DÖNDÜRMÜYOR`, async ({ page }) => {
+      await page.goto(`/details/${encodeURIComponent(girdi)}`);
+      await page.waitForLoadState('networkidle');
+
+      const govde = await page.locator('body').textContent();
+
+      // PIN'İ KONTROL ETMEK KRİTİK, PLAKAYI DEĞİL.
+      //
+      // Ziyaretçi arayüzü plakayı zaten göstermiyor, dolayısıyla yalnızca
+      // plakaya bakan bir test kusur DURUYORKEN DE geçerdi — boş test olur.
+      // Sızan şey aracın kendisi ve ekranda basılan PIN'i: `CV-%` sorgusu
+      // 01DNM0012 aracını döndürüyordu ve sayfa onun PIN'ini (CV-7MBV0Y)
+      // ekrana yazıyordu. Yani kusur, tam erişim veren anahtarı sızdırıyordu.
+      //
+      // Değerler veritabanından okunuyor; sabit liste tutmak yeni araç
+      // eklendiğinde testi sessizce kör bırakırdı.
+      const sb = await supabaseIstemcisi();
+      const { data: araclar } = await sb.from('vehicles').select('plate_number, pin_code');
+
+      for (const { plate_number, pin_code } of araclar || []) {
+        expect(govde, `joker girdi "${girdi}" ${plate_number} aracının PIN'ini sızdırdı`)
+          .not.toContain(pin_code);
+        expect(govde, `joker girdi "${girdi}" ${plate_number} plakasını sızdırdı`)
+          .not.toContain(plate_number);
+      }
+    });
+  }
+
+  test('PIN formuna joker yazmak araç getirmiyor, hata gösteriyor', async ({ page }) => {
+    await page.goto('/verify');
+    await page.waitForLoadState('networkidle');
+
+    const kutu = page.locator("input[placeholder*='CV-']").first();
+    await kutu.fill('CV-%');
+    await page.locator("button[type='submit']").first().click();
+    await page.waitForTimeout(1500);
+
+    // Araç detayına GİTMEMELİ.
+    expect(page.url(), 'joker girdi araç detayına götürdü').not.toContain('/details/');
+
+    // Kullanıcıya sebebi söylenmeli — sessizce hiçbir şey olmaması da kötü.
+    const govde = await page.locator('body').textContent();
+    expect(govde).toContain('PIN biçimi geçersiz');
+  });
+
+  test('yeni biçim PIN (14 karakter) URL üzerinden çalışıyor', async ({ page }) => {
+    // Giriş kutusunda `maxLength` 9'du; yeni biçim PIN'i sessizce kesiyordu.
+    // Bu test yeni biçimin uçtan uca çalıştığını kontrol ediyor.
+    const sb = await supabaseIstemcisi();
+    const { data } = await sb
+      .from('vehicles')
+      .select('pin_code')
+      .like('pin_code', 'CV-_____-_____')
+      .limit(1);
+
+    const yeniPin = data?.[0]?.pin_code;
+    expect(yeniPin, 'yeni biçimde (CV-XXXXX-XXXXX) hiç PIN yok').toBeTruthy();
+    expect(yeniPin.length).toBe(14);
+
+    await page.goto(`/karne/${yeniPin}`);
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.locator(`text=${yeniPin}`).first()).toBeVisible({ timeout: 15_000 });
+  });
+
+  test('sıralı PIN kalmadı', async () => {
+    // CV-000001, CV-000002, CV-000003 sıralıydı; bir saldırgan sırayla
+    // yazarak sicilleri gezebilirdi.
+    const sb = await supabaseIstemcisi();
+    const { data } = await sb.from('vehicles').select('pin_code');
+
+    const sirali = (data || [])
+      .map((v) => v.pin_code)
+      .filter((p) => /^CV-\d+$/.test(p || ''));
+
+    expect(sirali, `sıralı PIN geri gelmiş: ${sirali.join(', ')}`).toEqual([]);
+  });
+});
+
 test.describe('Güvenlik · arayüz RLS’ten sonra çalışmaya devam ediyor', () => {
   // Bu grup, güvenliğin ARAYÜZÜ BOZMADIĞINI ispatlıyor. Politikaları
   // sıkılaştırmanın en gerçek riski bu: karne boşalır ve kullanıcı

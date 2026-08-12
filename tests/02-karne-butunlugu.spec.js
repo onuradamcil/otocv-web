@@ -17,7 +17,14 @@
 // yani en ciddi hata sınıfı.
 // =========================================================================
 
-const { test, expect, belgeSekmesiniAc, hamMetin, ORNEK_PIN } = require('./yardimcilar');
+const {
+  test,
+  expect,
+  belgeSekmesiniAc,
+  hamMetin,
+  ORNEK_PIN,
+  pinBul,
+} = require('./yardimcilar');
 
 // Belgeye ASLA girmemesi gereken ifadeler. Her biri bir kusurun izi.
 const YASAKLI_IFADELER = [
@@ -89,17 +96,22 @@ test.describe('Belge, sorgulamadığı hiçbir şeyi beyan etmiyor', () => {
 test.describe('Hasar beyanı doğru basılıyor', () => {
   // Bu dört araç veritabanında hasar kaydı taşıyor. Kusurun ilk hâlinde
   // hepsi karnede "temiz" beyan ediliyordu.
-  const HASARLI_ARACLAR = ['CV-D7JMLH', 'CV-1VKHVW', 'CV-000003', 'CV-CTVXWF'];
+  //
+  // Araçlar PLAKAYLA tanımlanıyor, PIN'le değil: PIN değişken bir değer ve
+  // yenilendiğinde bu liste sessizce geçersizleşiyordu. Plaka birincil
+  // anahtar; PIN çalışma anında pinBul() ile çözülüyor.
+  const HASARLI_ARACLAR = ['41IHH434', '34KNA929', '34FB1907', '01ONR0001'];
 
-  for (const pin of HASARLI_ARACLAR) {
-    test(`${pin} — hasar kaydı "temiz" diye beyan edilmiyor`, async ({ page }) => {
+  for (const plaka of HASARLI_ARACLAR) {
+    test(`${plaka} — hasar kaydı "temiz" diye beyan edilmiyor`, async ({ page }) => {
+      const pin = await pinBul(plaka);
       await page.goto(`/karne/${pin}`);
       await page.waitForLoadState('networkidle');
       await belgeSekmesiniAc(page);
 
       const metin = await hamMetin(page);
-      expect(metin, `${pin} hasarlı ama belgede "Kayıt Var" yok`).toContain('Kayıt Var');
-      expect(metin, `${pin} hasarlı olduğu hâlde "temiz" beyan ediliyor`)
+      expect(metin, `${plaka} hasarlı ama belgede "Kayıt Var" yok`).toContain('Kayıt Var');
+      expect(metin, `${plaka} hasarlı olduğu hâlde "temiz" beyan ediliyor`)
         .not.toContain('Kayıt Bulunmamaktadır (Temiz)');
     });
   }
@@ -107,10 +119,10 @@ test.describe('Hasar beyanı doğru basılıyor', () => {
 
 test.describe('Kilometre tutarlılığı gerçekten hesaplanıyor', () => {
   test('kilometresi geriye giden araçta tutarsızlık bildiriliyor', async ({ page }) => {
-    // CV-000002 (11ASD1231): 5 kayıt, kilometre 151.877 km geriye gidiyor.
+    // 11ASD1231: 5 kayıt, kilometre 151.877 km geriye gidiyor.
     // Belge bu araç için eskiden "Kilometre Verisi Tutarlı" basıyordu —
     // yani sabit metin gerçeğin tam tersini beyan ediyordu.
-    await page.goto('/karne/CV-000002');
+    await page.goto(`/karne/${await pinBul('11ASD1231')}`);
     await page.waitForLoadState('networkidle');
     await belgeSekmesiniAc(page);
 
@@ -122,7 +134,7 @@ test.describe('Kilometre tutarlılığı gerçekten hesaplanıyor', () => {
   test('tek kayıtlı araçta "tutarlı" iddiası edilmiyor', async ({ page }) => {
     // Tek kayıtla karşılaştırma yapılamaz. "Tutarlı" demek, yapılmamış bir
     // doğrulamayı iddia etmek olur.
-    await page.goto('/karne/CV-000003');
+    await page.goto(`/karne/${await pinBul('34FB1907')}`);
     await page.waitForLoadState('networkidle');
     await belgeSekmesiniAc(page);
 
@@ -134,9 +146,9 @@ test.describe('Kilometre tutarlılığı gerçekten hesaplanıyor', () => {
 
 test.describe('Veri yokken uydurma değer basılmıyor', () => {
   test('boş alanlar "Beyan edilmemiş" gösteriyor', async ({ page }) => {
-    // CV-000001 (06ONR97): yakıt, vites ve renk alanları veritabanında BOŞ.
+    // 06ONR97: yakıt, vites ve renk alanları veritabanında BOŞ.
     // Belge eskiden bu araç için üç uydurma teknik özellik basıyordu.
-    await page.goto('/karne/CV-000001');
+    await page.goto(`/karne/${await pinBul('06ONR97')}`);
     await page.waitForLoadState('networkidle');
     await belgeSekmesiniAc(page);
 

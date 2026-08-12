@@ -71,6 +71,52 @@ function anonIstemcisi() {
   );
 }
 
+// -------------------------------------------------------------------------
+// PIN'İ PLAKADAN ÇÖZ
+//
+// Testler eskiden PIN'leri sabit yazıyordu ('CV-000002' gibi). PIN değişken
+// bir değer: sıralı üç PIN güvenlik gerekçesiyle yenilendiğinde altı test
+// birden kırıldı. Oysa testlerin umursadığı şey ARACIN VERİ ÖZELLİĞİ
+// (hasarlı, kilometresi geriye giden, tek kayıtlı...) ve o aracı tanımlayan
+// kalıcı değer PLAKA — birincil anahtar.
+//
+// Artık testler plaka veriyor, PIN çalışma anında çözülüyor. PIN yeniden
+// üretildiğinde hiçbir test dosyasına dokunmak gerekmiyor.
+// -------------------------------------------------------------------------
+let _istemciOnbellek = null;
+const _pinOnbellek = new Map();
+
+async function _istemci() {
+  if (!_istemciOnbellek) _istemciOnbellek = await supabaseIstemcisi();
+  return _istemciOnbellek;
+}
+
+/**
+ * Plakaya karşılık gelen PIN'i döndürür.
+ * @param {string} plaka
+ * @returns {Promise<string>}
+ */
+async function pinBul(plaka) {
+  if (_pinOnbellek.has(plaka)) return _pinOnbellek.get(plaka);
+
+  const sb = await _istemci();
+  const { data, error } = await sb
+    .from('vehicles')
+    .select('pin_code')
+    .eq('plate_number', plaka)
+    .single();
+
+  if (error || !data?.pin_code) {
+    throw new Error(
+      `${plaka} plakalı aracın PIN'i bulunamadı${error ? `: ${error.message}` : ''}. ` +
+      `Test bu araca dayanıyor; veritabanında var mı?`
+    );
+  }
+
+  _pinOnbellek.set(plaka, data.pin_code);
+  return data.pin_code;
+}
+
 /** Arayüz üzerinden giriş yapar. Gerçek kullanıcı yolunu test eder. */
 async function girisYap(page) {
   await page.goto('/login');
@@ -161,6 +207,7 @@ module.exports = {
   hamMetin,
   supabaseIstemcisi,
   anonIstemcisi,
+  pinBul,
   TEST_ISARETI,
   ORNEK_PIN,
   ORNEK_PLAKA,
