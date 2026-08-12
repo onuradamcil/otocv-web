@@ -11,7 +11,30 @@ yapılmadığı da bilgidir.
 
 ## Sırada
 
-### 1. Gerçek QR okuma
+### 1. Alıcı diyaloğu tarayıcıda doğrulanmadı  ⚠ bilinen boşluk
+
+`AracDevralDialog` (kod girişi → ön izleme → onay → yeni PIN, ve talep yolu)
+**hiç render edilmedi.** Doğrulanan ne, doğrulanmayan ne:
+
+| Katman | Durum |
+|---|---|
+| RPC katmanı (`devir_onizleme`, `devir_tamamla`, `devir_talep_et`) | ✅ 9 test |
+| Satıcı diyaloğu | ✅ tarayıcıda görsel doğrulama |
+| Modalın üç durumu (`plaka_durumu`) | ✅ RPC seviyesinde |
+| **Alıcı diyaloğunun kendisi** | ❌ derleniyor, lint temiz, **render edilmedi** |
+
+Sebep: diyaloğa ulaşmak için ilan sihirbazının 1. adımının **tamamı**
+doldurulmalı. Ölçüldü: 5 metin alanı, **2 dosya yükleme**, 4 kademeli
+marka→seri→model→paket zinciri, iki tarih ve onay kutusu; "Devam" düğmesi
+hepsi dolmadan etkinleşmiyor.
+
+Bu, `Step2ListingDetails` bölme işi için de gereken aynı yatırım
+([aşağıya](#2-bekleyen-küçük-işler) bakın): **sihirbaz için Playwright
+yardımcısı** — 1. adımı programatik dolduran, sabit bir test görseli yükleyen
+bir fonksiyon. Bir kez yazılınca hem devir arayüzünü hem Step2 bölmesini
+açıyor.
+
+### 2. Gerçek QR okuma
 
 Şu an "QR Kod Tarat" düğmesi dürüstçe "hazır değil" diyor. Önceki hâli
 veritabanına **en son eklenen aracı** çekip "tescilli araç bulundu" diye
@@ -38,7 +61,7 @@ Dikkat edilecekler:
   yalnızca PIN de.
 - Kütüphane seçimi CSP ve paket boyutu açısından değerlendirilmeli.
 
-### 2. Bekleyen küçük işler
+### 3. Bekleyen küçük işler
 
 - `Step2ListingDetails.jsx` bölme işi **beklemede, gerekçesi değişti.** Dosya
   2.000 satır ama panel panel başlıklandırılmış ve çalışıyor; satır sayısı tek
