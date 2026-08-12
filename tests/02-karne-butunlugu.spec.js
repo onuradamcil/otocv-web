@@ -204,3 +204,59 @@ test.describe('KVKK: plaka ziyaretçiye gösterilmiyor', () => {
     expect(metin).toContain('KVKK kapsamında paylaşılmaz');
   });
 });
+
+test.describe('Hasar katalogu tek kaynaktan', () => {
+  // KUSUR: `CAR_PARTS` ve `DAMAGE_STATUSES` UC dosyada ayri ayri tanimliydi
+  // (giris ekrani, ilan on izleme, arac detayi) ve COKTAN KAYMISTI:
+  //
+  //   trunk parcasi    "Bagaj Kapagi"  <->  "Arka Kaput"
+  //   PAINTED          "Boyanmis"      <->  "Boyali"
+  //   CHANGED          "Degismis"      <->  "Degisen"
+  //
+  // Kullanici bir parcayi bir isimle isaretliyor, alici baska bir isimle
+  // goruyordu. Ustelik etiketler efsane listelerinde bir de SABIT yazilmisti,
+  // yani ayni metin bes ayri yerde duruyordu.
+  //
+  // Artik hepsi src/data/hasarKatalogu.js dosyasindan okunuyor. Bu test eski
+  // yazimlarin geri gelmedigini kontrol ediyor.
+
+  const ESKI_YAZIMLAR = ['Değişmiş', 'Boyanmış', 'Lokal Boyanmış', 'Arka Kaput'];
+  const YENI_YAZIMLAR = ['Değişen', 'Boyalı', 'Lokal Boyalı', 'Orijinal'];
+
+  test('arac detayinda tek bicim etiket kullaniliyor', async ({ page }) => {
+    const sb = await supabaseIstemcisi();
+
+    // Hasar kaydi olan bir arac gerekli: efsane ve sema ancak o zaman dolu.
+    const { data: araclar } = await sb
+      .from('vehicles')
+      .select('pin_code, plate_number, damage_report')
+      .not('damage_report', 'is', null);
+
+    const hasarli = (araclar || []).find(
+      (v) => v.damage_report && Object.keys(v.damage_report).length > 0
+    );
+    expect(hasarli, 'hasar şeması olan araç yok — test kör kalır').toBeTruthy();
+
+    await page.goto(`/details/${hasarli.pin_code}`);
+    await page.waitForLoadState('networkidle');
+
+    const govde = await page.locator('body').textContent();
+
+    for (const eski of ESKI_YAZIMLAR) {
+      expect(govde, `"${eski}" eski yazımı geri gelmiş — katalog yeniden ayrışmış olabilir`)
+        .not.toContain(eski);
+    }
+    for (const yeni of YENI_YAZIMLAR) {
+      expect(govde, `"${yeni}" etiketi görünmüyor`).toContain(yeni);
+    }
+
+    // Şema gerçekten çizilmiş mi? Etiketler doğru olup şema boş kalırsa
+    // testin geçmesi bir şey ifade etmez.
+    const yollar = await page.locator('svg path[fill]').count();
+    expect(yollar, 'hasar şemasında boyalı parça yok').toBeGreaterThan(5);
+
+    // Lokal boyalı gradyanı tanımlı mı? Katalog `url(#Gradient_local)`
+    // döndürüyor; tanım eksikse parça görünmez olur.
+    await expect(page.locator('linearGradient#Gradient_local')).toHaveCount(1);
+  });
+});

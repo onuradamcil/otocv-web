@@ -15,34 +15,14 @@ import { parseVehicleDate, formatTrDate } from '../utils/dateHelper';
 import useSicil from '../hooks/useSicil';
 import FaturaOnizleme from './common/FaturaOnizleme';
 import SicilPuaniKirilim from './common/SicilPuaniKirilim';
+// Hasar katalogu ORTAK. Bu iki sabit eskiden uc dosyada ayri ayri tanimliydi
+// ve birbirinden kaymisti: ayni parca iki farkli isimle, ayni durum iki farkli
+// etiketle gorunuyordu. Gerekce: src/data/hasarKatalogu.js
+import { CAR_PARTS, DAMAGE_STATUSES } from '../data/hasarKatalogu';
 
 // =========================================================================
 // 🎨 SABİTLER VE YARDIMCI FONKSİYONLAR
 // =========================================================================
-
-const DAMAGE_STATUSES = {
-  ORIGINAL: { label: 'Orijinal', hex: '#22c55e', bg: 'bg-emerald-500' },
-  PAINTED: { label: 'Boyalı', hex: '#facc15', bg: 'bg-amber-400' },
-  LOCAL_PAINTED: { label: 'Lokal Boyalı', hex: 'url(#Gradient_local)', bg: 'bg-orange-500' },
-  CHANGED: { label: 'Değişen', hex: '#e11d48', bg: 'bg-rose-600' },
-  UNSPECIFIED: { label: 'Belirtilmemiş', hex: '#e2e8f0', bg: 'bg-slate-200' },
-};
-
-const CAR_PARTS = [
-  { id: 'front_bumper', name: 'Ön Tampon' },
-  { id: 'rear_bumper', name: 'Arka Tampon' },
-  { id: 'front_bonnet', name: 'Motor Kaputu' },
-  { id: 'roof', name: 'Tavan' },
-  { id: 'trunk', name: 'Arka Kaput' },
-  { id: 'fender_front_left', name: 'Sol Ön Çamurluk' },
-  { id: 'fender_front_right', name: 'Sağ Ön Çamurluk' },
-  { id: 'door_front_left', name: 'Sol Ön Kapı' },
-  { id: 'door_front_right', name: 'Sağ Ön Kapı' },
-  { id: 'door_rear_left', name: 'Sol Arka Kapı' },
-  { id: 'door_rear_right', name: 'Sağ Arka Kapı' },
-  { id: 'fender_rear_left', name: 'Sol Arka Çamurluk' },
-  { id: 'fender_rear_right', name: 'Sağ Arka Çamurluk' },
-];
 
 const FEATURE_CATALOG = [
   {
@@ -743,11 +723,11 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                       </svg>
                     </div>
                     <div className="flex flex-wrap items-center justify-center gap-3 pt-3 text-[11px] font-bold text-slate-700">
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /><span>Orijinal</span></div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400" /><span>Boyalı</span></div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500" /><span>Lokal Boyalı</span></div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-600" /><span>Değişmiş</span></div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-200" /><span>Belirtilmemiş</span></div>
+                      <div className="flex items-center gap-1.5"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.ORIGINAL.bg}`} /><span>{DAMAGE_STATUSES.ORIGINAL.label}</span></div>
+                      <div className="flex items-center gap-1.5"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.PAINTED.bg}`} /><span>{DAMAGE_STATUSES.PAINTED.label}</span></div>
+                      <div className="flex items-center gap-1.5"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.LOCAL_PAINTED.bg}`} /><span>{DAMAGE_STATUSES.LOCAL_PAINTED.label}</span></div>
+                      <div className="flex items-center gap-1.5"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.CHANGED.bg}`} /><span>{DAMAGE_STATUSES.CHANGED.label}</span></div>
+                      <div className="flex items-center gap-1.5"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.UNSPECIFIED.bg}`} /><span>{DAMAGE_STATUSES.UNSPECIFIED.label}</span></div>
                     </div>
                   </div>
 
@@ -756,25 +736,25 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                     <div className="bg-slate-50/80 border border-slate-200/80 rounded-md p-4 space-y-3">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /><span>Orijinal ({groupedParts.ORIGINAL.length})</span>
+                          <span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.ORIGINAL.bg}`} /><span>{DAMAGE_STATUSES.ORIGINAL.label} ({groupedParts.ORIGINAL.length})</span>
                         </div>
                         <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.ORIGINAL.length > 0 ? groupedParts.ORIGINAL.join(' • ') : '-'}</p>
                       </div>
                       <div className="space-y-1 pt-1 border-t border-slate-200/60">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                          <span className="w-2.5 h-2.5 rounded-full bg-orange-500" /><span>Lokal Boyalı ({groupedParts.LOCAL_PAINTED.length})</span>
+                          <span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.LOCAL_PAINTED.bg}`} /><span>{DAMAGE_STATUSES.LOCAL_PAINTED.label} ({groupedParts.LOCAL_PAINTED.length})</span>
                         </div>
                         <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.LOCAL_PAINTED.length > 0 ? groupedParts.LOCAL_PAINTED.join(' • ') : '-'}</p>
                       </div>
                       <div className="space-y-1 pt-1 border-t border-slate-200/60">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                          <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /><span>Boyalı ({groupedParts.PAINTED.length})</span>
+                          <span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.PAINTED.bg}`} /><span>{DAMAGE_STATUSES.PAINTED.label} ({groupedParts.PAINTED.length})</span>
                         </div>
                         <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.PAINTED.length > 0 ? groupedParts.PAINTED.join(' • ') : '-'}</p>
                       </div>
                       <div className="space-y-1 pt-1 border-t border-slate-200/60">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                          <span className="w-2.5 h-2.5 rounded-full bg-rose-600" /><span>Değişmiş ({groupedParts.CHANGED.length})</span>
+                          <span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.CHANGED.bg}`} /><span>{DAMAGE_STATUSES.CHANGED.label} ({groupedParts.CHANGED.length})</span>
                         </div>
                         <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.CHANGED.length > 0 ? groupedParts.CHANGED.join(' • ') : '-'}</p>
                       </div>

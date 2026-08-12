@@ -9,6 +9,11 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { TURKEY_LOCATIONS as turkeyLocations } from '../../../data/turkeyLocations';
 import Icon from '../../common/icons';
+// Hasar katalogu ORTAK: bu iki sabit eskiden bu dosyada, Step4'te ve araç
+// detayında AYRI AYRI tanımlıydı ve birbirinden kaymıştı (aynı parça iki
+// farklı isimle, aynı durum iki farklı etiketle görünüyordu).
+// Gerekçe ve ölçülen farklar: src/data/hasarKatalogu.js
+import { CAR_PARTS, DAMAGE_STATUSES } from '../../../data/hasarKatalogu';
 
 // =========================================================================
 // 🏛️ 1. BLOK: MODÜL SABİTLERİ (PANEL KATALOGLARI - COMPONENT DIŞI)
@@ -72,30 +77,6 @@ const SWAP_OPTIONS = ['Evet', 'Hayır'];
 
 // --- PANEL 4 SABİTLERİ (EKSPERTİZ & HASAR KAYDI) ---
 const TRAMER_OPTIONS = ['Bilmiyorum', 'Tramer Yok', 'Tramer Var', 'Ağır Hasarlı'];
-
-const DAMAGE_STATUSES = {
-  UNSPECIFIED: { id: 'UNSPECIFIED', label: 'Belirtilmemiş', bg: 'bg-slate-200', text: 'text-slate-600', hex: '#E2E8F0', border: '#CBD5E1' },
-  ORIGINAL: { id: 'ORIGINAL', label: 'Orijinal', bg: 'bg-emerald-500', text: 'text-emerald-700', hex: '#22C55E', border: '#16A34A' },
-  PAINTED: { id: 'PAINTED', label: 'Boyanmış', bg: 'bg-amber-400', text: 'text-amber-700', hex: '#EAB308', border: '#D97706' },
-  LOCAL_PAINTED: { id: 'LOCAL_PAINTED', label: 'Lokal Boyanmış', bg: 'bg-orange-500', text: 'text-orange-700', hex: '#F97316', border: '#EA580C' },
-  CHANGED: { id: 'CHANGED', label: 'Değişmiş', bg: 'bg-rose-600', text: 'text-rose-700', hex: '#EF4444', border: '#DC2626' },
-};
-
-const CAR_PARTS = [
-  { id: 'front_bumper', name: 'Ön Tampon' },
-  { id: 'rear_bumper', name: 'Arka Tampon' },
-  { id: 'front_bonnet', name: 'Motor Kaputu' },
-  { id: 'roof', name: 'Tavan' },
-  { id: 'trunk', name: 'Bagaj Kapağı' },
-  { id: 'fender_front_left', name: 'Sol Ön Çamurluk' },
-  { id: 'door_front_left', name: 'Sol Ön Kapı' },
-  { id: 'door_rear_left', name: 'Sol Arka Kapı' },
-  { id: 'fender_rear_left', name: 'Sol Arka Çamurluk' },
-  { id: 'fender_front_right', name: 'Sağ Ön Çamurluk' },
-  { id: 'door_front_right', name: 'Sağ Ön Kapı' },
-  { id: 'door_rear_right', name: 'Sağ Arka Kapı' },
-  { id: 'fender_rear_right', name: 'Sağ Arka Çamurluk' },
-];
 
 // --- PANEL 5 SABİTLERİ (KAPSAMLI TÜRKİYE OTOMOTİV DONANIM KATALOĞU) ---
 const EQUIPMENT_CATEGORIES = [
@@ -1240,10 +1221,10 @@ useEffect(() => {
                 </h4>
 
                 <div className="flex items-center gap-3 text-[11px] font-bold">
-                  <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> <span>Orijinal ({damageSummary.ORIGINAL})</span></div>
-                  <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span> <span>Boyalı ({damageSummary.PAINTED})</span></div>
-                  <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span> <span>Lokal ({damageSummary.LOCAL_PAINTED})</span></div>
-                  <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose-600"></span> <span>Değişen ({damageSummary.CHANGED})</span></div>
+                  <div className="flex items-center gap-1"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.ORIGINAL.bg}`}></span> <span>{DAMAGE_STATUSES.ORIGINAL.label} ({damageSummary.ORIGINAL})</span></div>
+                  <div className="flex items-center gap-1"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.PAINTED.bg}`}></span> <span>{DAMAGE_STATUSES.PAINTED.label} ({damageSummary.PAINTED})</span></div>
+                  <div className="flex items-center gap-1"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.LOCAL_PAINTED.bg}`}></span> <span>Lokal ({damageSummary.LOCAL_PAINTED})</span></div>
+                  <div className="flex items-center gap-1"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.CHANGED.bg}`}></span> <span>{DAMAGE_STATUSES.CHANGED.label} ({damageSummary.CHANGED})</span></div>
                 </div>
               </div>
 
@@ -1445,7 +1426,7 @@ useEffect(() => {
                                 <span>{status.label}</span>
                               </div>
                               {damageReport[activePartMenu] === status.id && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                                <span className={`w-1.5 h-1.5 rounded-full ${DAMAGE_STATUSES.CHANGED.bg}`}></span>
                               )}
                             </button>
                           ))}

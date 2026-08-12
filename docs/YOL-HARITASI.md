@@ -40,12 +40,22 @@ Dikkat edilecekler:
 
 ### 2. Bekleyen küçük işler
 
-- `Step2ListingDetails.jsx` 2.006 satır — bölünecek.
+- `Step2ListingDetails.jsx` bölme işi **beklemede, gerekçesi değişti.** Dosya
+  2.000 satır ama panel panel başlıklandırılmış ve çalışıyor; satır sayısı tek
+  başına bölme gerekçesi değil. Asıl sorun olan **katalog tekrarı düzeltildi**
+  (aşağıya bakın). Panelleri ayırmak için önce sihirbazın test kapsamı
+  gerekiyor: şu an Step 2'yi hiçbir test kapsamıyor ve oraya ulaşmak için
+  Step 1'in tamamının (fotoğraf yükleme + marka/seri/model/paket zinciri + iki
+  tarih) doldurulması şart. Ayrıca dosya plaka girişini içeriyor — dokunulmaz
+  bölge.
 - Sızmış şifre koruması (Supabase panelinden tek tık, denetleyici uyarısı).
 - Sigorta iş ortağı akışı.
 - `uuid` + `vehicle_ownerships`: araç el değiştirdiğinde sicilin devri.
-- CI 2. aşama: yerel Supabase, böylece testler canlı veriye hiç yazmaz.
-  Ön koşulu `supabase db pull` ile temel migration üretmek.
+- CI 2. aşama (yerel Supabase): **Docker gerekiyor, kurulu değil — en alta
+  alındı.** Aciliyeti kalmadı: testler kendi çöpünü benzersiz işaretle
+  temizliyor ve yıkıcı işlemler yalnızca testin kendi oluşturduğu kayda `id`
+  üzerinden yapılıyor. Yani asıl risk kapandı; bu madde "bir daha asla olmasın"
+  garantisi.
 
 ---
 
@@ -65,3 +75,4 @@ Dikkat edilecekler:
 | Sicil puanı kanıta bağlandı (sabit 92 ve "+5" numarası kaldırıldı) | `35bd9a7` |
 | PIN sorgusuna istek hızı sınırı (IP başına, veritabanı içinde) | `ab63d1f` |
 | Next.js 16.3.0 + React 19.2.8; npm audit 6 yüksek → 0 | `8de5da2` |
+| Hasar kataloğu tek kaynağa alındı (3 dosyada kaymıştı) | bu commit |
