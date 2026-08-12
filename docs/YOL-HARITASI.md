@@ -94,4 +94,4 @@ Dikkat edilecekler:
 | Araç devri Faz 1.5: fatura dosyaları araca bağlandı (devirde geçiyor) | `d1ff6fa` |
 | Şema kayması giderildi: 8 fonksiyonun gövdesi depoya alındı | `6fd41f9` |
 | Devir: talep yolu, ön izleme, satıcı durum ekranı, yetki temizliği | `b0b0756` |
-| Devir arayüzü: iki taraflı akış, bildirimler, 9 test | bu commit |
+| Devir arayüzü: iki taraflı akış, bildirimler, 9 test | `967d537` |
