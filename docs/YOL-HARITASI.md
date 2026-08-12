@@ -44,7 +44,6 @@ Dikkat edilecekler:
 - Sızmış şifre koruması (Supabase panelinden tek tık, denetleyici uyarısı).
 - Sigorta iş ortağı akışı.
 - `uuid` + `vehicle_ownerships`: araç el değiştirdiğinde sicilin devri.
-- Next.js 16.3.0 yükseltmesi.
 - CI 2. aşama: yerel Supabase, böylece testler canlı veriye hiç yazmaz.
   Ön koşulu `supabase db pull` ile temel migration üretmek.
 
@@ -65,3 +64,4 @@ Dikkat edilecekler:
 | `vehicles` kilitlendi: plaka + PIN sızıntısı, sahte ekleme açığı | `2e4ec6f` |
 | Sicil puanı kanıta bağlandı (sabit 92 ve "+5" numarası kaldırıldı) | `35bd9a7` |
 | PIN sorgusuna istek hızı sınırı (IP başına, veritabanı içinde) | `ab63d1f` |
+| Next.js 16.3.0 + React 19.2.8; npm audit 6 yüksek → 0 | bu commit |
