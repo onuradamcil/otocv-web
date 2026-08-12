@@ -516,7 +516,7 @@ function ArabamStyleVitrinCard({ item, onSelectVehicle }) {
 
         <div className="mt-2 bg-slate-50 border border-slate-200/80 rounded px-2 py-1 flex items-center justify-between">
           <span className="text-[10px] text-slate-500 font-medium">Güven Karne Skoru</span>
-          <span className="text-[11px] font-bold text-indigo-600">%{item.trust_score ?? 60}</span>
+          <span className="text-[11px] font-bold text-indigo-600">{item.trust_score ?? 0}/100</span>
         </div>
 
         <div className="mt-2 text-sm font-bold text-slate-900 tracking-tight">

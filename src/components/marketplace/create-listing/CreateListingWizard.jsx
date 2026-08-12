@@ -590,7 +590,17 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         // 100.000 TL'lik hasar 100 TL olurdu. tramerTutari rakam dışı her
         // karakteri attığı için doğru tam sayıyı üretiyor.
         tramer_amount: tramerTutari(formData),
-        trust_score: formData.otocv_score || 92,
+        // trust_score GÖNDERİLMİYOR.
+        //
+        // Burada `formData.otocv_score || 92` vardı ve `otocv_score` hiçbir
+        // yerde set edilmiyordu — yani HER yeni araç sabit 92 alıyordu.
+        // Hiçbir bilgi taşımayan bir araca 92 vermek, en yanlış beyan türü:
+        // veri yokluğunu yüksek puanla ödüllendiriyordu.
+        //
+        // Puanı artık veritabanı tetikleyicisi hesaplıyor ve istemcinin
+        // gönderdiği değeri yok sayıyor. Alan buradan tamamen çıkarıldı ki
+        // "gönderiyoruz ama dikkate alınmıyor" gibi yanıltıcı bir satır
+        // kalmasın.
         image_url: photoUrls,
         pin_code: generatedPinCode,
       };

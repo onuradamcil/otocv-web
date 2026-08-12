@@ -14,6 +14,7 @@ import { tramerVarMi, tramerTutari } from '../utils/tramerHelper';
 import { parseVehicleDate, formatTrDate } from '../utils/dateHelper';
 import useSicil from '../hooks/useSicil';
 import FaturaOnizleme from './common/FaturaOnizleme';
+import SicilPuaniKirilim from './common/SicilPuaniKirilim';
 
 // =========================================================================
 // 🎨 SABİTLER VE YARDIMCI FONKSİYONLAR
@@ -251,7 +252,8 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
   // Veritabanı Temel Eşleştirmeleri
   const imageList = parseSafeImageUrls(vehicle.image_url || vehicle.image || vehicle.photos);
   const activeKm = vehicle.km ? Number(vehicle.km).toLocaleString('tr-TR') : '0';
-  const otocvScore = vehicle.trust_score ?? 92;
+  const otocvScore = vehicle.trust_score ?? 0;
+  const puanKirilimi = vehicle.trust_breakdown?.kirilim || null;
 
   // 🔒 KVKK: Plaka, araç sahibine ulaşılabilecek kişisel veridir. Ziyaretçiye
   // hiç gösterilmez — "gizli" etiketi bile konmaz. Sebebi: güven ekranında
@@ -460,24 +462,49 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
 
               {/* SAĞ: KÜNYE (FULL EKSİKSİZ VE ZIRHLI METRİK MATRİSİ) */}
               <div className="md:col-span-4 space-y-3">
-                <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-md p-3.5 flex items-center justify-between">
+                {/* PUAN ROZETİ — RENK PUANA GÖRE.
+                    Eskiden kutu her koşulda yeşildi ve yanında yanıp sönen bir
+                    nokta vardı: 20/100 bile "yeşil onay" gibi görünüyordu.
+                    Altındaki "Tescil Güven Rozeti" ibaresi de bir doğrulama
+                    iddiasıydı — tescil hiçbir yerde sorgulanmıyor. */}
+                <div className={`rounded-md p-3.5 flex items-center justify-between border ${
+                  otocvScore >= 70 ? 'bg-emerald-50/80 border-emerald-200/90'
+                  : otocvScore >= 40 ? 'bg-amber-50/70 border-amber-200/90'
+                  : 'bg-slate-50 border-slate-300 border-dashed'
+                }`}>
                   <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[11px] font-extrabold uppercase text-emerald-800 font-mono">KARNE PUANI</span>
-                    </div>
-                    <p className="text-[11px] text-emerald-700/80 font-medium">Tescil Güven Rozeti</p>
+                    <span className="text-[11px] font-extrabold uppercase text-slate-700 font-mono">
+                      OTO.CV SİCİL PUANI
+                    </span>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Girilmiş veriden hesaplanır
+                    </p>
                   </div>
                   <div className="text-right flex items-baseline gap-0.5">
-                    <span className="text-3xl font-black font-mono text-emerald-600">{otocvScore}</span>
-                    <span className="text-xs font-bold text-emerald-600/70 font-mono">/100</span>
+                    <span className={`text-3xl font-black font-mono tabular-nums ${
+                      otocvScore >= 70 ? 'text-emerald-600'
+                      : otocvScore >= 40 ? 'text-amber-600'
+                      : 'text-slate-500'
+                    }`}>{otocvScore}</span>
+                    <span className="text-xs font-bold text-slate-400 font-mono">/100</span>
                   </div>
                 </div>
+
+                {/* Puanın kalem kalem dökümü. Sayının kendisi doğrulanamaz bir
+                    iddia; kırılım onu denetlenebilir kılıyor. */}
+                {puanKirilimi && (
+                  <div className="bg-white border border-slate-200 rounded-md p-3.5">
+                    <SicilPuaniKirilim kirilim={puanKirilimi} puan={otocvScore} />
+                  </div>
+                )}
 
                 <div className="bg-slate-50/80 border border-slate-200 rounded-md p-3.5 space-y-2">
                   <div className="flex justify-between border-b border-slate-200 pb-2">
                     <span className="text-[11px] font-black text-slate-900 uppercase">ARAÇ KÜNYESİ</span>
-                    <span className="text-[11px] font-black text-emerald-600 font-mono">%100 Tescilli</span>
+                    {/* "%100 Tescilli" ibaresi kaldırıldı: tescil hiçbir yerde
+                        sorgulanmıyor, dolayısıyla doğrulanmamış bir iddiaydı.
+                        Yerine kaydın gerçekte ne olduğu yazıyor. */}
+                    <span className="text-[11px] font-bold text-slate-500 font-mono">Araç sahibi beyanı</span>
                   </div>
                   
                   {/* 🟢 ZIRHLI VE DOĞRUDAN FORMATLANAN KÜNYE LİSTESİ */}
@@ -609,7 +636,9 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
                 <div className="hidden sm:flex items-center gap-2 shrink-0 py-2">
                   <div className="bg-white border border-slate-200/90 px-3.5 py-1.5 rounded-lg flex items-center gap-2 shadow-2xs">
                     <span className="text-[10px] font-extrabold text-slate-400 uppercase font-mono tracking-wider leading-none">KARNE PUANI</span>
-                    <span className="text-xs sm:text-sm font-black font-mono text-emerald-600 leading-none">{otocvScore}/100</span>
+                    <span className={`text-xs sm:text-sm font-black font-mono tabular-nums leading-none ${
+                      otocvScore >= 70 ? 'text-emerald-600' : otocvScore >= 40 ? 'text-amber-600' : 'text-slate-500'
+                    }`}>{otocvScore}/100</span>
                   </div>
                 </div>
               </div>

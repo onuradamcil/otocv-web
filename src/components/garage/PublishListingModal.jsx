@@ -250,7 +250,7 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
               <span className="text-[11px] font-bold text-slate-500 font-mono">{vehicle.plate_number} • {vehicle.km ? vehicle.km.toLocaleString('tr-TR') : '0'} KM</span>
             </div>
             <div className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[11px] font-extrabold px-3 py-1 rounded-xl font-mono">
-              Skor: %{vehicle.trust_score ?? 60}
+              Skor: {vehicle.trust_score ?? 0}/100
             </div>
           </div>
 

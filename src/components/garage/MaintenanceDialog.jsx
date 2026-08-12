@@ -166,21 +166,24 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
         next_service_km: nextServiceKm ? parseInt(nextServiceKm.replace(/\./g, ''), 10) : null
       });
 
-      const { data: carData, error: fetchError } = await supabase
-        .from('vehicles')
-        .select('trust_score')
-        .eq('plate_number', activePlate)
-        .single();
-
-      if (!fetchError && carData) {
-        const currentScore = carData.trust_score || 60;
-        const newScore = Math.min(Math.max(currentScore + 5, 60), 98);
-
-        await supabase
-          .from('vehicles')
-          .update({ trust_score: newScore })
-          .eq('plate_number', activePlate);
-      }
+      // =====================================================================
+      // PUAN ARTIRMA KALDIRILDI — PUANI ARTIK VERITABANI HESAPLIYOR
+      //
+      // Burada şu vardı: mevcut puanı oku, +5 ekle, 98'de tavanla, geri yaz.
+      // Üç sorunu vardı:
+      //
+      //   1. Puan yalnızca YUKARI gidiyordu. Hasarlı, muayenesi dolmuş,
+      //      kilometresi tutarsız bir araç kayıt ekleyerek 98'e çıkıyordu.
+      //      Yani sayı, aracın durumunu değil kaç kez form doldurulduğunu
+      //      ölçüyordu.
+      //   2. Puan istemciden yazılıyordu. Anon anahtarıyla herhangi bir araca
+      //      98 verilebildiği kanıtlandı.
+      //   3. Kayıt SİLİNDİĞİNDE puan geri düşmüyordu.
+      //
+      // Artık `vehicles` üzerindeki tetikleyici puanı `sicil_puani_hesapla()`
+      // ile yeniden hesaplıyor — bakım kaydı eklendiğinde, güncellendiğinde ve
+      // silindiğinde. İstemcinin gönderdiği değer yok sayılıyor.
+      // =====================================================================
 
       // UX DEVRİMİ: Başarı durumunu tetikleyip 1.2 saniye sonra sayfayı kapatma döngüsü
       setIsSuccess(true);

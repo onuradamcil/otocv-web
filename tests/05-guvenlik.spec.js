@@ -597,3 +597,127 @@ test.describe('Güvenlik · arayüz RLS’ten sonra çalışmaya devam ediyor', 
     expect(govde, 'plaka ziyaretçi arayüzünde görünüyor').not.toContain(ORNEK_PLAKA);
   });
 });
+
+test.describe('Sicil puani kanita bagli', () => {
+  // KUSURUN İLK HÂLİ:
+  //   · sihirbaz her yeni araca SABİT 92 yazıyordu (`formData.otocv_score`
+  //     hiçbir yerde set edilmiyordu, hep varsayılana düşüyordu)
+  //   · bakım kaydı eklenince +5, tavan 98 — puan yalnızca YUKARI gidiyordu
+  //   · puanı düşüren hiçbir şey yoktu: hasarlı, muayenesi dolmuş, kilometresi
+  //     tutarsız bir araç kayıt ekleyerek 98'e çıkıyordu
+  //   · puan istemciden yazılıyordu; anon anahtarıyla 98 verilebiliyordu
+  //
+  // Artık `vehicles` üzerindeki tetikleyici puanı gerçek veriden hesaplıyor.
+
+  test('puan kirilim toplamiyla birebir tutuyor', async () => {
+    // Puan ile kırılım ayrı yerlerde saklanıyor. Biri güncellenip diğeri
+    // atlanırsa alıcıya gösterilen sayı, altındaki açıklamayla çelişir —
+    // güvenilirliği bitiren tam olarak bu.
+    const sb = await supabaseIstemcisi();
+    const { data, error } = await sb
+      .from('vehicles')
+      .select('plate_number, trust_score, trust_breakdown');
+
+    expect(error).toBeFalsy();
+    expect(data?.length, 'hiç araç okunamadı').toBeGreaterThan(0);
+
+    for (const v of data) {
+      expect(v.trust_breakdown, `${v.plate_number} kırılımı yok`).toBeTruthy();
+
+      const kalemler = v.trust_breakdown.kirilim || [];
+      const toplam = kalemler.reduce((t, k) => t + k.puan, 0);
+
+      expect(toplam, `${v.plate_number}: kalem toplamı ${toplam}, puan ${v.trust_score}`)
+        .toBe(v.trust_score);
+      expect(v.trust_breakdown.puan).toBe(v.trust_score);
+
+      // Hiçbir kalem tavanını geçmemeli.
+      for (const k of kalemler) {
+        expect(k.puan, `${v.plate_number} · ${k.ad}: ${k.puan} > tavan ${k.tavan}`)
+          .toBeLessThanOrEqual(k.tavan);
+        expect(k.puan).toBeGreaterThanOrEqual(0);
+      }
+    }
+  });
+
+  test('puan istemciden ZORLA yazilamiyor', async () => {
+    const sb = await supabaseIstemcisi();
+    const { data: once } = await sb
+      .from('vehicles')
+      .select('plate_number, trust_score')
+      .limit(1)
+      .single();
+
+    // Sahip kendi aracına 100 yazmayı deniyor.
+    await sb.from('vehicles').update({ trust_score: 100 }).eq('plate_number', once.plate_number);
+
+    const { data: sonra } = await sb
+      .from('vehicles')
+      .select('trust_score')
+      .eq('plate_number', once.plate_number)
+      .single();
+
+    expect(sonra.trust_score, 'istemci puani belirleyebiliyor').not.toBe(100);
+    expect(sonra.trust_score, 'puan degismis olmamali').toBe(once.trust_score);
+  });
+
+  test('kilometre kalemi, karnedeki hesapla ayni sonucu veriyor', async () => {
+    // DRIFT KORUMASI. Kilometre tutarlılığı İKİ yerde hesaplanıyor:
+    // SQL'de (puan için) ve JS'de (karne belgesindeki metin için). İkisi
+    // aynı kuralı uygulamak zorunda; biri değişip diğeri kalırsa belge ile
+    // puan birbirini yalanlar.
+    //
+    // Bu test SQL'in verdiği sonucu, JS'in aynı veriden vardığı sonuçla
+    // karşılaştırıyor.
+    const sb = await supabaseIstemcisi();
+    const { data: araclar } = await sb
+      .from('vehicles')
+      .select('plate_number, trust_breakdown');
+
+    for (const v of araclar || []) {
+      const kalem = (v.trust_breakdown?.kirilim || []).find((k) => k.ad === 'Kilometre tutarliligi');
+      expect(kalem, `${v.plate_number} kilometre kalemi yok`).toBeTruthy();
+
+      const { data: kayitlar } = await sb
+        .from('maintenance_records')
+        .select('service_date, km_at_service')
+        .eq('vehicle_plate', v.plate_number);
+
+      // JS tarafındaki kuralın aynısı: tarihe göre sırala, geriye gidiş ara.
+      const kullanilabilir = (kayitlar || [])
+        .filter((k) => k.service_date && k.km_at_service !== null)
+        .sort((a, b) => new Date(a.service_date) - new Date(b.service_date));
+
+      let geriAdim = 0;
+      for (let i = 1; i < kullanilabilir.length; i++) {
+        if (kullanilabilir[i].km_at_service < kullanilabilir[i - 1].km_at_service) geriAdim++;
+      }
+
+      const jsBeklenen = kullanilabilir.length < 2 ? 0 : geriAdim === 0 ? 20 : 0;
+
+      expect(kalem.puan, `${v.plate_number}: SQL ${kalem.puan} puan verdi, JS kuralı ${jsBeklenen} bekliyordu`)
+        .toBe(jsBeklenen);
+    }
+  });
+
+  test('veri yokken yuksek puan verilmiyor', async () => {
+    // ESKİ KUSURUN TAM KARŞILIĞI: hiçbir bilgi taşımayan araç 92 alıyordu.
+    // Veri yokluğunu yüksek puanla ödüllendirmek, en yanlış beyan türü.
+    const sb = await supabaseIstemcisi();
+    const { data: araclar } = await sb.from('vehicles').select('plate_number, trust_score');
+
+    for (const v of araclar || []) {
+      const { count } = await sb
+        .from('maintenance_records')
+        .select('id', { count: 'exact', head: true })
+        .eq('vehicle_plate', v.plate_number);
+
+      if ((count ?? 0) === 0) {
+        // Bakım kaydı olmayan araç, belgelenme kaleminden (45) puan alamaz.
+        // Kalan tavan 55; 55'in üstü imkânsız olmalı.
+        expect(v.trust_score, `${v.plate_number} hiç kaydı yok ama ${v.trust_score} puan almış`)
+          .toBeLessThanOrEqual(55);
+      }
+    }
+  });
+});

@@ -309,7 +309,11 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
 // 5. BLOK: REAKTİF VE PAZARYERİ BAĞLANTILI ARAÇ KARTI (VehicleCard)
 // =========================================================================
 function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, onOpenModal, onOpenListingModal }) {
-  const score = vehicle.trust_score ?? 60;
+  // Varsayilan 0: puan artik veritabaninda her zaman hesaplaniyor ve NULL olamaz.
+  // Eskiden bu satirlar `?? 60`, `?? 92` ve `?? 94` idi -- AYNI arac icin uc
+  // ayri sayi. Simdi olu kod; yine de 0 birakiliyor ki bir gun deger gelmezse
+  // uydurma bir sayi degil, acikca dusuk bir puan gorunsun.
+  const score = vehicle.trust_score ?? 0;
   const plate = vehicle.plate_number ?? '34 ABC 123';
   const rawImageUrl = vehicle.image_url || vehicle.image;
 

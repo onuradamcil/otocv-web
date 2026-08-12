@@ -194,7 +194,11 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
 
   const imageList = parseSafeImageUrls(formData.photos);
   const activeKm = formData.mileage || formData.km || '0';
-  const otocvScore = formData.otocv_score || 92;
+  // NOT: `otocvScore` değişkeni kaldırıldı. Eskiden `formData.otocv_score || 92`
+  // idi ve `otocv_score` hiçbir yerde set edilmediği için HER ZAMAN 92 basıyordu.
+  // Kullanıcı ön izlemede 92 görüp yayımlıyor, sonra gerçek puanı (örneğin 45)
+  // görüyordu. Ön izleme, yayımlanacak şeyi göstermek zorunda; bilmediğimiz bir
+  // sayıyı göstermemeli. Puan yayımdan sonra veritabanında hesaplanıyor.
 
   const sellerName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Onur Adamcil';
   const sellerPhone = user?.user_metadata?.phone || '0 (532) 123 45 67';
@@ -447,14 +451,18 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                 <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-md p-3.5 flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[11px] font-extrabold uppercase text-emerald-800 font-mono">KARNE PUANI</span>
+                      <span className="w-2 h-2 rounded-full bg-slate-400" />
+                      <span className="text-[11px] font-extrabold uppercase text-slate-700 font-mono">SİCİL PUANI</span>
                     </div>
-                    <p className="text-[11px] text-emerald-700/80 font-medium">Tescil Güven Rozeti</p>
+                    {/* Eskiden burada sabit 92 yazıyordu ve altında "Tescil Güven
+                        Rozeti" ibaresi vardı. İkisi de yanlıştı: puan hesaplanmış
+                        değildi ve "tescil" hiçbir yerde doğrulanmıyordu. Puan
+                        yayımdan sonra veritabanında, gerçek veriden hesaplanıyor. */}
+                    <p className="text-[11px] text-slate-500 font-medium">Yayımdan sonra hesaplanır</p>
                   </div>
                   <div className="text-right flex items-baseline gap-0.5">
-                    <span className="text-3xl font-black font-mono text-emerald-600">{otocvScore}</span>
-                    <span className="text-xs font-bold text-emerald-600/70 font-mono">/100</span>
+                    <span className="text-2xl font-black font-mono text-slate-400">—</span>
+                    <span className="text-xs font-bold text-slate-400 font-mono">/100</span>
                   </div>
                 </div>
 
@@ -597,7 +605,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                 <div className="hidden sm:flex items-center gap-2 shrink-0 py-2">
                   <div className="bg-white border border-slate-200/90 px-3.5 py-1.5 rounded-lg flex items-center gap-2 shadow-2xs">
                     <span className="text-[10px] font-extrabold text-slate-400 uppercase font-mono tracking-wider leading-none">KARNE PUANI</span>
-                    <span className="text-xs sm:text-sm font-black font-mono text-emerald-600 leading-none">{otocvScore}/100</span>
+                    <span className="text-xs sm:text-sm font-black font-mono text-slate-400 leading-none">—/100</span>
                   </div>
                 </div>
               </div>

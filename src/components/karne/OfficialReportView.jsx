@@ -33,7 +33,7 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
   // =========================================================================
   // 1. BLOK: SAF BULUT SÖZLEŞME VE BİLGİ HARİTALAMA GEÇİDİ
   // =========================================================================
-  const score = vehicle?.trust_score ?? 60;
+  const score = vehicle?.trust_score ?? 0;
   
   // 🚀 SİBER ENTEGRASYON: Eski 4 haneli geçici fallback yok edildi, canlı bulut kodu mühürlendi!
   const pinCode = vehicle?.pin_code || 'CV-PENDING';

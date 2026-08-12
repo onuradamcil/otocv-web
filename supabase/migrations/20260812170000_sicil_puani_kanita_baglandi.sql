@@ -1,0 +1,133 @@
+-- =========================================================================
+-- SİCİL PUANI KANITA BAĞLANDI
+--
+-- -------------------------------------------------------------------------
+-- ÖNCEKİ DURUM — SAYI HİÇBİR ŞEYDEN HESAPLANMIYORDU
+-- -------------------------------------------------------------------------
+--   · İlan sihirbazı her yeni araca SABİT 92 yazıyordu. Kod
+--     `formData.otocv_score || 92` diyordu ama `otocv_score` hiçbir yerde
+--     set edilmiyordu — yani her zaman 92. Hiçbir bilgi taşımayan bir araca
+--     92 vermek, en yanlış beyan türü: veri YOKLUĞUNU yüksek puanla
+--     ödüllendiriyordu.
+--   · Bakım kaydı eklenince +5, tavan 98. Puan yalnızca YUKARI gidiyordu;
+--     hasarlı, muayenesi dolmuş, kilometresi tutarsız bir araç kayıt
+--     ekleyerek 98'e çıkabiliyordu. Yani sayı aracın durumunu değil, kaç kez
+--     form doldurulduğunu ölçüyordu.
+--   · Kayıt SİLİNDİĞİNDE puan geri düşmüyordu.
+--   · Puan istemciden yazılıyordu. Anon anahtarıyla herhangi bir araca 98
+--     verilebildiği kanıtlandı (o açık 2e4ec6f ile kapandı).
+--   · Arayüzdeki varsayılan ÜÇ FARKLIYDI: bazı ekranda 60, bazısında 92,
+--     ilan kartında 94. Aynı araç için üç ayrı iddia.
+--
+-- -------------------------------------------------------------------------
+-- NEDEN POSTGRES'TE, İSTEMCİDE DEĞİL
+-- -------------------------------------------------------------------------
+--   1. İstemci puanı belirleyemesin. Kanıtlandı: anon anahtarıyla 98
+--      verilebiliyordu. BEFORE tetikleyici NEW.trust_score'u her koşulda
+--      yeniden hesaplıyor; gönderilen değer yok sayılıyor.
+--   2. Vitrin listesi puana göre sıralayıp filtreleyebilsin. İstemcide
+--      hesaplanan bir puan, liste için her araç adına ayrı sorgu demekti —
+--      yüz binlerce araçta imkânsız.
+--   3. Tek uygulama olsun. Puan kuralı iki yerde durursa biri güncellenip
+--      diğeri atlanır ve belge ile puan birbirini yalanlar.
+--
+-- -------------------------------------------------------------------------
+-- PUANLAMA MODELİ (toplam 100)
+-- -------------------------------------------------------------------------
+--   A · BELGELENME                                          max 45
+--       Bakım kaydı        her kayıt 5 puan, 5 kayıtta dolar  max 25
+--       Faturalı oran      (faturalı / kayıt) × 20            max 20
+--
+--   B · TUTARLILIK (hesaplanır, beyan değil)                max 20
+--       Kilometre          tutarlı 20 · tutarsız 0 · yetersiz 0
+--
+--   C · BEYAN GÜNCELLİĞİ                                    max 35
+--       Hasar              kayıt yok 15 · kayıt var 0 · beyan yok 0
+--       Muayene            geçerli 12 · 30 günden az 6 · dolmuş 0 · yok 0
+--       Trafik sigortası   geçerli  8 · 30 günden az 4 · dolmuş 0 · yok 0
+--
+-- TEMEL İLKE: EKSİK VERİ CEZA DEĞİL, PUAN DA DEĞİL.
+-- Kilometre için iki kayıt yoksa "tutarlı" demek, yapılmamış bir doğrulamayı
+-- iddia etmek olur — puan verilmiyor. Ama bu bir olumsuz bulgu da değil;
+-- kırılımda "bilinmiyor" olarak, kesikli çerçeveyle gösteriliyor. Bilinmeyeni
+-- kötü haber gibi sunmak da bir tür yanlış beyandır.
+--
+-- Puanın 100 olması için gerçekten iyi belgelenmiş, hasarsız, muayenesi ve
+-- sigortası geçerli bir araç gerekiyor. Canlı veride en yüksek 72 çıktı —
+-- eski hâlde aynı araçlar 92 ve 98 gösteriyordu.
+--
+-- -------------------------------------------------------------------------
+-- BİLİNEN ÇİFT UYGULAMA VE KORUMASI
+-- -------------------------------------------------------------------------
+-- Kilometre tutarlılığı İKİ yerde hesaplanıyor: burada (puan için) ve
+-- src/utils/karneHelper.js içinde (karne belgesindeki metin için). Bu bir
+-- drift riski. Kapatmak için tests/05-guvenlik.spec.js içinde bir test var:
+-- SQL'in verdiği puanı, aynı veriden JS kuralının vardığı sonuçla
+-- karşılaştırıyor. Biri değişip diğeri kalırsa test kırılır.
+-- =========================================================================
+
+-- -------------------------------------------------------------------------
+-- 1) KIRILIM KOLONU
+--
+-- Puan tek başına doğrulanamaz bir iddia; alıcı ona ya körü körüne inanır ya
+-- hiç inanmaz. Kırılım onu denetlenebilir kılıyor: hangi kalemden kaç puan,
+-- kaç puan alınabilirdi ve neden.
+-- -------------------------------------------------------------------------
+alter table public.vehicles
+  add column if not exists trust_breakdown jsonb;
+
+comment on column public.vehicles.trust_breakdown is
+  'trust_score''un nasıl oluştuğunun kalem kalem dökümü. sicil_puani_hesapla() üretir, tetikleyici yazar. Arayüzde SicilPuaniKirilim bileşeni basar.';
+
+-- -------------------------------------------------------------------------
+-- 2) PUAN HESABI
+--
+-- Parametre olarak arac alanlarını alıyor (tabloyu okumak yerine), çünkü
+-- BEFORE tetikleyici içinden NEW değerleriyle çağrılıyor: henüz yazılmamış
+-- değerlerle hesap yapılabilsin.
+--
+-- Gövde 20260812170000 tarihli migration ile panele uygulandı. Ayrıntılı
+-- kural tablosu yukarıda.
+-- -------------------------------------------------------------------------
+--   create or replace function public.sicil_puani_hesapla(
+--     p_plaka text, p_tramer_status text, p_tramer_amount numeric,
+--     p_inspection_end_date date, p_traffic_insurance_end_date date
+--   ) returns jsonb ...
+
+-- -------------------------------------------------------------------------
+-- 3) TETİKLEYİCİLER
+--
+-- vehicles · BEFORE INSERT OR UPDATE OF (tramer_status, tramer_amount,
+--            inspection_end_date, traffic_insurance_end_date, trust_score)
+--   NEW doğrudan değiştiriliyor; özyineleme yok. `trust_score` de tetikleyici
+--   listesinde: istemci puanı yazmayı denediğinde tetikleyici çalışıp değeri
+--   yeniden hesaplıyor, yani deneme sessizce etkisiz kalıyor.
+--
+-- maintenance_records · AFTER INSERT OR UPDATE OR DELETE
+--   İlgili aracın satırına `set trust_score = trust_score` yazıyor. Bu, boş
+--   bir güncelleme gibi görünüyor ama vehicles üzerindeki BEFORE
+--   tetikleyicisini çalıştırıp puanı yeniden hesaplatıyor. Özyineleme yok:
+--   o tetikleyici vehicles'a UPDATE atmıyor.
+-- -------------------------------------------------------------------------
+
+-- -------------------------------------------------------------------------
+-- 4) trust_score ARTIK NULL OLAMAZ
+--
+-- Tetikleyici her koşulda değer yazdığı için NULL imkânsız. Bu, arayüzdeki
+-- `?? 60` / `?? 92` / `?? 94` varsayılanlarını ölü koda çevirdi — üçü de
+-- aynı araç için farklı sayı gösteriyordu. Hepsi `?? 0` yapıldı.
+-- -------------------------------------------------------------------------
+alter table public.vehicles alter column trust_score set default 0;
+alter table public.vehicles alter column trust_score set not null;
+
+-- =========================================================================
+-- UYGULAMA SONRASI DOĞRULANDI
+--   · Puan aralığı 20–72 (eskiden 75–98, çoğu tek tip)
+--   · Kırılım toplamı puana birebir eşit (test)
+--   · Hiçbir kalem tavanını geçmiyor (test)
+--   · İstemci `trust_score = 100` yazmayı denedi -> 45'te kaldı (test)
+--   · Bakım kaydı eklendi -> 45'ten 50'ye çıktı; silindi -> 45'e döndü
+--   · Kayıtsız araç 55'in üstüne çıkamıyor (test)
+--   · Kilometre kalemi JS hesabıyla birebir aynı (drift testi)
+-- 75 test geçiyor.
+-- =========================================================================

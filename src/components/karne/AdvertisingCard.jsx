@@ -21,7 +21,11 @@ export default function AdvertisingCard({ vehicle }) {
   // 🚀 SİBER ENTEGRASYON: Eski 4 haneli statik placeholder uçuruldu, canlı DB verisi mühürlendi!
   const pinCode = vehicle?.pin_code || 'CV-PENDING';
   
-  const score = vehicle?.trust_score ?? 94;
+  // Varsayilan 0: puan artik veritabaninda her zaman hesaplaniyor ve NULL olamaz.
+  // Eskiden bu satirlar `?? 60`, `?? 92` ve `?? 94` idi -- AYNI arac icin uc
+  // ayri sayi. Simdi olu kod; yine de 0 birakiliyor ki bir gun deger gelmezse
+  // uydurma bir sayi degil, acikca dusuk bir puan gorunsun.
+  const score = vehicle?.trust_score ?? 0;
   const brand = vehicle?.brand || 'Belirsiz';
   const model = vehicle?.model || 'Belirsiz';
   const kmValue = vehicle?.km ?? 0;

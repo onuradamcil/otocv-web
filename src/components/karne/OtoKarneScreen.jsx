@@ -57,7 +57,7 @@ export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }
   const resolveField = (key) => {
     if (!vehicle) return null;
     const fieldMapping = {
-      trust_score: vehicle.trust_score ?? vehicle.trustScore ?? 60,
+      trust_score: vehicle.trust_score ?? vehicle.trustScore ?? 0,
       plate_number: vehicle.plate_number ?? vehicle.plateValue ?? '34 ABC 123',
       
       // 🚀 SİBER ENTEGRASYON: Statik uydurma placeholder imha edildi! Doğrudan canlı bulut PIN_CODE alanı bağlandı.
