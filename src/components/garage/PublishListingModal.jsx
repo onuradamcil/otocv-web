@@ -9,6 +9,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { publishVehicleListing, unpublishVehicleListing } from '../../services/marketplaceService';
 import { TURKEY_LOCATIONS } from '../../data/turkeyLocations';
 import Icon from '../common/icons';
+import PaywallDialog from '../common/PaywallDialog';
+import { URUNLER, fiyatYaz } from '../../data/paketler';
 
 export default function PublishListingModal({ isOpen, onClose, vehicle, onSuccess }) {
   // =========================================================================
@@ -41,6 +43,10 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
 
   // 💎 DEMO VİTRİN / DOPİNG STATE'İ
   const [isFeatured, setIsFeatured] = useState(false);
+  // Vitrin ücretli bir işlem: seçim artık doğrudan çevrilmiyor, paywall'dan
+  // geçiyor. Kaldırmak paywall gerektirmiyor — para iadesi değil, sadece
+  // henüz yayınlanmamış bir ilanın tercihinden vazgeçmek.
+  const [paywallAcik, setPaywallAcik] = useState(false);
 
   // Custom Dropdown Açık/Kapalı ve Arama State'leri
   const [isCityOpen, setIsCityOpen] = useState(false);
@@ -487,8 +493,8 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
 
           {/* 💎 DEMO VİTRİN / DOPİNG SEÇİM BARI */}
           <div className="pt-2">
-            <div 
-              onClick={() => setIsFeatured(!isFeatured)}
+            <div
+              onClick={() => (isFeatured ? setIsFeatured(false) : setPaywallAcik(true))}
               className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
                 isFeatured 
                   ? 'bg-gradient-to-r from-amber-50 to-indigo-50 border-amber-400 ring-2 ring-amber-400/30' 
@@ -513,9 +519,15 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <span className="text-xs font-black font-mono text-indigo-700">₺250</span>
-                <span className="text-[9px] block text-slate-400 font-bold">DEMO ÖDEME</span>
+              {/* Fiyat paketler.js'ten. Ekrana elle yazılan ikinci bir
+                  rakam bırakmıyoruz: iki yerde duran fiyat kayar. */}
+              <div className="text-right shrink-0 pl-3">
+                <span className="text-xs font-black font-mono text-indigo-700">
+                  {fiyatYaz(URUNLER.vitrin.fiyat)}
+                </span>
+                <span className="text-[9px] block text-slate-400 font-bold">
+                  {isFeatured ? 'SEÇİLDİ' : 'TEK SEFERLİK'}
+                </span>
               </div>
             </div>
           </div>
@@ -541,7 +553,10 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
               {submitting ? (
                 <span className="inline-block animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
               ) : (
-                vehicle.is_listed ? 'İlanı Güncelle' : (isFeatured ? '₺250 Öde & Vitrine Çıkar' : 'İlanı Yayınla')
+                // Ödeme artık paywall'da alınıyor; düğme yalnızca yayınlıyor.
+                // Eski metin ("₺250 Öde & Vitrine Çıkar") iki kez ödeme
+                // yapılıyormuş izlenimi verirdi.
+                vehicle.is_listed ? 'İlanı Güncelle' : (isFeatured ? 'Vitrinle Yayınla' : 'İlanı Yayınla')
               )}
             </button>
           </div>
@@ -549,6 +564,38 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
         </form>
 
       </div>
+
+      {/* VİTRİN PAYWALL'I. Koşullu render: kapalıyken mount edilmiyor,
+          böylece her açılışta durumu sıfırdan kuruyor — projedeki diğer
+          diyalogların kalıbı. */}
+      {paywallAcik && (
+        <PaywallDialog
+          urunKodu="vitrin"
+          onKapat={() => setPaywallAcik(false)}
+          onSatinAl={() => {
+            // DEMO: gerçek tahsilat yok, tercih işaretleniyor. Ücret
+            // bağlandığında burası sağlayıcının onayını bekleyecek ve
+            // is_featured yalnızca onay dönerse işaretlenecek.
+            setIsFeatured(true);
+            setPaywallAcik(false);
+          }}
+          detay={
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center gap-3">
+              <div className="inline-flex items-center bg-white border-2 border-slate-900 rounded overflow-hidden shrink-0 h-8">
+                <div className="bg-[#003399] text-white px-2 h-full flex items-center font-mono font-black text-[10px] border-r border-slate-900">
+                  TR
+                </div>
+                <div className="px-2.5 font-mono font-black text-xs text-slate-900 uppercase tracking-wider">
+                  {vehicle?.plate_number}
+                </div>
+              </div>
+              <p className="text-xs font-bold text-slate-700 truncate">
+                {vehicle?.brand} {vehicle?.model}
+              </p>
+            </div>
+          }
+        />
+      )}
     </div>
   );
 }

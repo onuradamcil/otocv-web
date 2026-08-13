@@ -4,9 +4,11 @@
 // (client component'ten metadata export edilemez).
 // =========================================================================
 
+// "Paket" DENMİYOR: bireysel tarafta abonelik yok, ürünler işlem başına.
+// Paket kelimesi tekrar eden ödeme beklentisi kurar.
 export const metadata = {
-  title: 'Paketlerim & Ödemeler',
-  description: 'Üyelik paketleriniz, ödeme geçmişiniz ve faturalarınız.',
+  title: 'Ücretler & Ödemeler',
+  description: 'İşlem ücretleri, ücretsiz özellikler ve ödeme geçmişiniz.',
   robots: { index: false, follow: false },
 };
 

@@ -83,7 +83,7 @@ export default function Header() {
     { href: '/garage', label: 'Tescilli Taşıtlarım (Garaj)' },
     { href: '/my-listings', label: 'Aktif İlanlarım' },
     { href: '/query-history', label: 'Sorgulama Geçmişim' },
-    { href: '/packages', label: 'Paketlerim & Ödemeler' },
+    { href: '/packages', label: 'Ücretler & Ödemeler' },
     { href: '/account', label: 'Hesabım' },
   ];
 

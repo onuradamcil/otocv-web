@@ -22,7 +22,7 @@ const ACIK_ROTALAR = [
   { yol: '/register', ad: 'Kayıt' },
   { yol: '/dashboard', ad: 'Özet (yer tutucu)' },
   { yol: '/query-history', ad: 'Sorgu geçmişi (yer tutucu)' },
-  { yol: '/packages', ad: 'Paketler (yer tutucu)' },
+  { yol: '/packages', ad: 'Ücretler' },
   { yol: '/account', ad: 'Hesap (yer tutucu)' },
   { yol: '/insurance-offer', ad: 'Sigorta teklifi (yer tutucu)' },
   { yol: '/maintenance-planner', ad: 'Bakım planı (yer tutucu)' },

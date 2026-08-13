@@ -75,13 +75,36 @@ Yani kullanıcı bugün başvuru gönderebiliyor ama başvuru sizin onayınızı
 bekliyor ve onaydan sonra ödeme adımı yok. `odendi_at` alanı şimdiden duruyor;
 tahsilat geldiğinde yalnızca o alan dolacak, şema değişmeyecek.
 
-- [ ] Ödeme altyapısı (şu an **sıfır** — `PublishListingModal` içindeki ₺250 "DEMO ÖDEME")
+- [x] Ürün kararı: bireysel tarafta **işlem başına**, abonelik yok
+- [x] Ücret listesi tek kaynakta — `src/data/paketler.js` (RevenueCat'e hazır alanlar)
+- [x] `PaywallDialog` — demo paywall, dört ürünü de gösteriyor
+- [x] `/packages` yer tutucudan gerçek **Ücretler** ekranına çevrildi
+- [x] Vitrin dopingi paywall'dan geçiyor (tek gerçek fiyat: ₺250)
+- [ ] Ödeme altyapısı (şu an **sıfır**)
   - [ ] Sağlayıcı seçimi (TR'de iyzico standart) ve üye işyeri sözleşmesi
   - [ ] 3D Secure akışı
   - [ ] Webhook rotası — projede `src/app/api/` klasörü hiç yok
   - [ ] Ödeme kayıt tablosu + fatura yükümlülüğü
-  - [ ] Devir ücreti ve sahipsiz geri yükleme ücreti tanımı
+  - [ ] `paketler.js` içindeki `DEMO_MOD` kapatılacak — **kilitlerle aynı turda**
 - [ ] Elle onay ekranı — ruhsat inceleme, onay/ret (projede hiç yönetim ekranı yok)
+- [ ] Kurumsal/galeri fiyatlandırması — ayrı liste, `paketler.js` içine eklenecek
+
+### ⚠ Paywall şu an ATLANABİLİR — bilinen ve kabul edilmiş
+
+Ürün kararı "önce ekran, kilit sonra" oldu. Kilitler kurulmadan tahsilat
+**açılmamalı**: para alan ama zorlamayan bir sistem, hiç almamaktan kötüdür.
+
+- [ ] `listings.is_featured` kullanıcı tarafından serbestçe yazılabiliyor
+      (politika `auth.uid() = user_id`, kolon kısıtı yok) — vitrin ücretsiz alınır
+- [ ] İlan kotası **hiç uygulanmıyor**: `remainingQuota` yalnızca Step 1'de
+      ekrana basılıyor, hiçbir yerde kontrol edilmiyor. Standart kullanıcı
+      bugün sınırsız ilan verebiliyor
+- [ ] `profiles` INSERT politikası `with_check: true` — **koşul yok**. Kayıt
+      olan biri kendi satırını `is_premium: true` ile yazabilir. Bedava premium
+- [ ] `profiles` tablosunda **UPDATE politikası hiç yok** — ayrı bir sorun:
+      `/account` ekranı yazıldığında "profilimi düzenle" çalışmayacak
+- [ ] Ayrıcalık bir **satın alma kaydından** türetilmeli, istemcinin yazdığı
+      boolean'dan değil (RevenueCat webhook'u da aynı kayda yazar)
 - [ ] `/account` ekranı — şu an `ComingSoon` yer tutucusu, 17 satır
   - [ ] Profil düzenleme (ad, soyad, telefon)
   - [ ] Şifre değiştirme

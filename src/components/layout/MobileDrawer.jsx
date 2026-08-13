@@ -28,7 +28,7 @@ const UYE_MENU = [
   { href: '/my-listings', label: 'Aktif İlanlarım' },
   { href: '/dashboard', label: 'Bana Özel Özet' },
   { href: '/query-history', label: 'Sorgulama Geçmişim' },
-  { href: '/packages', label: 'Paketlerim & Ödemeler' },
+  { href: '/packages', label: 'Ücretler & Ödemeler' },
   { href: '/account', label: 'Hesabım' },
 ];
 

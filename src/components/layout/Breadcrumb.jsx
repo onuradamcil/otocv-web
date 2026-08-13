@@ -23,7 +23,7 @@ const ETIKET = {
   karne: 'Oto-Karne',
   dashboard: 'Bana Özel Özet',
   'query-history': 'Sorgulama Geçmişim',
-  packages: 'Paketlerim & Ödemeler',
+  packages: 'Ücretler & Ödemeler',
   account: 'Hesabım',
   'insurance-offer': 'Sigorta Teklifleri',
   'maintenance-planner': 'Bakım Planlayıcı',
