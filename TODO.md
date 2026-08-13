@@ -43,7 +43,7 @@ götürüyor.
   - [x] `src/services/devirService.js` — yeni RPC'ler + hata metinleri
 - [x] A4 · `scripts/hesap-kapat.mjs` — kuru koşum varsayılan, `--uygula` ile uygular
 - [x] A5 · `tests/08-hesap-kapatma.spec.js` — 18 test, hiçbiri gerçek hesap silmiyor
-- [x] Doğrulama: lint 0 hata · build temiz · 114 test geçti · FK karşılaştırması
+- [x] Doğrulama: lint 0 hata · build temiz · 106 test geçti · FK karşılaştırması
 - [ ] `docs/YOL-HARITASI.md` güncelle + commit
 
 ---
