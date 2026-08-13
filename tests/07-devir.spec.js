@@ -351,15 +351,24 @@ test.describe('Araç devri', () => {
   });
 
   // -----------------------------------------------------------------------
-  test('ARAYÜZ: garajda "Aracı Devret" var ve diyalog açılıyor', async ({ page }) => {
+  // Devret düğmesi artık HER KARTTA değil. Kartlar beş katmandan üçe
+  // indirilirken seyrek eylemler Araç Merkezi'ne ve kart içi `⋯` menüsüne
+  // taşındı. Yol bir adım uzadı — araç seçici araya girdi — ama diyaloğun
+  // kendisi ve rıza metni aynı.
+  test('ARAYÜZ: Araç Merkezi\'nden devir diyaloğu açılıyor', async ({ page }) => {
     await girisYap(page);
     await page.goto('/garage');
     await page.waitForLoadState('networkidle');
 
-    const dugme = page.locator("button:has-text('Aracı Devret')");
-    await expect(dugme.first()).toBeVisible({ timeout: 15_000 });
+    const dugme = page.getByRole('button', { name: /Aracı devret/ }).first();
+    await expect(dugme, 'Araç Merkezi\'nde devret eylemi yok').toBeVisible({ timeout: 15_000 });
+    await dugme.click();
+    await page.waitForTimeout(1200);
 
-    await dugme.first().click();
+    // Araç seçici: "hangi araç?" adımı. İlk araç seçiliyor.
+    const secici = page.getByRole('dialog');
+    await expect(secici, 'araç seçici açılmadı').toBeVisible({ timeout: 10_000 });
+    await secici.locator('button').filter({ hasText: 'TR' }).first().click();
     await page.waitForTimeout(2000);
 
     const govde = await page.locator('body').textContent();

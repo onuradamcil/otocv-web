@@ -1,22 +1,37 @@
 // =========================================================================
-// OTO-CV GARAJ MOTORU: ULTRA-PREMIUM DASHBOARD (GarageScreen.jsx)
-// İşlev: Akıllı kapatılabilir (X) Top Alert Banner, 3'lü tarih matrisi,
-//        Dinamik Pazaryeri İlan Sihirbazı entegrasyonu ve lüks modal paneli.
+// OTO-CV GARAJ EKRANI (GarageScreen.jsx)
+// İşlev: Süre uyarısı şeridi, Araç Merkezi (özet + eylemler) ve araç kartları.
+//
+// -------------------------------------------------------------------------
+// 13 AĞUSTOS DÜZENLEMESİ — KART KALABALIĞI
+// -------------------------------------------------------------------------
+// Her araç kartı BEŞ katman taşıyordu: plaka+model+skor, üç poliçe kutusu,
+// ilan şeridi, devret şeridi ve üçlü aksiyon satırı. On araçta bu elli blok
+// demekti ve ekran okunmaz hâle geliyordu.
+//
+// Kök sebep katman sayısı değil, katmanların NE OLDUĞUYDU: seyrek eylemler
+// (satışa çıkar, devret) her kartta duruyordu. Kullanıcı aracını yılda bir
+// kez satar ama düğmeyi her gün görür.
+//
+// Çözüm: seyrek eylemler Araç Merkezi'ne ve kart içi `⋯` menüsüne taşındı.
+// Kart üç katmana indi. Kaldırılan profil kartının bilgisi de kaybolmadı —
+// ad ve üyelik hesap menüsüne taşındı (Header.jsx).
 // =========================================================================
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { calculatePolicyStatus } from '../utils/dateHelper';
 import PolicyOfferModal from './garage/PolicyOfferModal';
 import { useToast } from '../context/ToastContext';
 import PublishListingModal from './garage/PublishListingModal';
-import AracDevretDialog from './garage/AracDevretDialog'; // 🚀 İLAN MODALI ENJEKTE EDİLDİ
+import AracDevretDialog from './garage/AracDevretDialog';
+import AracSeciciDialog from './garage/AracSeciciDialog';
 import Icon from './common/icons';
 import GlobalStepLoader from './common/GlobalStepLoader';
 
-export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMaintenance, onNavigateToAdd }) {
+export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMaintenance, onNavigateToAdd, onManageListings }) {
   const toast = useToast();
   // =========================================================================
   // 1. BLOK: REAKTİF DURUM VE VERİTABANI HAFIZASI
@@ -24,11 +39,12 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  const [activeUser, setActiveUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
 
   const [isBannerDismissed, setIsBannerDismissed] = useState(false);
+
+  // Araç Merkezi'ndeki eylemler önce "hangi araç?" diye soruyor.
+  // null | 'ilan' | 'devir' | 'bakim'
+  const [seciciTuru, setSeciciTuru] = useState(null);
 
   // Policy Offer Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -63,16 +79,9 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
       if (userError) throw userError;
       
       if (user) {
-        setActiveUser(user);
-
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        
-        if (profileData) setUserProfile(profileData);
-
+        // Profil sorgusu KALDIRILDI: burada yalnızca profil kartını
+        // beslemek için çekiliyordu. Kart kalkınca ad ve üyelik bilgisi
+        // hesap menüsüne taşındı; garaj ekranının profile ihtiyacı yok.
         // Vehicles ile ilişkili listings kaydını çekiyoruz
         const { data, error: fetchError } = await supabase
           .from('vehicles')
@@ -146,8 +155,61 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
     setDevirModalOpen(true);
   };
 
-  const userInitials = userProfile ? `${userProfile.first_name[0]}${userProfile.last_name[0]}`.toUpperCase() : 'CV';
-  const userFullName = userProfile ? `${userProfile.first_name} ${userProfile.last_name}` : 'Kullanıcı Hesabı';
+  const satistaSayisi = vehicles.filter((v) => v.is_listed).length;
+  const satilabilirSayisi = vehicles.length - satistaSayisi;
+
+  // -------------------------------------------------------------------------
+  // ARAÇ MERKEZİ EYLEMLERİ
+  //
+  // Üçü de aynı iki adımı yürüyor: araç seç -> ZATEN VAR OLAN modalı aç.
+  // Burada yeni iş mantığı yok; kartlardan kaldırılan düğmelerin yeni evi.
+  //
+  // `kapali` doluysa eylem devre dışı ve sebebi ekranda yazıyor. Sessizce
+  // çalışmayan bir düğme, çalışmadığını söyleyen düğmeden daha kötüdür.
+  // -------------------------------------------------------------------------
+  const EYLEMLER = [
+    {
+      tur: 'ilan',
+      ikon: 'ilan',
+      baslik: 'Satışa çıkar',
+      ozet: 'Aracınızı pazaryerinde yayınlayın; bilgiler ve sicil ilana otomatik gelsin.',
+      kapali: vehicles.length === 0 ? 'Önce araç kaydedin' : (satilabilirSayisi === 0 ? 'Tüm araçlarınız satışta' : null),
+      secici: {
+        baslik: 'Hangi aracı satışa çıkaralım?',
+        aciklama: 'Seçtiğiniz aracın bilgileri ve sicil karnesi ilana otomatik geliyor.',
+        devreDisi: (v) => (v.is_listed ? 'Zaten satışta' : null),
+        calistir: handleOpenListingModal,
+      },
+    },
+    {
+      tur: 'devir',
+      ikon: 'anahtar',
+      baslik: 'Aracı devret',
+      ozet: 'Yeni sahibine sicili aktarın. Bakım geçmişi araçla birlikte gidiyor.',
+      kapali: vehicles.length === 0 ? 'Önce araç kaydedin' : null,
+      secici: {
+        baslik: 'Hangi aracı devredeceksiniz?',
+        aciklama: 'Devir tamamlanınca araç garajınızdan çıkıyor ve varsa ilanı kapanıyor.',
+        devreDisi: null,
+        calistir: handleOpenDevirModal,
+      },
+    },
+    {
+      tur: 'bakim',
+      ikon: 'takvim',
+      baslik: 'Bakım işle',
+      ozet: 'Servis kaydı ekleyin; belgelendikçe aracın sicil puanı yükseliyor.',
+      kapali: vehicles.length === 0 ? 'Önce araç kaydedin' : null,
+      secici: {
+        baslik: 'Hangi araca bakım işleyelim?',
+        aciklama: 'Tarih, kilometre ve servis bilgisi sicile kalıcı olarak yazılıyor.',
+        devreDisi: null,
+        calistir: onOpenMaintenance,
+      },
+    },
+  ];
+
+  const acikEylem = EYLEMLER.find((e) => e.tur === seciciTuru);
 
   // =========================================================================
   // 4. BLOK: ARAYÜZ RENDER KATMANI
@@ -170,8 +232,12 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
               </span>
+              {/* "Filo Uyarısı" değil: "filo" kelimesi kurumsal ürüne
+                  ayrıldı (bkz. TODO — üyelik tipi). Bireysel kullanıcının
+                  üç aracına filo demek, ileride iki farklı şeyin aynı adı
+                  taşıması demekti. */}
               <p className="text-xs sm:text-sm font-bold tracking-tight truncate">
-                Filo Uyarısı: <span className="underline underline-offset-2 font-black">{criticalVehicles.length} adet aracınızın</span> sigorta, kasko veya muayene süresi kritik seviyede!
+                Süre Uyarısı: <span className="underline underline-offset-2 font-black">{criticalVehicles.length} aracınızın</span> sigorta, kasko veya muayene süresi kritik seviyede!
               </p>
             </div>
 
@@ -196,7 +262,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
         {/* BAŞLIK BARI */}
         <div className="flex justify-between items-center border-b border-gray-200 pb-4 select-none">
           <h1 className="text-xl md:text-2xl font-black tracking-tight text-[#0F172A]">
-            Oto.CV Garaj Paneli
+            Garajım
           </h1>
           <button 
             onClick={fetchLiveVehicles}
@@ -209,52 +275,64 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
           </button>
         </div>
 
-        {/* PROFİL KARTI */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-shadow duration-300 hover:shadow-md select-none">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-black shadow-inner font-display">
-              {userInitials}
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-base text-[#0F172A]">{userFullName}</span>
-                <span className="bg-emerald-50 text-[#2E7D32] text-[9px] font-black px-2 py-0.5 rounded-md border border-emerald-200/50 tracking-wider">
-                  DOĞRULANDI
-                </span>
-              </div>
-              <p className="text-xs text-[#6F7887] font-medium mt-0.5">{activeUser?.email || 'Yükleniyor...'}</p>
-            </div>
-          </div>
-          
-          <div className="bg-[#F8FAFC] border border-gray-200 px-4 py-2.5 rounded-xl flex flex-col items-end shrink-0 w-full sm:w-auto">
-            <span className={`text-xs font-black flex items-center gap-1 ${userProfile?.is_premium ? 'text-amber-600' : 'text-[#0f172a]'}`}>
-              {userProfile?.is_premium && <Icon name="yildiz" size="sm" />}
-              {userProfile?.is_premium ? 'Premium Kurumsal Üyelik' : 'Standart Kurumsal Üyelik'}
-            </span>
-            <span className="text-[#6F7887] text-[10px] font-bold mt-0.5">Sorgu Limiti: Sınırsız</span>
-          </div>
-        </div>
+        {/* =====================================================================
+            ARAÇ MERKEZİ — kaldırılan profil kartının yerine
 
-        {/* EYLEM AKSİYON BARI */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="space-y-0.5">
-            <h2 className="text-lg font-black text-[#0f172a] tracking-tight">
-              Mevcut Filo Yönetimi <span className="text-gray-400 font-medium text-sm">(Kendi Araçlarım)</span>
-            </h2>
-            <p className="text-xs text-[#6F7887] font-medium">
-              Ruhsatlı araçlarınız ve dijital karne tescil yönetim merkeziniz.
-            </p>
+            Profil kartı üç şey gösteriyordu: baş harfler, ad soyad + e-posta,
+            üyelik rozeti. Üçü de kullanıcının ZATEN BİLDİĞİ şeylerdi ve
+            ekranın en değerli yerini kaplıyordu. Bilgi kaybolmadı — hesap
+            menüsüne taşındı (Header.jsx).
+
+            Yerine gerçekten iş yapan bir bölüm geldi: durum özeti ve seyrek
+            eylemlerin merkezi. Kartlar bu sayede üç katmana inebildi.
+
+            Not: kart "Standart KURUMSAL Üyelik" yazıyordu — oysa sistemde
+            kurumsal üyelik diye bir şey yok, herkes bireysel. O tutarsızlık
+            da bu kartla birlikte kalktı.
+        ===================================================================== */}
+        <section
+          aria-label="Araç Merkezi"
+          className="bg-white border border-slate-200 rounded-3xl shadow-[0_4px_20px_rgba(15,23,42,0.03)] overflow-hidden select-none"
+        >
+          <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100">
+            <dl className="flex items-center gap-5 sm:gap-7">
+              <Sayac deger={vehicles.length} etiket="Kayıtlı araç" />
+              <Sayac deger={satistaSayisi} etiket="Satışta" renk={satistaSayisi > 0 ? 'text-emerald-600' : 'text-slate-300'} />
+              <Sayac
+                deger={criticalVehicles.length}
+                etiket="Süresi kritik"
+                renk={criticalVehicles.length > 0 ? 'text-rose-600' : 'text-slate-300'}
+              />
+            </dl>
+
+            <button
+              onClick={onNavigateToAdd}
+              className="w-full sm:w-auto bg-[#4F46E5] hover:bg-indigo-700 active:scale-[0.98] text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/10 transition-all duration-200 cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Yeni Araç Kaydet
+            </button>
           </div>
-          
-          <button 
-            onClick={onNavigateToAdd}
-            className="w-full sm:w-auto bg-[#4F46E5] hover:bg-indigo-700 active:scale-98 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/10 transition-all duration-200 select-none cursor-pointer"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Yeni Araç Kaydet
-          </button>
+
+          <div className="px-5 py-4">
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3">
+              Ne yapmak istiyorsunuz?
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {EYLEMLER.map((e) => (
+                <MerkezEylem key={e.tur} eylem={e} onAc={() => setSeciciTuru(e.tur)} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div className="flex items-baseline gap-2 pt-1">
+          <h2 className="text-sm font-black text-[#0f172a] tracking-tight">Araçlarım</h2>
+          {!loading && vehicles.length > 0 && (
+            <span className="text-xs text-slate-400 font-bold font-mono tabular-nums">{vehicles.length}</span>
+          )}
         </div>
 
         {/* DİZİLİM MOTORU */}
@@ -282,15 +360,16 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
             {vehicles.map((vehicle, index) => (
-              <VehicleCard 
-                key={vehicle.id || vehicle.plate_number || `car-${index}`} 
-                vehicle={vehicle} 
+              <VehicleCard
+                key={vehicle.id || vehicle.plate_number || `car-${index}`}
+                vehicle={vehicle}
                 onViewDetails={onViewDetails}
                 onViewKarne={onViewKarne}
                 onOpenMaintenance={onOpenMaintenance}
                 onOpenModal={handleOpenModal}
                 onOpenListingModal={handleOpenListingModal}
-              onOpenDevir={handleOpenDevirModal} // 🚀 İLAN MODAL TETİKLEYİCİSİ
+                onOpenDevir={handleOpenDevirModal}
+                onManageListings={onManageListings}
               />
             ))}
           </div>
@@ -326,14 +405,99 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
           onSuccess={fetchLiveVehicles}
         />
       )}
+
+      {/* ARAÇ SEÇİCİ — merkezdeki üç eylemin ortak ilk adımı */}
+      {acikEylem && (
+        <AracSeciciDialog
+          baslik={acikEylem.secici.baslik}
+          aciklama={acikEylem.secici.aciklama}
+          ikon={acikEylem.ikon}
+          vehicles={vehicles}
+          devreDisi={acikEylem.secici.devreDisi}
+          onClose={() => setSeciciTuru(null)}
+          onSec={(v) => {
+            // Önce seçici kapanıyor: iki modal üst üste açık kalırsa
+            // Esc hangisini kapatacağı belirsiz olur ve odak tuzakları
+            // birbiriyle çakışır.
+            setSeciciTuru(null);
+            acikEylem.secici.calistir(v);
+          }}
+        />
+      )}
     </div>
   );
 }
 
 // =========================================================================
-// 5. BLOK: REAKTİF VE PAZARYERİ BAĞLANTILI ARAÇ KARTI (VehicleCard)
+// ARAÇ MERKEZİ PARÇALARI
 // =========================================================================
-function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, onOpenModal, onOpenListingModal, onOpenDevir}) {
+
+// Sayaç: `tabular-nums` şart — sayılar değişince (9 -> 10) etiketler
+// yanlamasına zıplamasın.
+function Sayac({ deger, etiket, renk = 'text-slate-900' }) {
+  return (
+    <div className="min-w-0">
+      <dd className={`text-2xl font-black font-mono tabular-nums leading-none tracking-tight ${renk}`}>
+        {deger}
+      </dd>
+      <dt className="text-[10px] font-bold text-slate-500 mt-1 truncate">{etiket}</dt>
+    </div>
+  );
+}
+
+// Merkez eylemi: ikon + başlık + tek satır açıklama. Sadece düğme değil —
+// kullanıcı ne olacağını tıklamadan önce okuyor.
+//
+// Kapalıyken `disabled` VE sebep birlikte veriliyor. Tıklanmayan ama neden
+// tıklanmadığını söylemeyen düğme, kullanıcıyı ürünün bozuk olduğuna
+// inandırıyor.
+function MerkezEylem({ eylem, onAc }) {
+  const kapali = !!eylem.kapali;
+
+  return (
+    <button
+      type="button"
+      disabled={kapali}
+      onClick={onAc}
+      className={`text-left p-4 rounded-2xl border transition-all group ${
+        kapali
+          ? 'border-slate-100 bg-slate-50/60 cursor-not-allowed'
+          : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40 hover:shadow-sm active:scale-[0.99] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2'
+      }`}
+    >
+      <span className="flex items-center gap-2.5 mb-2">
+        <span
+          className={`w-8 h-8 rounded-xl grid place-items-center shrink-0 transition-colors ${
+            kapali ? 'bg-slate-100 text-slate-400' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'
+          }`}
+        >
+          <Icon name={eylem.ikon} size="md" />
+        </span>
+        <span className={`text-xs font-black tracking-tight ${kapali ? 'text-slate-400' : 'text-slate-900'}`}>
+          {eylem.baslik}
+        </span>
+      </span>
+
+      <span className={`block text-[11px] font-semibold leading-relaxed ${kapali ? 'text-slate-400' : 'text-slate-500'}`}>
+        {kapali ? eylem.kapali : eylem.ozet}
+      </span>
+    </button>
+  );
+}
+
+// =========================================================================
+// ARAÇ KARTI (VehicleCard) — ÜÇ KATMAN
+//
+//   1. Fotoğraf · plaka · marka/model · skor  (+ satıştaysa ince şerit)
+//   2. Üç poliçe çipi
+//   3. Detay · Karne · Bakım  +  `⋯` menüsü
+//
+// Kaldırılan iki katman (ilan şeridi, devret şeridi) yok olmadı: `⋯`
+// menüsüne ve Araç Merkezi'ne taşındı. Menüde durmaları önemli — "bu aracı
+// sat" niyeti kartın üstünde doğuyor, kullanıcıyı yukarı göndermek yerine
+// yerinde karşılıyoruz. Keşfedilebilirlik korunuyor, gürültü kalkıyor.
+// =========================================================================
+function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, onOpenModal, onOpenListingModal, onOpenDevir, onManageListings }) {
   // Varsayilan 0: puan artik veritabaninda her zaman hesaplaniyor ve NULL olamaz.
   // Eskiden bu satirlar `?? 60`, `?? 92` ve `?? 94` idi -- AYNI arac icin uc
   // ayri sayi. Simdi olu kod; yine de 0 birakiliyor ki bir gun deger gelmezse
@@ -354,10 +518,37 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
   const kaskoStatus = calculatePolicyStatus(vehicle.kasko_end_date);
   const inspectionStatus = calculatePolicyStatus(vehicle.inspection_end_date);
 
+  // `⋯` menüsü. Header'daki hesap menüsüyle aynı kalıp: `mousedown`
+  // kullanılıyor, `click` değil — menü içindeki öğe tıklandığında DOM'dan
+  // kalkabiliyor ve `contains` yanlış cevap veriyor.
+  const [menuAcik, setMenuAcik] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuAcik) return;
+    const disariTiklama = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuAcik(false);
+    };
+    const escBasildi = (e) => {
+      if (e.key === 'Escape') setMenuAcik(false);
+    };
+    document.addEventListener('mousedown', disariTiklama);
+    document.addEventListener('keydown', escBasildi);
+    return () => {
+      document.removeEventListener('mousedown', disariTiklama);
+      document.removeEventListener('keydown', escBasildi);
+    };
+  }, [menuAcik]);
+
+  const menudenCalistir = (fn) => {
+    setMenuAcik(false);
+    fn(vehicle);
+  };
+
   return (
-    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-[0_4px_20px_rgba(15,23,42,0.03)] hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition-all duration-300 flex flex-col justify-between min-h-[300px] group hover:border-slate-300">
-      
-      {/* ÜST BİLGİ ALANI */}
+    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-[0_4px_20px_rgba(15,23,42,0.03)] hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition-all duration-300 flex flex-col gap-4 group hover:border-slate-300">
+
+      {/* KATMAN 1 — KİMLİK */}
       <div className="flex gap-4 items-start">
         <div className="w-[76px] h-[76px] rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden relative shadow-inner">
           {thumbnailTarget ? (
@@ -384,9 +575,25 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
           <h3 className="text-base font-black text-[#0F172A] truncate w-full tracking-tight">
             {vehicle.brand} {vehicle.model}
           </h3>
-          <p className="text-[11px] text-slate-500 font-bold font-mono">
+          {/* `truncate`: km altı haneli olunca satır iki satıra sarıyor ve o
+              kart aynı satırdaki diğerlerinden uzun kalıyordu. Izgara
+              `items-start` olduğu için hizasızlık gözle görülüyordu. */}
+          <p className="text-[11px] text-slate-500 font-bold font-mono truncate w-full">
             {vehicle.year} Yıl • {vehicle.km ? vehicle.km.toLocaleString('tr-TR') : '0'} km
           </p>
+
+          {/* Satış durumu artık tam genişlik şerit değil, ince bir çip.
+              Bilgi (satışta olduğu ve fiyatı) duruyor, kapladığı katman
+              kalkıyor. Satışta olmayan araçta hiç görünmüyor. */}
+          {vehicle.is_listed && (
+            <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200/80 text-emerald-800 px-2 py-1 rounded-lg text-[10px] font-black">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+              Satışta
+              <span className="font-mono tabular-nums">
+                ₺{vehicle.price ? Number(vehicle.price).toLocaleString('tr-TR') : '0'}
+              </span>
+            </span>
+          )}
         </div>
 
         <div className="bg-indigo-50 border border-indigo-100/90 px-3 py-1.5 rounded-2xl text-right shrink-0 select-none shadow-xs">
@@ -396,103 +603,132 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
         </div>
       </div>
 
-      {/* POLİÇE DURUM KARTLARI */}
-      <div className="grid grid-cols-3 gap-2 my-4 select-none">
-        <div 
-          onClick={() => onOpenModal(vehicle, 'insurance', insuranceStatus)}
-          className={`border p-2 rounded-2xl flex flex-col justify-center items-start gap-1 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 shadow-2xs ${insuranceStatus.bgClass}`}
-        >
-          <span className="text-[9px] font-black uppercase tracking-wider opacity-60">SİGORTA</span>
-          <div className="flex items-center gap-1.5 w-full min-w-0">
-            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${insuranceStatus.dotClass}`} />
-            <span className="text-xs font-black truncate leading-none">{insuranceStatus.text}</span>
-          </div>
-        </div>
-
-        <div 
-          onClick={() => onOpenModal(vehicle, 'kasko', kaskoStatus)}
-          className={`border p-2 rounded-2xl flex flex-col justify-center items-start gap-1 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 shadow-2xs ${kaskoStatus.bgClass}`}
-        >
-          <span className="text-[9px] font-black uppercase tracking-wider opacity-60">KASKO</span>
-          <div className="flex items-center gap-1.5 w-full min-w-0">
-            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${kaskoStatus.dotClass}`} />
-            <span className="text-xs font-black truncate leading-none">{kaskoStatus.text}</span>
-          </div>
-        </div>
-
-        <div 
-          onClick={() => onOpenModal(vehicle, 'inspection', inspectionStatus)}
-          className={`border px-1.5 py-2 rounded-2xl flex flex-col justify-center items-start gap-1 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 shadow-2xs ${inspectionStatus.bgClass}`}
-        >
-          <span className="text-[9px] font-black uppercase tracking-wider opacity-60">MUAYENE</span>
-          <div className="flex items-center gap-1.5 w-full min-w-0">
-            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${inspectionStatus.dotClass}`} />
-            <span className="text-xs font-black truncate leading-none">{inspectionStatus.text}</span>
-          </div>
-        </div>
+      {/* KATMAN 2 — POLİÇE ÇİPLERİ */}
+      <div className="grid grid-cols-3 gap-2 select-none">
+        <PoliceCipi etiket="SİGORTA" durum={insuranceStatus} onAc={() => onOpenModal(vehicle, 'insurance', insuranceStatus)} />
+        <PoliceCipi etiket="KASKO" durum={kaskoStatus} onAc={() => onOpenModal(vehicle, 'kasko', kaskoStatus)} />
+        <PoliceCipi etiket="MUAYENE" durum={inspectionStatus} onAc={() => onOpenModal(vehicle, 'inspection', inspectionStatus)} />
       </div>
 
-      {/* 🚀 GARAJDAN SADECE BİLGİ GÖSTERİLİR / DÜZENLEME İLANI YÖNETİM SAYFASINA TAŞINDI */}
-      {vehicle.is_listed ? (
-        <div className="bg-emerald-50 border border-emerald-200/80 px-3.5 py-2.5 rounded-2xl flex items-center justify-between select-none mb-3">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-emerald-800 font-extrabold text-xs tracking-tight">Pazaryerinde Satışta</span>
-          </div>
-          <span className="font-mono font-black text-xs sm:text-sm tracking-tight text-slate-900">
-            ₺{vehicle.price ? Number(vehicle.price).toLocaleString('tr-TR') : '0'}
-          </span>
-        </div>
-      ) : (
+      {/* KATMAN 3 — GÜNLÜK EYLEMLER + `⋯`
+          Üç düğme her gün kullanılan işler. Dördüncü kutucuk seyrek
+          olanları taşıyor; kartta yer kaplamadan erişilebilir kalıyorlar. */}
+      <div className="flex gap-2 select-none">
         <button
-          onClick={() => onOpenListingModal(vehicle)}
-          className="w-full bg-slate-50 hover:bg-indigo-50 border border-dashed border-slate-300 hover:border-indigo-300 text-slate-600 hover:text-indigo-600 py-2.5 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold transition-all mb-3 cursor-pointer group"
-        >
-          <svg className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          <span>Pazaryerinde Satışa Çıkar</span>
-        </button>
-      )}
-
-      {/* ARACI DEVRET — tam genişlik ikincil şerit.
-          Alt aksiyon satırı `grid-cols-3` ve dolu; dördüncü düğme eklemek o
-          düzeni bozardı. Bu yüzden ilan şeridinin (yukarıda) birebir kalıbı
-          kullanılıyor: kesikli çerçeveli, ikincil ağırlıkta, tam genişlik.
-
-          İlanda olan araç için de gösteriliyor: satıcı ilanı yayındayken
-          aracı devretmiş olabilir ve devir zaten ilanı kapatıyor. */}
-      <button
-        type="button"
-        onClick={() => onOpenDevir(vehicle)}
-        className="w-full bg-slate-50 hover:bg-amber-50 border border-dashed border-slate-300 hover:border-amber-300 text-slate-600 hover:text-amber-700 font-bold text-xs py-2.5 rounded-2xl transition-colors cursor-pointer flex items-center justify-center gap-2 group"
-      >
-        <Icon name="anahtar" size="sm" className="text-slate-400 group-hover:text-amber-600 transition-colors" />
-        <span>Aracı Devret</span>
-      </button>
-
-      {/* EŞİT GENİŞLİKTE MİNİMALİST AKSİYON BUTONLARI */}
-      <div className="grid grid-cols-3 gap-2 select-none pt-1">
-        <button 
           onClick={() => onViewDetails(vehicle)}
-          className="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer text-center truncate"
+          className="flex-1 min-w-0 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer text-center truncate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
         >
-          Detayları Gör
+          Detay
         </button>
-        <button 
+        <button
           onClick={() => onViewKarne(vehicle)}
-          className="bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 active:scale-95 text-slate-800 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-center truncate"
+          className="flex-1 min-w-0 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 active:scale-95 text-slate-800 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-center truncate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
         >
-          Sicil Karne
+          Karne
         </button>
-        <button 
+        <button
           onClick={() => onOpenMaintenance(vehicle)}
-          className="bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 active:scale-95 text-slate-800 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-center truncate"
+          className="flex-1 min-w-0 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 active:scale-95 text-slate-800 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-center truncate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
         >
-          Bakım İşle
+          Bakım
         </button>
+
+        <div className="relative shrink-0" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setMenuAcik((a) => !a)}
+            aria-expanded={menuAcik}
+            aria-haspopup="menu"
+            aria-label={`${plate} için diğer işlemler`}
+            className="w-11 h-full min-h-[38px] grid place-items-center bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 active:scale-95 text-slate-500 rounded-xl transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+          >
+            {/* Üç nokta ikonu kayıtta yok. Kayda yalnızca bu kart için ikon
+                eklemek yerine satır içi çizim: kullanılmayan ikon eklenmiyor
+                kuralı (registry.jsx başlığı). */}
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <circle cx="5" cy="12" r="1.8" />
+              <circle cx="12" cy="12" r="1.8" />
+              <circle cx="19" cy="12" r="1.8" />
+            </svg>
+          </button>
+
+          {menuAcik && (
+            <div
+              role="menu"
+              className="absolute right-0 bottom-full mb-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-30 py-1 motion-safe:animate-fadeIn"
+            >
+              {vehicle.is_listed ? (
+                <MenuOgesi
+                  ikon="ilan"
+                  etiket="İlanı yönet"
+                  ipucu="Fiyat, açıklama ve yayından kaldırma"
+                  onSec={() => menudenCalistir(() => onManageListings?.())}
+                />
+              ) : (
+                <MenuOgesi
+                  ikon="ilan"
+                  etiket="Satışa çıkar"
+                  ipucu="Pazaryerinde yayınla"
+                  onSec={() => menudenCalistir(onOpenListingModal)}
+                />
+              )}
+
+              {/* Satıştaki araç için de gösteriliyor: satıcı ilan
+                  yayındayken aracı devretmiş olabilir ve devir zaten
+                  ilanı kapatıyor. */}
+              <MenuOgesi
+                ikon="anahtar"
+                etiket="Aracı devret"
+                ipucu="Sicili yeni sahibine aktar"
+                onSec={() => menudenCalistir(onOpenDevir)}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
     </div>
+  );
+}
+
+// Poliçe çipi: eskiden üç ayrı blok olarak kopyalanmıştı ve üçüncüsünün
+// dolgusu diğer ikisinden farklıydı (`px-1.5 py-2` vs `p-2`) — gözle
+// yakalanmayan ama hizayı bozan türden bir sapma. Tek bileşen olunca
+// mümkün değil.
+//
+// `div` değil `button`: tıklanabilir bir öğeydi ama klavyeyle erişilemiyor
+// ve ekran okuyucuya düğme olduğunu söylemiyordu.
+function PoliceCipi({ etiket, durum, onAc }) {
+  return (
+    <button
+      type="button"
+      onClick={onAc}
+      className={`border px-2 py-1.5 rounded-xl flex flex-col justify-center items-start gap-0.5 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 shadow-2xs text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 ${durum.bgClass}`}
+    >
+      <span className="text-[9px] font-black uppercase tracking-wider opacity-60">{etiket}</span>
+      <span className="flex items-center gap-1.5 w-full min-w-0">
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${durum.dotClass}`} />
+        <span className="text-[11px] font-black truncate leading-none">{durum.text}</span>
+      </span>
+    </button>
+  );
+}
+
+function MenuOgesi({ ikon, etiket, ipucu, onSec }) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onSec}
+      className="w-full text-left px-3.5 py-2.5 hover:bg-slate-50 transition-colors flex items-start gap-2.5 cursor-pointer focus-visible:outline-none focus-visible:bg-slate-50"
+    >
+      <span className="text-slate-400 mt-0.5 shrink-0">
+        <Icon name={ikon} size="sm" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-xs font-black text-slate-800">{etiket}</span>
+        <span className="block text-[10px] text-slate-500 font-semibold">{ipucu}</span>
+      </span>
+    </button>
   );
 }

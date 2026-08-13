@@ -58,11 +58,33 @@ maddeleri bitecek, sonra bunlara geçilecek.**
       yönlendiriyor (kod / talep / sahipsiz). Filo için arama ve kapaklı liste
 - [x] 2 · Üst menüde "Karne Sorgula" → **"Araç Devir"**. Karne sorgulama
       anasayfa kartında, footer'da, `/devir` altında ve mobil menüde duruyor
-- [ ] 3 · Garaj araç kartları kalabalık (plaka+skor, 3 poliçe kutusu, ilan
-      şeridi, devret şeridi, 3'lü aksiyon satırı = beş katman)
-- [ ] 4 · Profil kartı kaldırılacak; yerine vitrin + devir için gerçek bir
-      **eylem merkezi** gelecek. Sadece düğme koymak değil — kartları
-      ferahlatacak şekilde tasarlanacak
+- [x] 3 · Garaj araç kartları **beş katmandan üçe** indi
+  - [x] Katman 1: fotoğraf · plaka · marka/model · skor (+ satıştaysa çip)
+  - [x] Katman 2: üç poliçe çipi — tek bileşen (`PoliceCipi`); üçü ayrı
+        kopyaydı ve üçüncüsünün dolgusu farklıydı, hiza bozuluyordu
+  - [x] Katman 3: Detay · Karne · Bakım + `⋯` menüsü
+  - [x] Poliçe çipleri `div` değil `button` — tıklanabilirdi ama klavyeyle
+        erişilemiyordu
+  - [x] İlan şeridi kalktı, satış durumu ince çipe indi (fiyat korundu)
+- [x] 4 · Profil kartı kaldırıldı, yerine **Araç Merkezi** geldi
+  - [x] Özet: kayıtlı araç · satışta · süresi kritik
+  - [x] Üç eylem: satışa çıkar · aracı devret · bakım işle — her biri ikon,
+        başlık ve tek satır açıklamayla; kapalıysa SEBEBİ yazıyor
+  - [x] `AracSeciciDialog` — ortak "hangi araç?" adımı; 6 aracın üstünde
+        arama beliriyor, satıştaki araç gizlenmiyor sebebiyle gösteriliyor
+  - [x] "Filo" kelimesi kurumsal ürüne ayrıldı: bölüm adı Araç Merkezi,
+        başlık "Garajım", şerit "Süre Uyarısı"
+  - [x] Kart "Standart **Kurumsal** Üyelik" yazıyordu — sistemde kurumsal
+        üyelik yok, herkes bireysel. Bu tutarsızlık da kalktı
+- [x] ⚠ **Bulunan mevcut hata: modallar ekrana göre konumlanmıyordu.**
+      `.animate-fadeIn` sınıfı `animation-fill-mode: both` taşıyordu;
+      animasyon bitince bile `transform: matrix(1,0,0,1,0,0)` kalıyor ve
+      `none` dışındaki her transform, içindeki `position: fixed` öğeler
+      için kapsayıcı blok yaratıyor. Ölçüm: bakım modalı örtüsü
+      `0,0,1440x1000` olması gerekirken `0,65,1440x1320` çıkıyordu —
+      formun Kaydet düğmesi ekran dışında kalıyordu. Sınıf 58 yerde
+      kullanılıyor. `both` kaldırıldı; garajdaki dört modalın dördü de
+      ölçülerek doğrulandı
 - [x] 5 · Hesap menüsü başlığı: baş harfler + ad soyad + üyelik rozeti,
       e-posta ikincil satırda. Garaj profil kartından taşınan bilgi burada
 - [ ] 6 · **Hesabım ekranı** sektör standardında kurulacak (şu an `ComingSoon`)
@@ -84,6 +106,21 @@ maddeleri bitecek, sonra bunlara geçilecek.**
 
 ## Sırada — bilinen boşluklar
 
+- [ ] **Üyelik tipi: bireysel / kurumsal ayrımı** — acelesi yok, kurumsal
+      fiyatlandırmayla birlikte yapılacak
+  - [ ] Ayrım **KAYIT** ekranında olacak, giriş ekranında değil. Gerekçe:
+        giriş yalnızca kimlik doğrular ve sistem tipi `profiles`'tan zaten
+        okuyor. İki ayrı giriş kapısı olursa kullanıcı hangisinden kayıt
+        olduğunu hatırlamak zorunda kalır; yanlış kapıdan girince ya
+        "kullanıcı yok" der (oysa hesabı var) ya da sessizce çalışır ve iki
+        kapı anlamsızlaşır. Şifre sıfırlama da bulanıklaşır. sahibinden ve
+        arabam.com da tek giriş kapısı kullanıyor
+  - [ ] `profiles.uye_tipi` ('bireysel' | 'kurumsal') — şu an veritabanında
+        böyle bir kavram HİÇ YOK, sıfırdan kurulacak
+  - [ ] Kurumsal kayıtta ek alanlar: firma unvanı, vergi no, yetkili kişi
+  - [ ] Kurumsalın ön yüzü = "Kurumsal Çözümler". Şu an üç yerde yazıyor ve
+        üçü de ölü: `Header.jsx`, `MobileDrawer.jsx`, `Footer.jsx`
+  - [ ] Fiyatlandırma bireyselden ayrı liste (`paketler.js` bunu bekliyor)
 - [ ] Alıcı diyaloğu (`AracDevralDialog`) **tarayıcıda hiç render edilmedi**
   - [ ] Sihirbaz için Playwright yardımcısı yaz (1. adımı programatik doldursun)
   - [ ] Kod yolunu iki hesapla uçtan uca yürüt

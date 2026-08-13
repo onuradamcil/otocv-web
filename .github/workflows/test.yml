@@ -148,9 +148,19 @@ jobs:
       # `on delete cascade` yaparsa ölçülen bedel 10 aracın 9'u, 12 bakım
       # kaydının 11'i ve 8 fatura dosyası. Ve bu, ancak bir kullanıcı
       # hesabını kapattığında — yani geri dönüşü olmayan anda — fark edilir.
+      #
+      # 11-garaj DA LİSTEDE ve hiçbir yazma yapmıyor: modallar açılıyor ama
+      # hiçbiri gönderilmiyor. Gerekçesi ölçülmüş bir hata: `.animate-fadeIn`
+      # sınıfı `animation-fill-mode: both` yüzünden animasyon bittikten sonra
+      # da transform bırakıyordu ve `none` dışındaki her transform, içindeki
+      # `position: fixed` öğeler için kapsayıcı blok yaratıyor. Garajdaki
+      # modallar ekrana değil sayfa gövdesine göre ortalanıyor, bakım
+      # formunun Kaydet düğmesi ekran dışında kalıyordu. Sınıf 58 yerde
+      # kullanılıyor; bir sarmalayıcıya transform eklenmesi hatayı sessizce
+      # geri getirir ve gözle "biraz aşağıda duruyor" diye geçiştirilir.
       - name: Testleri koş (okuma + güvenlik paketleri)
         if: steps.anahtar.outputs.var == 'true'
-        run: npx playwright test tests/01-rota-erisim.spec.js tests/02-karne-butunlugu.spec.js tests/04-mobil.spec.js tests/05-guvenlik.spec.js tests/08-hesap-kapatma.spec.js tests/09-yetki-kilitleri.spec.js tests/10-navigasyon.spec.js
+        run: npx playwright test tests/01-rota-erisim.spec.js tests/02-karne-butunlugu.spec.js tests/04-mobil.spec.js tests/05-guvenlik.spec.js tests/08-hesap-kapatma.spec.js tests/09-yetki-kilitleri.spec.js tests/10-navigasyon.spec.js tests/11-garaj.spec.js
         env:
           CI: true
 

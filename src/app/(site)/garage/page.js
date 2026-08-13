@@ -53,6 +53,7 @@ export default function GaragePage() {
         onViewKarne={(car) => router.push(`/karne/${encodeURIComponent(car.pin_code)}`)}
         onOpenMaintenance={(incomingVehicle) => setActiveMaintenanceVehicle(incomingVehicle)}
         onNavigateToAdd={() => router.push('/add-vehicle/step1')}
+        onManageListings={() => router.push('/my-listings')}
       />
 
       {activeMaintenanceVehicle && (

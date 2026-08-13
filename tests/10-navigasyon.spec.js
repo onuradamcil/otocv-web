@@ -95,22 +95,30 @@ test.describe('Üst menü', () => {
     // waitForURL kullanılıyor: `networkidle` istemci tarafı gezinme
     // başlamadan çözülebiliyor ve URL hâlâ eski sayfayı gösteriyordu.
     await page.waitForURL('**/devir', { timeout: 15_000 });
-    await page.waitForLoadState('networkidle');
 
     // Devir oturum gerektiriyor. Sayfa 404 vermiyor, boş da kalmıyor —
     // ne yapılması gerektiğini söylüyor.
-    const govde = await page.locator('body').textContent();
-    expect(govde).toContain('Devir işlemleri için oturum açmanız gerekiyor');
+    //
+    // Tek atışlık `textContent()` KULLANILMAZ. `/devir` sayfası
+    // `yukleniyor = true` ile başlıyor ve `supabase.auth.getUser()`
+    // çözülene kadar yükleyici gösteriyor; `networkidle` o çağrı bitmeden
+    // çözülebiliyor. Tam paket koşumunda test bu yüzden bir kez düştü,
+    // tek başına koşunca geçti. `expect(...).toBeVisible()` yeniden
+    // deneyerek beklediği için asenkron oturum kontrolünü doğru bekliyor.
+    await expect(
+      page.getByText('Devir işlemleri için oturum açmanız gerekiyor')
+    ).toBeVisible({ timeout: 15_000 });
   });
 
   test('/devir oturum açmış kullanıcıya iki tarafı da gösteriyor', async ({ page }) => {
     await girisYap(page);
     await page.goto('/devir');
-    await page.waitForLoadState('networkidle');
 
-    const govde = await page.locator('body').textContent();
-    expect(govde, 'satıcı tarafı yok').toContain('Aracımı devretmek istiyorum');
-    expect(govde, 'alıcı tarafı yok').toContain('Aracı devralacağım');
+    // Aynı gerekçe: oturum kontrolü bitene kadar yükleyici duruyor.
+    await expect(page.getByText('Aracımı devretmek istiyorum'), 'satıcı tarafı yok')
+      .toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('Aracı devralacağım'), 'alıcı tarafı yok')
+      .toBeVisible({ timeout: 15_000 });
   });
 
   test.describe('Hesap menüsü', () => {

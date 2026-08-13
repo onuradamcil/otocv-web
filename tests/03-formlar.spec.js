@@ -21,9 +21,13 @@ test.describe('Bakım kaydı formu', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
-    // Bakım kaydı butonunu bul. Garaj kartlarında bulunuyor.
-    const bakimButonu = page.locator("button", { hasText: /Bakım|Servis/i }).first();
-    await expect(bakimButonu, 'garajda bakım butonu bulunamadı').toBeVisible({ timeout: 20_000 });
+    // ARAÇ KARTINDAKİ bakım düğmesi. `hasText: /Bakım|Servis/` KULLANILMAZ:
+    // Araç Merkezi'nde de "Bakım işle" adında bir düğme var ve sayfada
+    // kartlardan ÖNCE geliyor, yani `.first()` onu yakalıyordu. O düğme
+    // önce araç seçiciyi açıyor, bakım formunu değil — test bu yüzden
+    // "Servis & Bakım Kaydı İşle" başlığını bulamıyordu.
+    const bakimButonu = page.getByRole('button', { name: 'Bakım', exact: true }).first();
+    await expect(bakimButonu, 'garaj kartında bakım butonu bulunamadı').toBeVisible({ timeout: 20_000 });
     await bakimButonu.click();
     await page.waitForTimeout(1200);
 
