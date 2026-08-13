@@ -21,8 +21,10 @@ import { tramerTutari } from '../../../utils/tramerHelper';
 import { toIsoDate } from '../../../utils/dateHelper';
 import { pinUret } from '../../../utils/pinUretici';
 import { plakaDurumu } from '../../../services/devirService';
+import { harcanmamisHak, kilitHatasi } from '../../../services/odemeService';
 import AracDevralDialog from './AracDevralDialog';
 import SahipsizGeriYukleDialog from './SahipsizGeriYukleDialog';
+import PaywallDialog from '../../common/PaywallDialog';
 
 // -------------------------------------------------------------------------
 // MÜKERRER PLAKA MODALININ ÜÇ ANLATIMI
@@ -97,6 +99,9 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   const [duplicateSahipsiz, setDuplicateSahipsiz] = useState(false);
   const [duplicateOzet, setDuplicateOzet] = useState(null);
   const [sahipsizDialogOpen, setSahipsizDialogOpen] = useState(false);
+  // İlk araç ücretsiz; 2. ve sonrası için ek araç hakkı gerekiyor. Kilit
+  // veritabanında (`vehicles_kota_denetle`), bu yalnızca onun arayüz karşılığı.
+  const [ekAracPaywallAcik, setEkAracPaywallAcik] = useState(false);
 
   // Sıra önemli: sahipsiz araçta `benim_mi` zaten false döner, ama okunurluk
   // için sahipsizlik önce sınanıyor — o durum diğer ikisini kapsıyor.
@@ -546,6 +551,15 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   // simdiden tasimak, YAGNI ihlali olurdu. Gercekten birden fazla paket
   // kademesi olustugunda kolon eklemek bir dakikalik is.
   // =========================================================================
+  // GÖSTERİLEN KOTA ARTIK GERÇEK.
+  //
+  // Eskiden burası her standart kullanıcıya sabit "1" yazıyordu — kaç aracı
+  // olduğuna bakmadan. Yani 9 aracı olan biri de "1 Adet" görüyordu ve o
+  // sayı hiçbir yerde uygulanmıyordu; ekrandaki rakam tamamen süstü.
+  //
+  // Kotayı artık `vehicles_kota_denetle` tetikleyicisi uyguluyor. Buradaki
+  // hesap onunla AYNI kuralı yansıtıyor: ilk araç ücretsiz, sonrası
+  // harcanmamış "ek_arac" hakkı gerektiriyor.
   const fetchUserProfilePackage = async () => {
     if (!user) return;
 
@@ -563,13 +577,27 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     }
 
     const premium = data?.is_premium === true;
-    // Sinirsiz -> null. Infinity kullanilmiyor: arayuze dogrudan basildiginda
-    // ekranda "Infinity Adet" yaziyordu. null, "sayi yok" demenin dogru yolu
-    // ve arayuz onu "Sinirsiz" diye gosteriyor.
+
+    if (premium) {
+      // Sinirsiz -> null. Infinity kullanilmiyor: arayuze dogrudan basildiginda
+      // ekranda "Infinity Adet" yaziyordu. null, "sayi yok" demenin dogru yolu
+      // ve arayuz onu "Sinirsiz" diye gosteriyor.
+      setUserPackage({ tierName: 'Premium Üyelik', remainingQuota: null, totalQuota: null });
+      return;
+    }
+
+    const { count: aracSayisi } = await supabase
+      .from('vehicles')
+      .select('plate_number', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+
+    const ucretsizKalan = (aracSayisi ?? 0) < 1 ? 1 : 0;
+    const satinAlinan = await harcanmamisHak('ek_arac');
+
     setUserPackage({
-      tierName: premium ? 'Premium Üyelik' : 'Standart Paket',
-      remainingQuota: premium ? null : 1,
-      totalQuota: premium ? null : 1
+      tierName: 'Standart Paket',
+      remainingQuota: ucretsizKalan + satinAlinan,
+      totalQuota: 1,
     });
   };
 
@@ -671,6 +699,20 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         .single();
 
       if (vehicleInsertError) {
+        // KOTA KİLİDİ, "bir şeyler ters gitti"den AYRI ele alınıyor.
+        //
+        // `vehicles_kota_denetle` tetikleyicisi 2. araçta EK_ARAC_GEREKLI
+        // fırlatıyor. Bunu genel hata mesajıyla göstermek kullanıcıya
+        // "sistem bozuk" dedirtirdi; oysa yapması gereken belli ve tek
+        // tıklık. Paywall açılıyor, satın alma sonrası kayıt kaldığı yerden
+        // sürüyor — dört adımlık form BOŞA GİTMİYOR.
+        const kilit = kilitHatasi(vehicleInsertError);
+        if (kilit?.kod === 'EK_ARAC_GEREKLI') {
+          setStepLoader({ isLoading: false, title: '', subtitle: '' });
+          setEkAracPaywallAcik(true);
+          return;
+        }
+
         console.error("🔴 'vehicles' Tablosuna Kayıt Hatası:", vehicleInsertError.message);
         toast.hata('Araç tescil edilemedi. Lütfen bilgileri kontrol edip tekrar deneyin.');
         setStepLoader({ isLoading: false, title: '', subtitle: '' });
@@ -1347,6 +1389,34 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         <SahipsizGeriYukleDialog
           plaka={duplicatePlateNumber}
           onClose={() => setSahipsizDialogOpen(false)}
+        />
+      )}
+
+      {/* EK ARAÇ PAYWALL'I. Tescil, kota kilidine takıldığında açılıyor;
+          satın alma sonrası tescil KALDIĞI YERDEN sürüyor. Kullanıcıyı dört
+          adımı yeniden doldurmaya zorlamak, ödeme istemekten daha çok
+          kaybettirirdi. */}
+      {ekAracPaywallAcik && (
+        <PaywallDialog
+          urunKodu="ek_arac"
+          baslik="Bu araç için Ek Araç Kaydı gerekiyor"
+          onKapat={() => setEkAracPaywallAcik(false)}
+          onSatinAl={async () => {
+            setEkAracPaywallAcik(false);
+            await fetchUserProfilePackage();
+            await handleFinalPublish();
+          }}
+          detay={
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1">
+              <p className="text-xs font-bold text-slate-700">
+                İlk aracınız ücretsizdi; bu ikinci ve sonraki araç kaydınız.
+              </p>
+              <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                Girdiğiniz bilgiler korunuyor — satın alma tamamlanınca tescil
+                kaldığı yerden devam edecek.
+              </p>
+            </div>
+          }
         />
       )}
 

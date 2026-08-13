@@ -31,6 +31,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import Icon from './icons';
 import { DEMO_MOD, fiyatYaz, urunGetir } from '../../data/paketler';
+import { demoSatinAl } from '../../services/odemeService';
 
 /**
  * @param {object}   props
@@ -42,6 +43,7 @@ import { DEMO_MOD, fiyatYaz, urunGetir } from '../../data/paketler';
  */
 export default function PaywallDialog({ urunKodu, baslik, detay, onKapat, onSatinAl }) {
   const [islemde, setIslemde] = useState(false);
+  const [hata, setHata] = useState('');
   const urun = urunGetir(urunKodu);
 
   // Bilinmeyen ürün kodunda sessizce boş modal göstermek yerine hiç açılmıyor.
@@ -51,10 +53,25 @@ export default function PaywallDialog({ urunKodu, baslik, detay, onKapat, onSati
     return null;
   }
 
+  // SATIN ALMA KAYDI BURADA ÜRETİLİYOR, ÇAĞIRANDA DEĞİL.
+  //
+  // Sebep: ayrıcalıklar veritabanındaki `satin_almalar` kaydından türüyor.
+  // Kaydı çağırana bıraksaydım, bir çağıran unuttuğunda arayüz "satın
+  // alındı" der ama veritabanı işlemi reddederdi — kullanıcı ödediğini
+  // sanıp hata alırdı. Kayıt üretilmeden `onSatinAl` çağrılmıyor.
   const satinAl = async () => {
     setIslemde(true);
+    setHata('');
+
+    const sonuc = await demoSatinAl(urun.kod, urun.fiyat);
+    if (!sonuc.basarili) {
+      setHata(sonuc.hata);
+      setIslemde(false);
+      return;
+    }
+
     try {
-      await onSatinAl?.(urun);
+      await onSatinAl?.(urun, sonuc.veri);
     } finally {
       setIslemde(false);
     }
@@ -155,6 +172,12 @@ export default function PaywallDialog({ urunKodu, baslik, detay, onKapat, onSati
               Abonelik değil, tekrar eden ödeme yok
             </p>
           </div>
+
+          {hata && (
+            <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3">
+              {hata}
+            </p>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button

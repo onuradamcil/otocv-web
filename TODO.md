@@ -48,6 +48,31 @@ götürüyor.
 
 ---
 
+## Arayüz turu — 13 Ağustos'ta belirlenen dokuz madde
+
+Ekran görüntüleri üzerinden tespit edildi. **Önce yukarıdaki güvenlik/kilit
+maddeleri bitecek, sonra bunlara geçilecek.**
+
+- [ ] 1 · Devir **alma** ekranı yok. Kullanıcı aracını devredebiliyor ama
+      devralma yalnızca ilan sihirbazının içinden erişilebiliyor — bağımsız
+      bir giriş noktası gerekiyor
+- [ ] 2 · Anasayfada künye/karne sorgulama **iki yerde**: üst menüdeki
+      "Karne Sorgula" → **"Araç Devir"** olacak, devir işlemleri oradan
+- [ ] 3 · Garaj araç kartları kalabalık (plaka+skor, 3 poliçe kutusu, ilan
+      şeridi, devret şeridi, 3'lü aksiyon satırı = beş katman)
+- [ ] 4 · Profil kartı kaldırılacak; yerine vitrin + devir için gerçek bir
+      **eylem merkezi** gelecek. Sadece düğme koymak değil — kartları
+      ferahlatacak şekilde tasarlanacak
+- [ ] 5 · Hesap açılır menüsünde e-posta yerine daha iyi bir başlık tasarımı
+- [ ] 6 · **Hesabım ekranı** sektör standardında kurulacak (şu an `ComingSoon`)
+  - [ ] ⚠ Ön koşul: `profiles` UPDATE politikası yok — yazılmadan düzenleme
+        çalışmaz (yukarıdaki güvenlik bölümüne bakın)
+- [ ] 7 · Açılır menü dışarı tıklanınca kapanmıyor
+- [ ] 8 · "Ücretsiz İlan Ver" paneli revize — eski ilan sitesi kalıntısı;
+      "ilan/ücretsiz" dili ürüne uymuyor, sicil diline çevrilecek
+
+---
+
 ## Sırada — bilinen boşluklar
 
 - [ ] Alıcı diyaloğu (`AracDevralDialog`) **tarayıcıda hiç render edilmedi**
@@ -89,22 +114,27 @@ tahsilat geldiğinde yalnızca o alan dolacak, şema değişmeyecek.
 - [ ] Elle onay ekranı — ruhsat inceleme, onay/ret (projede hiç yönetim ekranı yok)
 - [ ] Kurumsal/galeri fiyatlandırması — ayrı liste, `paketler.js` içine eklenecek
 
-### ⚠ Paywall şu an ATLANABİLİR — bilinen ve kabul edilmiş
+### ✅ Paywall kilitleri kuruldu — artık atlanamıyor
 
-Ürün kararı "önce ekran, kilit sonra" oldu. Kilitler kurulmadan tahsilat
-**açılmamalı**: para alan ama zorlamayan bir sistem, hiç almamaktan kötüdür.
+Kilitler **politika değil tetikleyici** ile kuruldu: `vehicles` üzerinde
+INSERT'e izin veren iki permissive politika var ve Postgres onları OR'luyor,
+yani politikaya koşul eklemek işe yaramazdı.
 
-- [ ] `listings.is_featured` kullanıcı tarafından serbestçe yazılabiliyor
-      (politika `auth.uid() = user_id`, kolon kısıtı yok) — vitrin ücretsiz alınır
-- [ ] İlan kotası **hiç uygulanmıyor**: `remainingQuota` yalnızca Step 1'de
-      ekrana basılıyor, hiçbir yerde kontrol edilmiyor. Standart kullanıcı
-      bugün sınırsız ilan verebiliyor
-- [ ] `profiles` INSERT politikası `with_check: true` — **koşul yok**. Kayıt
-      olan biri kendi satırını `is_premium: true` ile yazabilir. Bedava premium
-- [ ] `profiles` tablosunda **UPDATE politikası hiç yok** — ayrı bir sorun:
-      `/account` ekranı yazıldığında "profilimi düzenle" çalışmayacak
-- [ ] Ayrıcalık bir **satın alma kaydından** türetilmeli, istemcinin yazdığı
-      boolean'dan değil (RevenueCat webhook'u da aynı kayda yazar)
+- [x] `listings.is_featured` istemciden yazılamıyor (`listings_vitrin_denetle`)
+- [x] Araç kotası uygulanıyor (`vehicles_kota_denetle`) — ilk araç ücretsiz,
+      sonrası "ek_arac" satın alması istiyor. **Mevcut araçlar etkilenmedi**
+- [x] `profiles` INSERT `auth.uid() = id` — başkasının profili oluşturulamıyor
+- [x] `profiles` UPDATE politikası yazıldı — Hesabım ekranının ön koşulu hazır
+- [x] `is_premium` istemciden yazılamıyor (`profiles_premium_koru`)
+- [x] Ayrıcalık `satin_almalar` kaydından türüyor; tablo istemciye salt okunur
+- [x] `tests/09-yetki-kilitleri.spec.js` — 9 test, CI'da koşuyor
+- [ ] Gerçek tahsilat bağlanınca `demo_satin_alma` yetkisi geri alınacak
+
+> ⚠ **Sizin hesabınız için not:** kota artık işliyor. 10 aracınız olduğu için
+> 11. araç "Ek Araç Kaydı" isteyecek. Test sırasında engel olursa premium
+> vermek yeterli:
+> `update public.profiles set is_premium = true where id = '<user_id>';`
+> (bu komut yalnızca SQL panelinden çalışır — istemciden yazılamıyor)
 - [ ] `/account` ekranı — şu an `ComingSoon` yer tutucusu, 17 satır
   - [ ] Profil düzenleme (ad, soyad, telefon)
   - [ ] Şifre değiştirme

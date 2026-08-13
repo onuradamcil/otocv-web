@@ -150,7 +150,7 @@ jobs:
       # hesabını kapattığında — yani geri dönüşü olmayan anda — fark edilir.
       - name: Testleri koş (okuma + güvenlik paketleri)
         if: steps.anahtar.outputs.var == 'true'
-        run: npx playwright test tests/01-rota-erisim.spec.js tests/02-karne-butunlugu.spec.js tests/04-mobil.spec.js tests/05-guvenlik.spec.js tests/08-hesap-kapatma.spec.js
+        run: npx playwright test tests/01-rota-erisim.spec.js tests/02-karne-butunlugu.spec.js tests/04-mobil.spec.js tests/05-guvenlik.spec.js tests/08-hesap-kapatma.spec.js tests/09-yetki-kilitleri.spec.js
         env:
           CI: true
 

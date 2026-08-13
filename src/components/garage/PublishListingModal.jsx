@@ -573,9 +573,10 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
           urunKodu="vitrin"
           onKapat={() => setPaywallAcik(false)}
           onSatinAl={() => {
-            // DEMO: gerçek tahsilat yok, tercih işaretleniyor. Ücret
-            // bağlandığında burası sağlayıcının onayını bekleyecek ve
-            // is_featured yalnızca onay dönerse işaretlenecek.
+            // Satın alma kaydı PaywallDialog içinde ÜRETİLDİ; burada yalnızca
+            // tercih işaretleniyor. `listings_vitrin_denetle` tetikleyicisi
+            // kaydı arıyor — kayıt olmadan is_featured yazılamıyor, yani bu
+            // satır tek başına ayrıcalık vermiyor.
             setIsFeatured(true);
             setPaywallAcik(false);
           }}

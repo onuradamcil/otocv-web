@@ -58,8 +58,26 @@ function ortam(ad) {
   return d;
 }
 
-/** Oturum açmış Supabase istemcisi. Temizlik ve doğrulama için. */
+// -------------------------------------------------------------------------
+// OTURUM AÇMIŞ İSTEMCİ — İŞÇİ BAŞINA BİR KEZ
+//
+// Eskiden her çağrıda yeni istemci kurup YENİDEN GİRİŞ yapıyordu. Paket
+// büyüdükçe bu, tek koşumda onlarca `signInWithPassword` demek oldu ve
+// Supabase'in kimlik doğrulama hız sınırına takıldı:
+//
+//   Error: Test hesabıyla oturum açılamadı: Request rate limit reached
+//
+// Belirtisi sinsiydi: testler tek tek koşarken geçiyor, tam koşumun SONUNDA
+// rastgele biri kırılıyordu — yani kırılan testin kendisiyle ilgisi yoktu.
+//
+// Artık giriş işçi başına bir kez yapılıyor. Testlerin hepsi zaten "oturum
+// açmış sahip" istemcisi istiyor; ayrı oturumlara ihtiyaç duyan yok.
+// -------------------------------------------------------------------------
+let _sahipIstemcisi = null;
+
 async function supabaseIstemcisi() {
+  if (_sahipIstemcisi) return _sahipIstemcisi;
+
   const sb = createClient(
     ortam('NEXT_PUBLIC_SUPABASE_URL'),
     ortam('NEXT_PUBLIC_SUPABASE_ANON_KEY')
@@ -69,6 +87,8 @@ async function supabaseIstemcisi() {
     password: ortam('OTOCV_TEST_PASSWORD'),
   });
   if (error) throw new Error(`Test hesabıyla oturum açılamadı: ${error.message}`);
+
+  _sahipIstemcisi = sb;
   return sb;
 }
 
@@ -98,13 +118,12 @@ function anonIstemcisi() {
 // Artık testler plaka veriyor, PIN çalışma anında çözülüyor. PIN yeniden
 // üretildiğinde hiçbir test dosyasına dokunmak gerekmiyor.
 // -------------------------------------------------------------------------
-let _istemciOnbellek = null;
 const _pinOnbellek = new Map();
 
-async function _istemci() {
-  if (!_istemciOnbellek) _istemciOnbellek = await supabaseIstemcisi();
-  return _istemciOnbellek;
-}
+// Ayrı bir istemci önbelleği vardı; `supabaseIstemcisi` artık kendisi
+// önbellekli olduğu için gereksiz kaldı. İki önbellek tutmak, birinin
+// diğerinden habersiz eskimesi demektir.
+const _istemci = supabaseIstemcisi;
 
 /**
  * Plakaya karşılık gelen PIN'i döndürür.
@@ -141,7 +160,13 @@ async function pinBul(plaka) {
  * anahtarla auth kullanıcısı SİLİNEMEZ, yani açılan her hesap kalıcı çöp
  * olurdu. Geliştirme sırasında beş tane birikti ve elle temizlemek gerekti.
  */
+// Sahip istemcisiyle aynı gerekçe: 07-devir bunu her testte çağırıyordu ve
+// her çağrı bir giriş demekti. İşçi başına bir kez.
+let _aliciIstemcisi = null;
+
 async function aliciIstemcisi() {
+  if (_aliciIstemcisi) return _aliciIstemcisi;
+
   const sb = createClient(
     ortam('NEXT_PUBLIC_SUPABASE_URL'),
     ortam('NEXT_PUBLIC_SUPABASE_ANON_KEY')
@@ -151,6 +176,8 @@ async function aliciIstemcisi() {
     password: ortam('OTOCV_TEST_PASSWORD2'),
   });
   if (error) throw new Error(`İkinci test hesabıyla oturum açılamadı: ${error.message}`);
+
+  _aliciIstemcisi = sb;
   return sb;
 }
 
