@@ -93,6 +93,84 @@ test.describe('Garaj ekranı', () => {
     await expect(menu.getByRole('menuitem', { name: /Aracı devret/ })).toBeVisible();
   });
 
+  // -------------------------------------------------------------------------
+  // SAYAÇLAR SÜZGEÇ (madde 9)
+  //
+  // Eskiden sayaçlar yalnızca sayı basıyordu: "1 süresi kritik" yazıyor ama
+  // hangi araç olduğunu bulmak için kartları tek tek gezmek gerekiyordu.
+  // Otuz araçta bu bilgiyi işe yaramaz kılıyor.
+  // -------------------------------------------------------------------------
+  test('sayaca tıklayınca liste süzülüyor ve çip temizlenebiliyor', async ({ page }) => {
+    const kartSay = () => page.locator('.grid > div').filter({ hasText: 'Skor:' }).count();
+    const oncekiAdet = await kartSay();
+    expect(oncekiAdet, 'test için birden çok araç gerekiyor').toBeGreaterThan(1);
+
+    await page.getByRole('button', { name: /Süresi kritik/ }).click();
+    await page.waitForTimeout(600);
+
+    const suzulmus = await kartSay();
+    expect(suzulmus, 'süzgeç listeyi daraltmadı').toBeLessThan(oncekiAdet);
+
+    // Etkin süzgeç GÖRÜNÜR olmalı: görünmez süzgeç, kullanıcının
+    // "araçlarım kayboldu" sanmasının en yaygın sebebi.
+    const cip = page.getByRole('button', { name: /Süresi kritik.*süzgeci temizle/ });
+    await expect(cip, 'etkin süzgeç çipi görünmüyor').toBeVisible();
+
+    await cip.click();
+    await page.waitForTimeout(600);
+    expect(await kartSay(), 'çip süzgeci temizlemedi').toBe(oncekiAdet);
+  });
+
+  test('sayaca ikinci kez tıklamak süzgeci kaldırıyor', async ({ page }) => {
+    const kartSay = () => page.locator('.grid > div').filter({ hasText: 'Skor:' }).count();
+    const oncekiAdet = await kartSay();
+
+    // Sayaç grubuna daraltılıyor: süzgeç etkinken ekranda aynı adı taşıyan
+    // İKİ öğe var — sayacın kendisi ve temizleme çipi.
+    const sayac = page
+      .getByRole('group', { name: 'Araç süzgeci' })
+      .getByRole('button', { name: /Süresi kritik/ });
+    await sayac.click();
+    await page.waitForTimeout(500);
+    await expect(sayac).toHaveAttribute('aria-pressed', 'true');
+
+    await sayac.click();
+    await page.waitForTimeout(500);
+    await expect(sayac).toHaveAttribute('aria-pressed', 'false');
+    expect(await kartSay()).toBe(oncekiAdet);
+  });
+
+  test('"Verileri Yenile" kaldırıldı', async ({ page }) => {
+    // Tarayıcının kendi yenileme düğmesi zaten var. Uygulamaya ikinci bir
+    // yenileme koymak, verinin kendiliğinden tazelenmediğini îma ediyordu.
+    await expect(page.getByRole('button', { name: /Verileri Yenile/ })).toHaveCount(0);
+  });
+
+  test('kart düğmeleri aynı görsel ailede', async ({ page }) => {
+    // Eskiden "Detay" dolu indigo, "Karne" ve "Bakım" beyaz çerçeveliydi.
+    // Üçü de aynı sıklıkta kullanılan eşdeğer eylemler; birini öne çıkarmak
+    // var olmayan bir hiyerarşi uyduruyordu.
+    const kart = page.locator('.grid > div').filter({ hasText: 'Skor:' }).first();
+
+    const arkaPlanlar = [];
+    for (const ad of ['Detay', 'Karne', 'Bakım']) {
+      const d = kart.getByRole('button', { name: ad, exact: true });
+      arkaPlanlar.push(await d.evaluate((el) => getComputedStyle(el).backgroundColor));
+    }
+
+    expect(
+      new Set(arkaPlanlar).size,
+      `üç düğmenin arka planı farklı: ${arkaPlanlar.join(' / ')}`
+    ).toBe(1);
+  });
+
+  test('araç görseli kırpılmıyor', async ({ page }) => {
+    // `object-cover` görseli kutuya sığdırmak için kırpıyordu ve bir araç
+    // görselinde kırpılan şey genellikle aracın kendisi oluyor.
+    const gorsel = page.locator('.grid > div img').first();
+    await expect(gorsel).toHaveCSS('object-fit', 'contain');
+  });
+
   test('⋯ menüsü dışarı tıklayınca kapanıyor', async ({ page }) => {
     const kart = page.locator('.grid > div').filter({ hasText: 'Skor:' }).first();
     await kart.locator("button[aria-label*='diğer işlemler']").click();

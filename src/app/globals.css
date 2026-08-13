@@ -31,6 +31,78 @@
   --color-muted-slate: #64748B;    /* Yardımcı Metin Grisi */
 }
 
+/* =========================================================================
+   📐 TİPOGRAFİ ÖLÇEĞİ — TEK KAYNAK
+   -------------------------------------------------------------------------
+   NİYE VAR: ortak bir ölçek yoktu ve her ekran kendi ölçeğini uyduruyordu.
+   Tek bir dosyada (GarageScreen) DOKUZ ayrı kademe sayıldı:
+     text-[9px] · text-[10px] · text-[11px] · text-xs · text-sm ·
+     text-base · text-xl · text-2xl
+   Üstelik aynı görevdeki iki başlık farklı ölçekteydi: bölüm başlığı bir
+   yerde `text-[10px]`, diğerinde `text-sm`. Ekran görüntüsünde "bazı
+   başlıklar çok büyük, bazıları çok küçük" diye görünen şey buydu.
+
+   Rastgele değerler (`text-[9px]` gibi) ölçeği kırıyor: Tailwind'in kendi
+   kademeleri arasında ara boyut üretiyor ve hangi metnin hangi seviyede
+   olduğu okunamaz hâle geliyor.
+
+   Aşağıdaki sınıflar İŞLEVİ adlandırıyor, boyutu değil. Böylece "bu bir
+   bölüm başlığı" demek yeterli; boyutu tek yerden değişiyor.
+
+   BEŞ KADEME, fazlası değil:
+     .baslik-sayfa    sayfa başına bir tane (h1)
+     .baslik-bolum    kart ve bölüm başlıkları (h2/h3)
+     .metin-govde     okunan metin
+     .metin-yardimci  açıklama, ipucu
+     .etiket          büyük harf küçük etiket (eyebrow)
+   Sayılar için ayrıca `.sayi-vurgu` var: `tabular-nums` şart, yoksa sayı
+   değişince (9 -> 10) yanındaki etiket yanlamasına zıplıyor.
+   ========================================================================= */
+.baslik-sayfa {
+  font-size: 1.25rem;      /* 20px */
+  line-height: 1.2;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+@media (min-width: 768px) {
+  .baslik-sayfa { font-size: 1.5rem; }  /* 24px */
+}
+
+.baslik-bolum {
+  font-size: 0.875rem;     /* 14px */
+  line-height: 1.3;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.metin-govde {
+  font-size: 0.8125rem;    /* 13px */
+  line-height: 1.55;
+  font-weight: 600;
+}
+
+.metin-yardimci {
+  font-size: 0.75rem;      /* 12px */
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.etiket {
+  font-size: 0.625rem;     /* 10px */
+  line-height: 1.2;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sayi-vurgu {
+  font-size: 1.5rem;       /* 24px */
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
 /* 🏢 KÜRESEL TARAYICI GÖVDE MÜHÜRLERİ & PIKSEL NETLİK KALKANLARI */
 html, body, * {
   /* 🚀 SİBER MÜDAHALE: Tarayıcının yazı çizim motoruna subpixel-antialiasing zorunluluğu getiriyoruz. */

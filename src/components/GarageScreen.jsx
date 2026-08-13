@@ -28,6 +28,7 @@ import { useToast } from '../context/ToastContext';
 import PublishListingModal from './garage/PublishListingModal';
 import AracDevretDialog from './garage/AracDevretDialog';
 import AracSeciciDialog from './garage/AracSeciciDialog';
+import { dugme, ikonDugmesi } from './common/dugme';
 import Icon from './common/icons';
 import GlobalStepLoader from './common/GlobalStepLoader';
 
@@ -45,6 +46,9 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
   // Araç Merkezi'ndeki eylemler önce "hangi araç?" diye soruyor.
   // null | 'ilan' | 'devir' | 'bakim'
   const [seciciTuru, setSeciciTuru] = useState(null);
+
+  // Sayaçlardan gelen süzgeç: 'tumu' | 'satista' | 'kritik'
+  const [suzgec, setSuzgec] = useState('tumu');
 
   // Policy Offer Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -173,6 +177,17 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
   const satistaSayisi = vehicles.filter((v) => v.is_listed).length;
   const satilabilirSayisi = vehicles.length - satistaSayisi;
 
+  // Süzülmüş liste. `criticalVehicles` yukarıda zaten hesaplanıyor; aynı
+  // ölçütü ikinci kez yazmak yerine kimlikten eşleştiriliyor ki iki yerin
+  // kayması mümkün olmasın.
+  const kritikKimlikler = new Set(criticalVehicles.map((v) => v.id ?? v.plate_number));
+  const gorunenAraclar =
+    suzgec === 'satista' ? vehicles.filter((v) => v.is_listed)
+    : suzgec === 'kritik' ? vehicles.filter((v) => kritikKimlikler.has(v.id ?? v.plate_number))
+    : vehicles;
+
+  const SUZGEC_ADI = { tumu: 'Tümü', satista: 'Satışta', kritik: 'Süresi kritik' };
+
   // -------------------------------------------------------------------------
   // ARAÇ MERKEZİ EYLEMLERİ
   //
@@ -274,20 +289,13 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
           </div>
         </div>
 
-        {/* BAŞLIK BARI */}
-        <div className="flex justify-between items-center border-b border-gray-200 pb-4 select-none">
-          <h1 className="text-xl md:text-2xl font-black tracking-tight text-[#0F172A]">
-            Garajım
-          </h1>
-          <button 
-            onClick={fetchLiveVehicles}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-xs font-bold text-indigo-600 rounded-xl hover:bg-indigo-50 transition-all active:scale-95 shadow-sm cursor-pointer"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-            </svg>
-            Verileri Yenile
-          </button>
+        {/* BAŞLIK BARI
+            "Verileri Yenile" KALDIRILDI: tarayıcının kendi yenileme düğmesi
+            zaten var ve kullanıcı onu biliyor. Uygulamaya ikinci bir yenileme
+            koymak, verinin kendiliğinden tazelenmediğini îma ediyordu —
+            oysa her işlem sonrası liste zaten yeniden çekiliyor. */}
+        <div className="flex justify-between items-center border-b border-slate-200 pb-4 select-none">
+          <h1 className="baslik-sayfa text-slate-900">Garajım</h1>
         </div>
 
         {/* =====================================================================
@@ -309,21 +317,36 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
           aria-label="Araç Merkezi"
           className="bg-white border border-slate-200 rounded-3xl shadow-[0_4px_20px_rgba(15,23,42,0.03)] overflow-hidden select-none"
         >
+          {/* SAYAÇLAR ARTIK SÜZGEÇ.
+              Eskiden yalnızca sayı basıyorlardı: "1 süresi kritik" yazıyor
+              ama hangi araç olduğunu bulmak için otuz kartı tek tek gezmek
+              gerekiyordu. Sayı bir sorunun cevabı değil, sorunun kendisiydi.
+              Artık tıklanınca liste süzülüyor. */}
           <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100">
-            <dl className="flex items-center gap-5 sm:gap-7">
-              <Sayac deger={vehicles.length} etiket="Kayıtlı araç" />
-              <Sayac deger={satistaSayisi} etiket="Satışta" renk={satistaSayisi > 0 ? 'text-emerald-600' : 'text-slate-300'} />
+            <div className="flex items-center gap-2 sm:gap-3" role="group" aria-label="Araç süzgeci">
+              <Sayac
+                deger={vehicles.length}
+                etiket="Kayıtlı araç"
+                secili={suzgec === 'tumu'}
+                onSec={() => setSuzgec('tumu')}
+              />
+              <Sayac
+                deger={satistaSayisi}
+                etiket="Satışta"
+                renk="text-emerald-600"
+                secili={suzgec === 'satista'}
+                onSec={() => setSuzgec(suzgec === 'satista' ? 'tumu' : 'satista')}
+              />
               <Sayac
                 deger={criticalVehicles.length}
                 etiket="Süresi kritik"
-                renk={criticalVehicles.length > 0 ? 'text-rose-600' : 'text-slate-300'}
+                renk="text-rose-600"
+                secili={suzgec === 'kritik'}
+                onSec={() => setSuzgec(suzgec === 'kritik' ? 'tumu' : 'kritik')}
               />
-            </dl>
+            </div>
 
-            <button
-              onClick={onNavigateToAdd}
-              className="w-full sm:w-auto bg-[#4F46E5] hover:bg-indigo-700 active:scale-[0.98] text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/10 transition-all duration-200 cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
-            >
+            <button onClick={onNavigateToAdd} className={dugme('birincil', { ek: 'w-full sm:w-auto shrink-0' })}>
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
               </svg>
@@ -332,7 +355,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
           </div>
 
           <div className="px-5 py-4">
-            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3">
+            <h2 className="etiket text-slate-400 mb-3">
               Ne yapmak istiyorsunuz?
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -343,10 +366,27 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
           </div>
         </section>
 
-        <div className="flex items-baseline gap-2 pt-1">
-          <h2 className="text-sm font-black text-[#0f172a] tracking-tight">Araçlarım</h2>
+        <div className="flex items-center gap-2 pt-1 flex-wrap">
+          <h2 className="baslik-bolum text-slate-900">Araçlarım</h2>
           {!loading && vehicles.length > 0 && (
-            <span className="text-xs text-slate-400 font-bold font-mono tabular-nums">{vehicles.length}</span>
+            <span className="metin-yardimci text-slate-400 font-mono tabular-nums">
+              {gorunenAraclar.length}
+            </span>
+          )}
+
+          {/* Etkin süzgeç çip olarak görünüyor ve temizlenebiliyor. Süzgecin
+              görünmez olması, kullanıcının "araçlarım kayboldu" sanmasının
+              en yaygın sebebi. */}
+          {suzgec !== 'tumu' && (
+            <button
+              type="button"
+              onClick={() => setSuzgec('tumu')}
+              className="inline-flex items-center gap-1.5 min-h-[28px] px-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-black hover:bg-indigo-100 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+            >
+              {SUZGEC_ADI[suzgec]}
+              <Icon name="kapat" size="xs" />
+              <span className="sr-only">süzgeci temizle</span>
+            </button>
           )}
         </div>
 
@@ -364,17 +404,30 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
             <Icon name="uyari" size="md" />
             <span>Veritabanı bağlantı hatası: {error}</span>
           </div>
-        ) : vehicles.length === 0 ? (
-          <div className="py-20 flex flex-col items-center text-center space-y-3 bg-white rounded-2xl border border-dashed border-gray-300">
-            <Icon name="klasor" size="2xl" className="text-gray-300" />
+        ) : gorunenAraclar.length === 0 ? (
+          <div className="py-20 flex flex-col items-center text-center space-y-3 bg-white rounded-2xl border border-dashed border-slate-300">
+            <Icon name="klasor" size="2xl" className="text-slate-300" />
             <div>
-              <h3 className="text-sm font-black text-[#0F172A]">Garajınız Henüz Boş</h3>
-              <p className="text-xs text-[#6F7887] mt-1 font-medium">Sisteme kayıtlı doğrulanmış aracınız bulunmamaktadır.</p>
+              {/* Süzgeç yüzünden boşsa bunu SÖYLÜYORUZ. "Garajınız boş"
+                  demek, on aracı olan kullanıcıya yalan olurdu. */}
+              <h3 className="baslik-bolum text-slate-900">
+                {suzgec === 'tumu' ? 'Garajınız henüz boş' : 'Bu süzgeçte araç yok'}
+              </h3>
+              <p className="metin-yardimci text-slate-500 mt-1">
+                {suzgec === 'tumu'
+                  ? 'Sisteme kayıtlı doğrulanmış aracınız bulunmuyor.'
+                  : `${vehicles.length} aracınızın hiçbiri bu ölçütte değil.`}
+              </p>
             </div>
+            {suzgec !== 'tumu' && (
+              <button type="button" onClick={() => setSuzgec('tumu')} className={dugme('ikincil')}>
+                Tüm araçları göster
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
-            {vehicles.map((vehicle, index) => (
+            {gorunenAraclar.map((vehicle, index) => (
               <VehicleCard
                 key={vehicle.id || vehicle.plate_number || `car-${index}`}
                 vehicle={vehicle}
@@ -447,16 +500,37 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
 // ARAÇ MERKEZİ PARÇALARI
 // =========================================================================
 
-// Sayaç: `tabular-nums` şart — sayılar değişince (9 -> 10) etiketler
-// yanlamasına zıplamasın.
-function Sayac({ deger, etiket, renk = 'text-slate-900' }) {
+// Sayaç — ARTIK SÜZGEÇ DÜĞMESİ.
+//
+// Eskiden yalnızca sayı basan bir `<dl>` idi. "1 süresi kritik" yazıyordu
+// ama hangi araç olduğunu bulmak için kartları tek tek gezmek gerekiyordu;
+// otuz araçta bu bilgiyi işe yaramaz kılıyor. Sayı artık bir soruya
+// götürüyor: tıkla, o araçları gör.
+//
+// Sıfır olan sayaç TIKLANMIYOR: boş bir listeye götüren düğme, kullanıcıya
+// bir şey vaat edip vermemek olurdu.
+function Sayac({ deger, etiket, renk = 'text-slate-900', secili = false, onSec }) {
+  const bos = deger === 0;
+
   return (
-    <div className="min-w-0">
-      <dd className={`text-2xl font-black font-mono tabular-nums leading-none tracking-tight ${renk}`}>
+    <button
+      type="button"
+      onClick={onSec}
+      disabled={bos && !secili}
+      aria-pressed={secili}
+      className={`text-left px-3 py-2 rounded-xl border transition-colors min-w-0 ${
+        bos && !secili
+          ? 'border-transparent cursor-default'
+          : secili
+            ? 'border-indigo-300 bg-indigo-50/70 cursor-pointer'
+            : 'border-transparent hover:bg-slate-50 hover:border-slate-200 cursor-pointer'
+      } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600`}
+    >
+      <span className={`sayi-vurgu block font-mono ${bos ? 'text-slate-300' : renk}`}>
         {deger}
-      </dd>
-      <dt className="text-[10px] font-bold text-slate-500 mt-1 truncate">{etiket}</dt>
-    </div>
+      </span>
+      <span className="block text-[10px] font-bold text-slate-500 mt-1 truncate">{etiket}</span>
+    </button>
   );
 }
 
@@ -565,15 +639,28 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
 
       {/* KATMAN 1 — KİMLİK */}
       <div className="flex gap-4 items-start">
-        <div className="w-[76px] h-[76px] rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden relative shadow-inner">
+        {/* THUMBNAIL — SIĞDIR, KIRPMA.
+            Eskiden `object-cover` idi: görsel kutuyu dolduruyor ama aracın
+            kenarları kırpılıyordu. Bir araç görselinde kırpılan şey genellikle
+            aracın kendisi oluyor. `object-contain` tamamını gösteriyor;
+            pazaryeri kartı (MarketplaceView) zaten böyleydi, iki ekran artık
+            aynı davranıyor.
+
+            `group-hover:scale-105` de kaldırıldı: görseli büyütmek hiçbir şey
+            söylemiyordu — tıklanınca yakınlaşma olmuyor, sadece hareket
+            ediyordu. Vurgu artık kartın kendisinde (gölge ve kenarlık). */}
+        <div className="w-[76px] h-[76px] rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden relative p-1">
           {thumbnailTarget ? (
-            <img 
-              src={thumbnailTarget} 
-              alt={`${vehicle.brand} ${vehicle.model}`} 
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+            <img
+              src={thumbnailTarget}
+              alt={`${vehicle.brand} ${vehicle.model}`}
+              loading="lazy"
+              className="w-full h-full object-contain"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-slate-400 bg-slate-100">GÖRSEL YOK</div>
+            <span className="text-[10px] font-black text-slate-400 text-center leading-tight">
+              GÖRSEL<br />YOK
+            </span>
           )}
         </div>
 
@@ -587,14 +674,14 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
             </div>
           </div>
           
-          <h3 className="text-base font-black text-[#0F172A] truncate w-full tracking-tight">
+          <h3 className="baslik-bolum text-slate-900 truncate w-full">
             {vehicle.brand} {vehicle.model}
           </h3>
           {/* `truncate`: km altı haneli olunca satır iki satıra sarıyor ve o
               kart aynı satırdaki diğerlerinden uzun kalıyordu. Izgara
               `items-start` olduğu için hizasızlık gözle görülüyordu. */}
-          <p className="text-[11px] text-slate-500 font-bold font-mono truncate w-full">
-            {vehicle.year} Yıl • {vehicle.km ? vehicle.km.toLocaleString('tr-TR') : '0'} km
+          <p className="metin-yardimci text-slate-500 font-mono truncate w-full">
+            {vehicle.year} • {vehicle.km ? vehicle.km.toLocaleString('tr-TR') : '0'} km
           </p>
 
           {/* Satış durumu artık tam genişlik şerit değil, ince bir çip.
@@ -611,8 +698,10 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
           )}
         </div>
 
-        <div className="bg-indigo-50 border border-indigo-100/90 px-3 py-1.5 rounded-2xl text-right shrink-0 select-none shadow-xs">
-          <span className="text-indigo-700 text-xs sm:text-sm font-extrabold block font-mono tracking-tight">
+        {/* Skor rozeti: eskiden `text-xs sm:text-sm` idi — aynı bilgi ekran
+            genişliğine göre boyut değiştiriyordu, oysa önemi değişmiyor. */}
+        <div className="bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl text-right shrink-0 select-none">
+          <span className="metin-yardimci text-indigo-700 block font-mono">
             Skor: %{score}
           </span>
         </div>
@@ -629,22 +718,18 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
           Üç düğme her gün kullanılan işler. Dördüncü kutucuk seyrek
           olanları taşıyor; kartta yer kaplamadan erişilebilir kalıyorlar. */}
       <div className="flex gap-2 select-none">
-        <button
-          onClick={() => onViewDetails(vehicle)}
-          className="flex-1 min-w-0 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer text-center truncate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
-        >
+        {/* ÜÇÜ DE İKİNCİL — renk bütünlüğü.
+            Eskiden "Detay" dolu indigo, diğer ikisi beyaz çerçeveliydi. Ama
+            üçü de aynı sıklıkta kullanılan eşdeğer eylemler; birini öne
+            çıkarmak var olmayan bir hiyerarşi uyduruyordu. Birincil renk
+            artık sayfa başına tek eyleme ayrıldı ("Yeni Araç Kaydet"). */}
+        <button onClick={() => onViewDetails(vehicle)} className={dugme('ikincil', { ek: 'flex-1 min-w-0 px-2' })}>
           Detay
         </button>
-        <button
-          onClick={() => onViewKarne(vehicle)}
-          className="flex-1 min-w-0 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 active:scale-95 text-slate-800 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-center truncate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
-        >
+        <button onClick={() => onViewKarne(vehicle)} className={dugme('ikincil', { ek: 'flex-1 min-w-0 px-2' })}>
           Karne
         </button>
-        <button
-          onClick={() => onOpenMaintenance(vehicle)}
-          className="flex-1 min-w-0 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 active:scale-95 text-slate-800 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-center truncate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
-        >
+        <button onClick={() => onOpenMaintenance(vehicle)} className={dugme('ikincil', { ek: 'flex-1 min-w-0 px-2' })}>
           Bakım
         </button>
 
@@ -655,7 +740,7 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
             aria-expanded={menuAcik}
             aria-haspopup="menu"
             aria-label={`${plate} için diğer işlemler`}
-            className="w-11 h-full min-h-[38px] grid place-items-center bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 active:scale-95 text-slate-500 rounded-xl transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+            className={ikonDugmesi('ikincil')}
           >
             {/* Üç nokta ikonu kayıtta yok. Kayda yalnızca bu kart için ikon
                 eklemek yerine satır içi çizim: kullanılmayan ikon eklenmiyor
