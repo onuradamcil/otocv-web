@@ -7,6 +7,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 import Icon from './common/icons';
 
@@ -402,11 +403,19 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
 
         </div>
 
-        {/* YASAL LINK ŞERİDİ */}
+        {/* YASAL LİNK ŞERİDİ
+            Eskiden ikisi de `<span>`'di: `hover` ve `cursor-pointer` sınıfları
+            vardı ama `href` yoktu. Yani kullanıcıya link gibi görünüp
+            tıklandığında hiçbir şey yapmıyorlardı — hesap açarken sözleşmeyi
+            okumak isteyen biri için en kötü davranış. Artık gerçek sayfalar. */}
         <div className="text-[11px] text-slate-400 font-medium flex gap-3 tracking-wide mt-8">
-          <span className="hover:text-[#0F172A] cursor-pointer transition-colors">Bireysel Hesap Sözleşmesi</span>
-          <span>•</span>
-          <span className="hover:text-[#0F172A] cursor-pointer transition-colors">KVKK Aydınlatma Metni</span>
+          <Link href="/kullanim-sartlari" className="hover:text-[#0F172A] transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600">
+            Kullanım Şartları
+          </Link>
+          <span aria-hidden="true">•</span>
+          <Link href="/kvkk" className="hover:text-[#0F172A] transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600">
+            KVKK Aydınlatma Metni
+          </Link>
         </div>
       </div>
     </div>

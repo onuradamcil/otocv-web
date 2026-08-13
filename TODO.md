@@ -163,16 +163,17 @@ yani politikaya koşul eklemek işe yaramazdı.
 `Footer.jsx:73-75` üç bağlantı da tıklanamaz "Yakında" öğesi; alt şeritte
 "Yasal metinler hazırlanıyor" yazıyor.
 
-- [ ] KVKK aydınlatma metni
-  - [ ] **Şu cümle mutlaka girecek:** yüklenen servis belgeleri araç sicilinin
-        parçasıdır; araç el değiştirse veya hesap kapatılsa da araç kaydıyla
-        kalır. Bu yazılmazsa tutulamayacak bir silme sözü verilmiş olur.
-- [ ] Gizlilik politikası
-- [ ] Kullanım şartları
-- [ ] `Footer.jsx` — metinler yazılınca `YakindaOge` yerine gerçek bağlantı
-- [ ] `VehicleAuthScreen.jsx:405-410` — "Bireysel Hesap Sözleşmesi" ve "KVKK
-      Aydınlatma Metni" `<span>` olarak duruyor, `hover` sınıfı var ama `href`
-      yok: kullanıcıya link gibi görünen ölü metin
+- [x] `/kvkk`, `/gizlilik`, `/kullanim-sartlari` rotaları açıldı
+- [x] Sayfalar sistemin **fiilen ne yaptığını** anlatıyor (şemadan ve RLS'ten
+      okunmuş olgular) ve nihai metnin hazırlandığını üstte açıkça söylüyor
+- [x] Belge cümlesi KVKK sayfasında yer alıyor: "Yüklediğiniz servis belgeleri
+      araç sicilinin parçasıdır; araç el değiştirse veya hesabınızı kapatsanız
+      da araç kaydıyla birlikte kalır."
+- [x] `Footer.jsx` üç bağlantı da canlı; alt şeritteki "Yasal metinler
+      hazırlanıyor" uyarısı kaldırıldı (artık yanlış olurdu)
+- [x] `VehicleAuthScreen` içindeki ölü `<span>`'ler gerçek bağlantı oldu
+- [x] Yasal sayfalar `sitemap.xml`'e ve rota testine eklendi
+- [ ] **Nihai metinleri siz yazacaksınız** — hukuk danışmanı onayıyla
 
 ---
 

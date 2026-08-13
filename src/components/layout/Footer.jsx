@@ -69,10 +69,14 @@ export default function Footer() {
             <YakindaOge>Kurumsal Çözümler</YakindaOge>
           </Sutun>
 
+          {/* Üçü de artık gerçek sayfa. Nihai metinler hazırlanana kadar
+              sayfalar sistemin fiilen ne yaptığını anlatıyor ve bu durumu
+              üstte açıkça söylüyor — "Yakında" deyip boş bırakmaktan da,
+              uydurma bir metin koymaktan da dürüst olanı bu. */}
           <Sutun baslik="Yasal">
-            <YakindaOge>KVKK Aydınlatma Metni</YakindaOge>
-            <YakindaOge>Gizlilik Politikası</YakindaOge>
-            <YakindaOge>Kullanım Şartları</YakindaOge>
+            <HazirLink href="/kvkk">KVKK Aydınlatma Metni</HazirLink>
+            <HazirLink href="/gizlilik">Gizlilik Politikası</HazirLink>
+            <HazirLink href="/kullanim-sartlari">Kullanım Şartları</HazirLink>
           </Sutun>
 
           <Sutun baslik="Destek">
@@ -88,9 +92,16 @@ export default function Footer() {
           <span className="text-[10px] font-semibold text-slate-400">
             © {yil} Oto.CV · Tüm hakları saklıdır
           </span>
-          <span className="text-[10px] font-medium text-slate-300">
-            Yasal metinler hazırlanıyor
-          </span>
+          {/* "Yasal metinler hazırlanıyor" yazıyordu ve o zaman doğruydu:
+              üç bağlantı da ölüydü. Sayfalar açıldığı için bu uyarı artık
+              yanlış olurdu — nihai metnin hazırlandığını sayfaların kendisi
+              üstte söylüyor. */}
+          <Link
+            href="/kvkk"
+            className="text-[10px] font-medium text-slate-400 hover:text-slate-600 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+          >
+            Verileriniz nasıl işleniyor?
+          </Link>
         </div>
       </div>
     </footer>

@@ -13,5 +13,10 @@ export default function sitemap() {
   return [
     { url: `${TABAN}/`, lastModified: simdi, changeFrequency: 'daily', priority: 1 },
     { url: `${TABAN}/verify`, lastModified: simdi, changeFrequency: 'monthly', priority: 0.8 },
+    // Yasal sayfalar indekslenmeli: kullanıcı "oto.cv kvkk" diye aradığında
+    // bulabilmeli ve arama motoru sitenin bu metinlere sahip olduğunu görmeli.
+    { url: `${TABAN}/kvkk`, lastModified: simdi, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${TABAN}/gizlilik`, lastModified: simdi, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${TABAN}/kullanim-sartlari`, lastModified: simdi, changeFrequency: 'yearly', priority: 0.3 },
   ];
 }

@@ -23,6 +23,11 @@ const ACIK_ROTALAR = [
   { yol: '/dashboard', ad: 'Özet (yer tutucu)' },
   { yol: '/query-history', ad: 'Sorgu geçmişi (yer tutucu)' },
   { yol: '/packages', ad: 'Ücretler' },
+  // Yasal sayfalar: footer ve giriş ekranı buraya bağlanıyor. Kırılırlarsa
+  // kullanıcı sözleşmeyi okumak isterken 404 görür.
+  { yol: '/kvkk', ad: 'KVKK aydınlatma' },
+  { yol: '/gizlilik', ad: 'Gizlilik politikası' },
+  { yol: '/kullanim-sartlari', ad: 'Kullanım şartları' },
   { yol: '/account', ad: 'Hesap (yer tutucu)' },
   { yol: '/insurance-offer', ad: 'Sigorta teklifi (yer tutucu)' },
   { yol: '/maintenance-planner', ad: 'Bakım planı (yer tutucu)' },
