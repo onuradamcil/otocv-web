@@ -18,16 +18,25 @@ export const publishVehicleListing = async (vehicle, listingPayload) => {
 
     const plate = vehicle.plate_number;
 
-    // Önce bu plakaya ait aktif bir ilan var mı kontrol et
+    // PLAKAYA AİT KAYIT ARANIYOR — DURUMA BAKILMADAN.
+    //
+    // Eskiden yalnızca `status='active'` aranıyordu. Kaldırma işlemi kaydı
+    // sildiği sürece bu çalışıyordu; artık kaldırma kaydı `pasif` yapıyor
+    // (kalıcı silme veri kaybıydı). Filtre 'active' kalsaydı pasif kayıt
+    // bulunamaz, INSERT denenir ve `unique_active_listing_per_plate`
+    // kısıtına takılırdı.
+    //
+    // ⚠ O kısıtın adı yanıltıcı: `UNIQUE (vehicle_plate)` — koşulsuz. Yani
+    // plaka başına yalnızca BİR satır olabiliyor, durumu ne olursa olsun.
     const { data: existingListings } = await supabase
       .from('listings')
       .select('id')
       .eq('vehicle_plate', plate)
-      .eq('status', 'active');
+      .limit(1);
 
     let result;
     if (existingListings && existingListings.length > 0) {
-      // VARSA: Mevcut İlanı Güncelle (UPDATE)
+      // VARSA: mevcut kaydı güncelle ve yeniden yayına al.
       result = await supabase
         .from('listings')
         .update({
@@ -38,6 +47,7 @@ export const publishVehicleListing = async (vehicle, listingPayload) => {
           district: listingPayload.district,
           tramer_amount: Number(listingPayload.tramerAmount || 0),
           is_featured: listingPayload.isFeatured || false,
+          status: 'active',
           updated_at: new Date().toISOString()
         })
         .eq('id', existingListings[0].id)
@@ -70,7 +80,21 @@ export const publishVehicleListing = async (vehicle, listingPayload) => {
 };
 
 /**
- * Bir ilanı pazaryerinden kaldırır (Siler).
+ * Bir aracı pazaryerinden kaldırır.
+ *
+ * ⚠ ESKİDEN KALICI SİLME YAPIYORDU — düzeltildi.
+ *
+ * Eski hâli `.delete().eq('vehicle_plate', plate)` idi ve iki ayrı sorunu
+ * vardı:
+ *   1. `status` filtresi yoktu. Yani o plakanın SADECE yayındaki kaydını
+ *      değil, TÜM kayıtlarını siliyordu — geçmiş yayınlar dahil.
+ *   2. Silme geri alınamaz. Canlı veritabanının yedeği yok (PITR kapalı),
+ *      yani yanlışlıkla basılan bir düğme fiyat geçmişini, görüntülenme ve
+ *      favori sayaçlarını kalıcı olarak yok ediyordu.
+ *
+ * Artık kayıt duruyor, yalnızca `status` değişiyor. `fetchMarketplaceListings`
+ * zaten `status='active'` süzüyor, dolayısıyla araç pazaryerinden anında
+ * kalkıyor; veri ise kalıyor.
  */
 export const unpublishVehicleListing = async (vehicle) => {
   try {
@@ -78,13 +102,15 @@ export const unpublishVehicleListing = async (vehicle) => {
 
     const { data, error } = await supabase
       .from('listings')
-      .delete()
-      .eq('vehicle_plate', plate);
+      .update({ status: 'pasif', updated_at: new Date().toISOString() })
+      .eq('vehicle_plate', plate)
+      .eq('status', 'active')
+      .select();
 
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('❌ [Marketplace Service] İlandan kaldırma hatası:', error.message);
+    console.error('❌ [Marketplace Service] Pazaryerinden kaldırma hatası:', error.message);
     return { success: false, error: error.message };
   }
 };
@@ -102,6 +128,16 @@ export const fetchMarketplaceListings = async (filters = {}) => {
 
     if (filters.city && filters.city !== 'Tümü') {
       query = query.eq('city', filters.city);
+    }
+
+    // KULLANICI SÜZGECİ SUNUCUDA.
+    //
+    // `/my-listings` eskiden TÜM aktif ilanları indirip istemcide
+    // `item.user_id === user.id` ile süzüyordu. Üç aracı olan kullanıcı
+    // bütün pazaryerini indiriyordu — yüz binlerce kullanıcı hedefiyle
+    // taban tabana zıt. Süzgeç artık sorguda.
+    if (filters.userId) {
+      query = query.eq('user_id', filters.userId);
     }
 
     const { data, error } = await query;

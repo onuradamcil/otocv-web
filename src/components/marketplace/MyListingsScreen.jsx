@@ -26,11 +26,12 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
     if (!user) return;
     try {
       setLoading(true);
-      const res = await fetchMarketplaceListings();
+      // Süzgeç SUNUCUDA. Eskiden `fetchMarketplaceListings()` çağrılıp tüm
+      // aktif ilanlar indiriliyor, sonra istemcide `user_id` ile süzülüyordu:
+      // üç ilanı olan kullanıcı bütün pazaryerini indiriyordu.
+      const res = await fetchMarketplaceListings({ userId: user.id });
       if (res.success) {
-        // Kullanıcının kendi ilanlarını süzüyoruz
-        const myItems = (res.data || []).filter(item => item.user_id === user.id);
-        setListings(myItems);
+        setListings(res.data || []);
       }
     } catch (err) {
       console.error("İlanlar yüklenirken hata:", err);
@@ -154,8 +155,16 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                       plate_number: item.vehicle_plate || item.plate_number,
                       km: item.km,
                       price: item.price,
-                      listing_title: item.title,
-                      listing_description: item.description,
+                      // ⚠ ALAN ADLARI SERVİSİN DÖNDÜRDÜĞÜ ADLAR.
+                      // Eskiden `item.title` ve `item.description` okunuyordu
+                      // ama `fetchMarketplaceListings` bu alanları
+                      // `listing_title` / `listing_description` adıyla
+                      // düzleştiriyor. Sonuç: düzenleme ekranı açıklamayı HER
+                      // SEFERİNDE boş açıyordu ve en az 10 karakter zorunlu
+                      // olduğu için kullanıcı eski metnini yeniden yazmadan
+                      // kaydedemiyordu — yazınca da eskisinin üstüne yazıyordu.
+                      listing_title: item.listing_title ?? item.title,
+                      listing_description: item.listing_description ?? item.description,
                       city: item.city,
                       district: item.district,
                       tramer_amount: item.tramer_amount,

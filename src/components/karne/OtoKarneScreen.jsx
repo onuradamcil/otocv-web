@@ -16,7 +16,7 @@ import { supabase } from '../../lib/supabase';
 import useSicil from '../../hooks/useSicil';
 import GlobalStepLoader from '../common/GlobalStepLoader';
 
-export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }) {
+export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPublicView = false }) {
   // =========================================================================
   // 1. BLOK: REAKTİF STATE VE VERİTABANI HAFIZA ODASI
   // =========================================================================
@@ -44,12 +44,18 @@ export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }
   // hem listeyi yanlış gösteriyordu hem de kilometre tutarlılığı hesabını
   // yanıltma riski taşıyordu (karneHelper artık kendi içinde tarihe göre
   // sıralayarak o tuzağı kapatıyor).
+  //
+  // ÇİFT SORGU KAPATILDI: rota `sicil_getir`'i zaten çağırıyor ve dönen
+  // nesnenin içinde `bakim_kayitlari` da geliyordu; burada aynı fonksiyon
+  // ikinci kez çağrılıyordu. Her görüntüleme `sicil_sorgu_log`'a iki satır
+  // yazıyor ve hız sınırının (10 dk / 20 başarısız) gerçek eşiğini 10'a
+  // düşürüyordu. `kayitlar` prop olarak geldiğinde hook istek atmıyor.
   // =========================================================================
   const {
     kayitlar: maintenanceRecords,
     yukleniyor: loadingRecords,
     hata: sicilHatasi,
-  } = useSicil(vehicle?.pin_code);
+  } = useSicil(vehicle?.pin_code, { hazirKayitlar: kayitlar });
 
   // =========================================================================
   // 3. BLOK: CANLI BULUT VERİ HARİTALAMA VE FORMAT SÜRÜCÜLERİ
@@ -226,6 +232,26 @@ export default function OtoKarneScreen({ vehicle, onBack, isPublicView = false }
                    belge gorunumu yuklenirken de bozulmasin. */
                 <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                   <GlobalStepLoader mode="iskelet" varyant="liste" kapsayici={false} adet={5} />
+                </div>
+              ) : sicilHatasi ? (
+                /* SESSİZ HATA KAPATILDI.
+                   `sicilHatasi` alınıyor ama HİÇ KULLANILMIYORDU: sicil
+                   sorgusu başarısız olduğunda karne boş bir belge olarak
+                   çiziliyor ve "bu aracın hiç bakım kaydı yok" gibi
+                   görünüyordu. Bu, en pahalı yalan — karnenin tüm değeri
+                   kayıtların eksiksiz olduğuna güvenilmesinde.
+                   Araç detayı ekranı bunu zaten doğru yapıyordu. */
+                <div
+                  role="alert"
+                  className="bg-white border border-amber-200 rounded-xl p-6 shadow-sm text-center space-y-2"
+                >
+                  <p className="text-xs font-black text-amber-900">Bakım kayıtları yüklenemedi</p>
+                  <p className="text-[11px] text-amber-900/80 font-semibold leading-relaxed">
+                    {sicilHatasi}
+                  </p>
+                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                    Aşağıdaki belge eksik olabilir; kayıtların tamamı için sayfayı yenileyin.
+                  </p>
                 </div>
               ) : (
                 /* 🚀 CANLI PASLAMA: Resmi döküm alanına taze veri bağları ulaştırıldı */

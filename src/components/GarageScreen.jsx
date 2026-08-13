@@ -103,15 +103,30 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
             activeListing = car.listings.status === 'active' ? car.listings : null;
           }
 
+          // ARAÇ KAYDI TEMEL, VİTRİN KAYDI ÜSTÜNE YAZAR.
+          //
+          // Eskiden bu alanlar araç vitrinde DEĞİLKEN `null`'a eziliyordu:
+          //   city: activeListing ? activeListing.city : null
+          //
+          // Oysa `vehicles.city`, `district`, `title` ve `description` kayıt
+          // sihirbazında zaten dolduruluyor. Sonuç: sihirbazda İzmir/Konak
+          // seçen kullanıcı vitrin formunu açtığında null görüyordu ve form
+          // sabit "Ankara / Çankaya" yazıyordu; uzun açıklamasını da sıfırdan
+          // yazmak zorunda kalıyordu.
+          //
+          // `is_featured` de hiç taşınmıyordu: ₺250 ödenmiş bir doping,
+          // düzenleme ekranında işaretsiz açılıyor ve kaybolmuş gibi
+          // görünüyordu.
           return {
             ...car,
             is_listed: !!activeListing,
             price: activeListing ? activeListing.price : 0,
-            listing_title: activeListing ? activeListing.title : null,
-            listing_description: activeListing ? activeListing.description : null,
-            city: activeListing ? activeListing.city : null,
-            district: activeListing ? activeListing.district : null,
-            tramer_amount: activeListing ? activeListing.tramer_amount : car.tramer_amount
+            is_featured: activeListing ? activeListing.is_featured === true : false,
+            listing_title: activeListing?.title ?? car.title ?? null,
+            listing_description: activeListing?.description ?? car.description ?? null,
+            city: activeListing?.city ?? car.city ?? null,
+            district: activeListing?.district ?? car.district ?? null,
+            tramer_amount: activeListing?.tramer_amount ?? car.tramer_amount,
           };
         });
 

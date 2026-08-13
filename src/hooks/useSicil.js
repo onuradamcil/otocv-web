@@ -35,12 +35,25 @@
 // Öyle bir yedek yol, RLS açıkken boş liste döndürüp "bu aracın bakım
 // kaydı yok" gibi görünürdü — veri kaybı izlenimi, sebebi görünmeyen bir
 // hata. Hata `hata` alanında dışarı veriliyor, çağıran onu gösteriyor.
+//
+// -------------------------------------------------------------------------
+// SONSUZ YÜKLENİYOR KAPATILDI
+// -------------------------------------------------------------------------
+// Bu hook'ta `try/catch/finally` YOKTU. `supabase.rpc` promise'i reddederse
+// (ağ kopması, sunucu ölümü, CORS) `setYukleniyor(false)` satırına hiç
+// gelinmiyordu ve `yukleniyor` sonsuza kadar `true` kalıyordu. Kullanıcının
+// gördüğü kalıcı iskeletin kod içindeki en net yolu buydu.
+//
+// Artık: `finally` yükleme durumunu her koşulda kapatıyor, `zamanAsimiyla`
+// asılı kalan isteği 15 saniyede kesiyor ve `yenile()` gerçek bir çıkış
+// yolu sunuyor.
 // =========================================================================
 
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { zamanAsimiyla, agHatasiMetni } from '../lib/istek';
 
 // PIN henüz üretilmemişken arayüzde kullanılan yer tutucular. Sorguya
 // sokmak boşuna istek demek.
@@ -59,7 +72,27 @@ const YER_TUTUCULAR = new Set(['CV-PENDING', 'CV-RESMI', 'CV-YOK']);
  * kapalı. Özet `{marka, model, yil, kayit, faturali, sicil_puani,
  * sahipsiz_kaldi_at}` alanlarını taşır.
  */
-export function useSicil(pin) {
+export function useSicil(pin, secenekler = {}) {
+  // -----------------------------------------------------------------------
+  // HAZIR VERİ — ÇİFT SORGUYU KAPATAN YOL
+  //
+  // Detay ve karne rotaları `sicil_getir`'i zaten çağırıyor ve dönen
+  // nesnenin içinde `bakim_kayitlari` DA geliyor. Ama sayfalar yalnızca
+  // `arac` alanını kullanıp kayıtları atıyor, sonra ekran bileşeni bu
+  // hook'la AYNI fonksiyonu ikinci kez çağırıyordu.
+  //
+  // Bedeli ölçüldü: her sayfa görüntülemesi `sicil_sorgu_log`'a iki satır
+  // yazıyor. Hız sınırı 10 dakikada 20 BAŞARISIZ sorguda devreye girip
+  // geçerli PIN'leri de 10 dakika bloklüyor — çift sayım yüzünden gerçek
+  // eşik 20 değil 10 hatalı denemeydi. "Karne bölümüne geçemiyorum"
+  // şikâyetinin ölçülebilir sebebi buydu.
+  //
+  // Çağıran hazır kayıtları verirse hook hiç istek atmıyor.
+  // -----------------------------------------------------------------------
+  const hazirKayitlar = Array.isArray(secenekler.hazirKayitlar)
+    ? secenekler.hazirKayitlar
+    : null;
+
   // Geçerli PIN türetiliyor, state'e YAZILMIYOR. Önce boş sonucu efekt
   // içinden setState ile kuruyordum; React o kalıbı haklı olarak uyarıyor
   // (etki gövdesinde senkron setState = zincirleme render). Türetilebilen
@@ -70,6 +103,9 @@ export function useSicil(pin) {
     return temiz;
   }, [pin]);
 
+  // Hazır veri varsa sorgulanacak PIN yok — efekt hiç çalışmıyor.
+  const sorgulanacakPin = hazirKayitlar ? null : gecerliPin;
+
   const [kayitlar, setKayitlar] = useState([]);
   const [arac, setArac] = useState(null);
   const [sahipMi, setSahipMi] = useState(false);
@@ -78,7 +114,7 @@ export function useSicil(pin) {
   const [sahipsizOzet, setSahipsizOzet] = useState(null);
   // PIN yoksa yükleme durumu da yok: sonsuz iskelet göstermemek için
   // başlangıç değeri PIN'in varlığına bağlı.
-  const [yukleniyor, setYukleniyor] = useState(() => Boolean(gecerliPin));
+  const [yukleniyor, setYukleniyor] = useState(() => Boolean(sorgulanacakPin));
   const [hata, setHata] = useState(null);
 
   // Sayım, bileşen sökülüp yeniden bağlandığında yeniden çekmeyi tetiklemek
@@ -87,7 +123,7 @@ export function useSicil(pin) {
   const yenile = useCallback(() => setTetik((n) => n + 1), []);
 
   useEffect(() => {
-    if (!gecerliPin) return;
+    if (!sorgulanacakPin) return;
 
     // Bileşen sökülürse geç gelen yanıt state'e yazmasın: React sökülmüş
     // bileşene setState uyarısı verir ve daha kötüsü, hızlı gezinmede eski
@@ -98,56 +134,83 @@ export function useSicil(pin) {
       setYukleniyor(true);
       setHata(null);
 
-      const { data, error } = await supabase.rpc('sicil_getir', { p_pin: gecerliPin });
+      try {
+        const { data, error } = await zamanAsimiyla(
+          supabase.rpc('sicil_getir', { p_pin: sorgulanacakPin })
+        );
 
-      if (iptal) return;
+        if (iptal) return;
 
-      if (error) {
-        console.error('Sicil çekilemedi:', error.message);
-        setHata(error.message);
+        if (error) {
+          console.error('Sicil çekilemedi:', error.message);
+          setHata(error.message);
+          setKayitlar([]);
+          setArac(null);
+          setSahipMi(false);
+          setSahipsizOzet(null);
+        } else if (data?.hata === 'cok_fazla_deneme') {
+          // HIZ SINIRI. Bunu "bulunamadı"dan ayırmak zorunlu: aynı görünmesi,
+          // kullanıcıya "bu araç yok" yalanını söylemek olurdu. Fonksiyon bu
+          // yüzden null değil, işaretli bir nesne döndürüyor.
+          const dk = Math.ceil((data.yeniden_dene_saniye || 600) / 60);
+          setHata(`Çok fazla sorgu yapıldı. ${dk} dakika sonra tekrar deneyin.`);
+          setKayitlar([]);
+          setArac(null);
+          setSahipMi(false);
+          setSahipsizOzet(null);
+        } else if (data?.hata === 'sahipsiz') {
+          // SAHİPSİZ ARAÇ. Yine "bulunamadı"dan ayrı tutuluyor, aynı gerekçeyle:
+          // araç var ve sicili duruyor, "yok" demek yalan olurdu. `hata`
+          // KURULMUYOR — bu bir arıza değil, aracın bir durumu. Çağıran ekran
+          // özeti gösterip geri yükleme yolunu anlatıyor.
+          setSahipsizOzet(data.ozet || {});
+          setKayitlar([]);
+          setArac(null);
+          setSahipMi(false);
+        } else if (!data) {
+          // null = PIN bulunamadı ya da biçim geçersiz. Hata değil, boş sonuç.
+          setKayitlar([]);
+          setArac(null);
+          setSahipMi(false);
+          setSahipsizOzet(null);
+        } else {
+          setKayitlar(data.bakim_kayitlari || []);
+          setArac(data.arac || null);
+          setSahipMi(data.arac?.sahip_mi === true);
+          setSahipsizOzet(null);
+        }
+      } catch (e) {
+        // Buraya YALNIZCA promise reddedilirse gelinir: ağ kopması, sunucu
+        // ölümü ya da zaman aşımı. Eskiden bu dal hiç yoktu ve akış burada
+        // sessizce kesiliyordu.
+        if (iptal) return;
+        console.error('Sicil çekilemedi (ağ):', e);
+        setHata(agHatasiMetni(e));
         setKayitlar([]);
         setArac(null);
         setSahipMi(false);
         setSahipsizOzet(null);
-      } else if (data?.hata === 'cok_fazla_deneme') {
-        // HIZ SINIRI. Bunu "bulunamadı"dan ayırmak zorunlu: aynı görünmesi,
-        // kullanıcıya "bu araç yok" yalanını söylemek olurdu. Fonksiyon bu
-        // yüzden null değil, işaretli bir nesne döndürüyor.
-        const dk = Math.ceil((data.yeniden_dene_saniye || 600) / 60);
-        setHata(`Çok fazla sorgu yapıldı. ${dk} dakika sonra tekrar deneyin.`);
-        setKayitlar([]);
-        setArac(null);
-        setSahipMi(false);
-        setSahipsizOzet(null);
-      } else if (data?.hata === 'sahipsiz') {
-        // SAHİPSİZ ARAÇ. Yine "bulunamadı"dan ayrı tutuluyor, aynı gerekçeyle:
-        // araç var ve sicili duruyor, "yok" demek yalan olurdu. `hata`
-        // KURULMUYOR — bu bir arıza değil, aracın bir durumu. Çağıran ekran
-        // özeti gösterip geri yükleme yolunu anlatıyor.
-        setSahipsizOzet(data.ozet || {});
-        setKayitlar([]);
-        setArac(null);
-        setSahipMi(false);
-      } else if (!data) {
-        // null = PIN bulunamadı ya da biçim geçersiz. Hata değil, boş sonuç.
-        setKayitlar([]);
-        setArac(null);
-        setSahipMi(false);
-        setSahipsizOzet(null);
-      } else {
-        setKayitlar(data.bakim_kayitlari || []);
-        setArac(data.arac || null);
-        setSahipMi(data.arac?.sahip_mi === true);
-        setSahipsizOzet(null);
+      } finally {
+        // `iptal` kontrolü YOK ve bu bilerek: bileşen sökülmüşse setState
+        // zaten yok sayılıyor (React 18+), ama sökülmediği hâlde `iptal`
+        // erken dönmüşse yükleme durumunun açık kalması tam da onarmaya
+        // çalıştığımız hataydı.
+        setYukleniyor(false);
       }
-
-      setYukleniyor(false);
     })();
 
     return () => {
       iptal = true;
     };
-  }, [gecerliPin, tetik]);
+  }, [sorgulanacakPin, tetik]);
+
+  // Hazır veri verildiyse istek hiç atılmadı; kayıtlar doğrudan dönüyor.
+  if (hazirKayitlar) {
+    return {
+      kayitlar: hazirKayitlar, arac: null, sahipMi: false, sahipsizOzet: null,
+      yukleniyor: false, hata: null, yenile,
+    };
+  }
 
   // PIN yoksa hiç sorgu atılmadı; state'in başlangıç değerleri zaten boş.
   // Bu dalda `hata` da null — "PIN yok" bir hata değil.

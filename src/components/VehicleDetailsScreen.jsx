@@ -118,7 +118,7 @@ const getDynamicStatus = (dateInput, validLabel = 'Geçerli') => {
 // =========================================================================
 // 🚀 ANA BİLEŞEN: VEHICLE DETAILS SCREEN
 // =========================================================================
-export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isPublicView = false, onManageInGarage }) {
+export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack, onViewKarne, isPublicView = false, onManageInGarage }) {
   const toast = useToast();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [thumbPage, setThumbPage] = useState(0);
@@ -168,11 +168,15 @@ export default function VehicleDetailsScreen({ vehicle, onBack, onViewKarne, isP
   // GİRİLDİĞİ ana göre. Kullanıcı üç yıl önceki bir bakımı bugün girdiğinde
   // listenin başına çıkıyordu. Artık işlem tarihine göre.
   // =========================================================================
+  // ÇİFT SORGU KAPATILDI: rota `sicil_getir`'i zaten çağırıyor ve dönen
+  // nesne `bakim_kayitlari`'nı da taşıyordu; burada aynı fonksiyon ikinci kez
+  // çağrılıyordu. Her görüntüleme `sicil_sorgu_log`'a iki satır yazıyor ve
+  // hız sınırının (10 dk / 20 başarısız) gerçek eşiğini 10'a düşürüyordu.
   const {
     kayitlar: maintenanceRecords,
     yukleniyor: loadingRecords,
     hata: sicilHatasi,
-  } = useSicil(vehicle?.pin_code);
+  } = useSicil(vehicle?.pin_code, { hazirKayitlar: kayitlar });
 
   // ⚙️ SCROLL & Observer Kontrolcüsü
   useEffect(() => {

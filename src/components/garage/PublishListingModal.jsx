@@ -38,8 +38,9 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   
-  const [selectedCity, setSelectedCity] = useState('Ankara');
-  const [selectedDistrict, setSelectedDistrict] = useState('Çankaya');
+  // Başlangıç BOŞ: kullanıcının seçmediği bir şehri onun adına seçmiyoruz.
+  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
 
   // 💎 DEMO VİTRİN / DOPİNG STATE'İ
   const [isFeatured, setIsFeatured] = useState(false);
@@ -86,11 +87,23 @@ export default function PublishListingModal({ isOpen, onClose, vehicle, onSucces
       setDescription(vehicle.listing_description || '');
       setIsFeatured(vehicle.is_featured || false);
       
-      const defaultCity = vehicle.city && TURKEY_LOCATIONS[vehicle.city] ? vehicle.city : 'Ankara';
-      setSelectedCity(defaultCity);
-      
-      const cityDistricts = TURKEY_LOCATIONS[defaultCity] || [];
-      setSelectedDistrict(vehicle.district && cityDistricts.includes(vehicle.district) ? vehicle.district : cityDistricts[0] || '');
+      // SABİT "Ankara / Çankaya" VARSAYILANI KALDIRILDI.
+      //
+      // Eskiden araçta il yoksa doğrudan 'Ankara', ilçe yoksa o ilin İLK
+      // ilçesi ('Çankaya') seçiliyordu. İki sorun vardı:
+      //   · `GarageScreen` il/ilçeyi null'a ezdiği için araç vitrinde
+      //     değilken bu dal HER ZAMAN çalışıyordu — sihirbazda İzmir/Konak
+      //     seçen kullanıcı burada Ankara buluyordu.
+      //   · Kullanıcının seçmediği bir konumu onun adına seçmek, aracı
+      //     yanlış şehirde göstermek demek. Boş bırakmak dürüst: doğrulama
+      //     zaten il ve ilçeyi zorunlu tutuyor.
+      const gecerliIl = vehicle.city && TURKEY_LOCATIONS[vehicle.city] ? vehicle.city : '';
+      setSelectedCity(gecerliIl);
+
+      const ilIlceleri = TURKEY_LOCATIONS[gecerliIl] || [];
+      setSelectedDistrict(
+        vehicle.district && ilIlceleri.includes(vehicle.district) ? vehicle.district : ''
+      );
       
       setErrorMessage(null);
       setValidationErrors({});
