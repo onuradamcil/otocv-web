@@ -158,9 +158,19 @@ jobs:
       # formunun Kaydet düğmesi ekran dışında kalıyordu. Sınıf 58 yerde
       # kullanılıyor; bir sarmalayıcıya transform eklenmesi hatayı sessizce
       # geri getirir ve gözle "biraz aşağıda duruyor" diye geçiştirilir.
+      #
+      # 12-hesabim DA LİSTEDE. Arayüz testleri hiçbir şey kaydetmiyor; kilit
+      # testleri yazma DENİYOR ve reddedilmesini bekliyor — reddedilen yazma
+      # artık bırakmıyor. Tek istisna rıza tetikleyicisi testi: İKİNCİ TEST
+      # HESABININ kendi satırında izni açıp kapatıyor, kullanıcının gerçek
+      # hesabına dokunmuyor.
+      #
+      # Gerekçe 05-guvenlik ile aynı: "Hesabım" ekranı kullanıcının kendi
+      # profil satırına yazdığı TEK yer. Buradan `is_premium` yazılabilseydi
+      # tüm ödeme kilidi, rıza tarihi yazılabilseydi KVKK ispatı çökerdi.
       - name: Testleri koş (okuma + güvenlik paketleri)
         if: steps.anahtar.outputs.var == 'true'
-        run: npx playwright test tests/01-rota-erisim.spec.js tests/02-karne-butunlugu.spec.js tests/04-mobil.spec.js tests/05-guvenlik.spec.js tests/08-hesap-kapatma.spec.js tests/09-yetki-kilitleri.spec.js tests/10-navigasyon.spec.js tests/11-garaj.spec.js
+        run: npx playwright test tests/01-rota-erisim.spec.js tests/02-karne-butunlugu.spec.js tests/04-mobil.spec.js tests/05-guvenlik.spec.js tests/08-hesap-kapatma.spec.js tests/09-yetki-kilitleri.spec.js tests/10-navigasyon.spec.js tests/11-garaj.spec.js tests/12-hesabim.spec.js
         env:
           CI: true
 

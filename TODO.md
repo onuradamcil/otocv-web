@@ -87,9 +87,34 @@ maddeleri bitecek, sonra bunlara geçilecek.**
       ölçülerek doğrulandı
 - [x] 5 · Hesap menüsü başlığı: baş harfler + ad soyad + üyelik rozeti,
       e-posta ikincil satırda. Garaj profil kartından taşınan bilgi burada
-- [ ] 6 · **Hesabım ekranı** sektör standardında kurulacak (şu an `ComingSoon`)
-  - [ ] ⚠ Ön koşul: `profiles` UPDATE politikası yok — yazılmadan düzenleme
-        çalışmaz (yukarıdaki güvenlik bölümüne bakın)
+- [x] 6 · **Hesabım ekranı** kuruldu — `ComingSoon` yer tutucusu kalktı
+  - [x] Ön koşul: `profiles` UPDATE politikası (`profil_guncelle_kendi`) yazıldı
+  - [x] Migration `20260814090000_hesap_yonetimi.sql` uygulandı ve doğrulandı
+    - [x] `profiles.pazarlama_izni` (varsayılan **false** — KVKK açık rıza
+          susarak verilemez) + `pazarlama_izni_at`, tarihi **trigger** yazıyor
+    - [x] `hesap_kapatma_talepleri` — `authenticated` yalnızca SELECT, `anon`
+          hiç yok, yazma yalnızca RPC'den (araç sayısı sunucuda hesaplanıyor)
+    - [x] `hesap_kapatma_talep_et()` / `hesap_kapatma_talebi_iptal()`
+    - [x] Dosya = canlı: üç fonksiyon gövdesi md5 ile birebir
+    - [x] Karar: **devir bildirimleri kapatılamaz** — işlem bildirimi;
+          devir talebini susturmak güvenlik açığı olurdu. "Poliçe
+          hatırlatması" tercihi de KONMADI: bugün poliçe uyarısı
+          veritabanına hiç yazılmıyor, düğme hiçbir şeyi değiştirmezdi
+  - [x] Arayüz: profil · e-posta · şifre · üyelik · pazarlama izni · verilerim
+    - [x] Şifre değişimi **mevcut şifreyi doğruluyor** — Supabase istemiyor
+          ama açık bırakılmış bir ekranı bulan biri hesabı ele geçirebilirdi
+    - [x] E-posta anında değişmiyor; ekran bunu açıkça söylüyor
+    - [x] Hesap kapatma iki adımlı: önce araç listesi (plaka plaka), sonra
+          yazarak onay. Araç adımı sahipsiz araç oluşmasını engelleyen önlem
+  - [x] `tests/12-hesabim.spec.js` — 12 test, CI'da koşuyor
+  - [x] ⚠ **Testin yakaladığı gerçek hata: Türkçe büyük harf tuzağı.** Onay
+        kelimesi "HESABIMI KAPAT" idi. Türkçe locale'de küçük `i`nin büyüğü
+        `I` değil `İ`; kullanıcı "hesabimi" yazınca "HESABİMİ" üretiliyor ve
+        eşleşmiyordu. Yani noktasız `ı` yazmayan hiç kimse hesabını
+        kapatamıyordu. Kelime i/ı içermeyen "HESAP KAPAT" oldu
+  - [x] ⚠ Bulundu: alıcı test hesabının `profiles` satırı hiç yoktu ve iki
+        kilit testini sessizce anlamsız kılıyordu (update 0 satır etkiliyor,
+        select null dönüyor, "premium verilemedi" gibi görünüyordu)
 - [x] 7 · Menü dışarı tıklayınca **ve Esc ile** kapanıyor. `aria-controls` +
       `aria-haspopup` eklendi (ekran okuyucu ve kararlı test bağlanma noktası)
 - [x] 8 · "Ücretsiz İlan Ver" → **"Araç Kaydet"**. "Ücretsiz" kaldırıldı —
@@ -159,8 +184,12 @@ zorlaştırarak değil veriyi ayırarak kaldırdık. Belge kısıtını kaldırm
 - [x] Karne kilitli belgeleri saklamıyor (`belgeler_kisitli` işareti)
 - [x] Diyalog iki yolu da sunuyor, farkı seçim anında yazıyor
 - [ ] Yönetim ekranı — ruhsat inceleme (şu an SQL ile onaylanıyor)
-- [ ] Hesap kapatma akışına "araçlarınızı devretmek ister misiniz?" adımı —
-      **sahipsiz araç oluşmasını engelleyen asıl önlem**
+- [x] Hesap kapatma akışına "araçlarınızı devretmek ister misiniz?" adımı —
+      **sahipsiz araç oluşmasını engelleyen asıl önlem**. Araçlar sayı olarak
+      değil PLAKA PLAKA gösteriliyor: "3 aracınız var" cümlesi kullanıcıya
+      hangi araçları unuttuğunu söylemiyor
+- [ ] Bekleyen kapatma taleplerini `scripts/hesap-kapat.mjs` listelesin
+      (talep tablosu kuruldu, script henüz ondan haberdar değil)
 
 - [x] Ürün kararı: bireysel tarafta **işlem başına**, abonelik yok
 - [x] Ücret listesi tek kaynakta — `src/data/paketler.js` (RevenueCat'e hazır alanlar)
@@ -197,10 +226,8 @@ yani politikaya koşul eklemek işe yaramazdı.
 > vermek yeterli:
 > `update public.profiles set is_premium = true where id = '<user_id>';`
 > (bu komut yalnızca SQL panelinden çalışır — istemciden yazılamıyor)
-- [ ] `/account` ekranı — şu an `ComingSoon` yer tutucusu, 17 satır
-  - [ ] Profil düzenleme (ad, soyad, telefon)
-  - [ ] Şifre değiştirme
-  - [ ] Hesap kapatma talebi (silme **düğmesi** değil — KVKK 30 gün içinde cevap istiyor)
+> `/account` ekranı yukarıdaki **madde 6**'da izleniyor — burada tekrar
+> listelenmiyordu, iki yerde ayrı ayrı işaretlenen bir madde kayıyor.
 
 ---
 

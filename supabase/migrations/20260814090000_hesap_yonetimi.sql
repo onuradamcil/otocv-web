@@ -1,0 +1,247 @@
+-- =========================================================================
+-- HESABIM EKRANININ VERİTABANI TARAFI
+--
+-- Bu migration iki şey kuruyor: pazarlama izni ve hesap kapatma talebi.
+-- İkisi de "Hesabım" ekranının çalışabilmesi için gereken en küçük
+-- değişiklik; ekran bunun dışında var olan alanlarla çalışıyor.
+--
+-- -------------------------------------------------------------------------
+-- NİYE "BİLDİRİM TERCİHLERİ" DİYE ÜÇ AYAR YOK
+-- -------------------------------------------------------------------------
+-- Ölçüldü: bugün `notifications` tablosuna yazan TEK kaynak devir ve
+-- sahipsiz araç akışları (`_bildirim_yaz`). `notifications.type` bir kategori
+-- değil, önem derecesi ('warning' | 'success' | 'danger'). Poliçe ve muayene
+-- uyarıları veritabanına hiç yazılmıyor — garaj ekranında istemci tarafında
+-- `calculatePolicyStatus` ile hesaplanıyor.
+--
+-- Yani "poliçe hatırlatmalarını kapat" diye bir ayar koymak, kapatınca da
+-- açınca da hiçbir şeyin değişmediği bir düğme koymak olurdu. Bu projede
+-- kaldırılan sahte veri kalıplarıyla aynı hata.
+--
+-- Devir bildirimleri ise KAPATILABİLİR YAPILMIYOR ve bu bilinçli: aracınız
+-- için devir talebi geldiğini haber veren bildirimi susturmak, güvenlik
+-- açığıdır. Sektörde de işlem (transactional) bildirimleri kapatılmaz.
+--
+-- Geriye gerçek olan tek tercih kalıyor: pazarlama izni.
+--
+-- -------------------------------------------------------------------------
+-- PAZARLAMA İZNİ NİYE VARSAYILAN KAPALI
+-- -------------------------------------------------------------------------
+-- KVKK ticari elektronik ileti için AÇIK RIZA istiyor. Açık rıza, susarak
+-- verilemez; kullanıcının olumlu bir eylemi gerekir. Bu yüzden alan
+-- `default false` — opt-in, opt-out değil.
+--
+-- Rızanın NE ZAMAN verildiği de saklanıyor: ispat yükümlülüğü bizde.
+-- Gönderim altyapısı henüz yok ama izni kaydetmenin kendisi işlevin ta
+-- kendisi — ileride ileti gönderilecekse dayanağı bugünden birikiyor.
+-- =========================================================================
+
+
+-- -------------------------------------------------------------------------
+-- 1 · PAZARLAMA İZNİ
+-- -------------------------------------------------------------------------
+alter table public.profiles
+  add column if not exists pazarlama_izni boolean not null default false;
+
+alter table public.profiles
+  add column if not exists pazarlama_izni_at timestamptz;
+
+comment on column public.profiles.pazarlama_izni is
+  'Ticari elektronik ileti için açık rıza. KVKK gereği varsayılan false; rıza susarak verilemez.';
+
+comment on column public.profiles.pazarlama_izni_at is
+  'Mevcut rıza durumunun SON DEĞİŞTİĞİ an. Trigger yazıyor; istemcinin yazdığı değer her zaman ezilir — ispat yükümlülüğü bizde olduğu için tarihin istemciden gelmesi kabul edilemez.';
+
+
+-- Rıza tarihini damgalayan trigger.
+--
+-- İstemci bu alanı doğrudan yazabilseydi "rızayı 2 yıl önce vermiştim"
+-- diyen bir kayıt üretilebilirdi. Trigger her yazmada değeri kendisi
+-- belirliyor.
+create or replace function public.profiles_pazarlama_izni_damgala()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if tg_op = 'INSERT' then
+    new.pazarlama_izni_at := case when new.pazarlama_izni then now() else null end;
+  elsif new.pazarlama_izni is distinct from old.pazarlama_izni then
+    -- Rıza geri çekildiğinde de damgalanıyor: geri çekme tarihi de kanıt.
+    new.pazarlama_izni_at := now();
+  else
+    new.pazarlama_izni_at := old.pazarlama_izni_at;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_pazarlama_izni_damgala on public.profiles;
+create trigger profiles_pazarlama_izni_damgala
+  before insert or update on public.profiles
+  for each row execute function public.profiles_pazarlama_izni_damgala();
+
+-- Trigger sırası: `profiles_pazarlama_izni_damgala` alfabetik olarak
+-- `profiles_premium_koru`dan önce çalışıyor. İkisi farklı sütunlara
+-- dokunduğu için çakışmıyorlar; is_premium koruması bozulmuyor.
+
+revoke all on function public.profiles_pazarlama_izni_damgala() from public;
+revoke all on function public.profiles_pazarlama_izni_damgala() from anon, authenticated;
+
+
+-- -------------------------------------------------------------------------
+-- 2 · HESAP KAPATMA TALEPLERİ
+-- -------------------------------------------------------------------------
+-- Hesap kapatma DÜĞME DEĞİL, TALEP. Üç sebeple:
+--
+--   1. Geri dönüşü yok ve canlı veritabanının yedeği bulunmuyor (PITR yok).
+--   2. Kapatma zaten `scripts/hesap-kapat.mjs` üzerinden yürüyor ve o script
+--      kuru koşum varsayılanıyla çalışıyor. Eksik olan tek parça
+--      kullanıcının talebiydi.
+--   3. Talep ile uygulama arasındaki süre, kullanıcının araçlarını
+--      devretmesi için gerçek bir fırsat penceresi açıyor. Sahipsiz araç
+--      oluşmasını engelleyen ASIL önlem bu.
+create table if not exists public.hesap_kapatma_talepleri (
+  id            bigint generated by default as identity primary key,
+  user_id       uuid not null references auth.users(id) on delete cascade,
+
+  durum         text not null default 'bekliyor'
+                  check (durum in ('bekliyor','tamamlandi','iptal')),
+
+  -- Talep ANINDAKİ araç sayısı. Kanıt değeri var: kullanıcı "araçlarım
+  -- silindi" dediğinde, talep sırasında kaç aracı olduğu kayıtlı.
+  arac_sayisi   integer not null default 0,
+
+  not_metni     text,
+
+  olustu        timestamptz not null default now(),
+  karar_at      timestamptz
+);
+
+comment on table public.hesap_kapatma_talepleri is
+  'KVKK kapsamında kullanıcının hesap kapatma talebi. Talebi kullanıcı RPC ile oluşturur; uygulamayı scripts/hesap-kapat.mjs yapar. İstemci bu tabloya YAZAMAZ.';
+
+-- Bir kullanıcının aynı anda yalnızca bir bekleyen talebi olabilir.
+-- Kısmi tekil indeks: iptal edilmiş ve tamamlanmış talepler birikmeye
+-- devam ediyor (geçmiş kaybolmuyor), yalnızca 'bekliyor' tek olabiliyor.
+create unique index if not exists hesap_kapatma_tek_bekleyen_idx
+  on public.hesap_kapatma_talepleri (user_id)
+  where durum = 'bekliyor';
+
+create index if not exists hesap_kapatma_durum_idx
+  on public.hesap_kapatma_talepleri (durum, olustu);
+
+alter table public.hesap_kapatma_talepleri enable row level security;
+
+-- Kullanıcı yalnızca KENDİ talebini OKUR. Yazma politikası bilerek YOK:
+-- talep yalnızca RPC üzerinden oluşuyor ki araç sayısı ve zaman damgası
+-- istemciden gelmesin.
+drop policy if exists hesap_kapatma_oku_kendi on public.hesap_kapatma_talepleri;
+create policy hesap_kapatma_oku_kendi on public.hesap_kapatma_talepleri
+  for select to authenticated
+  using (auth.uid() = user_id);
+
+-- ÜÇ REVOKE birden gerekiyor. Bu ders bu projede üç kez öğrenildi:
+--   · `from public` PUBLIC devralmasını kaldırır ama isimle verilmiş
+--     anon/authenticated yetkilerini bırakır
+--   · `from anon, authenticated` isimle verilenleri kaldırır ama PUBLIC
+--     devralmasını bırakır
+-- Sonra service_role'a açıkça geri verilmesi şart, yoksa script çalışmaz.
+revoke all on public.hesap_kapatma_talepleri from public;
+revoke all on public.hesap_kapatma_talepleri from anon, authenticated;
+grant select on public.hesap_kapatma_talepleri to authenticated;
+grant all on public.hesap_kapatma_talepleri to service_role;
+
+
+-- -------------------------------------------------------------------------
+-- 3 · TALEP OLUŞTURMA
+-- -------------------------------------------------------------------------
+create or replace function public.hesap_kapatma_talep_et(p_not text default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_uid   uuid := auth.uid();
+  v_arac  integer;
+  v_id    bigint;
+begin
+  if v_uid is null then
+    return jsonb_build_object('basarili', false,
+      'hata_mesaji', 'Bu işlem için oturum açmanız gerekiyor.');
+  end if;
+
+  if exists (
+    select 1 from hesap_kapatma_talepleri
+    where user_id = v_uid and durum = 'bekliyor'
+  ) then
+    return jsonb_build_object('basarili', false,
+      'hata_mesaji', 'Zaten bekleyen bir hesap kapatma talebiniz var.');
+  end if;
+
+  select count(*) into v_arac from vehicles where user_id = v_uid;
+
+  insert into hesap_kapatma_talepleri (user_id, arac_sayisi, not_metni)
+  values (v_uid, v_arac, nullif(btrim(coalesce(p_not, '')), ''))
+  returning id into v_id;
+
+  return jsonb_build_object(
+    'basarili',    true,
+    'talep_id',    v_id,
+    'arac_sayisi', v_arac
+  );
+end;
+$$;
+
+comment on function public.hesap_kapatma_talep_et(text) is
+  'Kullanıcının hesap kapatma talebini kaydeder. Araç sayısı ve zaman damgası sunucuda hesaplanır; istemciden alınmaz.';
+
+revoke all on function public.hesap_kapatma_talep_et(text) from public;
+revoke all on function public.hesap_kapatma_talep_et(text) from anon;
+grant execute on function public.hesap_kapatma_talep_et(text) to authenticated;
+
+
+-- -------------------------------------------------------------------------
+-- 4 · TALEBİ İPTAL ETME
+-- -------------------------------------------------------------------------
+-- Kullanıcı fikrini değiştirebilmeli. Geri alınamayan bir sürecin başında
+-- geri dönüş yolu bırakmamak, kullanıcıyı kendi hesabında tuzağa düşürür.
+create or replace function public.hesap_kapatma_talebi_iptal()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_uid    uuid := auth.uid();
+  v_sayi   integer;
+begin
+  if v_uid is null then
+    return jsonb_build_object('basarili', false,
+      'hata_mesaji', 'Bu işlem için oturum açmanız gerekiyor.');
+  end if;
+
+  update hesap_kapatma_talepleri
+     set durum = 'iptal', karar_at = now()
+   where user_id = v_uid and durum = 'bekliyor';
+
+  get diagnostics v_sayi = row_count;
+
+  if v_sayi = 0 then
+    return jsonb_build_object('basarili', false,
+      'hata_mesaji', 'İptal edilecek bekleyen bir talebiniz yok.');
+  end if;
+
+  return jsonb_build_object('basarili', true);
+end;
+$$;
+
+comment on function public.hesap_kapatma_talebi_iptal() is
+  'Kullanıcının bekleyen hesap kapatma talebini iptal eder. Yalnızca kendi talebine etki eder.';
+
+revoke all on function public.hesap_kapatma_talebi_iptal() from public;
+revoke all on function public.hesap_kapatma_talebi_iptal() from anon;
+grant execute on function public.hesap_kapatma_talebi_iptal() to authenticated;
