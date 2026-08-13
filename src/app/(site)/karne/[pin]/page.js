@@ -16,6 +16,7 @@ import { supabase } from '@/lib/supabase';
 import { pinNormalize } from '@/utils/pinUretici';
 import OtoKarneScreen from '@/components/karne/OtoKarneScreen';
 import GlobalStepLoader from '@/components/common/GlobalStepLoader';
+import SahipsizSicilEkrani from '@/components/common/SahipsizSicilEkrani';
 
 export default function KarnePage() {
   const router = useRouter();
@@ -26,7 +27,10 @@ export default function KarnePage() {
 
   const [vehicle, setVehicle] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
-  const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'notfound' | 'cokfazla'
+  // 'loading' | 'ready' | 'notfound' | 'cokfazla' | 'sahipsiz'
+  const [status, setStatus] = useState('loading');
+  // Sahipsiz araçta karne kapalı; yalnızca özet dönüyor.
+  const [sahipsizOzet, setSahipsizOzet] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,6 +59,15 @@ export default function KarnePage() {
       // var, yalnızca bu IP'den çok fazla sorgu geldi.
       if (sicil?.hata === 'cok_fazla_deneme') {
         setStatus('cokfazla');
+        return;
+      }
+
+      // SAHİPSİZ ARAÇ, "bulunamadı"dan AYRI durum — aynı gerekçe. Araç var ve
+      // servis geçmişi eksiksiz duruyor; sahibi hesabını kapattığı için sicil
+      // kapalı. "Karne bulunamadı" demek burada da yalan olurdu.
+      if (sicil?.hata === 'sahipsiz') {
+        setSahipsizOzet(sicil.ozet || null);
+        setStatus('sahipsiz');
         return;
       }
 
@@ -123,6 +136,10 @@ export default function KarnePage() {
         </div>
       </div>
     );
+  }
+
+  if (status === 'sahipsiz') {
+    return <SahipsizSicilEkrani ozet={sahipsizOzet} pin={pin} />;
   }
 
   if (status === 'notfound') {

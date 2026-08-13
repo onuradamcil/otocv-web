@@ -51,7 +51,13 @@ const YER_TUTUCULAR = new Set(['CV-PENDING', 'CV-RESMI', 'CV-YOK']);
  *
  * @param {string} pin Araç PIN kodu (örn. 'CV-000002')
  * @returns {{kayitlar: Array, arac: object|null, sahipMi: boolean,
- *            yukleniyor: boolean, hata: string|null, yenile: Function}}
+ *            sahipsizOzet: object|null, yukleniyor: boolean,
+ *            hata: string|null, yenile: Function}}
+ *
+ * `sahipsizOzet` dolu geldiğinde araç sahipsiz havuzda demektir: `arac` ve
+ * `kayitlar` boş olur ama bu bir hata DEĞİLDİR — sicil duruyor, yalnızca
+ * kapalı. Özet `{marka, model, yil, kayit, faturali, sicil_puani,
+ * sahipsiz_kaldi_at}` alanlarını taşır.
  */
 export function useSicil(pin) {
   // Geçerli PIN türetiliyor, state'e YAZILMIYOR. Önce boş sonucu efekt
@@ -67,6 +73,9 @@ export function useSicil(pin) {
   const [kayitlar, setKayitlar] = useState([]);
   const [arac, setArac] = useState(null);
   const [sahipMi, setSahipMi] = useState(false);
+  // Sahipsiz araç: hesabı kapatılan kullanıcının aracı. Sicili duruyor ama
+  // karnesi kapalı; yalnızca özet dönüyor. `null` = araç sahipsiz değil.
+  const [sahipsizOzet, setSahipsizOzet] = useState(null);
   // PIN yoksa yükleme durumu da yok: sonsuz iskelet göstermemek için
   // başlangıç değeri PIN'in varlığına bağlı.
   const [yukleniyor, setYukleniyor] = useState(() => Boolean(gecerliPin));
@@ -99,6 +108,7 @@ export function useSicil(pin) {
         setKayitlar([]);
         setArac(null);
         setSahipMi(false);
+        setSahipsizOzet(null);
       } else if (data?.hata === 'cok_fazla_deneme') {
         // HIZ SINIRI. Bunu "bulunamadı"dan ayırmak zorunlu: aynı görünmesi,
         // kullanıcıya "bu araç yok" yalanını söylemek olurdu. Fonksiyon bu
@@ -108,15 +118,27 @@ export function useSicil(pin) {
         setKayitlar([]);
         setArac(null);
         setSahipMi(false);
+        setSahipsizOzet(null);
+      } else if (data?.hata === 'sahipsiz') {
+        // SAHİPSİZ ARAÇ. Yine "bulunamadı"dan ayrı tutuluyor, aynı gerekçeyle:
+        // araç var ve sicili duruyor, "yok" demek yalan olurdu. `hata`
+        // KURULMUYOR — bu bir arıza değil, aracın bir durumu. Çağıran ekran
+        // özeti gösterip geri yükleme yolunu anlatıyor.
+        setSahipsizOzet(data.ozet || {});
+        setKayitlar([]);
+        setArac(null);
+        setSahipMi(false);
       } else if (!data) {
         // null = PIN bulunamadı ya da biçim geçersiz. Hata değil, boş sonuç.
         setKayitlar([]);
         setArac(null);
         setSahipMi(false);
+        setSahipsizOzet(null);
       } else {
         setKayitlar(data.bakim_kayitlari || []);
         setArac(data.arac || null);
         setSahipMi(data.arac?.sahip_mi === true);
+        setSahipsizOzet(null);
       }
 
       setYukleniyor(false);
@@ -130,10 +152,13 @@ export function useSicil(pin) {
   // PIN yoksa hiç sorgu atılmadı; state'in başlangıç değerleri zaten boş.
   // Bu dalda `hata` da null — "PIN yok" bir hata değil.
   if (!gecerliPin) {
-    return { kayitlar: [], arac: null, sahipMi: false, yukleniyor: false, hata: null, yenile };
+    return {
+      kayitlar: [], arac: null, sahipMi: false, sahipsizOzet: null,
+      yukleniyor: false, hata: null, yenile,
+    };
   }
 
-  return { kayitlar, arac, sahipMi, yukleniyor, hata, yenile };
+  return { kayitlar, arac, sahipMi, sahipsizOzet, yukleniyor, hata, yenile };
 }
 
 export default useSicil;

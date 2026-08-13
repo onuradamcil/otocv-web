@@ -22,6 +22,38 @@ import { toIsoDate } from '../../../utils/dateHelper';
 import { pinUret } from '../../../utils/pinUretici';
 import { plakaDurumu } from '../../../services/devirService';
 import AracDevralDialog from './AracDevralDialog';
+import SahipsizGeriYukleDialog from './SahipsizGeriYukleDialog';
+
+// -------------------------------------------------------------------------
+// MÜKERRER PLAKA MODALININ ÜÇ ANLATIMI
+//
+// Metinler tek yerde. JSX içinde iç içe ternary ile kurulmuşlardı; dördüncü
+// durum (sahipsiz) eklenince zincir okunamaz hâle geliyordu. Aynı metnin iki
+// yere dağılması bu projede zaten bir kez pahalıya patladı (hasar kataloğu
+// üç dosyada ayrı ayrı duruyordu ve kaymıştı).
+// -------------------------------------------------------------------------
+const MUKERRER_METIN = {
+  benim: {
+    baslik: 'Bu Araç Zaten Kayıtlı!',
+    aciklama: 'Girdiğiniz plaka OTO-CV veritabanında aktif tescillidir. Bir araç dijital garaja yalnızca bir kez kaydedilebilir.',
+    vurgu: 'Bu araç zaten sizin garajınızda',
+    detay: 'Aynı araç iki kez kaydedilemez. Bakım kaydı eklemek ya da ilan vermek için garajınızdaki karta gidin.',
+  },
+  baskasinda: {
+    baslik: 'Bu Araç Zaten Kayıtlı!',
+    aciklama: 'Girdiğiniz plaka OTO-CV veritabanında aktif tescillidir. Bir araç dijital garaja yalnızca bir kez kaydedilebilir.',
+    vurgu: 'Bu aracı satın aldıysanız devralabilirsiniz',
+    detay: 'Satıcı garajından bir devir kodu üretip size verir; kodu girdiğinizde araç ve tüm sicili size geçer. Satıcıya ulaşamıyorsanız devir talebi gönderebilirsiniz.',
+  },
+  // SAHİPSİZ: kayıtlı sahibi hesabını kapatmış. Devir kodu ya da devir
+  // talebi işe yaramaz — onaylayacak satıcı yok. Yol ruhsatla başvuru.
+  sahipsiz: {
+    baslik: 'Bu Aracın Sicili Kayıtlı',
+    aciklama: 'Plaka OTO-CV veritabanında kayıtlı ama aracın kayıtlı sahibi yok — önceki sahibi hesabını kapatmış. Servis geçmişi silinmedi.',
+    vurgu: 'Araç sizinse sicili devralabilirsiniz',
+    detay: 'Aracın size ait olduğunu ruhsatla belgelemeniz gerekiyor. Başvurunuz elle kontrol edilir; onaylandıktan sonra devir ücretiyle sicil garajınıza aktarılır.',
+  },
+};
 
 export default function CreateListingWizard({ onBack, onSuccess, user }) {
   const router = useRouter();
@@ -58,6 +90,20 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   const [duplicateBenimMi, setDuplicateBenimMi] = useState(false);
   const [duplicatePin, setDuplicatePin] = useState(null);
   const [devralDialogOpen, setDevralDialogOpen] = useState(false);
+  // DÖRDÜNCÜ DURUM: araç kayıtlı ama SAHİBİ YOK. Sahibi hesabını kapatmış;
+  // araç ve sicili silinmedi, "sahipsiz havuza" düştü. Bu durumda devir
+  // kodu ya da devir talebi işe yaramaz — onaylayacak satıcı yok. Yol ayrı:
+  // ruhsatla başvuru + elle onay + ücret.
+  const [duplicateSahipsiz, setDuplicateSahipsiz] = useState(false);
+  const [duplicateOzet, setDuplicateOzet] = useState(null);
+  const [sahipsizDialogOpen, setSahipsizDialogOpen] = useState(false);
+
+  // Sıra önemli: sahipsiz araçta `benim_mi` zaten false döner, ama okunurluk
+  // için sahipsizlik önce sınanıyor — o durum diğer ikisini kapsıyor.
+  const mukerrerDurum = duplicateSahipsiz
+    ? 'sahipsiz'
+    : duplicateBenimMi ? 'benim' : 'baskasinda';
+  const mukerrerMetin = MUKERRER_METIN[mukerrerDurum];
 
   // TÜM İLAN SİHİRBAZININ MERKEZİ VERİ HAFIZASI
   const [formData, setFormData] = useState({
@@ -774,6 +820,8 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
           setDuplicatePlateNumber(rawPlate);
           setDuplicateBenimMi(durum.veri.benim_mi === true);
           setDuplicatePin(durum.veri.pin_code || null);
+          setDuplicateSahipsiz(durum.veri.sahipsiz === true);
+          setDuplicateOzet(durum.veri.ozet || null);
           setShowDuplicatePlateModal(true);
           return;
         }
@@ -1162,10 +1210,10 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
               <div className="space-y-1">
                 <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
-                  Bu Araç Zaten Kayıtlı!
+                  {mukerrerMetin.baslik}
                 </h3>
                 <p className="text-sm text-slate-500 font-normal leading-relaxed">
-                  Girdiğiniz plaka OTO-CV veritabanında aktif tescillidir. Bir araç dijital garaja yalnızca bir kez kaydedilebilir.
+                  {mukerrerMetin.aciklama}
                 </p>
               </div>
             </div>
@@ -1190,17 +1238,36 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               <div className="space-y-0.5 text-xs text-left">
                 {/* ESKİ METİN: "devir işlemleri için destek ekibiyle iletişime
                     geçebilirsiniz." Devir mekanizması ürünleştiği için o metin
-                    ARTIK YANLIŞ — kullanıcı işlemi kendisi yapabiliyor. */}
-                <p className="font-bold text-rose-950">
-                  {duplicateBenimMi ? 'Bu araç zaten sizin garajınızda' : 'Bu aracı satın aldıysanız devralabilirsiniz'}
-                </p>
-                <p className="text-rose-800/80 font-medium leading-relaxed">
-                  {duplicateBenimMi
-                    ? 'Aynı araç iki kez kaydedilemez. Bakım kaydı eklemek ya da ilan vermek için garajınızdaki karta gidin.'
-                    : 'Satıcı garajından bir devir kodu üretip size verir; kodu girdiğinizde araç ve tüm sicili size geçer. Satıcıya ulaşamıyorsanız devir talebi gönderebilirsiniz.'}
-                </p>
+                    ARTIK YANLIŞ — kullanıcı işlemi kendisi yapabiliyor.
+                    Metinler MUKERRER_METIN'de, tek yerde. */}
+                <p className="font-bold text-rose-950">{mukerrerMetin.vurgu}</p>
+                <p className="text-rose-800/80 font-medium leading-relaxed">{mukerrerMetin.detay}</p>
               </div>
             </div>
+
+            {/* SAHİPSİZ ARACIN ÖZETİ. Sayılar veritabanından geliyor
+                (plaka_durumu içinde sayılıyor) — "yaklaşık" ya da yuvarlanmış
+                bir değer gösterilmiyor. Kullanıcı ücret ödemeye karar
+                verirken ne aldığını gerçek sayılarla görmeli. */}
+            {duplicateSahipsiz && duplicateOzet && (
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5">
+                <p className="text-sm font-black text-slate-900">
+                  {duplicateOzet.yil} {duplicateOzet.marka} {duplicateOzet.model}
+                </p>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  {[
+                    ['Bakım kaydı', duplicateOzet.kayit],
+                    ['Belgeli', duplicateOzet.faturali],
+                    ['Sicil puanı', duplicateOzet.sicil_puani],
+                  ].map(([etiket, deger]) => (
+                    <div key={etiket} className="bg-white border border-slate-200 rounded-lg py-2">
+                      <div className="text-lg font-black text-slate-900 tabular-nums">{deger}</div>
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{etiket}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Aksiyon bloğu duruma göre. Eskiden TEK düğme vardı ("Anladım,
                 Plakayı Düzelt") ve modal ÇIKIŞSIZDI: ikinci el alıcı aldığı
@@ -1214,7 +1281,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               >
                 Plakayı Düzelt
               </button>
-              {duplicateBenimMi ? (
+              {mukerrerDurum === 'benim' && (
                 <button
                   type="button"
                   onClick={() => {
@@ -1225,13 +1292,26 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 >
                   Aracıma Git
                 </button>
-              ) : (
+              )}
+              {mukerrerDurum === 'baskasinda' && (
                 <button
                   type="button"
                   onClick={() => { setShowDuplicatePlateModal(false); setDevralDialogOpen(true); }}
                   className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-xl transition-all cursor-pointer text-center shadow-xs"
                 >
                   Bu Aracı Devral
+                </button>
+              )}
+              {/* Sahipsiz araçta AracDevralDialog AÇILMIYOR: o diyalog devir
+                  kodu ve devir talebi üzerine kurulu, ikisi de onaylayacak bir
+                  satıcı gerektiriyor. Sahipsiz araçta satıcı yok. */}
+              {mukerrerDurum === 'sahipsiz' && (
+                <button
+                  type="button"
+                  onClick={() => { setShowDuplicatePlateModal(false); setSahipsizDialogOpen(true); }}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-xl transition-all cursor-pointer text-center shadow-xs"
+                >
+                  Sicili Devral
                 </button>
               )}
             </div>
@@ -1258,6 +1338,16 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
         />
 
+      )}
+
+      {/* SAHİPSİZ ARAÇ — SİCİL GERİ YÜKLEME DİYALOĞU.
+          Aynı koşullu render kalıbı: kapalıyken mount edilmiyor, böylece
+          her açılışta dosya seçimi ve hata durumu sıfırdan kuruluyor. */}
+      {sahipsizDialogOpen && (
+        <SahipsizGeriYukleDialog
+          plaka={duplicatePlateNumber}
+          onClose={() => setSahipsizDialogOpen(false)}
+        />
       )}
 
 

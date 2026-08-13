@@ -142,9 +142,15 @@ jobs:
       # açalım" diyen bir migration yeter. Yüz binlerce kullanıcı hedefleyen
       # bir üründe veri sızıntısının bedeli, iki satır geçici kaydın
       # yanında hesaba gelmez.
+      #
+      # 08-hesap-kapatma DA LİSTEDE ve hiçbir yazma yapmıyor. Aynı gerekçe,
+      # daha da keskin: bir migration `vehicles.user_id` FK'sini yeniden
+      # `on delete cascade` yaparsa ölçülen bedel 10 aracın 9'u, 12 bakım
+      # kaydının 11'i ve 8 fatura dosyası. Ve bu, ancak bir kullanıcı
+      # hesabını kapattığında — yani geri dönüşü olmayan anda — fark edilir.
       - name: Testleri koş (okuma + güvenlik paketleri)
         if: steps.anahtar.outputs.var == 'true'
-        run: npx playwright test tests/01-rota-erisim.spec.js tests/02-karne-butunlugu.spec.js tests/04-mobil.spec.js tests/05-guvenlik.spec.js
+        run: npx playwright test tests/01-rota-erisim.spec.js tests/02-karne-butunlugu.spec.js tests/04-mobil.spec.js tests/05-guvenlik.spec.js tests/08-hesap-kapatma.spec.js
         env:
           CI: true
 

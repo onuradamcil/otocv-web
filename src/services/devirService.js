@@ -55,6 +55,16 @@ const HATA_METNI = {
   ret_bekleme_suresi:   'Bu araç için talebiniz reddedildi. 7 gün sonra tekrar deneyebilirsiniz.',
   istek_yok:            'Bu talep bulunamadı ya da zaten karara bağlanmış.',
   aktif_sahip_yok:      'Aracın aktif sahibi bulunamadı.',
+
+  // SAHİPSİZ ARAÇ HAVUZU
+  // Hesabı kapatılan kullanıcının aracı silinmiyor, sahipsiz havuza düşüyor.
+  // Sicili yaşıyor ama kimsenin garajında görünmüyor.
+  sahipsiz:             'Bu aracın kayıtlı sahibi yok. Devir talebi yerine sicil geri yükleme yolunu kullanmanız gerekiyor.',
+  arac_sahipsiz_degil:  'Bu aracın kayıtlı bir sahibi var.',
+  arac_sahipli:         'Bu araç bu sırada başka birine geçmiş.',
+  ruhsat_gerekli:       'Devam etmek için aracın ruhsatını yüklemeniz gerekiyor.',
+  onay_bekliyor:        'Talebiniz inceleniyor. Ruhsat doğrulandığında bilgilendirileceksiniz.',
+  odeme_bekliyor:       'Talebiniz onaylandı. Sicili garajınıza almak için ödemeyi tamamlayın.',
 };
 
 /** RPC sarmalayıcı: hata kodunu okunur metne çevirir, exception atmaz. */
@@ -138,6 +148,53 @@ export async function devirTamamla(kod) {
 /** Araç sahibine devir talebi gönderir. */
 export async function devirTalepEt(plaka, mesaj) {
   return cagir('devir_talep_et', { p_plaka: plaka, p_mesaj: mesaj });
+}
+
+// -------------------------------------------------------------------------
+// SAHİPSİZ ARAÇ HAVUZU
+//
+// Bir kullanıcı hesabını kapattığında aracı ve sicili SİLİNMİYOR: sahip bağı
+// koparılıyor, araç "sahipsiz" oluyor. Kimsenin garajında görünmüyor ve
+// karnesi PIN'le bile açılmıyor — yalnızca özeti görünüyor.
+//
+// Geri almanın İKİ KAPISI var ve ikisi ayrı işi yapıyor:
+//
+//   1. RUHSAT + ELLE ONAY  → aracın gerçekten talep edenin olduğunu kanıtlar.
+//      Ele geçirmeyi engelleyen kontrol BUDUR. Plakalar sokakta görünür;
+//      yalnızca plakayı bilmek bir aracın servis geçmişini ve önceki
+//      sahibinin faturalarını almaya yetmemeli.
+//
+//   2. ÜCRET → hesabı kapatıp aracı ücretsiz geri alma oyununu bitirir.
+//      Ödeme ele geçirmeyi ENGELLEMEZ, yalnızca fiyatlandırır; bu yüzden
+//      birinci kapının yerine geçemez.
+//
+// Ücret ONAYDAN SONRA alınıyor: reddedilen talepte hiç para alınmadığı için
+// iade, itiraz ve ters ibraz süreci hiç doğmuyor.
+//
+// `sahipsiz_geri_yukle` BİLEREK burada yok — o fonksiyon yalnızca
+// service_role'e açık. İstemciden çağrılamaz; onayı ve tahsilatı yönetim
+// tarafı veriyor.
+// -------------------------------------------------------------------------
+
+/**
+ * Sahipsiz aracın özeti: kaç bakım kaydı, kaçı belgeli, sicil puanı.
+ *
+ * Kayıtların KENDİSİNİ döndürmüyor. Özetin gerçek sayılarla dönmesi, geri
+ * yükleme teklifinin ("bu aracın 11 bakım kaydı var") doğru olması için.
+ */
+export async function sahipsizOnizleme(plaka) {
+  return cagir('sahipsiz_onizleme', { p_plaka: plaka });
+}
+
+/**
+ * Sahipsiz araç için sicil geri yükleme talebi açar.
+ *
+ * HİÇBİR ŞEYİ DEVRETMEZ — yalnızca kayıt oluşturur. Ruhsat yolu zorunlu.
+ * Sınırlar `devirTalepEt` ile aynı: günde 3 farklı araç, araç başına tek
+ * bekleyen talep, ret sonrası 7 gün bekleme.
+ */
+export async function sahipsizTalepEt(plaka, ruhsatYolu) {
+  return cagir('sahipsiz_talep_et', { p_plaka: plaka, p_ruhsat_yolu: ruhsatYolu });
 }
 
 /**

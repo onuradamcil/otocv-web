@@ -7,6 +7,10 @@ Kural: bir madde bitince buradan silinmez — **Tamamlananlar**'a taşınır ve
 hangi commit'te bittiği yazılır. Neyin neden yapıldığı kadar, neyin
 yapılmadığı da bilgidir.
 
+İşaretlenebilir madde listesi ayrı dosyada: [../TODO.md](../TODO.md) (VSCode
+kenar çubuğundaki TODOS ağacında görünüyor). Burası gerekçeleri, ölçümleri ve
+tarihçeyi tutuyor; orası neyin sırada olduğunu.
+
 ---
 
 ## Sırada
@@ -77,11 +81,29 @@ Dikkat edilecekler:
   gerekli (şehir değişimi vb.); satışta plaka araçta kaldığı için Faz 1 asıl
   senaryoyu çözdü. Birincil anahtar değişimi demek: iki tablonun FK'si ve
   ~20 kod noktası. Canlı veride yedeksiz, dikkatli planlanmalı.
-- **Karar gerekiyor — hesap silinince sicil de siliniyor.** `vehicles.user_id`
-  FK'si `on delete cascade`: kullanıcı hesabını silerse araçları, bakım
-  kayıtları ve sahiplik geçmişi de silinir. İkinci el alıcı için bu muhtemelen
-  yanlış — aracın sicili sahibinin hesabından bağımsız yaşamalı. Test
-  hesaplarını temizlerken fark edildi.
+- **Sahipsiz aracın devralınması yarım.** Zincir: başvuru ✅ → **elle onay ⛔**
+  → **ödeme ⛔** → geri yükleme ✅. Kullanıcı bugün ruhsatını yükleyip başvuru
+  gönderebiliyor; başvuru bekliyor durumunda kalıyor çünkü (a) onay verecek bir
+  yönetim ekranı yok, onay `sahipsiz_talepleri` tablosuna elle yazılıyor, (b)
+  tahsilat altyapısı yok. `sahipsiz_geri_yukle` ikisi de tamamlanmadan
+  çalışmayı reddediyor — kapı bilerek kapalı bırakıldı ki sonradan açılırken
+  şema değişmesin.
+- **Ödeme altyapısı sıfır.** `iyzico`/`stripe`/`paytr`/webhook/`api` rotası:
+  kod tabanında hiç yok. `PublishListingModal` içindeki ₺250 açıkça "DEMO
+  ÖDEME" yazıyor ve yalnızca bir boolean çeviriyor. `profiles.is_premium` bir
+  üyelik bayrağı, işlem başına tahsilat değil. Sahipsiz araç geri yüklemesi ve
+  devir ücreti bunun üstüne kurulacak.
+- **KVKK metnine girmesi ZORUNLU cümle.** Ürün kararı gereği fatura belgeleri
+  hesap kapatılsa da araç siciliyle kalıyor. Bunun tutulabilmesi için
+  aydınlatma metni şunu açıkça söylemeli: *"Yüklediğiniz servis belgeleri araç
+  sicilinin parçasıdır; araç el değiştirse veya hesabınızı kapatsanız da araç
+  kaydıyla kalır."* Yazılmazsa tutulamayacak bir silme sözü verilmiş olur.
+  Açık talep için kaçış kapısı var: `fatura_belgelerini_sil`.
+- **Yeni şema kayması bulundu.** `profiles` tablosunun tanımı ve `is_premium`
+  kolonu hiçbir migration'da yok — panelden elle eklenmişler. `6fd41f9` ile
+  düzeltilen kaymanın aynı sınıfı: depodan kurulan bir veritabanında
+  `profiles` hiç oluşmaz. `supabase db pull` ile temel migration üretilmeli;
+  CI 2. aşaması zaten buna bağlı.
 - **`tests/07-devir.spec.js` temizlenemeyen artık bırakıyor.** Devir testleri
   canlı veride gerçek devir yapıyor; `afterAll` aracı geri devrediyor ama
   sahiplik geçmişi, devir kodları ve bildirimler kalıyor — o tablolar bilerek
@@ -118,3 +140,4 @@ Dikkat edilecekler:
 | Şema kayması giderildi: 8 fonksiyonun gövdesi depoya alındı | `6fd41f9` |
 | Devir: talep yolu, ön izleme, satıcı durum ekranı, yetki temizliği | `b0b0756` |
 | Devir arayüzü: iki taraflı akış, bildirimler, 9 test | `967d537` |
+| Hesap kapatınca sicil artık silinmiyor: sahipsiz araç havuzu | — |
