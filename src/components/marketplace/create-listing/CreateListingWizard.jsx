@@ -1389,6 +1389,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         <SahipsizGeriYukleDialog
           plaka={duplicatePlateNumber}
           onClose={() => setSahipsizDialogOpen(false)}
+          onDevralindi={() => { setSahipsizDialogOpen(false); router.push('/garage'); }}
         />
       )}
 

@@ -6,79 +6,69 @@
 // görünmüyor, karnesi PIN'le bile açılmıyor.
 //
 // -------------------------------------------------------------------------
-// NEDEN İKİ KAPI VAR — ve neden ödeme tek başına yetmiyor
+// İKİ YOL — ve neden ikisi de var
 // -------------------------------------------------------------------------
-// 1. RUHSAT + ELLE ONAY  → aracın gerçekten başvuranın olduğunu kanıtlar.
-//    ELE GEÇİRMEYİ ENGELLEYEN KONTROL BUDUR. Plakalar sokakta görünür;
-//    yalnızca plakayı bilmek bir aracın servis geçmişini ve önceki sahibinin
-//    adı-adresi yazılı faturalarını almaya yetmemeli.
+// İlk tasarımda tek yol vardı: ruhsat yükle, biri elle incelesin. Ölçeklemiyor
+// — binlerce devirde her birini insan onaylayamaz.
 //
-// 2. ÜCRET → hesabı kapatıp aracı ücretsiz geri alma oyununu bitirir.
-//    Ödeme ele geçirmeyi ENGELLEMEZ, yalnızca FİYATLANDIRIR; bu yüzden
-//    birinci kapının yerine geçemez. İkisi ayrı işler.
+// Ama otomatik onayın gerçek riski ödeme değil VERİ: plakayı bilen biri ödeyip
+// bir yabancının aracını devralırsa, eski sahibin adı-adresi yazılı fatura
+// görselleri de eline geçer. Beyan ve bekleme süresi bunu engellemez, çünkü
+// doğrulayacak bir gerçeğimiz yok (şasi, ruhsat seri no, resmî kayıt: hiçbiri
+// elimizde değil).
 //
-// Ücret ONAYDAN SONRA alınıyor: reddedilen başvuruda hiç para alınmadığı için
-// iade, itiraz ve ters ibraz süreci hiç doğmuyor.
+// Çözüm zararı onayı zorlaştırarak değil VERİYİ AYIRARAK kaldırmak:
+//
+//   HIZLI    beyan + ödeme + 7 gün  ->  bakım kayıtları AÇIK, belgeler KAPALI
+//   BELGELİ  ruhsat + elle inceleme ->  ikisi de açık
+//
+// Kötüye kullanılan hızlı yolda ele geçen şey arabaya ait veri oluyor.
+// Kişisel veri isteyen ruhsatını gösteriyor ve o yolu seçenlerin sayısı doğal
+// olarak küçük kalıyor — insan gücü de orada harcanıyor.
 //
 // -------------------------------------------------------------------------
-// BU EKRAN NE VAAT ETMİYOR
+// ÖDEME BEKLEME SÜRESİNDEN SONRA ALINIYOR
 // -------------------------------------------------------------------------
-// Tahsilat altyapısı henüz kurulmadı. Bu yüzden ekran "ödeyin ve alın"
-// DEMİYOR; başvurunun elle inceleneceğini ve onaylanırsa ödeme adımının
-// bildirileceğini söylüyor. Olmayan bir adımı varmış gibi göstermek, bu
-// projede kaldırılan sahte QR tarayıcısıyla aynı hata olurdu.
+// Başvuru ücretsiz açılıyor; ödeme 7 gün dolduktan sonra, devralma anında.
+// Parayı bir hafta tutup sonra teslim etmek yanlış olurdu.
 // =========================================================================
 
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import Icon from '../../common/icons';
+import PaywallDialog from '../../common/PaywallDialog';
 import { supabase } from '../../../lib/supabase';
-import { sahipsizOnizleme, sahipsizTalepEt } from '../../../services/devirService';
+import {
+  BEYAN_METNI,
+  sahipsizOnizleme,
+  sahipsizTalepEt,
+  sahipsizOtomatikTamamla,
+} from '../../../services/devirService';
 
 const IZINLI_TURLER = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf'];
 const EN_BUYUK_BAYT = 10 * 1024 * 1024;
 
-/** Talep durumunun kullanıcıya gösterilecek hâli. Tek kaynak. */
-const DURUM_METNI = {
-  bekliyor: {
-    baslik: 'Başvurunuz inceleniyor',
-    metin: 'Yüklediğiniz ruhsat kontrol ediliyor. Onaylandığında bildirim '
-      + 'alacaksınız ve ödeme adımı açılacak. Bu araç için yeni bir başvuru '
-      + 'gönderemezsiniz.',
-    renk: 'amber',
-  },
-  onaylandi: {
-    baslik: 'Başvurunuz onaylandı',
-    metin: 'Ruhsat doğrulandı. Sicili garajınıza almak için ödeme adımı '
-      + 'kaldı; hazır olduğunda size bildirilecek.',
-    renk: 'emerald',
-  },
-  reddedildi: {
-    baslik: 'Başvurunuz onaylanmadı',
-    metin: 'Yüklenen belge aracın size ait olduğunu doğrulamadı. Aynı araç '
-      + 'için 7 gün sonra yeniden başvurabilirsiniz.',
-    renk: 'rose',
-  },
-  iptal: {
-    baslik: 'Başvurunuz iptal edildi',
-    metin: 'Bu başvuru artık geçerli değil. Araç hâlâ sahipsizse yeniden '
-      + 'başvurabilirsiniz.',
-    renk: 'slate',
-  },
-};
+/** Kalan gün sayısı. Geçmişse 0. */
+function kalanGun(tarih) {
+  if (!tarih) return 0;
+  const fark = new Date(tarih).getTime() - Date.now();
+  return Math.max(0, Math.ceil(fark / 86_400_000));
+}
 
-export default function SahipsizGeriYukleDialog({ plaka, onClose }) {
+export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }) {
   const [onizleme, setOnizleme] = useState(null);
   const [yukleniyor, setYukleniyor] = useState(true);
+  const [yol, setYol] = useState(null);            // null | 'otomatik' | 'belgeli'
+  const [beyanOnayi, setBeyanOnayi] = useState(false);
   const [dosya, setDosya] = useState(null);
   const [islemde, setIslemde] = useState(false);
   const [hata, setHata] = useState('');
-  const [gonderildi, setGonderildi] = useState(false);
+  const [gonderildi, setGonderildi] = useState(null); // {yol}
+  const [paywallAcik, setPaywallAcik] = useState(false);
 
-  // Async iş efektin İÇİNDE: useCallback sınırının arkasındaki await'i
-  // linter göremiyor ve senkron setState uyarısı veriyor. useSicil'de
-  // kurulan kalıbın aynısı.
+  // Async iş efektin İÇİNDE: useCallback sınırının arkasındaki await'i linter
+  // göremiyor ve senkron setState uyarısı veriyor. useSicil'deki kalıp.
   useEffect(() => {
     let iptal = false;
 
@@ -92,6 +82,11 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose }) {
 
     return () => { iptal = true; };
   }, [plaka]);
+
+  const yenile = async () => {
+    const r = await sahipsizOnizleme(plaka);
+    if (r.basarili) setOnizleme(r.veri);
+  };
 
   const dosyaSec = (e) => {
     setHata('');
@@ -113,46 +108,64 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose }) {
     setDosya(f);
   };
 
-  const gonder = async () => {
-    setHata('');
-    if (!dosya) { setHata('Devam etmek için ruhsat yüklemeniz gerekiyor.'); return; }
-
-    setIslemde(true);
-
+  /** Ruhsatı özel kovaya yükler, yolunu döndürür. */
+  const ruhsatYukle = async () => {
     const { data: oturum } = await supabase.auth.getUser();
     const kullanici = oturum?.user;
-    if (!kullanici) {
-      setIslemde(false);
-      setHata('Bu işlem için oturum açmanız gerekiyor.');
-      return;
-    }
+    if (!kullanici) throw new Error('oturum_yok');
 
-    // Klasör adı kullanıcı kimliği: kova politikası buna bakıyor
-    // (belge_yukle_kendi_klasoru). Dosya adı tahmin edilemez olmalı —
-    // plakadan türetilen bir ad, başkasının belgesini denemeye davetiye.
+    // Klasör adı kullanıcı kimliği: kova politikası buna bakıyor. Dosya adı
+    // tahmin edilemez olmalı — plakadan türetilen bir ad, başkasının
+    // belgesini denemeye davetiye olurdu.
     const uzanti = (dosya.name.split('.').pop() || 'jpg').toLowerCase().slice(0, 5);
-    const yol = `${kullanici.id}/ruhsat_${crypto.randomUUID()}.${uzanti}`;
+    const yolAdi = `${kullanici.id}/ruhsat_${crypto.randomUUID()}.${uzanti}`;
 
-    const { error: yuklemeHatasi } = await supabase.storage
+    const { error } = await supabase.storage
       .from('belgeler')
-      .upload(yol, dosya, { contentType: dosya.type, upsert: false });
+      .upload(yolAdi, dosya, { contentType: dosya.type, upsert: false });
 
-    if (yuklemeHatasi) {
-      console.error('Ruhsat yüklenemedi:', yuklemeHatasi.message);
-      setIslemde(false);
+    if (error) throw error;
+    return yolAdi;
+  };
+
+  const basvuruGonder = async () => {
+    setHata('');
+    setIslemde(true);
+
+    try {
+      if (yol === 'otomatik') {
+        if (!beyanOnayi) { setHata('Devam etmek için beyanı onaylamanız gerekiyor.'); return; }
+        const r = await sahipsizTalepEt(plaka, 'otomatik');
+        if (!r.basarili) { setHata(r.hata); return; }
+        setGonderildi({ yol: 'otomatik' });
+      } else {
+        if (!dosya) { setHata('Devam etmek için ruhsat yüklemeniz gerekiyor.'); return; }
+        const ruhsatYolu = await ruhsatYukle();
+        const r = await sahipsizTalepEt(plaka, 'belgeli', { ruhsatYolu });
+        if (!r.basarili) { setHata(r.hata); return; }
+        setGonderildi({ yol: 'belgeli' });
+      }
+    } catch (e) {
+      console.error('Başvuru gönderilemedi:', e?.message);
       setHata('Belge yüklenemedi. Lütfen tekrar deneyin.');
-      return;
+    } finally {
+      setIslemde(false);
     }
+  };
 
-    const r = await sahipsizTalepEt(plaka, yol);
+  /** Bekleme süresi dolmuş otomatik başvuruyu ödeme sonrası tamamlar. */
+  const devralmayiTamamla = async () => {
+    setIslemde(true);
+    setHata('');
+    const r = await sahipsizOtomatikTamamla(onizleme.talebim.id);
     setIslemde(false);
 
     if (!r.basarili) { setHata(r.hata); return; }
-    setGonderildi(true);
+    onDevralindi?.(r.veri);
   };
 
-  const kutu = 'bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5 relative border border-slate-100';
-  const mevcutTalep = onizleme?.talebim;
+  const talep = onizleme?.talebim;
+  const kutu = 'bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5 relative border border-slate-100 max-h-[90vh] overflow-y-auto';
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4 animate-fadeIn font-sans antialiased">
@@ -168,6 +181,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose }) {
 
         {yukleniyor ? (
           <p className="text-sm text-slate-500 font-medium py-8 text-center">Araç bilgileri getiriliyor…</p>
+
         ) : gonderildi ? (
           /* ---------- BAŞVURU GÖNDERİLDİ ---------- */
           <div className="space-y-4 text-center pt-1">
@@ -176,8 +190,9 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose }) {
             </div>
             <h3 className="text-xl font-black text-slate-900 tracking-tight">Başvurunuz alındı</h3>
             <p className="text-sm text-slate-500 font-normal leading-relaxed">
-              Ruhsatınız kontrol edilecek. Onaylandığında bildirim alacaksınız ve
-              sicili garajınıza almak için ödeme adımı açılacak.
+              {gonderildi.yol === 'otomatik'
+                ? 'Yedi günlük bekleme süresi başladı. Süre dolduğunda bu ekrandan ödemeyi yapıp sicili garajınıza alabilirsiniz.'
+                : 'Ruhsatınız kontrol edilecek. Onaylandığında bildirim alacaksınız.'}
             </p>
             <button
               type="button"
@@ -187,15 +202,67 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose }) {
               Tamam
             </button>
           </div>
-        ) : mevcutTalep && DURUM_METNI[mevcutTalep.durum] ? (
-          /* ---------- ZATEN BİR BAŞVURU VAR ---------- */
+
+        ) : talep && talep.durum === 'bekliyor' ? (
+          /* ---------- BEKLEYEN BAŞVURU ---------- */
           <div className="space-y-4 pt-1">
             <h3 className="text-xl font-black text-slate-900 tracking-tight text-center">
-              {DURUM_METNI[mevcutTalep.durum].baslik}
+              {talep.yol === 'otomatik' ? 'Bekleme süreniz sürüyor' : 'Başvurunuz inceleniyor'}
             </h3>
-            <p className="text-sm text-slate-500 font-normal leading-relaxed text-center">
-              {DURUM_METNI[mevcutTalep.durum].metin}
-            </p>
+
+            {talep.yol === 'otomatik' ? (
+              talep.bekleme_bitti ? (
+                <>
+                  <p className="text-sm text-slate-500 font-normal leading-relaxed text-center">
+                    Bekleme süresi doldu. Ödemeyi tamamladığınızda araç ve geçmiş
+                    servis kayıtları garajınıza eklenecek.
+                  </p>
+                  <div className="bg-amber-50/70 border border-amber-100 p-3.5 rounded-xl text-xs">
+                    <p className="font-bold text-amber-950">Fatura belgeleri kapalı gelecek</p>
+                    <p className="text-amber-900/80 font-medium leading-relaxed">
+                      Belgeler önceki sahibin kişisel bilgilerini taşıyabilir. Bakım
+                      kayıtlarının tamamı açılır; belgeleri açmak için sonradan
+                      ruhsatınızı doğrulatabilirsiniz (ek ücret yok).
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPaywallAcik(true)}
+                    disabled={islemde}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer"
+                  >
+                    {islemde ? 'İşleniyor…' : 'Ödemeyi Tamamla ve Devral'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center">
+                    <p className="text-3xl font-black text-slate-900 tabular-nums leading-none">
+                      {kalanGun(talep.tamamlanabilir_at)}
+                    </p>
+                    <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wide mt-1">
+                      gün kaldı
+                    </p>
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed text-center">
+                    Hızlı yolda yedi günlük bir bekleme süresi var. Süre dolduğunda
+                    buradan devralmayı tamamlayabilirsiniz. Şu ana kadar hiçbir
+                    ücret alınmadı.
+                  </p>
+                </>
+              )
+            ) : (
+              <p className="text-sm text-slate-500 font-normal leading-relaxed text-center">
+                Yüklediğiniz ruhsat kontrol ediliyor. Onaylandığında bildirim
+                alacaksınız ve bakım kayıtları ile fatura belgelerinin tamamı
+                garajınıza aktarılacak.
+              </p>
+            )}
+
+            {hata && (
+              <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3">{hata}</p>
+            )}
+
             <button
               type="button"
               onClick={onClose}
@@ -204,8 +271,9 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose }) {
               Kapat
             </button>
           </div>
+
         ) : (
-          /* ---------- ÖZET + RUHSAT YÜKLEME ---------- */
+          /* ---------- ÖZET + YOL SEÇİMİ ---------- */
           <div className="space-y-5">
             <div className="text-center space-y-2 pt-1">
               <div className="w-12 h-12 mx-auto rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
@@ -220,8 +288,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose }) {
               </p>
             </div>
 
-            {/* Sayılar GERÇEK: sicil_getir/sahipsiz_onizleme veritabanından
-                sayıyor. Tahmini ya da yuvarlanmış bir değer gösterilmiyor. */}
+            {/* Sayılar GERÇEK: veritabanından sayılıyor, tahmin değil. */}
             {onizleme && (
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5">
                 <p className="text-sm font-black text-slate-900">
@@ -242,37 +309,84 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose }) {
               </div>
             )}
 
-            <div className="bg-amber-50/70 border border-amber-100 p-3.5 rounded-xl space-y-1 text-xs">
-              <p className="font-bold text-amber-950">Sicili almak için iki adım var</p>
-              <p className="text-amber-900/80 font-medium leading-relaxed">
-                Önce aracın size ait olduğunu ruhsatla belgelemeniz gerekiyor;
-                başvurunuz elle kontrol ediliyor. Onaylandıktan sonra devir
-                ücretini ödeyerek sicili garajınıza alırsınız. Onaylanmayan
-                başvurudan ücret alınmaz.
-              </p>
+            {/* YOL SEÇİMİ. Farkı gizlemiyoruz: hızlı yolda belgelerin
+                gelmeyeceği seçim anında yazıyor, sonradan sürpriz olmuyor. */}
+            <div className="space-y-2.5">
+              <p className="text-xs font-black text-slate-700">Nasıl devralmak istersiniz?</p>
+
+              {[
+                {
+                  kod: 'otomatik',
+                  baslik: 'Hızlı',
+                  ozet: '7 gün bekleme · belge gerekmez',
+                  artilar: 'Tüm bakım kayıtları gelir',
+                  eksiler: 'Fatura görselleri kapalı kalır',
+                },
+                {
+                  kod: 'belgeli',
+                  baslik: 'Ruhsatlı',
+                  ozet: 'Ruhsat yüklenir · elle incelenir',
+                  artilar: 'Bakım kayıtları ve fatura belgeleri gelir',
+                  eksiler: 'İnceleme süresi gerekir',
+                },
+              ].map((s) => (
+                <button
+                  key={s.kod}
+                  type="button"
+                  onClick={() => { setYol(s.kod); setHata(''); }}
+                  className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer ${
+                    yol === s.kod
+                      ? 'bg-indigo-50/60 border-indigo-400 ring-2 ring-indigo-400/25'
+                      : 'bg-white border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-sm font-black text-slate-900">{s.baslik}</span>
+                    <span className="text-[11px] text-slate-500 font-bold">{s.ozet}</span>
+                  </div>
+                  <p className="text-[11px] text-emerald-700 font-medium mt-1.5">+ {s.artilar}</p>
+                  <p className="text-[11px] text-slate-500 font-medium">− {s.eksiler}</p>
+                </button>
+              ))}
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="ruhsat-dosya" className="block text-xs font-bold text-slate-700">
-                Araç ruhsatı <span className="text-rose-600">*</span>
+            {yol === 'otomatik' && (
+              <label className="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={beyanOnayi}
+                  onChange={(e) => { setBeyanOnayi(e.target.checked); setHata(''); }}
+                  className="mt-0.5 w-4 h-4 accent-indigo-600 shrink-0 cursor-pointer"
+                />
+                {/* Beyan metni TAM görünüyor: hukuki dayanağı bu ve gizlenirse
+                    dayanak zayıflar. Metin veritabanında aynen saklanıyor. */}
+                <span className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                  {BEYAN_METNI}
+                </span>
               </label>
-              <input
-                id="ruhsat-dosya"
-                type="file"
-                accept={IZINLI_TURLER.join(',')}
-                onChange={dosyaSec}
-                className="block w-full text-xs text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 file:cursor-pointer cursor-pointer"
-              />
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                JPG, PNG, WEBP, HEIC ya da PDF · en fazla 10 MB. Belgeniz özel
-                alanda saklanır, yalnızca inceleme için görüntülenir.
-              </p>
-            </div>
+            )}
+
+            {yol === 'belgeli' && (
+              <div className="space-y-2">
+                <label htmlFor="ruhsat-dosya" className="block text-xs font-bold text-slate-700">
+                  Araç ruhsatı <span className="text-rose-600">*</span>
+                </label>
+                <input
+                  id="ruhsat-dosya"
+                  type="file"
+                  accept={IZINLI_TURLER.join(',')}
+                  onChange={dosyaSec}
+                  className="block w-full text-xs text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 file:cursor-pointer cursor-pointer"
+                />
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  JPG, PNG, WEBP, HEIC ya da PDF · en fazla 10 MB. Belgeniz özel
+                  alanda saklanır, yalnızca inceleme için görüntülenir.
+                </p>
+              </div>
+            )}
 
             {hata && (
-              <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3">
-                {hata}
-              </p>
+              <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3">{hata}</p>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -285,16 +399,34 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose }) {
               </button>
               <button
                 type="button"
-                onClick={gonder}
-                disabled={islemde || !dosya}
+                onClick={basvuruGonder}
+                disabled={islemde || !yol}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer shadow-xs"
               >
                 {islemde ? 'Gönderiliyor…' : 'Başvuruyu Gönder'}
               </button>
             </div>
+
+            <p className="text-[11px] text-slate-400 leading-relaxed text-center">
+              Başvuru ücretsizdir. Ödeme, devralma anında alınır.
+            </p>
           </div>
         )}
       </div>
+
+      {/* Ödeme yalnızca bekleme süresi dolduktan sonra. Parayı bir hafta
+          tutup sonra teslim etmek yanlış olurdu. */}
+      {paywallAcik && (
+        <PaywallDialog
+          urunKodu="sicil_geri_yukleme"
+          onKapat={() => setPaywallAcik(false)}
+          onSatinAl={async () => {
+            setPaywallAcik(false);
+            await devralmayiTamamla();
+            await yenile();
+          }}
+        />
+      )}
     </div>
   );
 }

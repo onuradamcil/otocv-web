@@ -63,8 +63,15 @@ const HATA_METNI = {
   arac_sahipsiz_degil:  'Bu aracın kayıtlı bir sahibi var.',
   arac_sahipli:         'Bu araç bu sırada başka birine geçmiş.',
   ruhsat_gerekli:       'Devam etmek için aracın ruhsatını yüklemeniz gerekiyor.',
-  onay_bekliyor:        'Talebiniz inceleniyor. Ruhsat doğrulandığında bilgilendirileceksiniz.',
-  odeme_bekliyor:       'Talebiniz onaylandı. Sicili garajınıza almak için ödemeyi tamamlayın.',
+  beyan_gerekli:        'Devam etmek için beyanı onaylamanız gerekiyor.',
+  bilinmeyen_yol:       'Geçersiz işlem yolu.',
+  onay_bekliyor:        'Başvurunuz inceleniyor. Ruhsat doğrulandığında bilgilendirileceksiniz.',
+  odeme_bekliyor:       'Sicili garajınıza almak için ödemeyi tamamlayın.',
+  bekleme_suresi:       'Bekleme süresi henüz dolmadı.',
+  belgeli_yol:          'Bu başvuru belge doğrulaması bekliyor; kendiliğinden tamamlanamaz.',
+  sahip_degil:          'Bu araç sizin garajınızda değil.',
+  kisit_yok:            'Bu aracın belgeleri zaten açık.',
+  sahip_degismis:       'Araç bu sırada el değiştirmiş.',
 };
 
 /** RPC sarmalayıcı: hata kodunu okunur metne çevirir, exception atmaz. */
@@ -187,14 +194,67 @@ export async function sahipsizOnizleme(plaka) {
 }
 
 /**
- * Sahipsiz araç için sicil geri yükleme talebi açar.
+ * Otomatik yolda kullanıcının onayladığı beyan.
  *
- * HİÇBİR ŞEYİ DEVRETMEZ — yalnızca kayıt oluşturur. Ruhsat yolu zorunlu.
- * Sınırlar `devirTalepEt` ile aynı: günde 3 farklı araç, araç başına tek
- * bekleyen talep, ret sonrası 7 gün bekleme.
+ * `RIZA_METNI` ile aynı kalıp: metin veritabanında AYNEN saklanıyor
+ * (`sahipsiz_talepleri.beyan_metni`). İleride değişirse geçmiş başvurularda
+ * hangi beyanın onaylandığı kanıt olarak duruyor.
+ *
+ * Beyanın tek başına bir şeyi KANITLAMADIĞINI biliyoruz — bu yüzden otomatik
+ * yolda fatura belgeleri açılmıyor. Beyan, kötüye kullanımı hukuken
+ * sorumlulaştırıyor; belgeleri koruyan şey ise veri ayrımı.
  */
-export async function sahipsizTalepEt(plaka, ruhsatYolu) {
-  return cagir('sahipsiz_talep_et', { p_plaka: plaka, p_ruhsat_yolu: ruhsatYolu });
+export const BEYAN_METNI =
+  'Bu aracın maliki olduğumu ve sicilini devralmaya yetkili olduğumu beyan ' +
+  'ederim. Beyanımın gerçeğe aykırı olması hâlinde doğacak hukuki ve cezai ' +
+  'sorumluluğun bana ait olduğunu, sicilin geri alınabileceğini kabul ediyorum.';
+
+/**
+ * Sahipsiz araç için sicil geri yükleme başvurusu açar. İki yol var:
+ *
+ *   'otomatik' — beyan + ödeme + 7 gün bekleme. İnsan onayı YOK.
+ *                Bakım kayıtları gelir, FATURA GÖRSELLERİ GELMEZ.
+ *   'belgeli'  — ruhsat yüklenir, elle incelenir. Belgeler de açılır.
+ *
+ * Ayrım kasıtlı: otomatik yol kötüye kullanılsa bile ele geçen şey arabaya
+ * ait veri oluyor; eski sahibin adı-adresi yazılı belgeler aktarılmıyor.
+ *
+ * HİÇBİR ŞEYİ DEVRETMEZ — yalnızca kayıt oluşturur. Sınırlar `devirTalepEt`
+ * ile aynı: günde 3 farklı araç, araç başına tek bekleyen başvuru, ret
+ * sonrası 7 gün bekleme.
+ *
+ * @param {string} plaka
+ * @param {'otomatik'|'belgeli'} yol
+ * @param {{ruhsatYolu?: string}} [ekler] Belgeli yolda ruhsat yolu zorunlu
+ */
+export async function sahipsizTalepEt(plaka, yol, ekler = {}) {
+  return cagir('sahipsiz_talep_et', {
+    p_plaka: plaka,
+    p_yol: yol,
+    p_ruhsat_yolu: ekler.ruhsatYolu ?? null,
+    p_beyan_metni: yol === 'otomatik' ? BEYAN_METNI : null,
+  });
+}
+
+/**
+ * Otomatik yolda bekleme süresi dolduktan sonra devralmayı tamamlar.
+ *
+ * Zamanlanmış iş yok: kullanıcı geri gelip kendisi tamamlıyor. İki kapı
+ * fonksiyonun içinde — bekleme süresi ve ödeme.
+ */
+export async function sahipsizOtomatikTamamla(istekId) {
+  return cagir('sahipsiz_otomatik_tamamla', { p_istek_id: istekId });
+}
+
+/**
+ * Otomatik yolla devralınan araçta fatura belgelerini açmak için ruhsat
+ * doğrulama başvurusu.
+ *
+ * ÜCRETSİZ: belge kısıtı bir paywall değil, önceki sahibin kişisel verisini
+ * koruyan güvenlik önlemi. Sicil geri yükleme ücreti zaten ödendi.
+ */
+export async function belgeKisitiTalepEt(plaka, ruhsatYolu) {
+  return cagir('belge_kisiti_talep_et', { p_plaka: plaka, p_ruhsat_yolu: ruhsatYolu });
 }
 
 /**

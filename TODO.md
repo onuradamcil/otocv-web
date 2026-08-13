@@ -92,13 +92,29 @@ maddeleri bitecek, sonra bunlara geçilecek.**
 
 ## Ödeme ve hesap yönetimi — sahipsiz havuzun devamı
 
-**Zincirin durumu:** başvuru → ✅ çalışıyor · elle onay → ⛔ ekran yok, SQL ile
-veriliyor · ödeme → ⛔ altyapı yok · geri yükleme → ✅ çalışıyor (iki kapı da
-kapalıyken reddediyor).
+**Devralma artık iki yollu ve hızlı yol insansız çalışıyor:**
 
-Yani kullanıcı bugün başvuru gönderebiliyor ama başvuru sizin onayınızı
-bekliyor ve onaydan sonra ödeme adımı yok. `odendi_at` alanı şimdiden duruyor;
-tahsilat geldiğinde yalnızca o alan dolacak, şema değişmeyecek.
+| | Hızlı (otomatik) | Ruhsatlı (belgeli) |
+|---|---|---|
+| Koşul | beyan + 7 gün + ödeme | ruhsat + elle inceleme |
+| Bakım kayıtları | açılır | açılır |
+| Fatura görselleri | **kapalı kalır** | açılır |
+| İnsan gücü | **sıfır** | yalnızca bu yolda |
+
+Gerekçe: otomatik onayın riski ödeme değil **veri** — plakayı bilen biri ödeyip
+eski sahibin adı-adresi yazılı faturalarını alabilirdi. Zararı onayı
+zorlaştırarak değil veriyi ayırarak kaldırdık. Belge kısıtını kaldırmak
+**ücretsiz** (kısıt paywall değil, gizlilik önlemi).
+
+- [x] `yol` ve `beyan_metni` kolonları, tutarlılık kısıtı
+- [x] `vehicles.belge_erisimi_kisitli` + storage politikasında zorlanıyor
+- [x] `sahipsiz_otomatik_tamamla` — bekleme + ödeme kapıları, kullanıcıya açık
+- [x] `belge_kisiti_talep_et` / `belge_kisiti_kaldir` — sonradan ruhsat doğrulama
+- [x] Karne kilitli belgeleri saklamıyor (`belgeler_kisitli` işareti)
+- [x] Diyalog iki yolu da sunuyor, farkı seçim anında yazıyor
+- [ ] Yönetim ekranı — ruhsat inceleme (şu an SQL ile onaylanıyor)
+- [ ] Hesap kapatma akışına "araçlarınızı devretmek ister misiniz?" adımı —
+      **sahipsiz araç oluşmasını engelleyen asıl önlem**
 
 - [x] Ürün kararı: bireysel tarafta **işlem başına**, abonelik yok
 - [x] Ücret listesi tek kaynakta — `src/data/paketler.js` (RevenueCat'e hazır alanlar)

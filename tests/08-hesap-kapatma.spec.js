@@ -171,32 +171,75 @@ test.describe('Hesap kapatma ve sahipsiz araç havuzu', () => {
 
   test('sahipsiz_talep_et sahipli araç için talep açmıyor', async () => {
     const sb = await supabaseIstemcisi();
-    const sonuc = await rpc(sb, 'sahipsiz_talep_et', {
-      p_plaka: ORNEK_PLAKA,
-      p_ruhsat_yolu: 'test/olmayan-ruhsat.png',
-    });
 
-    expect(sonuc.hata).toBe('arac_sahipsiz_degil');
+    // İki yol da denetleniyor: sahipli araç hiçbir yoldan devralınamamalı.
+    for (const yol of ['otomatik', 'belgeli']) {
+      const sonuc = await rpc(sb, 'sahipsiz_talep_et', {
+        p_plaka: ORNEK_PLAKA,
+        p_yol: yol,
+        p_ruhsat_yolu: 'test/olmayan-ruhsat.png',
+        p_beyan_metni: 'test beyan',
+      });
+      expect(sonuc.hata, `${yol} yolu sahipli araçta geçti`).toBe('arac_sahipsiz_degil');
+    }
   });
 
   // -----------------------------------------------------------------------
-  // RUHSAT ZORUNLU
+  // HER YOLUN KENDİ ZORUNLU ALANI
   //
-  // Ele geçirmeyi engelleyen tek kontrol bu. Ödeme kapısı yalnızca bedava
-  // geri almayı engelliyor; plakayı bilen birinin başkasının aracını
-  // devralmasını engelleyen şey belge doğrulaması. Ruhsat kontrolü aracın
-  // durumundan ÖNCE yapılıyor, o yüzden herhangi bir plaka ile sınanabilir.
+  // Belgeli yolda ruhsat, otomatik yolda beyan zorunlu. İkisi de aracın
+  // durumundan ÖNCE denetleniyor, o yüzden herhangi bir plakayla sınanabilir.
+  //
+  // Ruhsat, ele geçirmeyi engelleyen kontrol. Otomatik yolda ruhsat yok ama
+  // orada da fatura belgeleri aktarılmıyor — koruma belge doğrulamasında
+  // değil, veri ayrımında.
   // -----------------------------------------------------------------------
-  test('sahipsiz_talep_et ruhsat olmadan reddediyor', async () => {
+  test('belgeli yol ruhsatsız reddediyor', async () => {
     const sb = await supabaseIstemcisi();
 
     for (const bosDeger of ['', '   ', null]) {
       const sonuc = await rpc(sb, 'sahipsiz_talep_et', {
         p_plaka: ORNEK_PLAKA,
+        p_yol: 'belgeli',
         p_ruhsat_yolu: bosDeger,
       });
       expect(sonuc.hata, `ruhsat "${bosDeger}" ile geçti`).toBe('ruhsat_gerekli');
     }
+  });
+
+  test('otomatik yol beyansız reddediyor', async () => {
+    const sb = await supabaseIstemcisi();
+
+    for (const bosDeger of ['', '   ', null]) {
+      const sonuc = await rpc(sb, 'sahipsiz_talep_et', {
+        p_plaka: ORNEK_PLAKA,
+        p_yol: 'otomatik',
+        p_beyan_metni: bosDeger,
+      });
+      expect(sonuc.hata, `beyan "${bosDeger}" ile geçti`).toBe('beyan_gerekli');
+    }
+  });
+
+  // -----------------------------------------------------------------------
+  // BELGE KİSİTİ
+  //
+  // Otomatik yolla devralınan araçta fatura görselleri kapalı kalıyor.
+  // Kısıtı kaldırmak yalnızca yönetim tarafında; kullanıcı kendi kısıtını
+  // kaldırabilseydi otomatik yol, belgeli yolun ücretsiz kestirmesi olurdu.
+  // -----------------------------------------------------------------------
+  test('kullanıcı kendi belge kısıtını kaldıramıyor', async () => {
+    const sb = await supabaseIstemcisi();
+    const sonuc = await rpc(sb, 'belge_kisiti_kaldir', { p_istek_id: 1 });
+    expect(sonuc.hata_mesaji, 'kullanıcı belge kısıtını kaldırabiliyor').toBeTruthy();
+  });
+
+  test('belge kısıtı talebi kısıtsız araçta açılmıyor', async () => {
+    const sb = await supabaseIstemcisi();
+    const sonuc = await rpc(sb, 'belge_kisiti_talep_et', {
+      p_plaka: ORNEK_PLAKA,
+      p_ruhsat_yolu: 'test/ruhsat.png',
+    });
+    expect(sonuc.hata).toBe('kisit_yok');
   });
 
   // -----------------------------------------------------------------------
@@ -209,7 +252,9 @@ test.describe('Hesap kapatma ve sahipsiz araç havuzu', () => {
   // -----------------------------------------------------------------------
   const OTURUM_GEREKENLER = [
     ['sahipsiz_onizleme', { p_plaka: ORNEK_PLAKA }],
-    ['sahipsiz_talep_et', { p_plaka: ORNEK_PLAKA, p_ruhsat_yolu: 'x/y.png' }],
+    ['sahipsiz_talep_et', { p_plaka: ORNEK_PLAKA, p_yol: 'belgeli', p_ruhsat_yolu: 'x/y.png' }],
+    ['sahipsiz_otomatik_tamamla', { p_istek_id: 1 }],
+    ['belge_kisiti_talep_et', { p_plaka: ORNEK_PLAKA, p_ruhsat_yolu: 'x/y.png' }],
     ['plaka_durumu', { p_plaka: ORNEK_PLAKA }],
     ['devir_talep_et', { p_plaka: ORNEK_PLAKA, p_mesaj: 'test' }],
   ];
