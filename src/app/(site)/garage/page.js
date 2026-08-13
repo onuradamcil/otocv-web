@@ -54,6 +54,9 @@ export default function GaragePage() {
         onOpenMaintenance={(incomingVehicle) => setActiveMaintenanceVehicle(incomingVehicle)}
         onNavigateToAdd={() => router.push('/add-vehicle/step1')}
         onManageListings={() => router.push('/my-listings')}
+        // Vitrin kartı modal değil rota: adres çubuğunda görünüyor,
+        // yenilenebiliyor ve geri tuşu formu kapatıyor (sayfayı değil).
+        onOpenVitrin={(car) => router.push(`/garage/${encodeURIComponent(car.pin_code)}/vitrin`)}
       />
 
       {activeMaintenanceVehicle && (

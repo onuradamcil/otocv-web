@@ -170,7 +170,7 @@ jobs:
       # tüm ödeme kilidi, rıza tarihi yazılabilseydi KVKK ispatı çökerdi.
       - name: Testleri koş (okuma + güvenlik paketleri)
         if: steps.anahtar.outputs.var == 'true'
-        run: npx playwright test tests/01-rota-erisim.spec.js tests/02-karne-butunlugu.spec.js tests/04-mobil.spec.js tests/05-guvenlik.spec.js tests/08-hesap-kapatma.spec.js tests/09-yetki-kilitleri.spec.js tests/10-navigasyon.spec.js tests/11-garaj.spec.js tests/12-hesabim.spec.js tests/13-dayaniklilik.spec.js
+        run: npx playwright test tests/01-rota-erisim.spec.js tests/02-karne-butunlugu.spec.js tests/04-mobil.spec.js tests/05-guvenlik.spec.js tests/08-hesap-kapatma.spec.js tests/09-yetki-kilitleri.spec.js tests/10-navigasyon.spec.js tests/11-garaj.spec.js tests/12-hesabim.spec.js tests/13-dayaniklilik.spec.js tests/14-urun-dili.spec.js
         env:
           CI: true
 

@@ -28,7 +28,7 @@ const MENU = [
 
 const UYE_MENU = [
   { href: '/garage', label: 'Tescilli Taşıtlarım (Garaj)' },
-  { href: '/my-listings', label: 'Aktif İlanlarım' },
+  { href: '/my-listings', label: 'Vitrindeki Araçlarım' },
   { href: '/dashboard', label: 'Bana Özel Özet' },
   { href: '/query-history', label: 'Sorgulama Geçmişim' },
   { href: '/packages', label: 'Ücretler & Ödemeler' },

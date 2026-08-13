@@ -283,7 +283,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                 <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-3.5 space-y-1.5">
                   <p className="text-[11px] font-bold text-slate-700">Alıcı ne yapacak?</p>
                   <p className="text-[11px] text-slate-600 leading-relaxed">
-                    OTO.CV&apos;de <strong>İlan Ver</strong> adımında bu aracın plakasını yazıp
+                    OTO.CV&apos;de <strong>Araç Devir</strong> sayfasında bu aracın plakasını yazıp
                     &quot;Devir kodum var&quot; seçeneğinden bu kodu girmesi yeterli. Kodu girdiğinde
                     devralacağı sicili önce görecek, sonra onaylayacak.
                   </p>

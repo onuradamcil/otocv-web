@@ -25,14 +25,13 @@ import { supabase } from '../lib/supabase';
 import { calculatePolicyStatus } from '../utils/dateHelper';
 import PolicyOfferModal from './garage/PolicyOfferModal';
 import { useToast } from '../context/ToastContext';
-import PublishListingModal from './garage/PublishListingModal';
 import AracDevretDialog from './garage/AracDevretDialog';
 import AracSeciciDialog from './garage/AracSeciciDialog';
 import { dugme, ikonDugmesi } from './common/dugme';
 import Icon from './common/icons';
 import GlobalStepLoader from './common/GlobalStepLoader';
 
-export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMaintenance, onNavigateToAdd, onManageListings }) {
+export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMaintenance, onNavigateToAdd, onManageListings, onOpenVitrin }) {
   const toast = useToast();
   // =========================================================================
   // 1. BLOK: REAKTİF DURUM VE VERİTABANI HAFIZASI
@@ -56,15 +55,12 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
   const [selectedPolicyType, setSelectedPolicyType] = useState('kasko');
   const [selectedStatusInfo, setSelectedStatusInfo] = useState({});
 
-  // 🚀 PAZARYERİ İLAN SİHİRBAZI MODAL STATE'İ
-  const [listingModalOpen, setListingModalOpen] = useState(false);
 
   // Devir diyalogu. PublishListingModal ile ayni kalip: state GarageScreen
   // icinde, basari sonrasi fetchLiveVehicles cagriliyor. Route dosyasina
   // dokunmadan calisiyor.
   const [devirModalOpen, setDevirModalOpen] = useState(false);
   const [selectedVehicleForDevir, setSelectedVehicleForDevir] = useState(null);
-  const [selectedVehicleForListing, setSelectedVehicleForListing] = useState(null);
 
   useEffect(() => {
     fetchLiveVehicles();
@@ -163,10 +159,14 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
     setModalOpen(true);
   };
 
-  // İlan Modal Tetikleyicisi
+  // VİTRİN KARTI ARTIK MODAL DEĞİL, ROTA.
+  //
+  // `PublishListingModal` altı alanlı bir form, ücretli bir yükseltme ve
+  // kalıcı bir kayıt üreten bir modaldi. Modalın doğru olduğu yer tek
+  // karar, kısa ve geri dönülür işler; çok alanlı form modalda adresini,
+  // geri tuşunu ve mobilde ekranın yarısını kaybediyor.
   const handleOpenListingModal = (vehicle) => {
-    setSelectedVehicleForListing(vehicle);
-    setListingModalOpen(true);
+    onOpenVitrin?.(vehicle);
   };
 
   const handleOpenDevirModal = (vehicle) => {
@@ -186,7 +186,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
     : suzgec === 'kritik' ? vehicles.filter((v) => kritikKimlikler.has(v.id ?? v.plate_number))
     : vehicles;
 
-  const SUZGEC_ADI = { tumu: 'Tümü', satista: 'Satışta', kritik: 'Süresi kritik' };
+  const SUZGEC_ADI = { tumu: 'Tümü', satista: 'Vitrinde', kritik: 'Süresi kritik' };
 
   // -------------------------------------------------------------------------
   // ARAÇ MERKEZİ EYLEMLERİ
@@ -201,13 +201,13 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
     {
       tur: 'ilan',
       ikon: 'ilan',
-      baslik: 'Satışa çıkar',
-      ozet: 'Aracınızı pazaryerinde yayınlayın; bilgiler ve sicil ilana otomatik gelsin.',
-      kapali: vehicles.length === 0 ? 'Önce araç kaydedin' : (satilabilirSayisi === 0 ? 'Tüm araçlarınız satışta' : null),
+      baslik: 'Vitrine çıkar',
+      ozet: 'Aracınızı pazaryeri vitrininde gösterin; bilgiler ve sicil karta otomatik gelsin.',
+      kapali: vehicles.length === 0 ? 'Önce araç kaydedin' : (satilabilirSayisi === 0 ? 'Tüm araçlarınız vitrinde' : null),
       secici: {
-        baslik: 'Hangi aracı satışa çıkaralım?',
-        aciklama: 'Seçtiğiniz aracın bilgileri ve sicil karnesi ilana otomatik geliyor.',
-        devreDisi: (v) => (v.is_listed ? 'Zaten satışta' : null),
+        baslik: 'Hangi aracı vitrine çıkaralım?',
+        aciklama: 'Seçtiğiniz aracın bilgileri ve sicil karnesi vitrin kartına otomatik geliyor.',
+        devreDisi: (v) => (v.is_listed ? 'Zaten vitrinde' : null),
         calistir: handleOpenListingModal,
       },
     },
@@ -219,7 +219,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
       kapali: vehicles.length === 0 ? 'Önce araç kaydedin' : null,
       secici: {
         baslik: 'Hangi aracı devredeceksiniz?',
-        aciklama: 'Devir tamamlanınca araç garajınızdan çıkıyor ve varsa ilanı kapanıyor.',
+        aciklama: 'Devir tamamlanınca araç garajınızdan çıkıyor ve varsa vitrin kartı kapanıyor.',
         devreDisi: null,
         calistir: handleOpenDevirModal,
       },
@@ -332,7 +332,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
               />
               <Sayac
                 deger={satistaSayisi}
-                etiket="Satışta"
+                etiket="Vitrinde"
                 renk="text-emerald-600"
                 secili={suzgec === 'satista'}
                 onSec={() => setSuzgec(suzgec === 'satista' ? 'tumu' : 'satista')}
@@ -454,13 +454,6 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
         statusInfo={selectedStatusInfo}
       />
 
-      {/* 🚀 PAZARYERİ İLAN YAYINLAMA MODALI */}
-      <PublishListingModal 
-        isOpen={listingModalOpen}
-        onClose={() => setListingModalOpen(false)}
-        vehicle={selectedVehicleForListing}
-        onSuccess={fetchLiveVehicles}
-      />
 
       {/* ARAÇ DEVRİ DİYALOĞU */}
       {/* Koşullu render: diyalog kapalıyken hiç mount edilmiyor. Böylece her
@@ -684,16 +677,12 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
             {vehicle.year} • {vehicle.km ? vehicle.km.toLocaleString('tr-TR') : '0'} km
           </p>
 
-          {/* Satış durumu artık tam genişlik şerit değil, ince bir çip.
-              Bilgi (satışta olduğu ve fiyatı) duruyor, kapladığı katman
-              kalkıyor. Satışta olmayan araçta hiç görünmüyor. */}
+          {/* Vitrin durumu ince bir çip. TUTAR GÖSTERİLMİYOR: araca ait
+              herhangi bir fiyat, platformu satış sitesi konumuna sokuyor. */}
           {vehicle.is_listed && (
             <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200/80 text-emerald-800 px-2 py-1 rounded-lg text-[10px] font-black">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-              Satışta
-              <span className="font-mono tabular-nums">
-                ₺{vehicle.price ? Number(vehicle.price).toLocaleString('tr-TR') : '0'}
-              </span>
+              Vitrinde
             </span>
           )}
         </div>
@@ -760,15 +749,15 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
               {vehicle.is_listed ? (
                 <MenuOgesi
                   ikon="ilan"
-                  etiket="İlanı yönet"
-                  ipucu="Fiyat, açıklama ve yayından kaldırma"
+                  etiket="Vitrin kartını düzenle"
+                  ipucu="Bedel, öne çıkarma ve kaldırma"
                   onSec={() => menudenCalistir(() => onManageListings?.())}
                 />
               ) : (
                 <MenuOgesi
                   ikon="ilan"
-                  etiket="Satışa çıkar"
-                  ipucu="Pazaryerinde yayınla"
+                  etiket="Vitrine çıkar"
+                  ipucu="Pazaryerinde göster"
                   onSec={() => menudenCalistir(onOpenListingModal)}
                 />
               )}

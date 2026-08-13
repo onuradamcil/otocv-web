@@ -59,7 +59,7 @@ test.describe('Garaj ekranı', () => {
     await expect(merkez, 'Araç Merkezi yok').toBeVisible();
 
     // Üç eylem de merkezde
-    for (const ad of ['Satışa çıkar', 'Aracı devret', 'Bakım işle']) {
+    for (const ad of ['Vitrine çıkar', 'Aracı devret', 'Bakım işle']) {
       await expect(merkez.getByRole('button', { name: new RegExp(ad) }), `${ad} eylemi yok`).toBeVisible();
     }
 
@@ -89,7 +89,7 @@ test.describe('Garaj ekranı', () => {
     await kart.locator("button[aria-label*='diğer işlemler']").click();
     await page.waitForTimeout(400);
     const menu = page.getByRole('menu').first();
-    await expect(menu.getByRole('menuitem', { name: /Satışa çıkar|İlanı yönet/ })).toBeVisible();
+    await expect(menu.getByRole('menuitem', { name: /Vitrine çıkar|Vitrin kartını düzenle/ })).toBeVisible();
     await expect(menu.getByRole('menuitem', { name: /Aracı devret/ })).toBeVisible();
   });
 
@@ -183,7 +183,7 @@ test.describe('Garaj ekranı', () => {
   });
 
   test('araç seçici: arama var, satıştaki araç sebebiyle devre dışı', async ({ page }) => {
-    await page.getByRole('button', { name: /Satışa çıkar/ }).first().click();
+    await page.getByRole('button', { name: /Vitrine çıkar/ }).first().click();
     await page.waitForTimeout(700);
 
     const secici = page.getByRole('dialog');
@@ -194,7 +194,7 @@ test.describe('Garaj ekranı', () => {
 
     // Satıştaki araç GİZLENMİYOR, sebebiyle gösteriliyor. Gizlenseydi
     // kullanıcı aracını listede bulamayıp kaybolduğunu sanardı.
-    await expect(secici.getByText('Zaten satışta').first()).toBeVisible();
+    await expect(secici.getByText('Zaten vitrinde').first()).toBeVisible();
 
     await page.keyboard.press('Escape');
     await page.waitForTimeout(400);

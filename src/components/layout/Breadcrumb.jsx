@@ -17,7 +17,7 @@ import { usePathname } from 'next/navigation';
 
 const ETIKET = {
   garage: 'Garajım',
-  'my-listings': 'Aktif İlanlarım',
+  'my-listings': 'Vitrindeki Araçlarım',
   verify: 'Karne Sorgula',
   devir: 'Araç Devir',
   details: 'Araç Detayı',

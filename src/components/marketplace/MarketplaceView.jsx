@@ -121,14 +121,13 @@ export default function MarketplaceView({
         quickFilter === 'featured' ? item.is_featured === true :
         quickFilter === 'highTrust' ? (item.trust_score || 0) >= 80 :
         quickFilter === 'urgent' ? item.is_featured === true :
-        quickFilter === 'priceDrop' ? true : true;
+        true;
 
-      const price = Number(item.price) || 0;
+      // Fiyat süzgeci KALDIRILDI: tutar hiç gösterilmediği için süzülecek
+      // bir şey de yok.
       const year = Number(item.year) || 0;
 
       return matchesBrand && matchesQuery && matchesQuick && 
-             (!filters.minPrice || price >= Number(filters.minPrice)) &&
-             (!filters.maxPrice || price <= Number(filters.maxPrice)) &&
              (!filters.minYear || year >= Number(filters.minYear)) &&
              (!filters.maxYear || year <= Number(filters.maxYear));
     });
@@ -228,17 +227,6 @@ export default function MarketplaceView({
                   <span>Güven Skoru (%80+)</span>
                 </div>
 
-                <div 
-                  onClick={() => setQuickFilter('priceDrop')} 
-                  className={`px-3 py-2 rounded-md cursor-pointer flex justify-between items-center transition-colors duration-75 border-l-2 ${
-                    quickFilter === 'priceDrop' 
-                      ? 'bg-indigo-50/80 text-indigo-700 font-bold border-indigo-600' 
-                      : 'border-transparent text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <span>Fiyatı Düşenler</span>
-                </div>
-
               </div>
             </div>
 
@@ -274,14 +262,6 @@ export default function MarketplaceView({
                       </div>
                     );
                   })}
-                </div>
-              </div>
-
-              <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                <span className="text-[11px] font-bold text-slate-500 block uppercase tracking-wider">Fiyat (₺)</span>
-                <div className="grid grid-cols-2 gap-2">
-                  <input type="number" placeholder="Min" value={filters.minPrice} onChange={(e) => handleFilterChange('minPrice', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded p-1.5 text-xs outline-none focus:border-indigo-600" />
-                  <input type="number" placeholder="Max" value={filters.maxPrice} onChange={(e) => handleFilterChange('maxPrice', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded p-1.5 text-xs outline-none focus:border-indigo-600" />
                 </div>
               </div>
 
@@ -392,25 +372,31 @@ export default function MarketplaceView({
                   </div>
                 </button>
 
-                {/* KART 5: AI DEĞERLEME */}
+                {/* KART 5 — "AI DEĞERLEME" KALDIRILDI.
+                    İki sebeple: (1) çalışmıyordu, tıklanınca yalnızca
+                    "yakında" bildirimi basıyordu — bu projede kaldırılan
+                    sahte veri kalıbının aynısı; (2) araç değeri göstermek
+                    platformu satış sitesi konumuna sokuyor.
+                    Yerine gerçekten çalışan ve ürünün merkezinde olan
+                    şey kondu: PIN ile sicil sorgulama. */}
                 <button
                   type="button"
-                  onClick={() => toast.bilgi('Yapay zeka fiyat endeksi yakında açılacak.')}
+                  onClick={() => onNavigateToVerify?.()}
                   className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px] text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600 col-span-2 md:col-span-1"
                 >
                   <div>
-                    <div className="w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center mb-2 shadow-xs">
-                      <Icon name="parlama" size="sm" />
+                    <div className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center mb-2 shadow-xs">
+                      <Icon name="pinKod" size="sm" />
                     </div>
-                    <h4 className="text-xs font-bold text-slate-900 group-hover:text-amber-600 transition-colors">
-                      AI Değerleme
+                    <h4 className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                      Sicil Sorgula
                     </h4>
                     <p className="text-[10px] text-slate-500 font-normal leading-tight mt-0.5">
-                      Piyasa verilerine göre adil değer.
+                      PIN ile aracın karnesini açın.
                     </p>
                   </div>
-                  <div className="mt-2 text-[10px] font-bold text-amber-600 border-b-2 border-amber-500 w-max opacity-80 group-hover:opacity-100 transition-all">
-                    Fiyat Öğren &gt;
+                  <div className="mt-2 text-[10px] font-bold text-indigo-600 border-b-2 border-indigo-500 w-max opacity-80 group-hover:opacity-100 transition-all">
+                    Karneyi Aç &gt;
                   </div>
                 </button>
 
@@ -519,8 +505,13 @@ function ArabamStyleVitrinCard({ item, onSelectVehicle }) {
           <span className="text-[11px] font-bold text-indigo-600">{item.trust_score ?? 0}/100</span>
         </div>
 
-        <div className="mt-2 text-sm font-bold text-slate-900 tracking-tight">
-          {item.price ? Number(item.price).toLocaleString('tr-TR') : '0'} TL
+        {/* ⚠ TUTAR GÖSTERİLMİYOR — HUKUKİ.
+            Ürüne ait herhangi bir fiyat, platformu satış sitesi konumuna
+            sokuyor. Bu ürün dijital taşıt sicili. Kartın vurgusu bedel
+            değil SİCİL: karne, kartın asıl vaadi. */}
+        <div className="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-indigo-600">
+          <Icon name="karne" size="xs" />
+          Sicil karnesini gör
         </div>
       </div>
     </div>

@@ -1,22 +1,25 @@
 // =========================================================================
-// OTO-CV BİLEŞENİ: MÜŞTERİ AKTİF İLAN YÖNETİM MERKEZİ (MyListingsScreen.jsx)
-// İşlev: Kullanıcının yayındaki ilanlarını, favori/görüntülenme istatistiklerini
-//        ve doping/düzenleme aksiyonlarını bağımsız ekranda sunar.
+// OTO-CV VİTRİNDEKİ ARAÇLARIM (MyListingsScreen.jsx)
+// İşlev: Kullanıcının pazaryeri vitrininde görünen araçlarını, görüntülenme
+//        ve favori sayaçlarını listeler.
+//
+// Ürün dili: garaj/sicil tarafında "ilan" ve "satış" kullanılmıyor — ürün
+// bir ilan sitesi değil, dijital taşıt sicili. Pazaryerinde alıcıya bakan
+// tutar HİÇ gösterilmiyor: araca ait bir fiyat, platformu satış sitesi
+// konumuna sokuyor. Vitrin kartı sicili gösterir, bedeli değil.
 // =========================================================================
 
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { fetchMarketplaceListings } from '../../services/marketplaceService';
-import PublishListingModal from '../garage/PublishListingModal';
 import Icon from '../common/icons';
 import GlobalStepLoader from '../common/GlobalStepLoader';
 
 export default function MyListingsScreen({ user, onNavigateToGarage }) {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedListingForEdit, setSelectedListingForEdit] = useState(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     loadMyListings();
@@ -47,10 +50,10 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
       <div className="flex justify-between items-center border-b border-slate-200 pb-4">
         <div>
           <span className="text-[10px] font-bold text-indigo-600 uppercase font-mono tracking-wider block">
-            PAZARYERİ İLAN MERKEZİ
+            PAZARYERİ VİTRİNİ
           </span>
           <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight mt-0.5">
-            Aktif Satıştaki İlanlarım ({listings.length})
+            Vitrindeki Araçlarım ({listings.length})
           </h1>
         </div>
         <button 
@@ -70,13 +73,13 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
           <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400">
             <Icon name="arac" size="xl" />
           </div>
-          <h3 className="text-sm font-extrabold text-slate-900">Aktif Yayında İlanınız Bulunmamaktadır</h3>
-          <p className="text-xs text-slate-400 max-w-sm">Garajınızdaki araçları pazaryerine çıkararak ilanlarınızı buradan yönetebilirsiniz.</p>
+          <h3 className="text-sm font-extrabold text-slate-900">Vitrinde aracınız yok</h3>
+          <p className="text-xs text-slate-400 max-w-sm">Garajınızdaki araçları vitrine çıkarınca buradan yönetebilirsiniz.</p>
           <button 
             onClick={onNavigateToGarage}
             className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
           >
-            Garajımdaki Araçları İlana Çıkar
+            Garajıma Git
           </button>
         </div>
       ) : (
@@ -107,7 +110,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                     
                     {item.is_featured && (
                       <div className="absolute top-3 left-3 bg-amber-400 text-slate-950 text-[9px] font-black px-2 py-0.5 rounded font-mono uppercase shadow-xs">
-                        VİTRİN İLANI
+                        ÖNE ÇIKAN
                       </div>
                     )}
                   </div>
@@ -140,57 +143,31 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                   {/* FİYAT VE KONUM */}
                   <div className="flex justify-between items-center text-xs font-mono font-bold pt-1">
                     <span className="text-slate-500">{item.city} / {item.district}</span>
-                    <span className="text-indigo-600 text-sm font-black">₺{Number(item.price).toLocaleString('tr-TR')}</span>
+                    {/* Tutar gösterilmiyor: araca ait fiyat platformu satış sitesi
+                        konumuna sokuyor. */}
                   </div>
                 </div>
 
-                {/* YÖNETİM BUTONU */}
-                <button 
-                  onClick={() => {
-                    setSelectedListingForEdit({
-                      id: item.id || item.listing_id,
-                      brand: item.brand,
-                      model: item.model,
-                      year: item.year,
-                      plate_number: item.vehicle_plate || item.plate_number,
-                      km: item.km,
-                      price: item.price,
-                      // ⚠ ALAN ADLARI SERVİSİN DÖNDÜRDÜĞÜ ADLAR.
-                      // Eskiden `item.title` ve `item.description` okunuyordu
-                      // ama `fetchMarketplaceListings` bu alanları
-                      // `listing_title` / `listing_description` adıyla
-                      // düzleştiriyor. Sonuç: düzenleme ekranı açıklamayı HER
-                      // SEFERİNDE boş açıyordu ve en az 10 karakter zorunlu
-                      // olduğu için kullanıcı eski metnini yeniden yazmadan
-                      // kaydedemiyordu — yazınca da eskisinin üstüne yazıyordu.
-                      listing_title: item.listing_title ?? item.title,
-                      listing_description: item.listing_description ?? item.description,
-                      city: item.city,
-                      district: item.district,
-                      tramer_amount: item.tramer_amount,
-                      is_featured: item.is_featured,
-                      is_listed: true
-                    });
-                    setIsEditModalOpen(true);
-                  }}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded-xl transition-all text-center cursor-pointer"
+                {/* VİTRİN KARTI ARTIK MODAL DEĞİL, ROTA.
+                    Eskiden burada `PublishListingModal` için elle bir
+                    `vehicle` benzeri nesne kuruluyordu ve alan adları
+                    servisin döndürdüğü adlarla tutmuyordu (`item.description`
+                    diye bir alan yok; servis `listing_description`
+                    döndürüyor). Sonuç: açıklama her düzenlemede boş açılıyor
+                    ve en az 10 karakter zorunlu olduğu için kullanıcı eski
+                    metnini yeniden yazmadan kaydedemiyordu.
+                    Rota veriyi doğrudan `vehicles`'tan okuyor; elle nesne
+                    kurma ve alan adı eşleme sorunu tamamen kalktı. */}
+                <Link
+                  href={`/garage/${encodeURIComponent(item.pin_code || '')}/vitrin`}
+                  className="w-full inline-flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 font-bold text-xs rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
                 >
-                  İlanı Düzenle / Vitrin Yükle
-                </button>
+                  Vitrin Kartını Düzenle
+                </Link>
               </div>
             );
           })}
         </div>
-      )}
-
-      {/* İLAN DÜZENLEME MODALI */}
-      {selectedListingForEdit && (
-        <PublishListingModal 
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          vehicle={selectedListingForEdit}
-          onSuccess={loadMyListings}
-        />
       )}
     </div>
   );

@@ -42,7 +42,6 @@ export const publishVehicleListing = async (vehicle, listingPayload) => {
         .update({
           title: listingPayload.title?.trim(),
           description: listingPayload.description?.trim(),
-          price: Number(listingPayload.price),
           city: listingPayload.city,
           district: listingPayload.district,
           tramer_amount: Number(listingPayload.tramerAmount || 0),
@@ -61,7 +60,6 @@ export const publishVehicleListing = async (vehicle, listingPayload) => {
           user_id: user.id,
           title: listingPayload.title?.trim(),
           description: listingPayload.description?.trim(),
-          price: Number(listingPayload.price),
           city: listingPayload.city,
           district: listingPayload.district,
           tramer_amount: Number(listingPayload.tramerAmount || 0),
@@ -78,6 +76,18 @@ export const publishVehicleListing = async (vehicle, listingPayload) => {
     return { success: false, error: error.message };
   }
 };
+
+/**
+ * ⚠ ARAÇ TUTARI ARTIK HİÇ YAZILMIYOR VE OKUNMUYOR
+ *
+ * `listings.price` sütunu şemada duruyor ama uygulama ona ne yazıyor ne de
+ * okuyor. Gerekçe hukuki: ürüne (araca) ait herhangi bir fiyat göstermek
+ * platformu satış sitesi konumuna sokuyor. Bu ürün bir dijital taşıt
+ * sicili; vitrin kartı aracın SİCİLİNİ gösteriyor, bedelini değil.
+ *
+ * Sütun bilerek düşürülmedi: mevcut satırdaki değer geçmiş veri ve silmek
+ * geri alınamaz. Ekranda hiçbir yerde görünmüyor.
+ */
 
 /**
  * Bir aracı pazaryerinden kaldırır.
@@ -151,7 +161,6 @@ export const fetchMarketplaceListings = async (filters = {}) => {
         user_id: item.user_id, // 🚀 KRİTİK DÜZELTME: user_id EKLENDİ!
         listing_title: item.title,
         listing_description: item.description,
-        price: item.price,
         city: item.city,
         district: item.district,
         tramer_amount: item.tramer_amount,
