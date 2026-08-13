@@ -159,7 +159,10 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
             onClick={onClose}
             className="flex items-center justify-center min-h-[44px] w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600"
           >
-            Ücretsiz İlan Ver
+            {/* Masaüstü başlığıyla aynı: ürün önce sicil, ilan ikincil.
+                "Ücretsiz" de artık yanlış olurdu — ilk araç ücretsiz, sonrası
+                Ek Araç Kaydı gerektiriyor. */}
+            Araç Kaydet
           </Link>
 
           {user ? (

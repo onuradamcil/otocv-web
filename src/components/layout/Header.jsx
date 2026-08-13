@@ -10,7 +10,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -26,10 +26,15 @@ export default function Header() {
 
   const [user, setUser] = useState(null);
   const [navbarName, setNavbarName] = useState('');
+  // Açılır menü başlığı için: ham e-posta yerine ad, baş harfler ve üyelik.
+  // Bu bilgi garaj ekranındaki profil kartından buraya taşındı.
+  const [profil, setProfil] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isIlanMenuOpen, setIsIlanMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  const hesapMenuRef = useRef(null);
 
   // Oturum takibi
   useEffect(() => {
@@ -40,22 +45,61 @@ export default function Header() {
     return () => subscription?.unsubscribe();
   }, []);
 
-  // Profil adı
+  // Profil adı ve üyelik. `is_premium` de çekiliyor: açılır menü başlığı
+  // artık ham e-posta değil, kimliği gösteren bir kart.
   useEffect(() => {
-    if (!user) { setNavbarName(''); return; }
+    if (!user) { setNavbarName(''); setProfil(null); return; }
     supabase
       .from('profiles')
-      .select('first_name, last_name')
+      .select('first_name, last_name, is_premium')
       .eq('id', user.id)
       .single()
       .then(({ data, error }) => {
         if (data && !error && data.first_name && data.last_name) {
           setNavbarName(`${data.first_name.charAt(0).toUpperCase()}${data.first_name.slice(1)} ${data.last_name.charAt(0).toUpperCase()}.`);
+          setProfil(data);
         } else {
           setNavbarName('Hesabım');
+          setProfil(data || null);
         }
       });
   }, [user]);
+
+  // -------------------------------------------------------------------------
+  // DIŞARI TIKLAYINCA VE ESC İLE KAPANMA
+  //
+  // Hesap menüsü yalnızca kendi düğmesine tekrar tıklayınca kapanıyordu:
+  // sayfanın başka bir yerine tıklamak onu açık bırakıyor, kullanıcı menüyü
+  // "kovalamak" zorunda kalıyordu. Esc de çalışmıyordu.
+  //
+  // `mousedown` kullanılıyor, `click` değil: menü içindeki bir bağlantıya
+  // tıklandığında `click` sırasında öğe DOM'dan kalkmış olabiliyor ve
+  // `contains` yanlış cevap veriyor. `PublishListingModal` da aynı olayı
+  // kullanıyor.
+  // -------------------------------------------------------------------------
+  useEffect(() => {
+    if (!isDropdownOpen && !isIlanMenuOpen) return;
+
+    const disariTiklama = (e) => {
+      if (hesapMenuRef.current && !hesapMenuRef.current.contains(e.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    // `closeMenus` bu efektten SONRA tanımlanıyor; setter'lar doğrudan
+    // çağrılıyor ki bildirim sırasına bağımlılık doğmasın.
+    const escBasildi = (e) => {
+      if (e.key !== 'Escape') return;
+      setIsDropdownOpen(false);
+      setIsIlanMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', disariTiklama);
+    document.addEventListener('keydown', escBasildi);
+    return () => {
+      document.removeEventListener('mousedown', disariTiklama);
+      document.removeEventListener('keydown', escBasildi);
+    };
+  }, [isDropdownOpen, isIlanMenuOpen]);
 
   // Sticky gölge
   useEffect(() => {
@@ -77,6 +121,15 @@ export default function Header() {
 
   // Oturum gerektiren hedef: yoksa girişe gönder
   const uyeHedef = (path) => (user ? path : '/login');
+
+  // Menü başlığında kullanılan türetilmiş değerler. State'e yazılmıyor:
+  // profilden hesaplanabilen bir şeyi ayrıca tutmak, ikisinin kayması demek.
+  const tamAd = profil?.first_name && profil?.last_name
+    ? `${profil.first_name} ${profil.last_name}`
+    : '';
+  const basHarfler = tamAd
+    ? tamAd.split(' ').filter(Boolean).slice(0, 2).map((p) => p.charAt(0).toLocaleUpperCase('tr-TR')).join('')
+    : (user?.email?.charAt(0)?.toLocaleUpperCase('tr-TR') || '?');
 
   const HESAP_MENU = [
     { href: '/dashboard', label: 'Bana Özel Özet' },
@@ -138,7 +191,13 @@ export default function Header() {
                 href={uyeHedef('/add-vehicle/step1')}
                 className={`bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-md transition-all shadow-2xs flex items-center gap-1.5 border border-amber-500/30 ${ODAK}`}
               >
-                <span>Ücretsiz İlan Ver</span>
+                {/* "Ücretsiz İlan Ver" DEĞİL, iki sebeple:
+                    1. Ürün önce SİCİL, ilan ikincil. Eski ilan sitesi
+                       dilinden kalma bu metin, kullanıcıya ürünü yanlış
+                       tanıtıyordu — araç kaydetmek için ilan vermek gerekmiyor.
+                    2. "Ücretsiz" artık YANLIŞ olurdu: ilk araç ücretsiz ama
+                       ikinci ve sonrası Ek Araç Kaydı gerektiriyor. */}
+                <span>Araç Kaydet</span>
                 <svg className={`w-3 h-3 transition-transform duration-150 ${isIlanMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                 </svg>
@@ -156,8 +215,8 @@ export default function Header() {
                         <div className="w-10 h-10 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center mx-auto mb-2 shadow-sm group-hover:scale-110 transition-transform">
                           <Icon name="ilan" size="lg" />
                         </div>
-                        <h4 className="text-sm font-black text-slate-900 text-center mb-2 tracking-tight">Sıfırdan Araç Kaydet</h4>
-                        <p className="text-[11px] text-slate-600 font-semibold text-center leading-relaxed">Kataloğumuzdan aracı seç, 4 adımda sicilini oluştur.</p>
+                        <h4 className="text-sm font-black text-slate-900 text-center mb-2 tracking-tight">Yeni Araç Kaydet</h4>
+                        <p className="text-[11px] text-slate-600 font-semibold text-center leading-relaxed">Kataloğumuzdan aracınızı seçin, 4 adımda dijital sicilini oluşturun. İlk aracınız ücretsiz.</p>
                       </div>
                       <span className="mt-3 block w-full bg-amber-400 group-hover:bg-amber-500 text-slate-950 font-black text-xs py-2.5 rounded-md transition-colors text-center">Kayda Başla &gt;</span>
                     </Link>
@@ -171,8 +230,8 @@ export default function Header() {
                         <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center mx-auto mb-2 shadow-sm group-hover:scale-110 transition-transform">
                           <Icon name="arac" size="lg" />
                         </div>
-                        <h4 className="text-sm font-black text-slate-900 text-center mb-2 tracking-tight">Garajımdan Seç</h4>
-                        <p className="text-[11px] text-slate-600 font-semibold text-center leading-relaxed">Tescilli aracını garajdan seç, bilgiler otomatik yüklensin.</p>
+                        <h4 className="text-sm font-black text-slate-900 text-center mb-2 tracking-tight">Aracımı Satışa Çıkar</h4>
+                        <p className="text-[11px] text-slate-600 font-semibold text-center leading-relaxed">Garajınızdaki tescilli aracı seçin, bilgileri ve sicili ilana otomatik gelsin.</p>
                       </div>
                       <span className="mt-3 block w-full bg-indigo-600 group-hover:bg-indigo-700 text-white font-black text-xs py-2.5 rounded-md transition-colors text-center">Garaja Git &gt;</span>
                     </Link>
@@ -191,11 +250,17 @@ export default function Header() {
                 <Link href="/register" className={`hover:text-indigo-600 transition-colors rounded ${ODAK}`}>Hesap Aç</Link>
               </div>
             ) : (
-              <div className="relative hidden md:block pl-1">
+              <div className="relative hidden md:block pl-1" ref={hesapMenuRef}>
+                {/* aria-controls + aria-haspopup: ekran okuyucuya bu düğmenin
+                    bir menü açtığını ve hangisini açtığını söylüyor. Sayfada
+                    `aria-expanded` taşıyan başka düğmeler de var (bildirim
+                    zili), bu yüzden menünün kendi kimliği olması gerekiyor. */}
                 <button
                   type="button"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   aria-expanded={isDropdownOpen}
+                  aria-haspopup="menu"
+                  aria-controls="hesap-menusu"
                   className={`flex items-center gap-1.5 text-xs font-bold text-slate-800 hover:text-indigo-600 transition-colors rounded ${ODAK}`}
                 >
                   <span>{navbarName || 'Hesabım'}</span>
@@ -203,10 +268,27 @@ export default function Header() {
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-3 w-64 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden z-50 text-sm">
-                    <div className="bg-slate-50/80 px-4 py-3 border-b border-slate-100 flex flex-col">
-                      <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Hesap Detayı</span>
-                      <span className="text-slate-800 font-semibold text-xs truncate mt-0.5">{user.email}</span>
+                  <div id="hesap-menusu" className="absolute right-0 mt-3 w-72 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden z-50 text-sm">
+                    {/* BAŞLIK: eskiden yalnızca ham e-posta yazıyordu.
+                        Garaj ekranından kaldırılan profil kartının taşıdığı
+                        bilgi (baş harfler, ad soyad, üyelik) buraya taşındı —
+                        bilgi kaybolmadı, ait olduğu yere geldi. */}
+                    <div className="px-4 py-3.5 border-b border-slate-100 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-black text-xs shrink-0 font-display">
+                        {basHarfler}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-slate-900 font-black text-xs truncate">
+                          {tamAd || 'Hesabım'}
+                        </p>
+                        <p className="text-slate-400 font-medium text-[11px] truncate">{user.email}</p>
+                        <span className={`inline-flex items-center gap-1 mt-1 text-[10px] font-black tracking-wide ${
+                          profil?.is_premium ? 'text-amber-600' : 'text-slate-500'
+                        }`}>
+                          {profil?.is_premium && <Icon name="yildiz" size="xs" />}
+                          {profil?.is_premium ? 'Premium Üyelik' : 'Standart Üyelik'}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="py-1 flex flex-col">

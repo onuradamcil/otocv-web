@@ -63,13 +63,16 @@ maddeleri bitecek, sonra bunlara geçilecek.**
 - [ ] 4 · Profil kartı kaldırılacak; yerine vitrin + devir için gerçek bir
       **eylem merkezi** gelecek. Sadece düğme koymak değil — kartları
       ferahlatacak şekilde tasarlanacak
-- [ ] 5 · Hesap açılır menüsünde e-posta yerine daha iyi bir başlık tasarımı
+- [x] 5 · Hesap menüsü başlığı: baş harfler + ad soyad + üyelik rozeti,
+      e-posta ikincil satırda. Garaj profil kartından taşınan bilgi burada
 - [ ] 6 · **Hesabım ekranı** sektör standardında kurulacak (şu an `ComingSoon`)
   - [ ] ⚠ Ön koşul: `profiles` UPDATE politikası yok — yazılmadan düzenleme
         çalışmaz (yukarıdaki güvenlik bölümüne bakın)
-- [ ] 7 · Açılır menü dışarı tıklanınca kapanmıyor
-- [ ] 8 · "Ücretsiz İlan Ver" paneli revize — eski ilan sitesi kalıntısı;
-      "ilan/ücretsiz" dili ürüne uymuyor, sicil diline çevrilecek
+- [x] 7 · Menü dışarı tıklayınca **ve Esc ile** kapanıyor. `aria-controls` +
+      `aria-haspopup` eklendi (ekran okuyucu ve kararlı test bağlanma noktası)
+- [x] 8 · "Ücretsiz İlan Ver" → **"Araç Kaydet"**. Panel: "Yeni Araç Kaydet"
+      ve "Aracımı Satışa Çıkar". "Ücretsiz" kaldırıldı — ilk araç ücretsiz
+      ama ikinci ve sonrası Ek Araç Kaydı gerektiriyor, yani yanlış olurdu
 
 ---
 
