@@ -18,8 +18,11 @@ import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Icon from '../common/icons';
 
+// Mobilde yer daha kısıtlı; masaüstü menüsüyle aynı düzen: devir üstte,
+// karne sorgulama korunuyor (mobilde footer'a inmek zahmetli).
 const MENU = [
   { href: '/', label: 'Pazaryeri Vitrini' },
+  { href: '/devir', label: 'Araç Devir' },
   { href: '/verify', label: 'Karne PIN Sorgula' },
 ];
 

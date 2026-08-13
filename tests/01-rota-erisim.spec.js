@@ -23,6 +23,9 @@ const ACIK_ROTALAR = [
   { yol: '/dashboard', ad: 'Özet (yer tutucu)' },
   { yol: '/query-history', ad: 'Sorgu geçmişi (yer tutucu)' },
   { yol: '/packages', ad: 'Ücretler' },
+  // Oturum GEREKTİRMİYOR: giriş yapmamış ziyaretçiye giriş çağrısı gösteriyor.
+  // Korumalı listeye konursa test /login'e yönlendirme bekler ve kırılır.
+  { yol: '/devir', ad: 'Araç devir' },
   // Yasal sayfalar: footer ve giriş ekranı buraya bağlanıyor. Kırılırlarsa
   // kullanıcı sözleşmeyi okumak isterken 404 görür.
   { yol: '/kvkk', ad: 'KVKK aydınlatma' },

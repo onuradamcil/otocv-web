@@ -109,12 +109,18 @@ export default function Header() {
               >
                 Pazaryeri Vitrini
               </Link>
+              {/* "Karne Sorgula" BURADAN KALKTI, yerine devir geldi.
+                  Gerekçe: karne sorgulama anasayfadaki "Künye Sorgula"
+                  kartında, footer'da ve /devir sayfasının altında zaten var —
+                  menüdeki dördüncü kopyaydı. Devrin ise hiçbir bağımsız
+                  girişi yoktu: satın aldığı aracın sicilini devralmak isteyen
+                  kişi ilan sihirbazına girip plaka yazmak zorundaydı. */}
               <Link
-                href="/verify"
+                href="/devir"
                 onClick={closeMenus}
-                className={`transition-colors rounded ${ODAK} ${pathname.startsWith('/verify') ? 'text-indigo-600 font-extrabold' : 'hover:text-slate-900'}`}
+                className={`transition-colors rounded ${ODAK} ${pathname.startsWith('/devir') ? 'text-indigo-600 font-extrabold' : 'hover:text-slate-900'}`}
               >
-                Karne Sorgula
+                Araç Devir
               </Link>
               <span className="text-slate-400 cursor-not-allowed">Kurumsal Çözümler</span>
             </nav>

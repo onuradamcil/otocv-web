@@ -96,9 +96,13 @@ export default function Footer() {
               üç bağlantı da ölüydü. Sayfalar açıldığı için bu uyarı artık
               yanlış olurdu — nihai metnin hazırlandığını sayfaların kendisi
               üstte söylüyor. */}
+          {/* inline-flex + min-h: küçük punto bir bağlantının dokunma alanı
+              yine de 24 pikselin altına inmemeli (WCAG AA). Metni <span>'den
+              <Link>'e çevirdiğimde bunu atlamıştım ve mobil erişilebilirlik
+              testleri üç sayfada birden kırıldı. */}
           <Link
             href="/kvkk"
-            className="text-[10px] font-medium text-slate-400 hover:text-slate-600 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+            className="inline-flex items-center min-h-[36px] text-[10px] font-medium text-slate-400 hover:text-slate-600 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
           >
             Verileriniz nasıl işleniyor?
           </Link>

@@ -53,11 +53,11 @@ götürüyor.
 Ekran görüntüleri üzerinden tespit edildi. **Önce yukarıdaki güvenlik/kilit
 maddeleri bitecek, sonra bunlara geçilecek.**
 
-- [ ] 1 · Devir **alma** ekranı yok. Kullanıcı aracını devredebiliyor ama
-      devralma yalnızca ilan sihirbazının içinden erişilebiliyor — bağımsız
-      bir giriş noktası gerekiyor
-- [ ] 2 · Anasayfada künye/karne sorgulama **iki yerde**: üst menüdeki
-      "Karne Sorgula" → **"Araç Devir"** olacak, devir işlemleri oradan
+- [x] 1 · `/devir` rotası açıldı — iki taraflı: satıcı aracını seçip kod
+      üretiyor, alıcı plaka yazıyor ve `plaka_durumu` doğru diyaloğa
+      yönlendiriyor (kod / talep / sahipsiz). Filo için arama ve kapaklı liste
+- [x] 2 · Üst menüde "Karne Sorgula" → **"Araç Devir"**. Karne sorgulama
+      anasayfa kartında, footer'da, `/devir` altında ve mobil menüde duruyor
 - [ ] 3 · Garaj araç kartları kalabalık (plaka+skor, 3 poliçe kutusu, ilan
       şeridi, devret şeridi, 3'lü aksiyon satırı = beş katman)
 - [ ] 4 · Profil kartı kaldırılacak; yerine vitrin + devir için gerçek bir

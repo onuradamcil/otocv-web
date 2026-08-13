@@ -408,12 +408,14 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
             vardı ama `href` yoktu. Yani kullanıcıya link gibi görünüp
             tıklandığında hiçbir şey yapmıyorlardı — hesap açarken sözleşmeyi
             okumak isteyen biri için en kötü davranış. Artık gerçek sayfalar. */}
-        <div className="text-[11px] text-slate-400 font-medium flex gap-3 tracking-wide mt-8">
-          <Link href="/kullanim-sartlari" className="hover:text-[#0F172A] transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600">
+        {/* inline-flex + min-h: küçük punto olsalar da dokunma alanı 24
+            pikselin altına inmemeli (WCAG AA). */}
+        <div className="text-[11px] text-slate-400 font-medium flex items-center gap-3 tracking-wide mt-8">
+          <Link href="/kullanim-sartlari" className="inline-flex items-center min-h-[36px] hover:text-[#0F172A] transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600">
             Kullanım Şartları
           </Link>
           <span aria-hidden="true">•</span>
-          <Link href="/kvkk" className="hover:text-[#0F172A] transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600">
+          <Link href="/kvkk" className="inline-flex items-center min-h-[36px] hover:text-[#0F172A] transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600">
             KVKK Aydınlatma Metni
           </Link>
         </div>

@@ -19,6 +19,7 @@ const ETIKET = {
   garage: 'Garajım',
   'my-listings': 'Aktif İlanlarım',
   verify: 'Karne Sorgula',
+  devir: 'Araç Devir',
   details: 'Araç Detayı',
   karne: 'Oto-Karne',
   dashboard: 'Bana Özel Özet',
