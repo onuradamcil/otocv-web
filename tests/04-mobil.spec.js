@@ -94,9 +94,9 @@ test.describe('Mobil çekmece', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1500);
 
-    // DİKKAT: 'button[aria-expanded]' seçicisi KULLANILMAZ. Sayfada üç öğede
-    // aria-expanded var (İlan Ver menüsü, hamburger, bildirim zili) ve o
-    // seçici ilkini yakalıyor. Geliştirme sırasında bu yüzden çekmecenin
+    // DİKKAT: 'button[aria-expanded]' seçicisi KULLANILMAZ. Sayfada birden
+    // çok öğede aria-expanded var (hesap menüsü, hamburger, bildirim zili)
+    // ve o seçici ilkini yakalıyor. Geliştirme sırasında bu yüzden çekmecenin
     // bozuk olduğu sanıldı; oysa yanlış butona tıklanıyordu.
     const hamburger = page.locator("button[aria-label='Menüyü aç']");
     await expect(hamburger).toBeVisible();

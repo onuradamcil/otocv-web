@@ -1,6 +1,6 @@
 // =========================================================================
 // OTO-CV HEADER (Header.jsx)
-// İşlev: Logo, ana menü, İlan Ver açılır paneli, bildirim zili, hesap menüsü
+// İşlev: Logo, ana menü, "Araç Kaydet" düğmesi, bildirim zili, hesap menüsü
 //        ve md altında hamburger. Kendi oturum durumunu yönetir.
 //
 // Erişilebilirlik: gezinme öğeleri Link, aksiyonlar button — hepsi klavyeyle
@@ -30,7 +30,6 @@ export default function Header() {
   // Bu bilgi garaj ekranındaki profil kartından buraya taşındı.
   const [profil, setProfil] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isIlanMenuOpen, setIsIlanMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -78,19 +77,17 @@ export default function Header() {
   // kullanıyor.
   // -------------------------------------------------------------------------
   useEffect(() => {
-    if (!isDropdownOpen && !isIlanMenuOpen) return;
+    if (!isDropdownOpen) return;
 
     const disariTiklama = (e) => {
       if (hesapMenuRef.current && !hesapMenuRef.current.contains(e.target)) {
         setIsDropdownOpen(false);
       }
     };
-    // `closeMenus` bu efektten SONRA tanımlanıyor; setter'lar doğrudan
+    // `closeMenus` bu efektten SONRA tanımlanıyor; setter doğrudan
     // çağrılıyor ki bildirim sırasına bağımlılık doğmasın.
     const escBasildi = (e) => {
-      if (e.key !== 'Escape') return;
-      setIsDropdownOpen(false);
-      setIsIlanMenuOpen(false);
+      if (e.key === 'Escape') setIsDropdownOpen(false);
     };
 
     document.addEventListener('mousedown', disariTiklama);
@@ -99,7 +96,7 @@ export default function Header() {
       document.removeEventListener('mousedown', disariTiklama);
       document.removeEventListener('keydown', escBasildi);
     };
-  }, [isDropdownOpen, isIlanMenuOpen]);
+  }, [isDropdownOpen]);
 
   // Sticky gölge
   useEffect(() => {
@@ -109,7 +106,7 @@ export default function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const closeMenus = () => { setIsDropdownOpen(false); setIsIlanMenuOpen(false); };
+  const closeMenus = () => setIsDropdownOpen(false);
 
   const handleSignOut = async () => {
     closeMenus();
@@ -181,64 +178,42 @@ export default function Header() {
 
           <div className="flex items-center gap-2 sm:gap-3">
 
-            {/* İLAN VER — masaüstü açılır panel */}
-            <div
-              className="relative hidden md:block"
-              onMouseEnter={() => setIsIlanMenuOpen(true)}
-              onMouseLeave={() => setIsIlanMenuOpen(false)}
+            {/* ARAÇ KAYDET — tek düğme, açılır panel YOK.
+                -----------------------------------------------------------
+                Eskiden üzerine gelince iki kartlı bir panel açılıyordu:
+                "Yeni Araç Kaydet" ve "Aracımı Satışa Çıkar". Kaldırıldı,
+                üç sebeple:
+
+                1. İkisi aynı işin iki yolu DEĞİLDİ. Birincisi sihirbazı
+                   açıyordu, ikincisi yalnızca /garage'a gidiyordu — orada
+                   aracı bulup "Satışa Çıkar"a basmak gerekiyordu. Yani
+                   panel bir seçim sunuyor gibi görünüp aslında bir
+                   yönlendirme yapıyordu. Eski ilan sitesinin
+                   "sıfırdan ilan / garajımdan seç" ikilisinden kalmaydı.
+
+                2. Panel yalnızca `onMouseEnter` ile açılıyordu. Klavyeyle
+                   gezen ya da dokunmatik kullanan biri ikinci karta HİÇ
+                   ulaşamıyordu; "iki yol" fare kullanıcısına özeldi.
+
+                3. Mobil çekmecede zaten tek bağlantı vardı. Masaüstü ve
+                   mobil artık aynı şeyi yapıyor.
+
+                "Satışa çıkar" niyeti kaybolmuyor: garaj kartında,
+                /my-listings'te ve filo panelinde duruyor.
+
+                Metin "Ücretsiz İlan Ver" değil, iki sebeple:
+                  - Ürün önce SİCİL, ilan ikincil; araç kaydetmek için
+                    ilan vermek gerekmiyor.
+                  - "Ücretsiz" artık YANLIŞ olurdu: ilk araç ücretsiz ama
+                    ikinci ve sonrası Ek Araç Kaydı gerektiriyor. */}
+            <Link
+              href={uyeHedef('/add-vehicle/step1')}
+              onClick={closeMenus}
+              className={`hidden md:flex bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-md transition-all shadow-2xs items-center gap-1.5 border border-amber-500/30 ${ODAK}`}
             >
-              <Link
-                href={uyeHedef('/add-vehicle/step1')}
-                className={`bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-md transition-all shadow-2xs flex items-center gap-1.5 border border-amber-500/30 ${ODAK}`}
-              >
-                {/* "Ücretsiz İlan Ver" DEĞİL, iki sebeple:
-                    1. Ürün önce SİCİL, ilan ikincil. Eski ilan sitesi
-                       dilinden kalma bu metin, kullanıcıya ürünü yanlış
-                       tanıtıyordu — araç kaydetmek için ilan vermek gerekmiyor.
-                    2. "Ücretsiz" artık YANLIŞ olurdu: ilk araç ücretsiz ama
-                       ikinci ve sonrası Ek Araç Kaydı gerektiriyor. */}
-                <span>Araç Kaydet</span>
-                <svg className={`w-3 h-3 transition-transform duration-150 ${isIlanMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                </svg>
-              </Link>
-
-              {isIlanMenuOpen && (
-                <div className="absolute right-0 top-full pt-1.5 w-[540px] z-50 motion-safe:animate-fadeIn">
-                  <div className="bg-white border border-slate-200 rounded-xl shadow-2xl p-4 grid grid-cols-2 gap-4 border-t-2 border-t-amber-500">
-                    <Link
-                      href={uyeHedef('/add-vehicle/step1')}
-                      onClick={closeMenus}
-                      className={`bg-[#FFFDF0] hover:bg-[#FFF9D6] border border-amber-200/80 rounded-lg p-4 transition-all group flex flex-col justify-between ${ODAK}`}
-                    >
-                      <div>
-                        <div className="w-10 h-10 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center mx-auto mb-2 shadow-sm group-hover:scale-110 transition-transform">
-                          <Icon name="ilan" size="lg" />
-                        </div>
-                        <h4 className="text-sm font-black text-slate-900 text-center mb-2 tracking-tight">Yeni Araç Kaydet</h4>
-                        <p className="text-[11px] text-slate-600 font-semibold text-center leading-relaxed">Kataloğumuzdan aracınızı seçin, 4 adımda dijital sicilini oluşturun. İlk aracınız ücretsiz.</p>
-                      </div>
-                      <span className="mt-3 block w-full bg-amber-400 group-hover:bg-amber-500 text-slate-950 font-black text-xs py-2.5 rounded-md transition-colors text-center">Kayda Başla &gt;</span>
-                    </Link>
-
-                    <Link
-                      href={uyeHedef('/garage')}
-                      onClick={closeMenus}
-                      className={`bg-[#F0F5FF] hover:bg-[#E2ECFF] border border-indigo-200/80 rounded-lg p-4 transition-all group flex flex-col justify-between ${ODAK}`}
-                    >
-                      <div>
-                        <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center mx-auto mb-2 shadow-sm group-hover:scale-110 transition-transform">
-                          <Icon name="arac" size="lg" />
-                        </div>
-                        <h4 className="text-sm font-black text-slate-900 text-center mb-2 tracking-tight">Aracımı Satışa Çıkar</h4>
-                        <p className="text-[11px] text-slate-600 font-semibold text-center leading-relaxed">Garajınızdaki tescilli aracı seçin, bilgileri ve sicili ilana otomatik gelsin.</p>
-                      </div>
-                      <span className="mt-3 block w-full bg-indigo-600 group-hover:bg-indigo-700 text-white font-black text-xs py-2.5 rounded-md transition-colors text-center">Garaja Git &gt;</span>
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
+              <Icon name="ilan" size="xs" />
+              <span>Araç Kaydet</span>
+            </Link>
 
             <NotificationDropdown onNavigateToGarage={() => router.push(uyeHedef('/garage'))} />
 

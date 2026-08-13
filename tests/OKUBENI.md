@@ -110,9 +110,10 @@ arama başarısız olur. Ham metin için `textContent` kullanın —
 `yardimcilar.js` içindeki `hamMetin()` bunu yapıyor. Bu tuzağa geliştirme
 sırasında iki kez düşüldü.
 
-**2. `button[aria-expanded]` seçicisi hamburger'i bulmaz.** Sayfada üç öğede
-`aria-expanded` var (İlan Ver menüsü, hamburger, bildirim zili) ve o seçici
-ilkini yakalar. Hamburger için `button[aria-label='Menüyü aç']` kullanın.
+**2. `button[aria-expanded]` seçicisi hamburger'i bulmaz.** Sayfada birden çok
+öğede `aria-expanded` var (hesap menüsü, hamburger, bildirim zili) ve o seçici
+ilkini yakalar. Hamburger için `button[aria-label='Menüyü aç']`, hesap menüsü
+için `button[aria-controls='hesap-menusu']` kullanın.
 Bu yüzden bir kez çekmecenin bozuk olduğu sanıldı; oysa yanlış butona
 tıklanıyordu.
 

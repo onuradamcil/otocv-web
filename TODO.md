@@ -70,9 +70,15 @@ maddeleri bitecek, sonra bunlara geçilecek.**
         çalışmaz (yukarıdaki güvenlik bölümüne bakın)
 - [x] 7 · Menü dışarı tıklayınca **ve Esc ile** kapanıyor. `aria-controls` +
       `aria-haspopup` eklendi (ekran okuyucu ve kararlı test bağlanma noktası)
-- [x] 8 · "Ücretsiz İlan Ver" → **"Araç Kaydet"**. Panel: "Yeni Araç Kaydet"
-      ve "Aracımı Satışa Çıkar". "Ücretsiz" kaldırıldı — ilk araç ücretsiz
-      ama ikinci ve sonrası Ek Araç Kaydı gerektiriyor, yani yanlış olurdu
+- [x] 8 · "Ücretsiz İlan Ver" → **"Araç Kaydet"**. "Ücretsiz" kaldırıldı —
+      ilk araç ücretsiz ama ikinci ve sonrası Ek Araç Kaydı gerektiriyor,
+      yani yanlış olurdu
+  - [x] Açılır panel **tamamen kaldırıldı**, tek düğme kaldı. Panel iki
+        kart gösteriyordu ama ikincisi ("Aracımı Satışa Çıkar") yalnızca
+        /garage'a gidiyordu — bir seçim değil, bir yönlendirmeydi. Üstelik
+        yalnızca `onMouseEnter` ile açıldığı için klavye ve dokunmatik
+        kullanıcı o karta hiç ulaşamıyordu. Masaüstü artık mobil çekmeceyle
+        aynı davranıyor
 
 ---
 

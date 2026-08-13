@@ -16,6 +16,10 @@
 // "Araç Kaydet", "Karne Sorgula" -> "Araç Devir"). Bunlar ürün kararları;
 // yanlışlıkla geri alınırlarsa burada görünür.
 //
+// "Araç Kaydet" düğmesinin açılır paneli de kaldırıldı. Panel iki kart
+// gösteriyordu ama ikincisi yalnızca /garage'a gidiyordu ve sadece fareyle
+// açılabiliyordu. Testler artık panelin GERİ GELMEDİĞİNİ de denetliyor.
+//
 // -------------------------------------------------------------------------
 // HİÇBİR YAZMA YOK — CI'DA KOŞUYOR
 // -------------------------------------------------------------------------
@@ -41,6 +45,44 @@ test.describe('Üst menü', () => {
     // sonrası Ek Araç Kaydı gerektiriyor.
     await expect(page.getByRole('link', { name: 'Araç Kaydet' }).first()).toBeVisible();
     await expect(page.locator("text=Ücretsiz İlan Ver")).toHaveCount(0);
+  });
+
+  test('"Araç Kaydet" tek düğme — üzerine gelince panel açılmıyor', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const dugme = page.getByRole('link', { name: 'Araç Kaydet' }).first();
+    await expect(dugme).toBeVisible();
+
+    // Eskiden burada iki kartlı bir panel açılıyordu. İkinci kart
+    // ("Aracımı Satışa Çıkar") yalnızca /garage'a gidiyordu — bir seçim
+    // değil, bir yönlendirmeydi. Üstelik yalnızca fareyle ulaşılabiliyordu:
+    // klavye ve dokunmatik kullanıcı o karta hiç erişemiyordu.
+    await dugme.hover();
+    await page.waitForTimeout(500);
+
+    await expect(page.locator('text=Aracımı Satışa Çıkar')).toHaveCount(0);
+    await expect(page.locator('text=Garaja Git')).toHaveCount(0);
+    await expect(page.locator('text=Kayda Başla')).toHaveCount(0);
+  });
+
+  test('"Araç Kaydet" ziyaretçiyi girişe götürüyor', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    await page.getByRole('link', { name: 'Araç Kaydet' }).first().click();
+    await page.waitForURL('**/login', { timeout: 15_000 });
+  });
+
+  test('"Araç Kaydet" üyeyi doğrudan sihirbaza götürüyor', async ({ page }) => {
+    await girisYap(page);
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Ara adım YOK: düğme tek tıkta 1. adımı açıyor. Panel döneminde
+    // kullanıcı önce paneli bekliyor, sonra karta tıklıyordu.
+    await page.getByRole('link', { name: 'Araç Kaydet' }).first().click();
+    await page.waitForURL('**/add-vehicle/step1', { timeout: 20_000 });
   });
 
   test('/devir ziyaretçiye giriş çağrısı gösteriyor', async ({ page }) => {
