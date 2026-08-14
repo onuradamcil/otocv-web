@@ -23,6 +23,7 @@ import { favoriKimlikleri, favoriDegistir } from '../services/favoriService';
 // ve birbirinden kaymisti: ayni parca iki farkli isimle, ayni durum iki farkli
 // etiketle gorunuyordu. Gerekce: src/data/hasarKatalogu.js
 import { CAR_PARTS, DAMAGE_STATUSES } from '../data/hasarKatalogu';
+import { aracGorselleri } from '../utils/aracGorseli';
 
 // =========================================================================
 // 🎨 SABİTLER VE YARDIMCI FONKSİYONLAR
@@ -64,28 +65,6 @@ const FEATURE_CATALOG = [
   }
 ];
 
-const parseSafeImageUrls = (rawPhotos) => {
-  if (!rawPhotos) return ['/placeholder-car.jpg'];
-  let items = [];
-  if (Array.isArray(rawPhotos)) items = rawPhotos;
-  else if (typeof rawPhotos === 'string') items = rawPhotos.split(',').map(s => s.trim());
-  else items = [rawPhotos];
-
-  const parsed = items.map((item) => {
-    if (!item) return null;
-    if (typeof item === 'string') {
-      const clean = item.trim();
-      if (clean.startsWith('http') || clean.startsWith('data:') || clean.startsWith('blob:')) return clean;
-      return null;
-    }
-    if (item.preview && typeof item.preview === 'string') return item.preview;
-    if (item.url && typeof item.url === 'string') return item.url;
-    if (item.src && typeof item.src === 'string') return item.src;
-    return null;
-  }).filter(Boolean);
-
-  return parsed.length > 0 ? parsed : ['/placeholder-car.jpg'];
-};
 
 const getDynamicStatus = (dateInput, validLabel = 'Geçerli') => {
   if (!dateInput) return { text: 'Belirtilmemiş', class: 'text-slate-500 font-medium' };
@@ -286,7 +265,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
   }
 
   // Veritabanı Temel Eşleştirmeleri
-  const imageList = parseSafeImageUrls(vehicle.image_url || vehicle.image || vehicle.photos);
+  const imageList = aracGorselleri(vehicle.image_url || vehicle.image || vehicle.photos);
   const activeKm = vehicle.km ? Number(vehicle.km).toLocaleString('tr-TR') : '0';
   const otocvScore = vehicle.trust_score ?? 0;
   const puanKirilimi = vehicle.trust_breakdown?.kirilim || null;
@@ -401,77 +380,18 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
   return (
     <div className="w-full max-w-[1280px] mx-auto font-sans antialiased select-none space-y-4 relative py-4 px-4 sm:px-6">
       
-      {/* ÜST EYLEM ÇUBUĞU
-          -------------------------------------------------------------------
-          Eskiden burada `bg-slate-900` bir koyu blok vardı ve sayfanın geri
-          kalanı beyaz kartlardan oluştuğu için tek başına duruyordu; üstelik
-          en yüksek görsel ağırlık, sayfanın en az bilgi taşıyan öğesindeydi.
+      {/* ⚠ ÜST EYLEM ÇUBUĞU KALDIRILDI.
+          Dört öğe taşıyordu ve ÜÇÜ sicil özeti kartında zaten vardı:
+            · "Favorilerimde"        -> kartta var
+            · "Sicil Karnesini Gör"  -> kartta var
+            · "PIN CV-…"             -> kartta "Sicil no" olarak var
+          Geriye tek özgün öğe "Araçlara dön" kalıyordu, onun karşılığı da
+          breadcrumb'da (`Anasayfa › Araç Detayı`) duruyor. Yani çubuk
+          ekranın en üstünde yer kaplayıp aynı üç eylemi ikinci kez
+          gösteriyordu.
 
-          İçindeki üç iddia da kaldırıldı:
-            · "RESMİ TESCİLLİ ARAÇ KARNESİ"
-            · "● OTO.CV SİSTEM ONAYLI"
-            · "tüm mekanik bakımları ve ekspertiz detayları ... tescil
-               edilmiştir"
-          Hiçbiri doğrulanmıyor: sistemde tescil sorgusu ve ekspertiz
-          bağlantısı yok, kayıtlar araç sahibinin beyanı. Aynı gerekçeyle
-          künyeden "%100 Tescilli", puan rozetinden "Tescil Güven Rozeti"
-          daha önce kaldırılmıştı — bu blok o temizlikten kaçmış.
-
-          Kalanlar gerçekten eylem: geri, favori, karne ve PIN. Blok 90px
-          yerine tek satır. */}
-      <div className="bg-white border border-slate-200 rounded-md px-3 py-2.5 flex flex-wrap items-center justify-between gap-2 shadow-2xs relative z-20">
-        <button
-          type="button"
-          onClick={onBack || (() => window.history.back())}
-          className={dugme('sessiz', { ek: 'gap-1.5' })}
-        >
-          <Icon name="geri" size="sm" strokeWidth={2.5} />
-          {/* "Doğrulama Havuzuna Dön" jargondu — kullanıcı böyle bir yer
-              tanımıyor. Etiket artık gidilecek yerin adı. */}
-          <span>{isPublicView ? 'Araçlara dön' : 'Garajıma dön'}</span>
-        </button>
-
-        <div className="flex items-center gap-2">
-          {/* FAVORİ — sahibinden.com'daki "Favorilerime Ekle" ile aynı yer:
-              içeriğin üstünde, birincil eylemlerin yanında. Yalnızca
-              başkasının aracında görünüyor; kendi aracını favorilemek zaten
-              engelli.
-
-              Favorili hâl `yikici` seviyesine benziyor ama o değil: "yıkıcı"
-              geri alınamayan işlem demek. Renk `ikincil`in üzerine yazılıyor
-              ki seviyenin anlamı bozulmasın. */}
-          {isPublicView && vehicle?.pin_code && (
-            <button
-              type="button"
-              onClick={favoriTikla}
-              disabled={favoriIsleniyor}
-              aria-pressed={favorili}
-              aria-label={favorili ? 'Favorilerden çıkar' : 'Favorilerime ekle'}
-              className={dugme('ikincil', {
-                ek: favorili
-                  ? 'gap-1.5 text-rose-700 border-rose-200 hover:bg-rose-50 hover:border-rose-300'
-                  : 'gap-1.5',
-              })}
-            >
-              <Icon name="kalp" size="sm" dolu={favorili} />
-              <span className="hidden sm:inline">{favorili ? 'Favorilerimde' : 'Favorilerime Ekle'}</span>
-            </button>
-          )}
-
-          {onViewKarne && (
-            <button type="button" onClick={onViewKarne} className={dugme('birincil')}>
-              Sicil Karnesini Gör
-            </button>
-          )}
-
-          {pinCode && (
-            <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200">
-              <span className="text-slate-400">PIN</span>
-              <span className="text-indigo-600 select-all">{pinCode}</span>
-            </div>
-          )}
-        </div>
-      </div>
+          Geri dönüş, kartın altına taşındı: sayfanın tek "buradan çık"
+          eylemi orada, diğer eylemlerin yanında. */}
 
       {/* ANA İÇERİK + SİCİL ÖZETİ
           `items-start` KALDIRILDI. Onunla birlikte sağdaki sütun içeriği
@@ -483,7 +403,13 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 relative z-20">
         
         {/* SOL ANA KONTEYNER (9 KOLON) */}
-        <div className="lg:col-span-9 space-y-5">
+        {/* `order-2 lg:order-1`: mobilde sicil özeti kartı ÖNCE geliyor.
+            Üst çubuk kaldırılınca eylemler yalnızca o kartta kaldı; kart
+            ızgarada ikinci çocuk olduğu için mobilde galeri, künye, puan
+            kırılımı ve tüm panellerin ALTINA düşüyordu. Kullanıcı favori
+            eklemek ya da karneye gitmek için metrelerce kaydırmak zorunda
+            kalırdı. */}
+        <div className="lg:col-span-9 space-y-5 order-2 lg:order-1">
           
           {/* PANEL 1: GALERİ VE KÜNYE */}
           <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-2xs space-y-4">
@@ -1284,7 +1210,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
             notta. Yerine SİCİL ÖZETİ geldi: 5498px'lik sayfada kaydırırken
             hangi araca baktığını ve karnesinin özetini hatırlatıyor.
             Tamamı gerçek veriden. */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 order-1 lg:order-2">
           <div className="sticky top-20 space-y-4">
 
             <div className="bg-white border border-slate-200 rounded-md shadow-2xs overflow-hidden">
@@ -1378,6 +1304,19 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                     Garajımda Yönet
                   </button>
                 )}
+
+                {/* GERİ DÖNÜŞ — üst çubuk kaldırılınca buraya taşındı.
+                    `sessiz` seviyede: sayfadan çıkmak bir eylem ama birincil
+                    olan değil. Etiket gidilecek yerin adı; "Doğrulama
+                    Havuzuna Dön" gibi jargon kullanılmıyor. */}
+                <button
+                  type="button"
+                  onClick={onBack || (() => window.history.back())}
+                  className={dugme('sessiz', { tamGenislik: true })}
+                >
+                  <Icon name="geri" size="sm" strokeWidth={2.5} />
+                  {isPublicView ? 'Araçlara dön' : 'Garajıma dön'}
+                </button>
               </div>
             </div>
 

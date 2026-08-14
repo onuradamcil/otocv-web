@@ -27,7 +27,12 @@ import { createPortal } from 'react-dom';
 import Icon from '../common/icons';
 import { dugme } from '../common/dugme';
 
-const ASGARI = 10;
+// ⚠ ALT SINIR YOK.
+// Eskiden 10 karakter isteniyordu. Gerekçesi "anlamsız mesaj gelmesin"di ama
+// ilk mesaj çoğu zaman kısa ve meşru oluyor: "Merhaba", "Aracı görebilir
+// miyim?". Sunucu zaten boş gövdeyi reddediyor (`govde_gecersiz`), yani
+// sınırı kaldırmak hiçbir kapı açmıyor — sadece meşru kullanıcıyı
+// engellemeyi bırakıyor.
 
 export default function MesajBaslatDialog({ arac, onKapat, onGonder }) {
   const [govde, setGovde] = useState('');
@@ -52,7 +57,7 @@ export default function MesajBaslatDialog({ arac, onKapat, onGonder }) {
 
   if (typeof document === 'undefined') return null;
 
-  const yeterli = govde.trim().length >= ASGARI;
+  const yeterli = govde.trim().length > 0;
 
   async function gonder() {
     if (!yeterli || gonderiliyor) return;
@@ -110,9 +115,7 @@ export default function MesajBaslatDialog({ arac, onKapat, onGonder }) {
               className="mt-1.5 w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors resize-none"
             />
             <span className="metin-yardimci text-slate-400 mt-1 block">
-              {govde.trim().length < ASGARI
-                ? `En az ${ASGARI} karakter yazın.`
-                : `${govde.length}/2000`}
+              {govde.length}/2000
             </span>
           </label>
 

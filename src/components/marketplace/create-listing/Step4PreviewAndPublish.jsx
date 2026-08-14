@@ -16,6 +16,7 @@ import FaturaOnizleme from '../../common/FaturaOnizleme';
 import { CAR_PARTS, DAMAGE_STATUSES } from '../../../data/hasarKatalogu';
 import { tramerVarMi } from '../../../utils/tramerHelper';
 import { parseVehicleDate, formatTrDate } from '../../../utils/dateHelper';
+import { aracGorselleri } from '../../../utils/aracGorseli';
 
 // =========================================================================
 // 🎨 SABİTLER VE YARDIMCI FONKSİYONLAR
@@ -92,31 +93,6 @@ const FEATURE_CATALOG = [
 ];
 
 // Görsel Sensörü (Bozuk Link Temizleyici)
-const parseSafeImageUrls = (rawPhotos) => {
-  if (!rawPhotos) return ['/placeholder-car.jpg'];
-  let items = [];
-  if (Array.isArray(rawPhotos)) items = rawPhotos;
-  else if (typeof rawPhotos === 'string') items = rawPhotos.split(',').map(s => s.trim());
-  else items = [rawPhotos];
-
-  const parsed = items.map((item) => {
-    if (!item) return null;
-    if (typeof item === 'string') {
-      const clean = item.trim();
-      if (clean.startsWith('http') || clean.startsWith('data:') || clean.startsWith('blob:')) return clean;
-      return null;
-    }
-    if (item.preview && typeof item.preview === 'string') return item.preview;
-    if (item.url && typeof item.url === 'string') return item.url;
-    if (item.src && typeof item.src === 'string') return item.src;
-    if (item instanceof File || item instanceof Blob) {
-      try { return URL.createObjectURL(item); } catch (e) { return null; }
-    }
-    return null;
-  }).filter(Boolean);
-
-  return parsed.length > 0 ? parsed : ['/placeholder-car.jpg'];
-};
 
 // ⏱️ GİZLİLİK ODAKLI TARİH KONTROL SENSÖRÜ
 const getDynamicStatus = (dateInput, validLabel = 'Geçerli') => {
@@ -172,7 +148,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
 
   const navRef = useRef(null);
 
-  const imageList = parseSafeImageUrls(formData.photos);
+  const imageList = aracGorselleri(formData.photos);
   const activeKm = formData.mileage || formData.km || '0';
   // NOT: `otocvScore` değişkeni kaldırıldı. Eskiden `formData.otocv_score || 92`
   // idi ve `otocv_score` hiçbir yerde set edilmediği için HER ZAMAN 92 basıyordu.

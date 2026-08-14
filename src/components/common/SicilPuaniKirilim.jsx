@@ -31,21 +31,23 @@
 // Gri tonlamalı baskıda da ayırt edilebilsin diye.
 //
 // -------------------------------------------------------------------------
-// KUTUDA HÜKÜM, BALONDA KURAL
+// SATIRDA HÜKÜM, AÇILINCA KURAL
 // -------------------------------------------------------------------------
-// Kutu neyin kaç puan aldığını söylüyor; kuralın kendisi (kaç puan neye
-// göre veriliyor, veri nereden geliyor) balonda. Sebebi ölçüldü: kaynak
-// etiketi + tam açıklama kutuya sığdırıldığında satır 75 piksele çıkıyor
-// ve altı kalem künye sütununu taşırıyordu.
+// Satır neyin kaç puan aldığını söylüyor; kuralın kendisi (kaç puan neye
+// göre veriliyor, veri nereden geliyor) tıklayınca ALTINDA açılıyor.
 //
-// Balon yalnızca `hover` ile açılmıyor. Dokunmatikte hover yok ve
-// `hover` ile açılan bir açıklama o cihazlarda hiç okunamaz; tetikleyici
-// `<button>` olduğu için dokunma ve klavye odağı da balonu açıyor.
+// ⚠ ÖNCE HOVER BALONUYDU VE KIRPILIYORDU. Balon `absolute` konumluydu,
+// listenin `overflow-hidden` sınıfı (yuvarlak köşeler için) onu kesiyordu;
+// panel dışına taşamıyordu. Portal ile gövdeye taşımak kırpılmayı çözerdi
+// ama dokunmatikte hover olmadığı için deneyim yine ikinci sınıf kalırdı.
+//
+// Satır içi açılım ikisini birden çözüyor: kırpılacak bir katman yok,
+// dokunmatikte ve klavyede aynı şekilde çalışıyor.
 // =========================================================================
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Icon from './icons';
 
 /** Kalemin durumu: puan alındı mı, alınmadıysa sebebi bulgu mu bilinmezlik mi? */
@@ -122,6 +124,10 @@ function anahtar(ad) {
 }
 
 export default function SicilPuaniKirilim({ kirilim, puan, className = '' }) {
+  // Tek seferde tek açıklama açık: hepsini birden açmak listeyi okunmaz
+  // uzunluğa çıkarıyor ve karşılaştırmayı zorlaştırıyor.
+  const [acikKalem, setAcikKalem] = useState(null);
+
   if (!Array.isArray(kirilim) || kirilim.length === 0) {
     // Kırılım yoksa uydurma bir açıklama üretmiyoruz.
     return null;
@@ -150,23 +156,33 @@ export default function SicilPuaniKirilim({ kirilim, puan, className = '' }) {
           const durum = kalemDurumu(kalem);
           const b = BICIM[durum];
           const bilgi = ACIKLAMALAR[anahtar(kalem.ad)];
-          const balonId = `puan-balon-${anahtar(kalem.ad).replace(/\s+/g, '-')}`;
+          const panelId = `puan-panel-${anahtar(kalem.ad).replace(/\s+/g, '-')}`;
+          const acik = acikKalem === kalem.ad;
 
           return (
-            <li key={kalem.ad} className="relative group">
-              {/* Tetikleyici DÜĞME: dokunmatikte ve klavyede de açılsın diye.
-                  `group-focus-within` olmadan balon yalnızca fareye açık
-                  kalıyordu. */}
+            <li key={kalem.ad}>
+              {/* Tetikleyici DÜĞME: dokunmatikte ve klavyede aynı şekilde
+                  çalışıyor. Hover balonu olsaydı dokunmatik cihazda hiç
+                  açılamazdı. */}
               <button
                 type="button"
-                aria-describedby={bilgi ? balonId : undefined}
-                className={`w-full text-left flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-1 px-3 py-2.5 cursor-help
+                aria-expanded={bilgi ? acik : undefined}
+                aria-controls={bilgi ? panelId : undefined}
+                onClick={() => bilgi && setAcikKalem(acik ? null : kalem.ad)}
+                className={`w-full text-left flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-1 px-3 py-2.5
+                  ${bilgi ? 'cursor-pointer' : 'cursor-default'}
                   focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 ${b.kutu}`}
               >
                 <span className="flex items-center gap-2 sm:w-52 shrink-0">
                   <Icon name={b.ikon} size="sm" className={`${b.ikonRenk} shrink-0`} />
                   <span className="text-xs font-bold text-slate-800">{kalem.ad}</span>
-                  {bilgi && <Icon name="bilgi" size="xs" className="text-slate-400 shrink-0" />}
+                  {bilgi && (
+                    <Icon
+                      name="asagi"
+                      size="xs"
+                      className={`text-slate-400 shrink-0 transition-transform ${acik ? 'rotate-180' : ''}`}
+                    />
+                  )}
                 </span>
 
                 <span className="text-[11px] text-slate-600 leading-snug flex-1 min-w-0 pl-5 sm:pl-0">
@@ -178,30 +194,21 @@ export default function SicilPuaniKirilim({ kirilim, puan, className = '' }) {
                 </span>
               </button>
 
-              {bilgi && (
-                <div
-                  id={balonId}
-                  role="tooltip"
-                  className="pointer-events-none absolute z-40 left-0 right-0 top-full mt-1 sm:right-auto sm:w-96
-                    opacity-0 invisible transition-opacity duration-150
-                    group-hover:opacity-100 group-hover:visible
-                    group-focus-within:opacity-100 group-focus-within:visible
-                    bg-slate-900 text-slate-100 rounded-lg shadow-xl border border-slate-700 p-3 space-y-2"
-                >
-                  <p className="text-[11px] font-black text-white">{kalem.ad}</p>
-                  <p className="text-[11px] leading-relaxed text-slate-300">{bilgi.olcer}</p>
-                  <p className="text-[11px] leading-relaxed text-slate-300">
-                    <span className="font-bold text-slate-100">Nasıl puanlanıyor: </span>
+              {/* AÇIKLAMA SATIR İÇİNDE. Konumlandırılmış bir katman
+                  olmadığı için kırpılacak bir şey de yok. */}
+              {bilgi && acik && (
+                <div id={panelId} className="px-3 pb-3 pt-1 bg-white space-y-2 border-t border-slate-100">
+                  <p className="text-[11px] leading-relaxed text-slate-600">{bilgi.olcer}</p>
+                  <p className="text-[11px] leading-relaxed text-slate-600">
+                    <span className="font-bold text-slate-800">Nasıl puanlanıyor: </span>
                     {bilgi.kural}
                   </p>
-                  <p className="text-[11px] leading-relaxed text-slate-400 border-t border-slate-700 pt-2">
-                    {bilgi.niye}
-                  </p>
+                  <p className="text-[11px] leading-relaxed text-slate-500">{bilgi.niye}</p>
                   {kalem.kaynak && (
                     // Kaynak etiketi karnedeki mantığın aynısı: her bulgu
                     // nereden geldiğini söylüyor. "Hesaplandı" ile "Araç
                     // sahibi beyanı" arasındaki fark alıcı için kritik.
-                    <span className="inline-block text-[9px] font-bold uppercase tracking-wide text-slate-400 border border-slate-600 rounded px-1.5 py-0.5">
+                    <span className="inline-block text-[9px] font-bold uppercase tracking-wide text-slate-500 border border-slate-300 rounded px-1.5 py-0.5">
                       Kaynak: {kalem.kaynak}
                     </span>
                   )}

@@ -34,6 +34,7 @@ import { dugme } from '../common/dugme';
 import { useToast } from '../../context/ToastContext';
 import { devirBekleyenlerim, devirOdeyipTamamla } from '../../services/devirService';
 import useCanliTazeleme from '../../hooks/useCanliTazeleme';
+import { aracKapakGorseli } from '../../utils/aracGorseli';
 
 /** "1 gün 4 saat" gibi okunur kalan süre. Geçmişse null. */
 function kalanSure(sonTarih) {
@@ -131,9 +132,16 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
             <li key={d.istek_id} className="border border-slate-200 rounded-xl p-4 space-y-3">
               <div className="flex items-start gap-3">
                 <span className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 grid place-items-center">
-                  {d.image_url
-                    ? <img src={d.image_url} alt="" className="w-full h-full object-contain" />
-                    : <Icon name="arac" size="md" className="text-slate-400" />}
+                  {/* ⚠ HAM ALAN BASILAMAZ: `image_url` virgülle birleştirilmiş
+                      ÇOKLU adres tutabiliyor (canlıda 6 adres / 719 karakter
+                      ölçüldü) ve doğrudan `src`e verilince kırık görsel
+                      çıkıyor. Kapak için ilk geçerli adres alınıyor. */}
+                  <img
+                    src={aracKapakGorseli(d.image_url)}
+                    alt=""
+                    className="w-full h-full object-contain"
+                    onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-car.jpg'; }}
+                  />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="metin-govde font-black text-slate-900 truncate">
