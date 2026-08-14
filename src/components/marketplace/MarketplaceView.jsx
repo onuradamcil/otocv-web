@@ -10,7 +10,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { favoriKimlikleri, favoriDegistir } from '../../services/favoriService';
 import { fetchMarketplaceListings } from '../../services/marketplaceService';
 import { useToast } from '../../context/ToastContext';
+import { useRouter } from 'next/navigation';
 import Icon from '../common/icons';
+import { pinNormalize } from '../../utils/pinUretici';
 import GlobalStepLoader from '../common/GlobalStepLoader';
 
 export default function MarketplaceView({ 
@@ -48,6 +50,9 @@ export default function MarketplaceView({
   // Favoriler ayrı çekiliyor: vitrin listesi oturumsuz da görünüyor, favori
   // ise oturuma bağlı. İkisini tek sorguya bağlamak listeyi oturum
   // gerektirir hâle getirirdi.
+  const router = useRouter();
+  // Dar ekranda süzgeç panelinin açık/kapalı durumu.
+  const [suzgecAcik, setSuzgecAcik] = useState(false);
   const [favoriler, setFavoriler] = useState(() => new Set());
 
   useEffect(() => {
@@ -155,7 +160,6 @@ export default function MarketplaceView({
         quickFilter === 'all' ? true :
         quickFilter === 'featured' ? item.is_featured === true :
         quickFilter === 'highTrust' ? (item.trust_score || 0) >= 80 :
-        quickFilter === 'urgent' ? item.is_featured === true :
         true;
 
       // Fiyat süzgeci KALDIRILDI: tutar hiç gösterilmediği için süzülecek
@@ -179,22 +183,41 @@ export default function MarketplaceView({
       {/* 3.1 HERO BANNER */}
       <div className="bg-[#0F172A] text-white py-8 px-4 border-b border-slate-800 select-none">
         <div className="max-w-7xl mx-auto text-center space-y-3">
+          {/* "Güvenle Satın Alın" KALKTI: satış sitesi başlığıydı. Ürünün
+              vaadi aracı satmak değil, geçmişini belgelemek. */}
           <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-100">
-            Aracın DNA&apos;sını Keşfedin, Güvenle Satın Alın
+            Aracın Geçmişini Bilin, Kararınızı Belgeyle Verin
           </h1>
           
-          <div className="max-w-2xl mx-auto bg-white p-1 rounded-md border border-slate-700 shadow-lg flex items-center gap-2">
+          {/* ARAMA — PIN ARTIK GERÇEKTEN İŞLENİYOR.
+              Yer tutucu "PIN kodu ile ara" diyordu ama girdi yalnızca vitrin
+              listesini süzüyordu: PIN yazan kullanıcı hiçbir sonuç almıyor ve
+              sitenin çalışmadığını sanıyordu. Vaat edip yapmamak, hiç
+              vaat etmemekten kötü.
+
+              Artık girdi PIN desenine uyuyorsa doğrudan karneye gidiliyor;
+              uymuyorsa liste süzülüyor. `pinNormalize` alfabe dışı karakteri
+              zaten reddediyor, yani marka adı yanlışlıkla PIN sanılmıyor. */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const pin = pinNormalize(searchQuery);
+              if (pin) router.push(`/karne/${encodeURIComponent(pin)}`);
+            }}
+            className="max-w-2xl mx-auto bg-white p-1 rounded-xl border border-slate-700 shadow-lg flex items-center gap-2"
+          >
             <div className="text-slate-400 pl-3">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
               </svg>
             </div>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Marka, model, şehir veya PIN kodu ile ara..." 
-              className="w-full bg-transparent border-none outline-none text-xs text-slate-900 font-semibold placeholder:text-slate-400 pl-0.5" 
+              aria-label="Marka, model, şehir veya PIN ile ara"
+              placeholder="Marka, model, şehir veya PIN kodu ile ara..."
+              className="w-full bg-transparent border-none outline-none text-sm text-slate-900 font-semibold placeholder:text-slate-400 placeholder:font-normal pl-0.5"
             />
             {searchQuery && (
               <button
@@ -206,10 +229,10 @@ export default function MarketplaceView({
                 <Icon name="kapat" size="sm" />
               </button>
             )}
-            <button type="button" className="bg-[#0F172A] hover:bg-slate-800 text-white font-bold text-xs px-5 py-2 rounded-md transition-all active:scale-95 shrink-0 cursor-pointer">
-              Araç Ara
+            <button type="submit" className="bg-[#0F172A] hover:bg-slate-800 text-white font-bold text-xs px-5 min-h-[40px] rounded-lg transition-all active:scale-95 shrink-0 cursor-pointer">
+              Ara
             </button>
-          </div>
+          </form>
         </div>
       </div>
 
@@ -218,7 +241,16 @@ export default function MarketplaceView({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* SOL SIDEBAR: HIZLI RADAR & FİLTRELER */}
-          <aside className="lg:col-span-3 space-y-5 select-none">
+          {/* KENAR ÇUBUĞU — DAR EKRANDA GİZLİ.
+              Izgara `grid-cols-1 lg:grid-cols-12` olduğu için 1024px altında
+              TEK SÜTUNA düşüyordu ve kenar çubuğu tam genişlik olup listenin
+              üstünü baştan aşağı kaplıyordu: kullanıcı araçları görmek için
+              tüm süzgeçleri kaydırmak zorundaydı.
+
+              Eşik `lg` (1024px): tablet dikey ve altı için yatay süzgeç
+              şeridi, üstünde klasik kenar çubuğu. Eşiği daha aşağı çekmek
+              (md = 768px) kenar çubuğunu okunamayacak kadar daraltıyordu. */}
+          <aside className="hidden lg:block lg:col-span-3 space-y-5 select-none">
             
             {/* HIZLI SÜZGEÇ RADARI */}
             <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs space-y-2">
@@ -238,17 +270,6 @@ export default function MarketplaceView({
                 >
                   <span>Vitrindeki Araçlar</span>
                   <span className="text-xs text-slate-400 font-mono font-normal">({featuredListings.length})</span>
-                </div>
-
-                <div 
-                  onClick={() => setQuickFilter('urgent')} 
-                  className={`px-3 py-2 rounded-md cursor-pointer flex justify-between items-center transition-colors duration-75 border-l-2 ${
-                    quickFilter === 'urgent' 
-                      ? 'bg-indigo-50/80 text-indigo-700 font-bold border-indigo-600' 
-                      : 'border-transparent text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <span>Acil Satılıklar</span>
                 </div>
 
                 <div 
@@ -314,127 +335,158 @@ export default function MarketplaceView({
 
           {/* SAĞ SAHA: HOVER AKSIYONLU HİZMET BAR & VİTRİN */}
           <section className="lg:col-span-9 space-y-6">
+
+            {/* DAR EKRAN SÜZGEÇ ŞERİDİ — yalnızca lg altında.
+                Kenar çubuğunun tamamını dikey olarak listenin üstüne yığmak
+                yerine, en çok kullanılan üç hızlı süzgeç yatay kaydırılabilir
+                çip olarak duruyor. Marka ve yıl süzgeçleri "Filtreler"
+                düğmesiyle açılıyor; kapalıyken hiç yer kaplamıyor.
+
+                Yatay kaydırma bilerek: mobilde çipleri alt satıra sarmak
+                şeridin yüksekliğini iki-üç katına çıkarıyor ve yine listeyi
+                aşağı itiyordu. */}
+            <div className="lg:hidden space-y-3">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                {[
+                  { anahtar: 'all',       ad: 'Tümü' },
+                  { anahtar: 'featured',  ad: `Vitrindeki (${featuredListings.length})` },
+                  { anahtar: 'highTrust', ad: 'Güven %80+' },
+                ].map((c) => (
+                  <button
+                    key={c.anahtar}
+                    type="button"
+                    onClick={() => setQuickFilter(c.anahtar)}
+                    aria-pressed={quickFilter === c.anahtar}
+                    className={`shrink-0 min-h-[38px] px-3.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 ${
+                      quickFilter === c.anahtar
+                        ? 'bg-indigo-600 text-white border-indigo-600'
+                        : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    {c.ad}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => setSuzgecAcik((a) => !a)}
+                  aria-expanded={suzgecAcik}
+                  className={`shrink-0 min-h-[38px] px-3.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer inline-flex items-center gap-1.5 ml-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 ${
+                    suzgecAcik ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200'
+                  }`}
+                >
+                  Filtreler
+                  <svg className={`w-3 h-3 transition-transform ${suzgecAcik ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </button>
+              </div>
+
+              {suzgecAcik && (
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 motion-safe:animate-fadeIn">
+                  <div className="flex items-center justify-between">
+                    <span className="etiket text-slate-400">Marka</span>
+                    <button type="button" onClick={clearAllFilters} className="text-[11px] font-black text-indigo-600 hover:underline cursor-pointer">
+                      Sıfırla
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {uniqueBrands.map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => handleFilterChange('brand', m)}
+                        className={`min-h-[34px] px-3 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
+                          filters.brand === m
+                            ? 'bg-indigo-50 text-indigo-700 border-indigo-300'
+                            : 'bg-white text-slate-600 border-slate-200'
+                        }`}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100">
+                    <span className="etiket text-slate-400">Model Yılı</span>
+                    <div className="grid grid-cols-2 gap-2 mt-1.5">
+                      <input type="number" placeholder="Min" value={filters.minYear} onChange={(e) => handleFilterChange('minYear', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 min-h-[38px] text-xs outline-none focus:border-indigo-600" />
+                      <input type="number" placeholder="Max" value={filters.maxYear} onChange={(e) => handleFilterChange('maxYear', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 min-h-[38px] text-xs outline-none focus:border-indigo-600" />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             
-            {/* HOVER AKSIYONLU HİZMET KARTLARI */}
-            <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs select-none">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                
-                {/* KART 1: GARAJ */}
-                <button
-                  type="button"
-                  onClick={onNavigateToGarage}
-                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px] text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600"
-                >
-                  <div>
-                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center mb-2 shadow-xs">
-                      <Icon name="arac" size="sm" />
-                    </div>
-                    <h4 className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                      Tescilli Garajım
-                    </h4>
-                    <p className="text-[10px] text-slate-500 font-normal leading-tight mt-0.5">
-                      Ruhsatlı araçlarınızı ve geçmişi yönetin.
+            {/* =====================================================================
+                HİZMET ŞERİDİ — BEŞ EŞİT KARTTAN HİYERARŞİYE
+
+                Eski hâli beş kutuydu: aynı boyut, aynı ağırlık, aynı sesle
+                bağıran beş öğe. Hepsi eşit olunca hiçbiri öne çıkmıyor ve
+                şerit "bir şeyler koyalım" gibi duruyordu.
+
+                İki somut kusur vardı:
+                  · "Künye Sorgula" ve "Sicil Sorgula" AYNI yere gidiyordu
+                    (ikisi de `onNavigateToVerify`). Kullanıcıya iki kapı
+                    gösterip tek odaya çıkarmak.
+                  · Hero arama kutusu "PIN kodu ile ara" diyor ama PIN'i hiç
+                    işlemiyordu — o da düzeltildi.
+
+                Yeni yapı: ürünün ÇEKİRDEK eylemi (PIN ile sicil sorgulama)
+                geniş ve baskın; yardımcı üç hizmet yanında ince bir sütunda.
+                Şerit artık ne yapılacağını söylüyor, seçenek sıralamıyor.
+            ===================================================================== */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 select-none">
+
+              {/* ÇEKİRDEK EYLEM */}
+              <button
+                type="button"
+                onClick={onNavigateToVerify}
+                className="lg:col-span-2 group text-left bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-700 text-white rounded-2xl p-5 flex flex-col justify-between min-h-[128px] transition-all shadow-sm hover:shadow-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="w-10 h-10 rounded-xl bg-white/15 grid place-items-center shrink-0 group-hover:bg-white/25 transition-colors">
+                    <Icon name="pinKod" size="lg" />
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-black tracking-tight">Sicil Sorgula</h3>
+                    <p className="text-[11px] text-indigo-100 font-medium leading-relaxed mt-0.5">
+                      Elinizdeki PIN ile aracın bakım geçmişini, poliçe durumunu ve
+                      sicil puanını görün.
                     </p>
                   </div>
-                  <div className="mt-2 text-[10px] font-bold text-blue-600 border-b-2 border-blue-600 w-max opacity-80 group-hover:opacity-100 transition-all">
-                    Garajıma Git &gt;
-                  </div>
-                </button>
+                </div>
+                <span className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-black">
+                  Karneyi aç
+                  <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </button>
 
-                {/* KART 2: KÜNYE */}
-                <button
-                  type="button"
-                  onClick={onNavigateToVerify}
-                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px] text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600"
-                >
-                  <div>
-                    <div className="w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center mb-2 shadow-xs">
-                      <Icon name="pinKod" size="sm" />
-                    </div>
-                    <h4 className="text-xs font-bold text-slate-900 group-hover:text-rose-600 transition-colors">
-                      Künye Sorgula
-                    </h4>
-                    <p className="text-[10px] text-slate-500 font-normal leading-tight mt-0.5">
-                      PIN ile tescilli araç DNA&apos;sını doğrulayın.
-                    </p>
-                  </div>
-                  <div className="mt-2 text-[10px] font-bold text-rose-600 border-b-2 border-rose-600 w-max opacity-80 group-hover:opacity-100 transition-all">
-                    Sorgulama Yap &gt;
-                  </div>
-                </button>
-
-                {/* KART 3: SİGORTA */}
-                <button
-                  type="button"
-                  onClick={onNavigateToInsurance}
-                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px] text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600"
-                >
-                  <div>
-                    <div className="w-6 h-6 rounded-full bg-[#1e293b] text-white flex items-center justify-center mb-2 shadow-xs">
-                      <Icon name="kalkan" size="sm" />
-                    </div>
-                    <h4 className="text-xs font-bold text-slate-900 group-hover:text-slate-900 transition-colors">
-                      Sigorta & Kasko
-                    </h4>
-                    <p className="text-[10px] text-slate-500 font-normal leading-tight mt-0.5">
-                      Canlı poliçe tekliflerini karşılaştırın.
-                    </p>
-                  </div>
-                  <div className="mt-2 text-[10px] font-bold text-slate-900 border-b-2 border-slate-900 w-max opacity-80 group-hover:opacity-100 transition-all">
-                    Teklif Al &gt;
-                  </div>
-                </button>
-
-                {/* KART 4: BAKIM */}
-                <button
-                  type="button"
-                  onClick={onNavigateToMaintenance}
-                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px] text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600"
-                >
-                  <div>
-                    <div className="w-6 h-6 rounded-full bg-slate-500 text-white flex items-center justify-center mb-2 shadow-xs">
-                      <Icon name="anahtar" size="sm" />
-                    </div>
-                    <h4 className="text-xs font-bold text-slate-900 group-hover:text-slate-700 transition-colors">
-                      Bakım Takvimi
-                    </h4>
-                    <p className="text-[10px] text-slate-500 font-normal leading-tight mt-0.5">
-                      Periyodik servis ve usta faturaları.
-                    </p>
-                  </div>
-                  <div className="mt-2 text-[10px] font-bold text-slate-700 border-b-2 border-slate-700 w-max opacity-80 group-hover:opacity-100 transition-all">
-                    Randevu Al &gt;
-                  </div>
-                </button>
-
-                {/* KART 5 — "AI DEĞERLEME" KALDIRILDI.
-                    İki sebeple: (1) çalışmıyordu, tıklanınca yalnızca
-                    "yakında" bildirimi basıyordu — bu projede kaldırılan
-                    sahte veri kalıbının aynısı; (2) araç değeri göstermek
-                    platformu satış sitesi konumuna sokuyor.
-                    Yerine gerçekten çalışan ve ürünün merkezinde olan
-                    şey kondu: PIN ile sicil sorgulama. */}
-                <button
-                  type="button"
-                  onClick={() => onNavigateToVerify?.()}
-                  className="bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer group flex flex-col justify-between min-h-[110px] text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600 col-span-2 md:col-span-1"
-                >
-                  <div>
-                    <div className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center mb-2 shadow-xs">
-                      <Icon name="pinKod" size="sm" />
-                    </div>
-                    <h4 className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                      Sicil Sorgula
-                    </h4>
-                    <p className="text-[10px] text-slate-500 font-normal leading-tight mt-0.5">
-                      PIN ile aracın karnesini açın.
-                    </p>
-                  </div>
-                  <div className="mt-2 text-[10px] font-bold text-indigo-600 border-b-2 border-indigo-500 w-max opacity-80 group-hover:opacity-100 transition-all">
-                    Karneyi Aç &gt;
-                  </div>
-                </button>
-
+              {/* YARDIMCI HİZMETLER */}
+              <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { ad: 'Garajım',        ozet: 'Tescilli araçlarınız ve geçmişi.', ikon: 'arac',   eylem: onNavigateToGarage,      renk: 'text-blue-600 bg-blue-50 border-blue-100' },
+                  { ad: 'Sigorta & Kasko', ozet: 'Poliçe tekliflerini karşılaştırın.', ikon: 'kalkan', eylem: onNavigateToInsurance,  renk: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
+                  { ad: 'Bakım Takvimi',  ozet: 'Periyodik servis ve faturalar.',   ikon: 'takvim', eylem: onNavigateToMaintenance, renk: 'text-amber-600 bg-amber-50 border-amber-100' },
+                ].map((h) => (
+                  <button
+                    key={h.ad}
+                    type="button"
+                    onClick={h.eylem}
+                    className="group text-left bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm rounded-2xl p-4 flex flex-col justify-between min-h-[128px] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
+                  >
+                    <span className={`w-9 h-9 rounded-xl grid place-items-center border ${h.renk}`}>
+                      <Icon name={h.ikon} size="md" />
+                    </span>
+                    <span className="mt-3 block">
+                      <span className="block text-xs font-black text-slate-900 tracking-tight">{h.ad}</span>
+                      <span className="block text-[11px] text-slate-500 font-medium leading-relaxed mt-0.5">{h.ozet}</span>
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
 
