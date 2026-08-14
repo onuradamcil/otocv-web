@@ -15,6 +15,7 @@ import { parseVehicleDate, formatTrDate } from '../utils/dateHelper';
 import useSicil from '../hooks/useSicil';
 import FaturaOnizleme from './common/FaturaOnizleme';
 import SicilPuaniKirilim from './common/SicilPuaniKirilim';
+import { favoriKimlikleri, favoriDegistir } from '../services/favoriService';
 // Hasar katalogu ORTAK. Bu iki sabit eskiden uc dosyada ayri ayri tanimliydi
 // ve birbirinden kaymisti: ayni parca iki farkli isimle, ayni durum iki farkli
 // etiketle gorunuyordu. Gerekce: src/data/hasarKatalogu.js
@@ -122,6 +123,19 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
   const toast = useToast();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [thumbPage, setThumbPage] = useState(0);
+
+  // -------------------------------------------------------------------------
+  // FAVORİ — PIN SORGULAYAN KULLANICI DA EKLEYEBİLİYOR
+  //
+  // Favori pazaryeri kartında vardı ama araç detayında yoktu: PIN ile sicil
+  // sorgulayan biri aracı beğense de kaydedecek yeri yoktu. Favori araca
+  // ait (ilana değil), dolayısıyla vitrinde olmayan araç da eklenebiliyor.
+  //
+  // `isPublicView` false ise araç zaten kullanıcınındır; kendi aracını
+  // favorileyemediği için düğme hiç gösterilmiyor.
+  // -------------------------------------------------------------------------
+  const [favorili, setFavorili] = useState(false);
+  const [favoriIsleniyor, setFavoriIsleniyor] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
   
@@ -177,6 +191,25 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
     yukleniyor: loadingRecords,
     hata: sicilHatasi,
   } = useSicil(vehicle?.pin_code, { hazirKayitlar: kayitlar });
+
+  useEffect(() => {
+    if (!isPublicView || !vehicle?.pin_code) return;
+    let iptal = false;
+    favoriKimlikleri().then((k) => { if (!iptal) setFavorili(k.has(vehicle.pin_code)); });
+    return () => { iptal = true; };
+  }, [isPublicView, vehicle?.pin_code]);
+
+  const favoriTikla = async () => {
+    if (!vehicle?.pin_code) return;
+    const suAn = favorili;
+    setFavoriIsleniyor(true);
+    setFavorili(!suAn);            // iyimser: kalp anında dönüyor
+
+    const { favorili: sonuc, hata } = await favoriDegistir(vehicle.pin_code, suAn);
+    setFavorili(sonuc);
+    setFavoriIsleniyor(false);
+    if (hata) toast.hata(hata);
+  };
 
   // ⚙️ SCROLL & Observer Kontrolcüsü
   useEffect(() => {
@@ -353,6 +386,28 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
         </div>
 
         <div className="flex items-center gap-3 z-10 self-end sm:self-center">
+          {/* FAVORİ — sahibinden.com'daki "Favorilerime Ekle" ile aynı yer:
+              içeriğin üstünde, birincil eylemlerin yanında. Yalnızca
+              başkasının aracında görünüyor; kendi aracını favorilemek zaten
+              engelli. */}
+          {isPublicView && vehicle?.pin_code && (
+            <button
+              type="button"
+              onClick={favoriTikla}
+              disabled={favoriIsleniyor}
+              aria-pressed={favorili}
+              aria-label={favorili ? 'Favorilerden çıkar' : 'Favorilerime ekle'}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer disabled:opacity-60 ${
+                favorili
+                  ? 'bg-rose-500/15 text-rose-300 border-rose-400/30 hover:bg-rose-500/25'
+                  : 'bg-slate-800/80 text-slate-200 border-slate-700 hover:bg-slate-700'
+              }`}
+            >
+              <Icon name="kalp" size="sm" dolu={favorili} />
+              {favorili ? 'Favorilerimde' : 'Favorilerime Ekle'}
+            </button>
+          )}
+
           {onViewKarne && (
             <button
               type="button"
@@ -442,6 +497,19 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                     </div>
                   </div>
                 </div>
+
+                {/* PUAN KIRILIMI — GALERİNİN ALTINDA, YATAY.
+                    Eskiden künyenin İÇİNDE, puan rozetinin hemen altındaydı:
+                    altı kalemlik dikey bir liste künyeyi ekranın çok aşağısına
+                    itiyordu ve kullanıcı marka/model/km gibi temel bilgileri
+                    görmek için kaydırmak zorunda kalıyordu.
+                    Buradaki genişlik dikey listeyi ızgaraya çevirmeye yetiyor;
+                    aynı bilgi, üçte bir yer. */}
+                {puanKirilimi && (
+                  <div className="mt-3 bg-white border border-slate-200 rounded-md p-3.5">
+                    <SicilPuaniKirilim kirilim={puanKirilimi} puan={otocvScore} yatay />
+                  </div>
+                )}
               </div>
 
               {/* SAĞ: KÜNYE (FULL EKSİKSİZ VE ZIRHLI METRİK MATRİSİ) */}
@@ -474,14 +542,6 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   </div>
                 </div>
 
-                {/* Puanın kalem kalem dökümü. Sayının kendisi doğrulanamaz bir
-                    iddia; kırılım onu denetlenebilir kılıyor. */}
-                {puanKirilimi && (
-                  <div className="bg-white border border-slate-200 rounded-md p-3.5">
-                    <SicilPuaniKirilim kirilim={puanKirilimi} puan={otocvScore} />
-                  </div>
-                )}
-
                 <div className="bg-slate-50/80 border border-slate-200 rounded-md p-3.5 space-y-2">
                   <div className="flex justify-between border-b border-slate-200 pb-2">
                     <span className="text-[11px] font-black text-slate-900 uppercase">ARAÇ KÜNYESİ</span>
@@ -494,7 +554,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   {/* 🟢 ZIRHLI VE DOĞRUDAN FORMATLANAN KÜNYE LİSTESİ */}
                   <div className="space-y-1.5 text-xs divide-y divide-slate-200/70">
                     <div className="flex justify-between py-1 pt-0.5">
-                      <span className="text-slate-900 font-medium">Tescil / İlan No</span>
+                      <span className="text-slate-900 font-medium">Tescil / Sicil No</span>
                       <span className="font-mono font-semibold text-indigo-600 select-all">{pinCode}</span>
                     </div>
                     
@@ -674,7 +734,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   </div>
                 ) : (
                   <div className="bg-slate-50/50 border border-slate-100 rounded-md p-4 h-[120px] flex items-center justify-center text-xs text-slate-500 italic">
-                    Bu araç için henüz detaylı bir satıcı açıklaması eklenmemiştir.
+                    Bu araç için henüz detaylı bir açıklama eklenmemiştir.
                   </div>
                 )}
               </div>
@@ -1163,7 +1223,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   </button>
                   <button type="button" onClick={() => toast.bilgi('Mesajlaşma yakında açılacak.')} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-2.5 px-4 rounded transition-all cursor-pointer flex items-center justify-center gap-2 border border-slate-200/80">
                     <svg className="w-4 h-4 text-slate-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
-                    <span>Satıcıya Mesaj Gönder</span>
+                    <span>Araç Sahibine Mesaj</span>
                   </button>
                 </div>
 

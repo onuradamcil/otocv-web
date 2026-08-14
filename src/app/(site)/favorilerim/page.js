@@ -43,11 +43,11 @@ export default function FavorilerimPage() {
     return () => { iptal = true; };
   }, []);
 
-  const cikar = async (listingId) => {
+  const cikar = async (pin) => {
     // İyimser: kart hemen listeden düşüyor. Bu ekranda "favorilerimden
     // çıkar" tek anlamlı işlem, geri alma beklentisi yok.
-    setListe((ö) => ö.filter((f) => f.listing_id !== listingId));
-    await favoriDegistir(listingId, true);
+    setListe((ö) => ö.filter((f) => f.pin_code !== pin));
+    await favoriDegistir(pin, true);
   };
 
   if (durum === 'yukleniyor') {
@@ -97,7 +97,7 @@ export default function FavorilerimPage() {
 
             return (
               <article
-                key={f.listing_id}
+                key={f.pin_code}
                 className="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col p-2"
               >
                 <div className="h-36 w-full bg-slate-50 rounded-xl overflow-hidden relative grid place-items-center p-1">
@@ -114,7 +114,7 @@ export default function FavorilerimPage() {
 
                   <button
                     type="button"
-                    onClick={() => cikar(f.listing_id)}
+                    onClick={() => cikar(f.pin_code)}
                     aria-label="Favorilerden çıkar"
                     className="absolute top-1.5 right-1.5 w-9 h-9 grid place-items-center rounded-full bg-white/90 border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
                   >
@@ -124,6 +124,14 @@ export default function FavorilerimPage() {
                   {f.is_featured && (
                     <span className="absolute top-1.5 left-1.5 bg-amber-400 text-slate-950 text-[9px] font-black px-2 py-0.5 rounded">
                       ÖNE ÇIKAN
+                    </span>
+                  )}
+                  {/* Vitrinde OLMAYAN araç da favorilenebiliyor (PIN ile
+                      sicil sorgulayan kullanıcı). Bu bir süzgeç değil,
+                      etiket: kart listeden düşmüyor, durumu yazıyor. */}
+                  {!f.vitrinde && (
+                    <span className="absolute bottom-1.5 left-1.5 bg-slate-700/90 text-white text-[9px] font-black px-2 py-0.5 rounded">
+                      VİTRİNDE DEĞİL
                     </span>
                   )}
                 </div>

@@ -2,118 +2,99 @@
 // FAVORİ SERVİSİ
 //
 // -------------------------------------------------------------------------
-// SAYAÇ İSTEMCİDEN YAZILMIYOR
+// FAVORİ ARACA AİT, İLANA DEĞİL
 // -------------------------------------------------------------------------
-// `listings.favorite_count` bu servisin hiç dokunmadığı bir alan: veritabanı
-// tetikleyicisi `favoriler` tablosundan türetiyor. İstemciden yazılabilseydi
-// herkes kendi aracının favori sayısını şişirebilirdi.
+// İlk tasarımda favori `listings.id` gösteriyordu. Ama bu ürün bir SİCİL
+// ürünü ve pazaryeri ikincil: PIN ile sicil sorgulayan biri de aracı
+// favorileyebilmeli, o araç vitrinde olmayabiliyor. Araç vitrinden kalksa
+// bile favori anlamını koruyor.
 //
-// Aynı sebeple "kendi aracını favorileme" de tetikleyiciyle engelleniyor;
-// burada yalnızca hatanın okunur karşılığı üretiliyor.
+// -------------------------------------------------------------------------
+// NİYE HEPSİ RPC — TABLOYA DOĞRUDAN ERİŞİM YOK
+// -------------------------------------------------------------------------
+// İki sebep, ikisi de ölçüldü:
+//
+// 1. `vehicles` RLS'i yalnızca SAHİBE okuma veriyor. Favori listesini
+//    join ile çekmek, başkasının aracı için boş satır döndürüyordu.
+//
+// 2. Favori tablosunda PLAKA duruyor. Kullanıcı kendi satırlarını
+//    okuyabilseydi, pazaryerinde bilerek gizlenen plakaya favori üzerinden
+//    ulaşırdı. Plakanın URL'de bile taşınmadığı bir üründe bu yan kapıyı
+//    açık bırakmak tutarsız olurdu.
+//
+// Fonksiyonlar PIN alıyor ve PIN döndürüyor; plaka istemciye hiç gelmiyor.
 // =========================================================================
 
 import { supabase } from '../lib/supabase';
 
-const KILIT_METNI = {
-  KENDI_ARACIN: 'Kendi aracınızı favorileyemezsiniz.',
+const HATA_METNI = {
+  oturum_yok:   'Favorilemek için giriş yapın.',
+  bulunamadi:   'Araç bulunamadı.',
+  kendi_aracin: 'Kendi aracınızı favorileyemezsiniz.',
 };
 
-function hataMetni(hata) {
-  const mesaj = hata?.message || '';
-  for (const kod of Object.keys(KILIT_METNI)) {
-    if (mesaj.includes(kod)) return KILIT_METNI[kod];
-  }
-  // Tekillik ihlali: iki sekmeden aynı anda tıklanmış olabilir. Kullanıcı
-  // açısından sonuç zaten istediği durum, hata göstermeye gerek yok.
-  if (mesaj.includes('favori_tek_kayit')) return null;
-  return 'Favori işlemi tamamlanamadı.';
-}
-
-/** Kullanıcının favorilediği ilan kimlikleri (Set). */
+/**
+ * Kullanıcının favorilediği PIN'ler (Set).
+ *
+ * OTURUM YOKSA HİÇ ÇAĞRILMIYOR. Fonksiyonlar yalnızca `authenticated`'a
+ * açık; ziyaretçi çağırınca "permission denied" dönüyordu ve pazaryeri
+ * anasayfası her açılışta konsola hata basıyordu. Geliştirmede bu, Next.js
+ * hata katmanını açıp gerçek bir sorun varmış gibi gösteriyordu — mobil
+ * çekmece testi de o katmanı ikinci bir diyalog sanıp kırıldı.
+ *
+ * Beklenen bir durumu hata olarak raporlamak, gerçek hataları gürültüye
+ * boğuyor.
+ */
 export async function favoriKimlikleri() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return new Set();
 
-  const { data, error } = await supabase
-    .from('favoriler')
-    .select('listing_id')
-    .eq('user_id', user.id);
-
+  const { data, error } = await supabase.rpc('favori_pinlerim');
   if (error) {
     console.error('Favoriler okunamadı:', error.message);
     return new Set();
   }
-  return new Set((data || []).map((f) => f.listing_id));
+  return new Set(Array.isArray(data) ? data : []);
 }
 
 /**
  * Favoriyi açar/kapatır.
+ * @param {string} pin Araç PIN kodu
+ * @param {boolean} suAnFavori İyimser geri alma için mevcut durum
  * @returns {{favorili: boolean, hata: string|null}}
  */
-export async function favoriDegistir(listingId, suAnFavori) {
+export async function favoriDegistir(pin, suAnFavori) {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { favorili: !!suAnFavori, hata: 'Favorilemek için giriş yapın.' };
+  if (!user) return { favorili: !!suAnFavori, hata: HATA_METNI.oturum_yok };
 
-  if (suAnFavori) {
-    const { error } = await supabase
-      .from('favoriler')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('listing_id', listingId);
-
-    if (error) return { favorili: true, hata: hataMetni(error) };
-    return { favorili: false, hata: null };
-  }
-
-  const { error } = await supabase
-    .from('favoriler')
-    .insert({ user_id: user.id, listing_id: listingId });
+  const { data, error } = await supabase.rpc('favori_degistir', { p_pin: pin });
 
   if (error) {
-    const metin = hataMetni(error);
-    // Tekillik ihlalinde kullanıcı zaten istediği duruma ulaşmış sayılıyor.
-    return { favorili: metin === null, hata: metin };
+    console.error('Favori değiştirilemedi:', error.message);
+    return { favorili: !!suAnFavori, hata: 'Favori işlemi tamamlanamadı.' };
   }
-  return { favorili: true, hata: null };
+
+  if (!data?.basarili) {
+    return {
+      favorili: !!suAnFavori,
+      hata: HATA_METNI[data?.hata] || 'Favori işlemi tamamlanamadı.',
+    };
+  }
+
+  return { favorili: data.favorili === true, hata: null };
 }
 
-/** Favorilenen vitrin kayıtlarını araç bilgileriyle birlikte getirir. */
+/**
+ * Favorilenen araçlar.
+ *
+ * Vitrinde olmayan araçlar SÜZÜLMÜYOR — favori artık araca ait, vitrin
+ * kaydına değil. "Vitrinde" bir süzgeç değil, bir etiket.
+ */
 export async function favoriListesi() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { veri: [], hata: null };
 
-  const { data, error } = await supabase
-    .from('favoriler')
-    .select('listing_id, olustu, listings(*, vehicles(*))')
-    .eq('user_id', user.id)
-    .order('olustu', { ascending: false });
-
+  const { data, error } = await supabase.rpc('favori_listem');
   if (error) return { veri: [], hata: error.message };
-
-  // Vitrinden kaldırılmış kayıtlar süzülüyor: favorilerde "artık yok" bir
-  // kart göstermek, kullanıcıya var olmayan bir araç vaat etmek olurdu.
-  const veri = (data || [])
-    .filter((f) => f.listings && f.listings.status === 'active')
-    .map((f) => {
-      const l = f.listings;
-      const v = l.vehicles || {};
-      return {
-        listing_id: l.id,
-        listing_title: l.title,
-        city: l.city,
-        district: l.district,
-        is_featured: l.is_featured || false,
-        favorilendi: f.olustu,
-        plate_number: l.vehicle_plate,
-        brand: v.brand,
-        model: v.model,
-        year: v.year,
-        km: v.km,
-        trust_score: v.trust_score,
-        image_url: v.image_url,
-        pin_code: v.pin_code,
-      };
-    });
-
-  return { veri, hata: null };
+  return { veri: Array.isArray(data) ? data : [], hata: null };
 }

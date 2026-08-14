@@ -125,6 +125,29 @@ export default function VitrinKartiEkrani({ pin }) {
 
   // -----------------------------------------------------------------------
   const yayinla = async () => {
+    // ZORUNLU ALANLAR ÖNCE BURADA DENETLENİYOR.
+    //
+    // `listings` tablosunda `title`, `description`, `city`, `district`
+    // NOT NULL. Araç kaydında biri eksikse veritabanı ham bir kısıt hatası
+    // döndürüyordu ("null value in column ... violates not-null
+    // constraint") — kullanıcıya hiçbir şey anlatmayan, teknik bir metin.
+    //
+    // Alanlar bu ekranda TOPLANMIYOR (araç kaydından geliyor), o yüzden
+    // burada yapılacak tek doğru şey eksiği söyleyip kaynağa yönlendirmek.
+    const eksik = [
+      !arac.city && 'il',
+      !arac.district && 'ilçe',
+      !arac.description && 'açıklama',
+    ].filter(Boolean);
+
+    if (eksik.length > 0) {
+      setHataMetni(
+        `Araç kaydınızda ${eksik.join(', ')} eksik. Vitrin kartı bu bilgileri ` +
+        `araç kaydından alıyor; önce araç kaydınızı tamamlayın.`
+      );
+      return;
+    }
+
     setHataMetni(null);
     setGonderiliyor(true);
 

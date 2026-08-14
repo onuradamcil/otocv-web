@@ -54,7 +54,14 @@ const BICIM = {
   bilinmiyor:  { kutu: 'border-slate-300 border-dashed bg-slate-50/60', puan: 'text-slate-500', ikon: 'gozKapali', ikonRenk: 'text-slate-400' },
 };
 
-export default function SicilPuaniKirilim({ kirilim, puan, className = '' }) {
+/**
+ * @param {boolean} yatay  Kalemleri tek sütun yerine ızgaraya diziyor.
+ *   Araç detayında kırılım künyenin içindeydi ve altı kalemlik dikey liste
+ *   künyeyi ekranın çok aşağısına itiyordu — kullanıcı marka/model/km gibi
+ *   temel bilgileri görmek için kaydırmak zorunda kalıyordu. Galerinin
+ *   altındaki genişlik ızgaraya yetiyor: aynı bilgi, üçte bir yükseklik.
+ */
+export default function SicilPuaniKirilim({ kirilim, puan, className = '', yatay = false }) {
   if (!Array.isArray(kirilim) || kirilim.length === 0) {
     // Kırılım yoksa uydurma bir açıklama üretmiyoruz.
     return null;
@@ -73,7 +80,7 @@ export default function SicilPuaniKirilim({ kirilim, puan, className = '' }) {
         </span>
       </div>
 
-      <ul className="space-y-1.5">
+      <ul className={yatay ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5' : 'space-y-1.5'}>
         {kirilim.map((kalem) => {
           const durum = kalemDurumu(kalem);
           const b = BICIM[durum];

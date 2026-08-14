@@ -84,14 +84,21 @@ test.describe('Ürün dili', () => {
     });
 
     test('vitrin kartında bedel alanı yok', async ({ page }) => {
+      // Rotaya DOĞRUDAN gidiliyor. Araç seçiciden geçmek kırılgandı: araç
+      // bir kez vitrine çıkınca seçicide "Zaten vitrinde" ile devre dışı
+      // kalıyor ve test ilerleyemiyordu.
       await page.goto('/garage');
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(1500);
 
-      await page.getByRole('button', { name: /Vitrine çıkar/ }).first().click();
-      await page.waitForTimeout(700);
-      await page.locator("[role='dialog'] button").filter({ hasText: 'TR' }).first().click();
-      await page.waitForURL('**/vitrin', { timeout: 20_000 });
+      // Kartın "Detay" bağlantısından PIN'i öğrenip vitrin rotasına gidiyoruz.
+      const kart = page.locator('.grid > div').filter({ hasText: 'Skor:' }).first();
+      await kart.getByRole('button', { name: 'Detay', exact: true }).click();
+      await page.waitForURL('**/details/**', { timeout: 20_000 });
+      const pin = decodeURIComponent(page.url().split('/details/')[1] || '');
+      expect(pin, 'PIN okunamadı').toBeTruthy();
+
+      await page.goto(`/garage/${encodeURIComponent(pin)}/vitrin`);
       // `networkidle` YETMİYOR: sayfa kendi verisini istemci tarafında
       // çekiyor ve o bitmeden gövdede yalnızca başlık/altbilgi oluyor.
       // Başlığı beklemek içeriğin geldiğini garanti ediyor.

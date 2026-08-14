@@ -56,22 +56,23 @@ export default function MarketplaceView({
     return () => { iptal = true; };
   }, []);
 
-  const favoriTikla = async (listingId) => {
-    const suAn = favoriler.has(listingId);
+  const favoriTikla = async (pin) => {
+    if (!pin) return;
+    const suAn = favoriler.has(pin);
 
     // İYİMSER GÜNCELLEME: kalp anında dönüyor. Ağ yanıtını beklemek, tek
     // tıklık bir işlemi yavaş hissettiriyor. Hata gelirse geri alınıyor.
     setFavoriler((önceki) => {
       const yeni = new Set(önceki);
-      if (suAn) yeni.delete(listingId); else yeni.add(listingId);
+      if (suAn) yeni.delete(pin); else yeni.add(pin);
       return yeni;
     });
 
-    const { favorili, hata } = await favoriDegistir(listingId, suAn);
+    const { favorili, hata } = await favoriDegistir(pin, suAn);
 
     setFavoriler((önceki) => {
       const yeni = new Set(önceki);
-      if (favorili) yeni.add(listingId); else yeni.delete(listingId);
+      if (favorili) yeni.add(pin); else yeni.delete(pin);
       return yeni;
     });
 
@@ -486,7 +487,7 @@ export default function MarketplaceView({
                       key={item.listing_id || item.id}
                       item={item}
                       onSelectVehicle={onSelectVehicle}
-                      favorili={favoriler.has(item.listing_id)}
+                      favorili={favoriler.has(item.pin_code)}
                       onFavori={favoriTikla}
                     />
                   ))}
@@ -532,7 +533,7 @@ function ArabamStyleVitrinCard({ item, onSelectVehicle, favorili = false, onFavo
         {onFavori && (
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); onFavori(item.listing_id); }}
+            onClick={(e) => { e.stopPropagation(); onFavori(item.pin_code); }}
             aria-pressed={!!favorili}
             aria-label={favorili ? 'Favorilerden çıkar' : 'Favorilere ekle'}
             className={`absolute top-1.5 right-1.5 z-10 w-9 h-9 grid place-items-center rounded-full bg-white/90 backdrop-blur-sm border transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 ${

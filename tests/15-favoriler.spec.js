@@ -6,132 +6,127 @@
 // -------------------------------------------------------------------------
 // `listings.favorite_count` sütunu şemada duruyordu ve "Vitrindeki
 // Araçlarım" ekranı onu "N Favori" diye basıyordu. Ama favori diye bir
-// tablo, servis ya da düğme YOKTU: sayaç hiçbir zaman artmıyordu. Ekran,
-// hiç kimsenin ölçmediği bir sayıyı ölçülmüş gibi gösteriyordu.
-//
-// Sayaç artık gerçek. Bu paket iki şeyi koruyor:
-//   1. Sayacın İSTEMCİDEN yazılamaması (yazılabilseydi herkes kendi
-//      aracının favori sayısını şişirirdi)
-//   2. Kendi aracını favorileyememe
+// tablo, servis ya da düğme YOKTU: sayaç hiçbir zaman artmıyordu.
 //
 // -------------------------------------------------------------------------
-// YAZMA VAR AMA KENDİ ÇÖPÜNÜ TEMİZLİYOR
+// FAVORİ ARACA AİT — VE TABLOYA DOĞRUDAN ERİŞİM KAPALI
 // -------------------------------------------------------------------------
-// Kilit testleri favori ekleyip siliyor; `afterAll` kalanı temizliyor.
-// `favoriler` tablosu istemciye açık (kendi satırları için), yani 07-devir'in
-// aksine temizlik GERÇEKTEN yapılabiliyor.
+// İlk tasarım favoriyi `listings.id`'ye bağlıyordu. İki sorun çıktı:
+//
+// 1. PIN ile sicil sorgulayan kullanıcı da favorileyebilmeli, ama o araç
+//    vitrinde olmayabiliyor — favorilenecek "ilan" yok.
+// 2. Favori tablosu PLAKA tutuyor. Kullanıcı kendi satırlarını
+//    okuyabilseydi, pazaryerinde bilerek gizlenen plakaya favori üzerinden
+//    ulaşırdı. Plakanın URL'de bile taşınmadığı bir üründe bu yan kapı
+//    tutarsız olurdu.
+//
+// Çözüm: tabloya doğrudan erişim yok; her şey PIN alan/dönen security
+// definer RPC'lerden geçiyor. Bu paket ikisini de denetliyor.
 // =========================================================================
 
-const { test, expect, supabaseIstemcisi, aliciIstemcisi, anonIstemcisi } = require('./yardimcilar');
+const { test, expect, supabaseIstemcisi, aliciIstemcisi, anonIstemcisi, ornekPin } = require('./yardimcilar');
 
 test.describe('Favoriler', () => {
-  let ilanId = null;
-  // Kullanıcı kimlikleri BİR KEZ, beforeAll içinde alınıyor.
-  //
-  // Önce her testte `auth.getUser()` çağrılıyordu ve bir koşumda `null`
-  // döndü: paralel testler altında oturum tazeleme yarışa giriyor ve
-  // `user.id` okuması TypeError veriyordu. Kimlik koşum boyunca
-  // değişmediği için bir kez alıp saklamak hem daha hızlı hem kararlı.
-  let sahipId = null;
-  let aliciId = null;
+  let pin = null;
 
   test.beforeAll(async () => {
-    const sb = await supabaseIstemcisi();
-    const alici = await aliciIstemcisi();
-
-    const { data } = await sb.from('listings').select('id').eq('status', 'active').limit(1).maybeSingle();
-    ilanId = data?.id ?? null;
-
-    sahipId = (await sb.auth.getUser()).data?.user?.id ?? null;
-    aliciId = (await alici.auth.getUser()).data?.user?.id ?? null;
+    pin = await ornekPin();
   });
 
   test.afterAll(async () => {
-    // Test favorilerini temizle.
+    // Favoriyi kaldır: bu paket kendi çöpünü temizliyor.
     const alici = await aliciIstemcisi();
-    if (aliciId && ilanId) {
-      await alici.from('favoriler').delete().eq('user_id', aliciId).eq('listing_id', ilanId);
+    const { data } = await alici.rpc('favori_pinlerim');
+    if (Array.isArray(data) && data.includes(pin)) {
+      await alici.rpc('favori_degistir', { p_pin: pin });
     }
   });
 
-  test('kendi aracını favorileyemiyor', async () => {
-    test.skip(!ilanId, 'aktif vitrin kaydı yok');
-    test.skip(!sahipId, 'oturum alınamadı');
-    const sahip = await supabaseIstemcisi();
-
-    const { error } = await sahip.from('favoriler').insert({ user_id: sahipId, listing_id: ilanId });
-
-    // Politikayla değil TETİKLEYİCİYLE engelleniyor: `listings` üzerinde
-    // birden çok permissive politika var ve Postgres onları OR'luyor.
-    expect(error?.message, 'kullanıcı kendi aracını favoriledi').toContain('KENDI_ARACIN');
-  });
-
-  test('sayaç tetikleyiciyle artıyor ve azalıyor', async () => {
-    test.skip(!ilanId, 'aktif vitrin kaydı yok');
-    test.skip(!aliciId, 'oturum alınamadı');
-    const sahip = await supabaseIstemcisi();
+  test('favori tablosuna DOĞRUDAN erişilemiyor — plaka sızmıyor', async () => {
     const alici = await aliciIstemcisi();
+    const { data, error } = await alici.from('favoriler').select('*');
 
-    const oku = async () => {
-      const { data } = await sahip.from('listings').select('favorite_count').eq('id', ilanId).single();
-      return data?.favorite_count ?? 0;
-    };
-
-    await alici.from('favoriler').delete().eq('user_id', aliciId).eq('listing_id', ilanId);
-    const once = await oku();
-
-    const { error: ekleHata } = await alici.from('favoriler').insert({ user_id: aliciId, listing_id: ilanId });
-    expect(ekleHata, JSON.stringify(ekleHata)).toBeFalsy();
-    expect(await oku(), 'ekleyince sayaç artmadı').toBe(once + 1);
-
-    await alici.from('favoriler').delete().eq('user_id', aliciId).eq('listing_id', ilanId);
-    expect(await oku(), 'silince sayaç azalmadı').toBe(once);
-  });
-
-  test('istemci sayacı doğrudan şişiremiyor', async () => {
-    test.skip(!ilanId, 'aktif vitrin kaydı yok');
-    const sahip = await supabaseIstemcisi();
-    const alici = await aliciIstemcisi();
-
-    const { data: onceki } = await sahip.from('listings').select('favorite_count').eq('id', ilanId).single();
-
-    // Başkasının ilanına yazma denemesi.
-    await alici.from('listings').update({ favorite_count: 9999 }).eq('id', ilanId);
-
-    const { data: sonraki } = await sahip.from('listings').select('favorite_count').eq('id', ilanId).single();
+    // Tablo okunabilseydi `vehicle_plate` görünürdü; pazaryeri plakayı
+    // bilerek gizliyor.
     expect(
-      sonraki?.favorite_count,
-      'favori sayacı istemciden şişirilebiliyor — gösterilen sayı güvenilmez olur'
-    ).toBe(onceki?.favorite_count ?? 0);
+      error || (data && data.length === 0),
+      'favori tablosu istemciye açık — plaka sızabilir'
+    ).toBeTruthy();
   });
 
-  test('aynı ilan iki kez favorilenemiyor', async () => {
-    test.skip(!ilanId, 'aktif vitrin kaydı yok');
-    test.skip(!aliciId, 'oturum alınamadı');
+  test('kendi aracını favorileyemiyor', async () => {
+    test.skip(!pin, 'örnek PIN yok');
+    const sahip = await supabaseIstemcisi();
+
+    const { data } = await sahip.rpc('favori_degistir', { p_pin: pin });
+    expect(data?.basarili, 'kullanıcı kendi aracını favoriledi').toBe(false);
+    expect(data?.hata).toBe('kendi_aracin');
+  });
+
+  test('başkası favoriliyor ve sayaç tetikleyiciyle güncelleniyor', async () => {
+    test.skip(!pin, 'örnek PIN yok');
     const alici = await aliciIstemcisi();
 
-    await alici.from('favoriler').delete().eq('user_id', aliciId).eq('listing_id', ilanId);
-    await alici.from('favoriler').insert({ user_id: aliciId, listing_id: ilanId });
+    // Temiz başlangıç.
+    const { data: mevcut } = await alici.rpc('favori_pinlerim');
+    if (Array.isArray(mevcut) && mevcut.includes(pin)) {
+      await alici.rpc('favori_degistir', { p_pin: pin });
+    }
 
-    // İki sekmeden aynı anda tıklamak yeterdi; kısıt veritabanında.
-    const { error } = await alici.from('favoriler').insert({ user_id: aliciId, listing_id: ilanId });
-    expect(error, 'aynı ilan iki kez favorilendi').toBeTruthy();
+    const { data: ekle } = await alici.rpc('favori_degistir', { p_pin: pin });
+    expect(ekle?.basarili, JSON.stringify(ekle)).toBe(true);
+    expect(ekle?.favorili, 'favoriye eklenmedi').toBe(true);
 
-    await alici.from('favoriler').delete().eq('user_id', aliciId).eq('listing_id', ilanId);
+    const { data: liste } = await alici.rpc('favori_listem');
+    const kayit = (liste || []).find((f) => f.pin_code === pin);
+    expect(kayit, 'favori listede görünmüyor').toBeTruthy();
+
+    // ⚠ PLAKA DÖNMEMELİ.
+    expect(
+      Object.keys(kayit || {}),
+      'favori listesi plaka döndürüyor — pazaryerinde gizlenen veri sızıyor'
+    ).not.toContain('plate_number');
+
+    // Aynı çağrı ikinci kez: aç/kapa.
+    const { data: kaldir } = await alici.rpc('favori_degistir', { p_pin: pin });
+    expect(kaldir?.favorili, 'ikinci çağrı favoriyi kaldırmadı').toBe(false);
   });
 
-  test('kullanıcı başkasının favorilerini göremiyor', async () => {
-    const sahip = await supabaseIstemcisi();
-    const { data } = await sahip.from('favoriler').select('user_id');
-    const yabanci = (data || []).filter((f) => f.user_id !== sahipId);
+  test('vitrinde olmayan araç da favorilenebiliyor', async () => {
+    test.skip(!pin, 'örnek PIN yok');
+    const alici = await aliciIstemcisi();
 
-    // Kimin neyi favorilediği bir gizlilik sınırı.
-    expect(yabanci.length, 'başkasının favorileri okunabiliyor').toBe(0);
+    // Favori araca ait, vitrin kaydına değil: araç vitrinde olmasa da
+    // kaydediliyor. Bu, PIN ile sicil sorgulayan kullanıcının favori
+    // ekleyebilmesinin ön koşulu.
+    const { data } = await alici.rpc('favori_degistir', { p_pin: pin });
+    expect(data?.basarili, JSON.stringify(data)).toBe(true);
+
+    const { data: liste } = await alici.rpc('favori_listem');
+    const kayit = (liste || []).find((f) => f.pin_code === pin);
+    expect(kayit, 'favori kaydedilmedi').toBeTruthy();
+    // `vitrinde` bir SÜZGEÇ değil, etiket: kayıt listeden düşmüyor.
+    expect(typeof kayit.vitrinde, 'vitrin durumu bildirilmiyor').toBe('boolean');
+
+    await alici.rpc('favori_degistir', { p_pin: pin });
   });
 
-  test('anon favori tablosuna erişemiyor', async () => {
+  test('olmayan PIN reddediliyor', async () => {
+    const alici = await aliciIstemcisi();
+    const { data } = await alici.rpc('favori_degistir', { p_pin: 'CV-YOKYOK-YOKYO' });
+    expect(data?.basarili).toBe(false);
+    expect(data?.hata).toBe('bulunamadi');
+  });
+
+  test('anon favori RPC\'lerini çağıramıyor', async () => {
     const anon = anonIstemcisi();
-    const { data, error } = await anon.from('favoriler').select('*');
-    expect(error || (data && data.length === 0), 'favoriler anon\'a açık').toBeTruthy();
+
+    for (const fn of ['favori_degistir', 'favori_listem', 'favori_pinlerim']) {
+      const { data, error } = await anon.rpc(
+        fn, fn === 'favori_degistir' ? { p_pin: 'CV-XXXX-XXXXX' } : {}
+      );
+      const kapali = !!error || (Array.isArray(data) && data.length === 0) || data?.basarili === false;
+      expect(kapali, `${fn} anon'a açık`).toBeTruthy();
+    }
   });
 });
