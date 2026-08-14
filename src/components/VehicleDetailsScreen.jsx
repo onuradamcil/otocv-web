@@ -15,6 +15,7 @@ import { parseVehicleDate, formatTrDate } from '../utils/dateHelper';
 import useSicil from '../hooks/useSicil';
 import FaturaOnizleme from './common/FaturaOnizleme';
 import SicilPuaniKirilim from './common/SicilPuaniKirilim';
+import { dugme } from './common/dugme';
 import { favoriKimlikleri, favoriDegistir } from '../services/favoriService';
 // Hasar katalogu ORTAK. Bu iki sabit eskiden uc dosyada ayri ayri tanimliydi
 // ve birbirinden kaymisti: ayni parca iki farkli isimle, ayni durum iki farkli
@@ -358,38 +359,45 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
   return (
     <div className="w-full max-w-[1280px] mx-auto font-sans antialiased select-none space-y-4 relative py-4 px-4 sm:px-6">
       
-      {/* 🛡️ ÜST SEYRÜSEFER BARI */}
-      <div className="bg-slate-900 text-white rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md border border-slate-800 relative z-20 overflow-hidden">
-        <div className="flex items-center gap-3.5 z-10">
-          <button
-            type="button"
-            onClick={onBack || (() => window.history.back())}
-            className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer border border-slate-700 flex items-center gap-2 active:scale-98"
-          >
-            <Icon name="geri" size="md" strokeWidth={2.5} />
-            <span>{isPublicView ? 'Doğrulama Havuzuna Dön' : 'Garaja Güvenli Dön'}</span>
-          </button>
-          
-          <div className="space-y-0.5 hidden sm:block">
-            <div className="flex items-center gap-2">
-              <h4 className="text-xs sm:text-sm font-extrabold tracking-tight text-white">
-                OTO.CV RESMİ TESCİLLİ ARAÇ KARNESİ
-              </h4>
-              <span className="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded">
-                ● OTO.CV SİSTEM ONAYLI
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 font-normal">
-              Bu aracın tüm mekanik bakımları ve ekspertiz detayları OTO-CV altyapısıyla tescil edilmiştir.
-            </p>
-          </div>
-        </div>
+      {/* ÜST EYLEM ÇUBUĞU
+          -------------------------------------------------------------------
+          Eskiden burada `bg-slate-900` bir koyu blok vardı ve sayfanın geri
+          kalanı beyaz kartlardan oluştuğu için tek başına duruyordu; üstelik
+          en yüksek görsel ağırlık, sayfanın en az bilgi taşıyan öğesindeydi.
 
-        <div className="flex items-center gap-3 z-10 self-end sm:self-center">
+          İçindeki üç iddia da kaldırıldı:
+            · "RESMİ TESCİLLİ ARAÇ KARNESİ"
+            · "● OTO.CV SİSTEM ONAYLI"
+            · "tüm mekanik bakımları ve ekspertiz detayları ... tescil
+               edilmiştir"
+          Hiçbiri doğrulanmıyor: sistemde tescil sorgusu ve ekspertiz
+          bağlantısı yok, kayıtlar araç sahibinin beyanı. Aynı gerekçeyle
+          künyeden "%100 Tescilli", puan rozetinden "Tescil Güven Rozeti"
+          daha önce kaldırılmıştı — bu blok o temizlikten kaçmış.
+
+          Kalanlar gerçekten eylem: geri, favori, karne ve PIN. Blok 90px
+          yerine tek satır. */}
+      <div className="bg-white border border-slate-200 rounded-md px-3 py-2.5 flex flex-wrap items-center justify-between gap-2 shadow-2xs relative z-20">
+        <button
+          type="button"
+          onClick={onBack || (() => window.history.back())}
+          className={dugme('sessiz', { ek: 'gap-1.5' })}
+        >
+          <Icon name="geri" size="sm" strokeWidth={2.5} />
+          {/* "Doğrulama Havuzuna Dön" jargondu — kullanıcı böyle bir yer
+              tanımıyor. Etiket artık gidilecek yerin adı. */}
+          <span>{isPublicView ? 'Araçlara dön' : 'Garajıma dön'}</span>
+        </button>
+
+        <div className="flex items-center gap-2">
           {/* FAVORİ — sahibinden.com'daki "Favorilerime Ekle" ile aynı yer:
               içeriğin üstünde, birincil eylemlerin yanında. Yalnızca
               başkasının aracında görünüyor; kendi aracını favorilemek zaten
-              engelli. */}
+              engelli.
+
+              Favorili hâl `yikici` seviyesine benziyor ama o değil: "yıkıcı"
+              geri alınamayan işlem demek. Renk `ikincil`in üzerine yazılıyor
+              ki seviyenin anlamı bozulmasın. */}
           {isPublicView && vehicle?.pin_code && (
             <button
               type="button"
@@ -397,31 +405,27 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
               disabled={favoriIsleniyor}
               aria-pressed={favorili}
               aria-label={favorili ? 'Favorilerden çıkar' : 'Favorilerime ekle'}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer disabled:opacity-60 ${
-                favorili
-                  ? 'bg-rose-500/15 text-rose-300 border-rose-400/30 hover:bg-rose-500/25'
-                  : 'bg-slate-800/80 text-slate-200 border-slate-700 hover:bg-slate-700'
-              }`}
+              className={dugme('ikincil', {
+                ek: favorili
+                  ? 'gap-1.5 text-rose-700 border-rose-200 hover:bg-rose-50 hover:border-rose-300'
+                  : 'gap-1.5',
+              })}
             >
               <Icon name="kalp" size="sm" dolu={favorili} />
-              {favorili ? 'Favorilerimde' : 'Favorilerime Ekle'}
+              <span className="hidden sm:inline">{favorili ? 'Favorilerimde' : 'Favorilerime Ekle'}</span>
             </button>
           )}
 
           {onViewKarne && (
-            <button
-              type="button"
-              onClick={onViewKarne}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border border-indigo-400/30 shadow-xs cursor-pointer"
-            >
-              Sicil Karne Gör
+            <button type="button" onClick={onViewKarne} className={dugme('birincil')}>
+              Sicil Karnesini Gör
             </button>
           )}
 
           {pinCode && (
-            <div className="flex items-center gap-2 font-mono text-xs font-bold bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
-              <span className="text-slate-400">PIN:</span>
-              <span className="text-indigo-400">{pinCode}</span>
+            <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200">
+              <span className="text-slate-400">PIN</span>
+              <span className="text-indigo-600 select-all">{pinCode}</span>
             </div>
           )}
         </div>
@@ -498,18 +502,6 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   </div>
                 </div>
 
-                {/* PUAN KIRILIMI — GALERİNİN ALTINDA, YATAY.
-                    Eskiden künyenin İÇİNDE, puan rozetinin hemen altındaydı:
-                    altı kalemlik dikey bir liste künyeyi ekranın çok aşağısına
-                    itiyordu ve kullanıcı marka/model/km gibi temel bilgileri
-                    görmek için kaydırmak zorunda kalıyordu.
-                    Buradaki genişlik dikey listeyi ızgaraya çevirmeye yetiyor;
-                    aynı bilgi, üçte bir yer. */}
-                {puanKirilimi && (
-                  <div className="mt-3 bg-white border border-slate-200 rounded-md p-3.5">
-                    <SicilPuaniKirilim kirilim={puanKirilimi} puan={otocvScore} yatay />
-                  </div>
-                )}
               </div>
 
               {/* SAĞ: KÜNYE (FULL EKSİKSİZ VE ZIRHLI METRİK MATRİSİ) */}
@@ -640,8 +632,33 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                     </div>
                   </div>
                 </div>
+
               </div>
             </div>
+
+            {/* PUAN KIRILIMI — İKİ SÜTUNUN ALTINDA, TAM GENİŞLİK.
+                -----------------------------------------------------------
+                Yeri tahminle değil ölçülerek seçildi ve ölçüm ilk iki
+                denemeyi de çürüttü:
+
+                  · kırılım galeri sütunundayken  → galeri 1032px, künye 667px
+                    (künyenin altında 366px boşluk)
+                  · kırılım künye sütunundayken   → galeri 689px, künye 1135px
+                    (galerinin altında 446px boşluk)
+
+                Sebep üçüncü ölçümde görüldü: kırılım HİÇBİR sütunda değilken
+                galeri 689px, künye 667px — yani iki sütun zaten dengeli.
+                Künyenin altındaki boşluğu kırılımın kendisi açıyordu; onu o
+                boşluğa taşımak sorunu çözmüyor, aynadan yansıtıyordu.
+
+                Tam genişlikte ise kalem satırları 1140px'e yayılıyor: ad,
+                açıklama ve puan tek satıra sığdığı için altı kalem ~210px
+                tutuyor ve iki sütun da dengede kalıyor. */}
+            {puanKirilimi && (
+              <div className="pt-4 border-t border-slate-100">
+                <SicilPuaniKirilim kirilim={puanKirilimi} puan={otocvScore} />
+              </div>
+            )}
           </div>
 
           {/* PANEL 2: DETAYLAR KARTI (STICKY HEADER) */}
