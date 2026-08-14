@@ -126,64 +126,41 @@ export const unpublishVehicleListing = async (vehicle) => {
 };
 
 /**
- * Pazaryerindeki aktif ilanları ve ilişkili araç bilgilerini tek sorguda çeker.
+ * Pazaryerindeki aktif vitrin kayıtlarını çeker.
+ *
+ * -------------------------------------------------------------------------
+ * NİYE DOĞRUDAN SORGU DEĞİL RPC
+ * -------------------------------------------------------------------------
+ * Eskiden `from('listings').select('*, vehicles(*)')` çağrılıyordu. Ama
+ * `vehicles` tablosunun SELECT politikası YALNIZCA SAHİBE açık, dolayısıyla
+ * başka bir kullanıcı ya da ziyaretçi için `item.vehicles` NULL dönüyordu.
+ *
+ * Üç hesapla ölçüldü, aynı sorgu:
+ *     SAHİP : 2 ilan -> arac_geldi=true,  pin=CV-8YW4W-R5Z4F
+ *     ALICI : 2 ilan -> arac_geldi=false, pin=YOK
+ *     ANON  : 2 ilan -> arac_geldi=false, pin=YOK
+ *
+ * Yani kartlar marka/model/puan/görsel olmadan çiziliyor, karta tıklanınca
+ * `pin_code` undefined olduğu için `/details/undefined` açılıyordu. Ürünün
+ * kamuya bakan yüzü, sahibi dışında herkes için çalışmıyordu.
+ *
+ * "Vitrindekiler herkese okunsun" politikası eklemek en kısa yoldu ama
+ * satırın TAMAMINI açardı ve satırda `plate_number` var — plaka üründe
+ * bilerek gizleniyor. Çözüm favori ve mesaj servislerindeki kalıbın aynısı:
+ * güvenli izdüşüm döndüren `security definer` fonksiyon.
  */
 export const fetchMarketplaceListings = async (filters = {}) => {
   try {
-    let query = supabase
-      .from('listings')
-      .select('*, vehicles(*)')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false });
-
-    if (filters.city && filters.city !== 'Tümü') {
-      query = query.eq('city', filters.city);
-    }
-
-    // KULLANICI SÜZGECİ SUNUCUDA.
-    //
-    // `/my-listings` eskiden TÜM aktif ilanları indirip istemcide
-    // `item.user_id === user.id` ile süzüyordu. Üç aracı olan kullanıcı
-    // bütün pazaryerini indiriyordu — yüz binlerce kullanıcı hedefiyle
-    // taban tabana zıt. Süzgeç artık sorguda.
-    if (filters.userId) {
-      query = query.eq('user_id', filters.userId);
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-
-    // İlişkisel gelen araç verilerini düzleştirip hazır nesneye dönüştürme
-    const formattedListings = (data || []).map(item => {
-      const v = item.vehicles || {};
-      return {
-        listing_id: item.id,
-        user_id: item.user_id, // 🚀 KRİTİK DÜZELTME: user_id EKLENDİ!
-        listing_title: item.title,
-        listing_description: item.description,
-        city: item.city,
-        district: item.district,
-        tramer_amount: item.tramer_amount,
-        is_featured: item.is_featured || false,
-        views_count: item.views_count || 0, // 📊 Okunma sayısı
-        favorite_count: item.favorite_count || 0, // ❤️ Favori sayısı
-        created_at: item.created_at,
-        // Vehicles tablosundan birleşen veriler
-        plate_number: item.vehicle_plate,
-        brand: v.brand,
-        model: v.model,
-        year: v.year,
-        km: v.km,
-        package: v.package,
-        fuel_type: v.fuel_type,
-        gear_type: v.gear_type || 'Otomatik',
-        trust_score: v.trust_score,
-        image_url: v.image_url,
-        pin_code: v.pin_code
-      };
+    const { data, error } = await supabase.rpc('vitrin_listesi', {
+      p_sehir: filters.city && filters.city !== 'Tümü' ? filters.city : null,
+      p_kullanici: filters.userId || null,
     });
 
-    return { success: true, data: formattedListings };
+    if (error) throw error;
+
+    // RPC zaten düzleştirilmiş nesne döndürüyor; istemcide yeniden
+    // eşleme yapmak iki kopya demekti.
+    return { success: true, data: Array.isArray(data) ? data : [] };
   } catch (error) {
     console.error('❌ [Marketplace Service] İlanları çekme hatası:', error.message);
     return { success: false, error: error.message, data: [] };
