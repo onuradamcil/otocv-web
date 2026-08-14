@@ -420,71 +420,91 @@ export default function MarketplaceView({
 
             
             {/* =====================================================================
-                HİZMET ŞERİDİ — BEŞ EŞİT KARTTAN HİYERARŞİYE
+                HİZMET ŞERİDİ — BEŞ KART, HOVER'DA YÜKSELEN
 
-                Eski hâli beş kutuydu: aynı boyut, aynı ağırlık, aynı sesle
-                bağıran beş öğe. Hepsi eşit olunca hiçbiri öne çıkmıyor ve
-                şerit "bir şeyler koyalım" gibi duruyordu.
+                Bu şerit bir ara hiyerarşik bir düzene (bir baskın + üç
+                yardımcı) çevrilmişti; geri alındı. Beş eşit kart ürün
+                sahibinin tercihi ve şeridin işi bir eylemi dayatmak değil,
+                platformun beş kapısını aynı anda göstermek.
 
-                İki somut kusur vardı:
-                  · "Künye Sorgula" ve "Sicil Sorgula" AYNI yere gidiyordu
-                    (ikisi de `onNavigateToVerify`). Kullanıcıya iki kapı
-                    gösterip tek odaya çıkarmak.
-                  · Hero arama kutusu "PIN kodu ile ara" diyor ama PIN'i hiç
-                    işlemiyordu — o da düzeltildi.
+                TEK REVİZYON — ÇİFT KAPI KAPATILDI:
+                Eski beşlide "Künye Sorgula" ve "Sicil Sorgula" kartlarının
+                İKİSİ de `onNavigateToVerify`e gidiyordu; kullanıcıya iki
+                kapı gösterip tek odaya çıkarıyordu. PIN sorgusu tek kartta
+                birleşti, boşalan yere gerçek ve ayrı bir iş kondu: araç
+                devri (`/devir`).
 
-                Yeni yapı: ürünün ÇEKİRDEK eylemi (PIN ile sicil sorgulama)
-                geniş ve baskın; yardımcı üç hizmet yanında ince bir sütunda.
-                Şerit artık ne yapılacağını söylüyor, seçenek sıralamıyor.
+                Kartlar `<button>`; `<div onClick>` klavyeyle kullanılamıyor.
+                Yükselme efekti `motion-reduce` ile kapanıyor — hareket
+                duyarlılığı olan kullanıcı için sektör standardı.
             ===================================================================== */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 select-none">
-
-              {/* ÇEKİRDEK EYLEM */}
-              <button
-                type="button"
-                onClick={onNavigateToVerify}
-                className="lg:col-span-2 group text-left bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-700 text-white rounded-2xl p-5 flex flex-col justify-between min-h-[128px] transition-all shadow-sm hover:shadow-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
-              >
-                <div className="flex items-start gap-3">
-                  <span className="w-10 h-10 rounded-xl bg-white/15 grid place-items-center shrink-0 group-hover:bg-white/25 transition-colors">
-                    <Icon name="pinKod" size="lg" />
-                  </span>
-                  <div className="min-w-0">
-                    <h3 className="text-sm font-black tracking-tight">Sicil Sorgula</h3>
-                    <p className="text-[11px] text-indigo-100 font-medium leading-relaxed mt-0.5">
-                      Elinizdeki PIN ile aracın bakım geçmişini, poliçe durumunu ve
-                      sicil puanını görün.
-                    </p>
-                  </div>
-                </div>
-                <span className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-black">
-                  Karneyi aç
-                  <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </span>
-              </button>
-
-              {/* YARDIMCI HİZMETLER */}
-              <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs select-none">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 {[
-                  { ad: 'Garajım',        ozet: 'Tescilli araçlarınız ve geçmişi.', ikon: 'arac',   eylem: onNavigateToGarage,      renk: 'text-blue-600 bg-blue-50 border-blue-100' },
-                  { ad: 'Sigorta & Kasko', ozet: 'Poliçe tekliflerini karşılaştırın.', ikon: 'kalkan', eylem: onNavigateToInsurance,  renk: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
-                  { ad: 'Bakım Takvimi',  ozet: 'Periyodik servis ve faturalar.',   ikon: 'takvim', eylem: onNavigateToMaintenance, renk: 'text-amber-600 bg-amber-50 border-amber-100' },
-                ].map((h) => (
+                  {
+                    ad: 'Tescilli Garajım', ozet: 'Ruhsatlı araçlarınızı ve geçmişi yönetin.',
+                    eylem: 'Garajıma Git', ikon: 'arac', tik: onNavigateToGarage,
+                    kabart: 'bg-blue-600', yazi: 'group-hover:text-blue-600',
+                    alt: 'text-blue-600 border-blue-600',
+                  },
+                  {
+                    ad: 'Sicil Sorgula', ozet: 'PIN ile aracın karnesini ve geçmişini açın.',
+                    eylem: 'Sorgulama Yap', ikon: 'pinKod', tik: onNavigateToVerify,
+                    kabart: 'bg-rose-600', yazi: 'group-hover:text-rose-600',
+                    alt: 'text-rose-600 border-rose-600',
+                  },
+                  {
+                    ad: 'Sigorta & Kasko', ozet: 'Canlı poliçe tekliflerini karşılaştırın.',
+                    eylem: 'Teklif Al', ikon: 'kalkan', tik: onNavigateToInsurance,
+                    kabart: 'bg-slate-800', yazi: 'group-hover:text-slate-900',
+                    alt: 'text-slate-900 border-slate-900',
+                  },
+                  {
+                    ad: 'Bakım Takvimi', ozet: 'Periyodik servis ve usta faturaları.',
+                    // Eskiden burada da `anahtar` vardı ve devir kartıyla
+                    // aynı ikonu paylaşıyordu. Takvim işi takvim ikonu,
+                    // anahtar ise devrin kendisi.
+                    eylem: 'Randevu Al', ikon: 'takvim', tik: onNavigateToMaintenance,
+                    kabart: 'bg-slate-500', yazi: 'group-hover:text-slate-700',
+                    alt: 'text-slate-700 border-slate-700',
+                  },
+                  {
+                    // "AI Değerleme" bu sırada duruyordu ve tıklanınca yalnızca
+                    // "yakında" bildirimi basıyordu; ayrıca araç değeri
+                    // göstermek platformu satış sitesi konumuna sokuyordu.
+                    // Yerine gelen "Sicil Sorgula" ise 2. kartın kopyasıydı.
+                    // Şimdi burada gerçekten ayrı bir iş var.
+                    ad: 'Araç Devir', ozet: 'Sicili yeni sahibine devredin.',
+                    eylem: 'Devri Başlat', ikon: 'anahtar', tik: () => router.push('/devir'),
+                    kabart: 'bg-indigo-600', yazi: 'group-hover:text-indigo-600',
+                    alt: 'text-indigo-600 border-indigo-500',
+                  },
+                ].map((k, i) => (
                   <button
-                    key={h.ad}
+                    key={k.ad}
                     type="button"
-                    onClick={h.eylem}
-                    className="group text-left bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm rounded-2xl p-4 flex flex-col justify-between min-h-[128px] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
+                    onClick={k.tik}
+                    className={`bg-white border border-slate-200/90 rounded-md p-3 transition-all duration-200
+                      hover:-translate-y-1 hover:shadow-md hover:border-slate-300
+                      motion-reduce:transition-none motion-reduce:hover:translate-y-0
+                      cursor-pointer group flex flex-col justify-between min-h-[110px] text-left w-full
+                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600
+                      ${i === 4 ? 'col-span-2 sm:col-span-1' : ''}`}
                   >
-                    <span className={`w-9 h-9 rounded-xl grid place-items-center border ${h.renk}`}>
-                      <Icon name={h.ikon} size="md" />
-                    </span>
-                    <span className="mt-3 block">
-                      <span className="block text-xs font-black text-slate-900 tracking-tight">{h.ad}</span>
-                      <span className="block text-[11px] text-slate-500 font-medium leading-relaxed mt-0.5">{h.ozet}</span>
-                    </span>
+                    <div>
+                      <div className={`w-6 h-6 rounded-full text-white flex items-center justify-center mb-2 shadow-xs ${k.kabart}`}>
+                        <Icon name={k.ikon} size="sm" />
+                      </div>
+                      <h4 className={`text-xs font-bold text-slate-900 transition-colors ${k.yazi}`}>
+                        {k.ad}
+                      </h4>
+                      <p className="text-[10px] text-slate-500 font-normal leading-tight mt-0.5">
+                        {k.ozet}
+                      </p>
+                    </div>
+                    <div className={`mt-2 text-[10px] font-bold border-b-2 w-max opacity-80 group-hover:opacity-100 transition-all ${k.alt}`}>
+                      {k.eylem} &gt;
+                    </div>
                   </button>
                 ))}
               </div>
