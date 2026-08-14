@@ -600,7 +600,12 @@ test.describe('Devir ödeme ekranı', () => {
     expect(metin, 'süre dolarsa ne olacağı söylenmiyor').toContain('sıfırlanır');
 
     // ---- ödeme ----
+    // Düğme artık doğrudan devretmiyor, önce ödeme onayı (paywall) açıyor;
+    // vitrine çıkarmadaki akışın aynısı.
     await page.getByRole('button', { name: /Ücreti öde ve devral/i }).click();
+    await expect(page.getByRole('heading', { name: 'Devir ücreti' }))
+      .toBeVisible({ timeout: 20_000 });
+    await page.getByRole('button', { name: /Öde \(Demo\)/i }).click();
     await page.waitForURL('**/garage', { timeout: 30_000 });
 
     const { data: aracAlicida } = await alici
@@ -681,5 +686,86 @@ test.describe('Gelen talepler ve bildirim hedefi', () => {
     for (const b of data) {
       expect(b.hedef_yol, `geçersiz hedef: ${b.hedef_yol}`).toMatch(/^\//);
     }
+  });
+});
+
+// =========================================================================
+// DEVİR ÜCRETİ: DEMO ÖDEME AKIŞI
+//
+// Ücret eskiden düğmeye basınca sessizce tahsil ediliyordu; kullanıcı ne
+// için ödediğini onaylayacağı bir ekran görmüyordu. Artık vitrine
+// çıkarmadaki `PaywallDialog` akışının aynısı.
+//
+// ⚠ BU PAKETİN ASIL DENETİMİ: TEK satın alma kaydı oluşmalı.
+// `PaywallDialog` normalde kaydı KENDİSİ üretiyor; `devir_odeyip_tamamla`
+// da üretiyor. İkisi birden çalışsaydı kullanıcı iki kez ücretlendirilmiş
+// görünürdü. Diyalog bu yüzden `kaydiCagiranUretir` ile açılıyor.
+// =========================================================================
+test.describe('Devir ücreti demo ödemesi', () => {
+
+  test('arayüzdeki tutar sunucudakiyle aynı', async () => {
+    const alici = await aliciIstemcisi();
+    const { data: sunucuUcret } = await alici.rpc('devir_ucreti');
+
+    // Katalogdaki gösterim tutarı ile sunucunun tahsil ettiği tutar
+    // ayrışırsa kullanıcı bir rakam görüp başkasını öder. Katalogda 199,
+    // sunucuda 150 yazıyordu.
+    const { URUNLER } = require('../src/data/paketler');
+    expect(
+      Number(URUNLER.devir.fiyat),
+      'katalog fiyatı sunucudaki `devir_ucreti()` ile uyuşmuyor'
+    ).toBe(Number(sunucuUcret));
+  });
+
+  test('ödeme paywall\'dan geçiyor ve TEK satın alma kaydı üretiyor', async ({ page }) => {
+    const satici = await supabaseIstemcisi();
+    const alici = await aliciIstemcisi();
+    const { data: { user: aliciUser } } = await alici.auth.getUser();
+
+    const { count: once } = await alici
+      .from('satin_almalar').select('*', { count: 'exact', head: true })
+      .eq('user_id', aliciUser.id).eq('urun_kodu', 'devir');
+
+    await rpc(satici, 'devir_kodu_iptal', { p_plaka: DEVIR_PLAKA });
+    const kod = await rpc(satici, 'devir_kodu_uret', { p_plaka: DEVIR_PLAKA, p_riza_metni: RIZA });
+    test.skip(!kod?.kod, 'kod üretilemedi (araç bu koşumda satıcıda değil)');
+
+    const istek = await rpc(alici, 'devir_istek_olustur', { p_kod: kod.kod });
+    await rpc(satici, 'devir_istek_karari', { p_istek_id: istek.istek_id, p_onay: true });
+
+    await girisYapAlici(page);
+    await page.goto('/devir');
+    await page.waitForLoadState('networkidle');
+
+    await page.getByRole('button', { name: /Ücreti öde ve devral/i }).first().click();
+
+    // Paywall açılmalı: kullanıcı ne için ödediğini onaylıyor.
+    await expect(page.getByRole('heading', { name: 'Devir ücreti' }))
+      .toBeVisible({ timeout: 20_000 });
+
+    // ⚠ `hamMetin` HAM DOM metnini veriyor; ekrandaki büyük harfler CSS'ten
+    // geliyor ve buraya yansımıyor. Bu tuzağa daha önce de düşülmüştü.
+    const metin = await hamMetin(page);
+    expect(metin, 'demo uyarısı yok').toContain('gerçek ödeme alınmıyor');
+    expect(metin, 'gerçek tahsilat yapılmadığı söylenmiyor')
+      .toContain('kartınızdan hiçbir tutar çekilmez');
+    expect(metin, 'katalogdan kalan eski tutar görünüyor').not.toContain('₺199');
+
+    await page.getByRole('button', { name: /Öde \(Demo\)/i }).click();
+    await page.waitForURL('**/garage', { timeout: 30_000 });
+
+    const { data: aracAlicida } = await alici
+      .from('vehicles').select('plate_number').eq('plate_number', DEVIR_PLAKA);
+    expect(aracAlicida?.length, 'ödeme sonrası araç geçmedi').toBe(1);
+
+    // ⚠ ASIL DENETİM.
+    const { count: sonra } = await alici
+      .from('satin_almalar').select('*', { count: 'exact', head: true })
+      .eq('user_id', aliciUser.id).eq('urun_kodu', 'devir');
+    expect(sonra, 'devir için birden fazla satın alma kaydı oluştu').toBe((once || 0) + 1);
+
+    // Temizlik: araç geri devrediliyor.
+    const geri = await rpc(alici, 'devir_kodu_uret', { p_plaka: DEVIR_PLAKA, p_riza_metni: RIZA });
+    if (geri?.kod) await devriTamamla(satici, alici, geri.kod);
   });
 });

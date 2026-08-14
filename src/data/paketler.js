@@ -59,7 +59,13 @@ export const URUNLER = {
     tur: 'tuketilebilir',
     ad: 'Araç Devri',
     ozet: 'Aracın sicilini yeni sahibine aktarın',
-    fiyat: 199,
+    // ⚠ SUNUCUDAKİ `devir_ucreti()` İLE AYNI OLMAK ZORUNDA.
+    // Burada 199, sunucuda 150 yazıyordu: arayüz bir tutar gösterip
+    // veritabanı başkasını tahsil ediyordu. Devir ücreti satın alma kaydını
+    // `devir_odeyip_tamamla` oluşturuyor ve tutarı SUNUCUDAN yazıyor —
+    // yani gerçek tahsil edilen sayı odur, bu satır yalnızca gösterim.
+    // Değiştirilecekse önce `devir_ucreti()` değişmeli.
+    fiyat: 150,
     kazanimlar: [
       'Tüm bakım kayıtları ve sicil puanı yeni sahibe geçer',
       'Fatura belgeleri araçla birlikte aktarılır',

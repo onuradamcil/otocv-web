@@ -35,6 +35,8 @@ import { useToast } from '../../context/ToastContext';
 import { devirBekleyenlerim, devirOdeyipTamamla } from '../../services/devirService';
 import useCanliTazeleme from '../../hooks/useCanliTazeleme';
 import { aracKapakGorseli } from '../../utils/aracGorseli';
+import PaywallDialog from '../common/PaywallDialog';
+import { URUNLER } from '../../data/paketler';
 
 /** "1 gün 4 saat" gibi okunur kalan süre. Geçmişse null. */
 function kalanSure(sonTarih) {
@@ -55,7 +57,8 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
   const toast = useToast();
   const [durum, setDurum] = useState('yukleniyor'); // yukleniyor | hazir | hata
   const [liste, setListe] = useState([]);
-  const [odenen, setOdenen] = useState(null); // işlemdeki istek_id
+  const [odenen, setOdenen] = useState(null);       // işlemdeki istek_id
+  const [paywallIstek, setPaywallIstek] = useState(null); // ödeme onayı bekleyen kayıt
 
   const yukle = useCallback(async (iskeletGoster = true) => {
     if (iskeletGoster) setDurum('yukleniyor');
@@ -79,7 +82,21 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
   // liste ekranda dururken altından çekmek kötü.
   useCanliTazeleme(['devir', 'success', 'warning'], () => yukle(false));
 
+  /**
+   * ⚠ ÖDEME KAYDINI PAYWALL DEĞİL, RPC ÜRETİYOR.
+   *
+   * `PaywallDialog` normalde `satin_almalar` kaydını kendisi oluşturuyor
+   * (gerekçesi orada yazılı). Devirde bu YANLIŞ olurdu: kaydı
+   * `devir_odeyip_tamamla` sahiplik değişimiyle AYNI işlemde oluşturuyor,
+   * tutarı sunucudaki `devir_ucreti()` sabitinden yazıyor ve devir
+   * başarısız olursa `iade` ediyor. İkisi birden kayıt üretseydi kullanıcı
+   * iki kez ücretlendirilmiş görünürdü.
+   *
+   * Bu yüzden diyalog `kaydiCagiranUretir` ile açılıyor: onayı topluyor,
+   * kaydı bırakıyor.
+   */
   async function ode(istekId) {
+    setPaywallIstek(null);
     setOdenen(istekId);
     const r = await devirOdeyipTamamla(istekId);
     setOdenen(null);
@@ -185,7 +202,7 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
                     </div>
                     <button
                       type="button"
-                      onClick={() => ode(d.istek_id)}
+                      onClick={() => setPaywallIstek(d)}
                       disabled={!sure || odenen === d.istek_id}
                       className={dugme('birincil')}
                     >
@@ -208,6 +225,39 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
           );
         })}
       </ul>
+
+      {/* ÖDEME ONAYI — vitrine çıkarmadaki akışın aynısı.
+          Kullanıcı ne için ödediğini, hangi araç olduğunu ve tutarı tek
+          ekranda görüyor; demo modda gerçek tahsilat yok. */}
+      {paywallIstek && (
+        <PaywallDialog
+          urunKodu={URUNLER.devir.kod}
+          baslik="Devir ücreti"
+          kaydiCagiranUretir
+          detay={
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-lg bg-white border border-slate-200 overflow-hidden shrink-0 grid place-items-center">
+                <img
+                  src={aracKapakGorseli(paywallIstek.image_url)}
+                  alt=""
+                  className="w-full h-full object-contain"
+                  onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-car.jpg'; }}
+                />
+              </span>
+              <span className="min-w-0">
+                <span className="block metin-govde font-bold text-slate-900 truncate">
+                  {paywallIstek.year} {paywallIstek.brand} {paywallIstek.model}
+                </span>
+                <span className="block metin-yardimci font-mono text-indigo-600">
+                  {paywallIstek.pin_code}
+                </span>
+              </span>
+            </div>
+          }
+          onKapat={() => setPaywallIstek(null)}
+          onSatinAl={() => ode(paywallIstek.istek_id)}
+        />
+      )}
     </section>
   );
 }

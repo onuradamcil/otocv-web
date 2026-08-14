@@ -40,8 +40,23 @@ import { demoSatinAl } from '../../services/odemeService';
  * @param {node}    [props.detay]    Ürünün altında gösterilecek bağlam (örn. araç kartı)
  * @param {Function} props.onKapat
  * @param {Function} props.onSatinAl Demo satın alma onaylandığında çağrılır
+ * @param {boolean} [props.kaydiCagiranUretir=false]
+ *   TRUE ise bu diyalog `satin_almalar` kaydını ÜRETMEZ, yalnızca onayı
+ *   toplar ve `onSatinAl`ı çağırır.
+ *
+ *   Varsayılan davranış (kaydı diyalogun üretmesi) bilinçli bir korumadır —
+ *   gerekçesi `satinAl` içinde yazılı. Bu bayrak yalnızca çağıranın kaydı
+ *   İŞLEMLE BİRLİKTE, tek bir sunucu çağrısında ürettiği durumda açılmalı.
+ *
+ *   Tek kullanıcısı devir: `devir_odeyip_tamamla` satın alma kaydını
+ *   sahiplik değişimiyle AYNI işlemde oluşturuyor, tutarı sunucudaki
+ *   sabitten yazıyor ve devir başarısız olursa kaydı `iade` ediyor.
+ *   Yani oradaki güvence bu diyalogunkinden daha güçlü; iki kayıt üretmek
+ *   ise kullanıcıdan iki kez ücret alınmış gibi görünürdü.
  */
-export default function PaywallDialog({ urunKodu, baslik, detay, onKapat, onSatinAl }) {
+export default function PaywallDialog({
+  urunKodu, baslik, detay, onKapat, onSatinAl, kaydiCagiranUretir = false,
+}) {
   const [islemde, setIslemde] = useState(false);
   const [hata, setHata] = useState('');
   const urun = urunGetir(urunKodu);
@@ -63,15 +78,22 @@ export default function PaywallDialog({ urunKodu, baslik, detay, onKapat, onSati
     setIslemde(true);
     setHata('');
 
-    const sonuc = await demoSatinAl(urun.kod, urun.fiyat);
-    if (!sonuc.basarili) {
-      setHata(sonuc.hata);
-      setIslemde(false);
-      return;
+    let veri = null;
+
+    if (!kaydiCagiranUretir) {
+      const sonuc = await demoSatinAl(urun.kod, urun.fiyat);
+      if (!sonuc.basarili) {
+        setHata(sonuc.hata);
+        setIslemde(false);
+        return;
+      }
+      veri = sonuc.veri;
     }
 
     try {
-      await onSatinAl?.(urun, sonuc.veri);
+      // Çağıran kaydı kendisi üretiyorsa hatayı da o bildiriyor; burada
+      // yalnızca diyalog kapanma sorumluluğu çağırana geçiyor.
+      await onSatinAl?.(urun, veri);
     } finally {
       setIslemde(false);
     }
