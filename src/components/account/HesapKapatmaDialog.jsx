@@ -161,7 +161,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
               <div className="bg-rose-50 border border-rose-200/80 rounded-2xl p-4 space-y-2">
                 <p className="text-xs font-black text-rose-900">Bu işlem geri alınamıyor</p>
                 <ul className="text-[11px] text-rose-900/80 font-semibold leading-relaxed space-y-1 list-disc pl-4">
-                  <li>Profiliniz, ilanlarınız ve bildirimleriniz silinecek.</li>
+                  <li>Profiliniz, vitrin kartlarınız ve bildirimleriniz silinecek.</li>
                   <li>Araç kayıtları ve bakım geçmişi silinmeyecek; sahipsiz havuza geçecek.</li>
                   <li>Aynı e-posta ile yeniden kayıt olabilirsiniz, ancak eski hesabınız geri gelmez.</li>
                 </ul>

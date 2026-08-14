@@ -87,7 +87,7 @@ export default function MarketplaceView({
         setListings(result.data || []);
       }
     } catch (error) {
-      console.error("İlanlar yüklenirken hata oluştu:", error);
+      console.error("Vitrin yüklenirken hata oluştu:", error);
     } finally {
       setLoading(false);
     }
@@ -127,7 +127,7 @@ export default function MarketplaceView({
     };
   }, [listings]);
 
-  // Vitrin İlanları (Sadece Dopingli İlanlar)
+  // Vitrindeki Araçlar (Sadece Dopingli İlanlar)
   const featuredListings = useMemo(() => {
     return listings
       .filter(item => item.is_featured === true)
@@ -207,7 +207,7 @@ export default function MarketplaceView({
               </button>
             )}
             <button type="button" className="bg-[#0F172A] hover:bg-slate-800 text-white font-bold text-xs px-5 py-2 rounded-md transition-all active:scale-95 shrink-0 cursor-pointer">
-              İlan Ara
+              Araç Ara
             </button>
           </div>
         </div>
@@ -236,7 +236,7 @@ export default function MarketplaceView({
                       : 'border-transparent text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <span>Vitrin İlanları</span>
+                  <span>Vitrindeki Araçlar</span>
                   <span className="text-xs text-slate-400 font-mono font-normal">({featuredListings.length})</span>
                 </div>
 
@@ -448,7 +448,7 @@ export default function MarketplaceView({
   
   {/* SOL KANAT: SADE VE NET BAŞLIK */}
   <h3 className="text-lg font-black text-slate-900 tracking-tight">
-    Vitrin İlanları
+    Vitrindeki Araçlar
   </h3>
 
   {/* SAĞ KANAT: TÜMÜNÜ GÖSTER LINKI */}
@@ -457,7 +457,7 @@ export default function MarketplaceView({
       onClick={() => setShowAllVitrin(!showAllVitrin)}
       className="text-xs font-bold text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer flex items-center gap-1"
     >
-      <span>{showAllVitrin ? 'Görünümü Daralt' : 'Tüm vitrin ilanları >'}</span>
+      <span>{showAllVitrin ? 'Görünümü Daralt' : 'Tüm vitrin araçları >'}</span>
     </button>
   )}
 </div>
@@ -468,7 +468,7 @@ export default function MarketplaceView({
                 <GlobalStepLoader mode="iskelet" varyant="kart" kapsayici={false} baslik={false} adet={6} />
               ) : displayedVitrinListings.length === 0 ? (
                 <div className="py-16 flex flex-col items-center justify-center text-center space-y-2 bg-white rounded-md border border-dashed border-slate-200 p-6">
-                  <h4 className="text-xs font-bold text-slate-900">Anasayfa Vitrininde İlan Bulunamadı</h4>
+                  <h4 className="text-xs font-bold text-slate-900">Vitrinde Araç Bulunamadı</h4>
                   <p className="text-[11px] text-slate-500 mt-0.5">
                     Anasayfada sadece <b>₺250 Vitrin Dopingi</b> satın alınan ayrıcalıklı araçlar sergilenmektedir.
                   </p>

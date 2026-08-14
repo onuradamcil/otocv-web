@@ -1129,7 +1129,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
               </button>
               <button type="button" onClick={() => toast.bilgi('Mesajlaşma yakında açılacak.')} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-2.5 px-4 rounded transition-all cursor-pointer flex items-center justify-center gap-2 border border-slate-200/80">
                 <svg className="w-4 h-4 text-slate-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
-                <span>Satıcıya Mesaj Gönder</span>
+                <span>Araç Sahibine Mesaj</span>
               </button>
             </div>
 

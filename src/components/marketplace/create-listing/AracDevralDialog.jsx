@@ -248,7 +248,7 @@ export default function AracDevralDialog({
               <form onSubmit={(e) => { e.preventDefault(); onizlemeAl(); }} className="space-y-4">
                 <div className="space-y-1.5">
                   <label htmlFor="devir-kodu" className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                    Satıcıdan aldığınız devir kodu
+                    Aracı devreden kişiden aldığınız devir kodu
                   </label>
                   <input
                     id="devir-kodu"
@@ -322,7 +322,7 @@ export default function AracDevralDialog({
                     çalışmayan bir düğme bırakmamak için arayüzden de
                     kalktı. */}
                 <p className="text-[11px] text-slate-500 leading-relaxed text-center pt-1">
-                  Devir kodunu, aracı satan kişi OTO.CV garajından üretip size verir.
+                  Devir kodunu, aracı devreden kişi OTO.CV garajından üretip size verir.
                   Sicil yalnızca onun onayıyla geçer.
                 </p>
               </div>

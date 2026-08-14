@@ -98,7 +98,7 @@ export const URUNLER = {
       'Araç başına sınırsız bakım kaydı',
       'Ayrı dijital karne ve paylaşılabilir PIN',
       'Sigorta, kasko ve muayene takibi',
-      'İlan verme hakkı',
+      'Vitrine çıkarma hakkı',
     ],
   },
 

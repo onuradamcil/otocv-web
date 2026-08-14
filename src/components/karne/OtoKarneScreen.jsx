@@ -98,17 +98,17 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
     if (activeTab === 0) {
       if (!cardRef.current) return;
       try {
-        showToast('İlan kartı yüksek çözünürlükte derleniyor...', 'info');
+        showToast('Sicil kartı yüksek çözünürlükte derleniyor...', 'info');
         const dataUrl = await toPng(cardRef.current, {
           quality: 1.0,
           pixelRatio: 2, 
           skipFonts: true
         });
         const downloadLink = document.createElement('a');
-        downloadLink.download = `OtoCV_Ilan_Karti_${pinCode}.png`;
+        downloadLink.download = `OtoCV_Sicil_Karti_${pinCode}.png`;
         downloadLink.href = dataUrl;
         downloadLink.click();
-        showToast('İlan Reklam Kartı (PNG) galeriye indirildi.', 'success');
+        showToast('Sicil kartı (PNG) indirildi.', 'success');
       } catch (error) {
         showToast('Görsel dosyası oluşturulurken bir hata oluştu.', 'error');
       }
@@ -199,14 +199,14 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
                   <Icon name="karne" size="md" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-base font-extrabold text-slate-900 tracking-tight">Pazaryeri Satış Operasyonlarınızı Hızlandırın</h3>
+                  <h3 className="text-base font-extrabold text-slate-900 tracking-tight">Aracınızın Sicilini Görünür Kılın</h3>
                   <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed">
-                    İlgili tescil paneli, ilan platformlarında ve dijital mecralarda potansiyel alıcı kitlesine şeffaf ve güvenilir kurumsal veri sunabilmeniz adına tescil edilmiştir.
+                    Bu tescil paneli, aracınızın bakım geçmişini ve sicil puanını tek bir görselde özetler; paylaştığınız her yerde belgeli veriyi gösterir.
                   </p>
                 </div>
                 <div className="bg-amber-50 border border-amber-100/70 p-4 rounded-xl flex gap-2 text-xs font-semibold text-amber-900 leading-relaxed">
                   <div className="w-1.5 h-1.5 bg-amber-600 rounded-full shrink-0 mt-1.5" />
-                  <p>Doğrulanmış profile sahip satıcılar, bu dijital belgeyi ilan fotoğraflarının arasına konumlandırarak alıcı kitlesinin güvenini üst seviyeye çıkarırlar.</p>
+                  <p>Bu dijital belgeyi araç fotoğraflarınızın arasına koyarak aracın bakım geçmişinin belgeli olduğunu ilk bakışta gösterebilirsiniz.</p>
                 </div>
               </div>
 

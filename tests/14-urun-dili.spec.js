@@ -46,6 +46,25 @@ test.describe('Ürün dili', () => {
     ).toBeNull();
   });
 
+  // Yasaklı kelimeler ekranlara sızmaya devam ediyordu: her turda birkaçı
+  // daha bulundu ("Tescil / İlan No", "Satıcıya Mesaj Gönder", karne
+  // kartındaki "Pazaryeri Satış Operasyonları"). Tek tek aramak yerine
+  // ekranları tarayan bir test daha güvenilir.
+  const YASAKLI = ['İlan', 'Satıcı', 'Satış', 'satıcı'];
+
+  for (const yol of ['/', '/devir', '/verify']) {
+    test(`${yol} — satış sitesi dili yok`, async ({ page }) => {
+      await page.goto(yol);
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1500);
+
+      const metin = await hamMetin(page);
+      for (const kelime of YASAKLI) {
+        expect(metin, `${yol} sayfasında "${kelime}" geçiyor`).not.toContain(kelime);
+      }
+    });
+  }
+
   test('pazaryerinde fiyat süzgeci ve değerleme kalmadı', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');

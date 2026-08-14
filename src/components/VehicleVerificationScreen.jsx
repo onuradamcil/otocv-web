@@ -118,7 +118,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
         </span>
         <h1 className="text-3xl font-black text-slate-900 tracking-tight">Oto-Karne Doğrula</h1>
         <p className="text-xs md:text-sm text-slate-400 font-medium leading-relaxed">
-          Satıcı tarafından paylaşılan benzersiz PIN kodunu girerek ya da tescilli QR barkodunu okutarak bağımsız, doğrulanmış geçmiş raporuna anında ulaşın.
+          Araç sahibi tarafından paylaşılan benzersiz PIN kodunu girerek ya da tescilli QR barkodunu okutarak bağımsız, doğrulanmış geçmiş raporuna anında ulaşın.
         </p>
       </div>
 
@@ -289,7 +289,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full shrink-0 mt-1.5" />
-                <div><span className="text-slate-900 font-black">Blokzincir Güvenliği:</span> Satıcının kendi rızasıyla sisteme aktardığı tescilli resmi evraklar listelenir.</div>
+                <div><span className="text-slate-900 font-black">Blokzincir Güvenliği:</span> Araç sahibinin kendi rızasıyla sisteme aktardığı tescilli resmi evraklar listelenir.</div>
               </li>
             </ul>
           </div>

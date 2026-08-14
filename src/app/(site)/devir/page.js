@@ -192,8 +192,8 @@ export default function DevirPage() {
     // ise hiçbir şey görmüyor.
     // -----------------------------------------------------------------------
     setAramaHatasi(
-      'Bu araç başka bir kullanıcının garajında. Devralmak için satıcıdan ' +
-      'devir kodu isteyin — kodu yukarıdaki alana girip sicili devralabilirsiniz.'
+      'Bu araç başka bir kullanıcının garajında. Devralmak için aracı devreden ' +
+      'kişiden devir kodu isteyin — kodu yukarıdaki alana girip devralabilirsiniz.'
     );
   };
 
@@ -415,9 +415,9 @@ export default function DevirPage() {
                 yazmadan hangi durumda ne olacağını görüyor. */}
             <div className="border-t border-slate-100 pt-4 space-y-2">
               {[
-                ['Devir kodunuz varsa', 'Satıcıdan aldığınız kodu girip sicili devralırsınız.'],
-                ['Kodunuz yoksa', 'Satıcıdan istemeniz gerekiyor; sicil yalnızca onun onayıyla geçer.'],
-                ['Satıcı hesabını kapatmışsa', 'Plakayla sicili geri yükleme yoluna yönlendirilirsiniz.'],
+                ['Devir kodunuz varsa', 'Aracı devreden kişiden aldığınız kodu girip sicili devralırsınız.'],
+                ['Kodunuz yoksa', 'Aracı devreden kişiden istemeniz gerekiyor; sicil yalnızca onun onayıyla geçer.'],
+                ['Devreden hesabını kapatmışsa', 'Plakayla sicili geri yükleme yoluna yönlendirilirsiniz.'],
               ].map(([baslik, aciklama]) => (
                 <div key={baslik} className="flex items-start gap-2">
                   <span className="text-slate-300 shrink-0 mt-0.5"><Icon name="onay" size="xs" strokeWidth={3} /></span>
