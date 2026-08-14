@@ -204,6 +204,26 @@ export async function aracOzeti(userId) {
 
 const AVATAR_KOVASI = 'avatarlar';
 
+/**
+ * Profil görseli değiştiğinde yayınlanan olay.
+ *
+ * NİYE GEREKİYOR: başlıktaki hesap menüsü profili KENDİ çekiyor ve bunu
+ * yalnızca oturum değişince yapıyor. Kullanıcı Hesabım ekranından görsel
+ * yüklediğinde menü bunu bilmiyordu ve sayfa yenilenene kadar baş harfleri
+ * göstermeye devam ediyordu — kullanıcı "yüklenmedi mi?" diye tekrar
+ * deniyordu.
+ *
+ * Global durum kütüphanesi eklemek yerine tarayıcının kendi olay yolu
+ * kullanılıyor: tek yönlü, tek tüketicili ve bağımlılık getirmiyor.
+ */
+export const AVATAR_DEGISTI = 'otocv:avatar-degisti';
+
+function avatarDegistiDuyur() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(AVATAR_DEGISTI));
+  }
+}
+
 /** Görsel için kısa ömürlü imzalı URL. Yol yoksa null. */
 export async function avatarUrl(yol, saniye = 3600) {
   if (!yol) return null;
@@ -264,6 +284,7 @@ export async function avatarYukle(userId, dosya) {
     await supabase.storage.from(AVATAR_KOVASI).remove([onceki.avatar_yolu]);
   }
 
+  avatarDegistiDuyur();
   return { yol, hata: null };
 }
 
@@ -277,5 +298,6 @@ export async function avatarKaldir(userId, yol) {
   // Dosyayı silmek başarısız olsa bile profil temiz: kayıt tek gerçek
   // kaynak. Yetim dosya, görünen bozuk görselden iyidir.
   if (yol) await supabase.storage.from(AVATAR_KOVASI).remove([yol]);
+  avatarDegistiDuyur();
   return { basarili: true, hata: null };
 }

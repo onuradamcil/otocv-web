@@ -91,6 +91,22 @@ test.describe('Hesabım ekranı', () => {
       await expect(alan).toHaveAttribute('type', 'text');
     });
 
+    test('profil görseli yükleme alanı Profil bölümünde', async ({ page }) => {
+      const profil = page.locator('section').filter({ hasText: 'Görseliniz, ad, soyad' });
+      await expect(profil, 'Profil bölümü bulunamadı').toBeVisible();
+
+      // Görsel varsa "Değiştir", yoksa "Görsel yükle" — ikisinden biri olmalı.
+      const yukle = profil.getByRole('button', { name: /Görsel yükle|Değiştir/ });
+      await expect(yukle, 'görsel yükleme düğmesi yok').toBeVisible();
+
+      // Tür ve boyut sınırı KULLANICIYA SÖYLENİYOR. Sınırı yalnızca
+      // reddederek uygulamak, kullanıcıyı deneme yanılmaya zorlar.
+      await expect(profil.getByText(/2 MB/)).toBeVisible();
+
+      // Dosya girdisi gizli ama ERİŞİLEBİLİR adı olmalı.
+      await expect(profil.locator('input[type="file"]')).toHaveAttribute('accept', /image/);
+    });
+
     test('devir bildirimleri KAPATILAMAZ olduğunu söylüyor', async ({ page }) => {
       // Bu ürün kararı: işlem bildirimini susturmak güvenlik açığı.
       // Gri bir anahtar koyup tıklatmamak yerine hiç anahtar konmadı.

@@ -17,7 +17,7 @@ import { supabase } from '@/lib/supabase';
 import NotificationDropdown from '@/context/NotificationDropdown';
 import MobileDrawer from './MobileDrawer';
 import Icon from '@/components/common/icons';
-import { avatarUrl } from '@/services/hesapService';
+import { avatarUrl, AVATAR_DEGISTI } from '@/services/hesapService';
 
 const ODAK = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2';
 
@@ -32,6 +32,8 @@ export default function Header() {
   const [profil, setProfil] = useState(null);
   // Profil görseli imzalı URL ile geliyor: kova özel.
   const [avatarAdres, setAvatarAdres] = useState(null);
+  // Görsel değişince profili yeniden okumak için sayaç.
+  const [profilTetik, setProfilTetik] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -68,7 +70,16 @@ export default function Header() {
         if (data?.avatar_yolu) avatarUrl(data.avatar_yolu).then(setAvatarAdres);
         else setAvatarAdres(null);
       });
-  }, [user]);
+  }, [user, profilTetik]);
+
+  // Hesabım ekranından görsel yüklendiğinde menü de tazeleniyor. Bu olay
+  // olmadan kullanıcı sayfayı yenileyene kadar baş harflerini görmeye
+  // devam ediyordu ve görselin yüklenmediğini sanıyordu.
+  useEffect(() => {
+    const tazele = () => setProfilTetik((n) => n + 1);
+    window.addEventListener(AVATAR_DEGISTI, tazele);
+    return () => window.removeEventListener(AVATAR_DEGISTI, tazele);
+  }, []);
 
   // -------------------------------------------------------------------------
   // DIŞARI TIKLAYINCA VE ESC İLE KAPANMA

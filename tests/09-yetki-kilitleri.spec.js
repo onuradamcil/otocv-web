@@ -89,11 +89,35 @@ test.describe('Yetki kilitleri', () => {
       .from('listings').select('vehicle_plate').eq('user_id', oturum.user.id);
     const ilanliPlakalar = new Set((ilanlar || []).map((i) => i.vehicle_plate));
 
+    // VİTRİN HAKKI OLAN PLAKALAR DA ELENİYOR.
+    //
+    // Bu test bir koşumda yanlış alarm verdi: elle doğrulama sırasında
+    // paywall'dan geçilmiş ve o plaka için gerçek bir "vitrin" satın alma
+    // kaydı oluşmuştu. Test o plakayı seçince ekleme HAKLI OLARAK kabul
+    // edildi ve "ilan bedavaya vitrine çıktı" diye kırıldı — oysa kilit
+    // doğru çalışıyordu.
+    //
+    // Testin öncülü "bu plakanın vitrin hakkı YOK" olmalı; öncülü
+    // doğrulamak, sonucu doğrulamak kadar önemli.
+    const { data: haklar } = await sb
+      .from('satin_almalar')
+      .select('hedef_plaka')
+      .eq('user_id', oturum.user.id)
+      .eq('urun_kodu', 'vitrin')
+      .eq('durum', 'tamamlandi');
+    const hakliPlakalar = new Set((haklar || []).map((h) => h.hedef_plaka).filter(Boolean));
+    const harcanmamisHakVar = (haklar || []).some((h) => !h.hedef_plaka);
+
     const { data: araclar } = await sb
       .from('vehicles').select('plate_number').eq('user_id', oturum.user.id);
-    const bosArac = (araclar || []).find((a) => !ilanliPlakalar.has(a.plate_number));
+    const bosArac = (araclar || []).find(
+      (a) => !ilanliPlakalar.has(a.plate_number) && !hakliPlakalar.has(a.plate_number)
+    );
 
-    expect(bosArac, 'ilansız araç bulunamadı — test kurulamıyor').toBeTruthy();
+    // Harcanmamış bir vitrin hakkı varsa hangi plaka seçilirse seçilsin
+    // ekleme kabul edilir; o durumda test bir şey ölçemiyor.
+    test.skip(harcanmamisHakVar, 'harcanmamış vitrin hakkı var — kilit ölçülemez');
+    expect(bosArac, 'vitrin hakkı olmayan ilansız araç bulunamadı — test kurulamıyor').toBeTruthy();
 
     const { error } = await sb.from('listings').insert({
       vehicle_plate: bosArac.plate_number,
