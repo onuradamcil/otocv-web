@@ -372,10 +372,24 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
                   {formData.title || `${formData.selectedYear || ''} ${formData.selectedBrand?.name || ''} ${formData.selectedSeries?.name || ''} ${formData.selectedModel?.name || ''}`}
                 </h1>
-                <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
-                  <Icon name="konum" size="sm" />
-                  <span>{formData.city || 'Aksaray'}, {formData.district || 'Ağaçören'}</span>
-                </p>
+                {/* ⚠ UYDURMA KONUM KALDIRILDI: eskiden il/ilçe seçilmemişse
+                    "Aksaray, Ağaçören" basıyordu. Ön izlemenin işi
+                    yayımlanacak sayfayı göstermek; seçilmemiş bir ilçeyi
+                    seçilmiş gibi göstermek kullanıcıyı da yanıltıyordu.
+                    Araç detay sayfasındaki aynı hatanın kopyasıydı. */}
+                {(formData.city || formData.district) ? (
+                  <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
+                    <Icon name="konum" size="sm" />
+                    <span>{[formData.city, formData.district].filter(Boolean).join(', ')}</span>
+                  </p>
+                ) : (
+                  // Ön izlemede eksikliği SÖYLEMEK gerekiyor: kullanıcı bu
+                  // ekrandan geri dönüp doldurabilir.
+                  <p className="text-xs font-bold text-amber-700 flex items-center gap-1.5">
+                    <Icon name="uyari" size="sm" />
+                    <span>İl ve ilçe seçilmedi</span>
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                 {onEdit && (

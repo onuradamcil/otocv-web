@@ -21,7 +21,11 @@ import Icon from '../common/icons';
 // Mobilde yer daha kısıtlı; masaüstü menüsüyle aynı düzen: devir üstte,
 // karne sorgulama korunuyor (mobilde footer'a inmek zahmetli).
 const MENU = [
-  { href: '/', label: 'Pazaryeri Vitrini' },
+  // "Pazaryeri Vitrini" -> "Anasayfa". Masaüstü menüsünden bu bağlantı
+  // tamamen kaldırıldı çünkü logonun gittiği yere gidiyordu. Çekmecede
+  // duruyor: çekmece açıkken logo erişilebilir değil, eve dönüş yolu
+  // gerekiyor. Adı ise ne yaptığını söylüyor.
+  { href: '/', label: 'Anasayfa' },
   { href: '/devir', label: 'Araç Devir' },
   { href: '/verify', label: 'Karne PIN Sorgula' },
 ];

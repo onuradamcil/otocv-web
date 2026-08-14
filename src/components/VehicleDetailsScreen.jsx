@@ -492,10 +492,26 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
                   {vehicle.title || `${vehicle.year || ''} ${vehicle.brand || ''} ${vehicle.series || ''} ${vehicle.model || ''} ${vehicle.package || ''}`}
                 </h1>
-                <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
-                  <Icon name="konum" size="sm" />
-                  <span>{vehicle.city || 'Aksaray'}, {vehicle.district || 'Merkez'}</span>
-                </p>
+                {/* ⚠ BURADA UYDURMA KONUM VARDI:
+                        {vehicle.city || 'Aksaray'}, {vehicle.district || 'Merkez'}
+
+                    Kaydında il/ilçe olmayan HER araç "Aksaray, Merkez"
+                    gösteriyordu. Bu yalnızca yanlış bilgi değil, iki ayrı
+                    zarar veriyordu:
+                      · Alıcı aracın nerede olduğu konusunda yanıltılıyordu.
+                      · Araç sahibi vitrine çıkaramıyor, "il ilçe eksik"
+                        uyarısını alıyor, sonra detay sayfasında ilçeyi
+                        DOLU görüyordu. Uyarı doğruydu, ekran yalan
+                        söylüyordu; hata sanılan şey buydu.
+
+                    Eksik konum artık hiç basılmıyor. Yokluk nötr; uydurma
+                    değer nötr değil. */}
+                {(vehicle.city || vehicle.district) && (
+                  <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
+                    <Icon name="konum" size="sm" />
+                    <span>{[vehicle.city, vehicle.district].filter(Boolean).join(', ')}</span>
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                 <span className="text-xs font-mono font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-md border border-emerald-200 inline-flex items-center gap-1.5">

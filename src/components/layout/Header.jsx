@@ -18,6 +18,7 @@ import NotificationDropdown from '@/context/NotificationDropdown';
 import MobileDrawer from './MobileDrawer';
 import Icon from '@/components/common/icons';
 import { avatarUrl, AVATAR_DEGISTI } from '@/services/hesapService';
+import { okunmamisSayisi } from '@/services/mesajService';
 
 const ODAK = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2';
 
@@ -26,6 +27,7 @@ export default function Header() {
   const pathname = usePathname();
 
   const [user, setUser] = useState(null);
+  const [okunmamis, setOkunmamis] = useState(0);
   const [navbarName, setNavbarName] = useState('');
   // Açılır menü başlığı için: ham e-posta yerine ad, baş harfler ve üyelik.
   // Bu bilgi garaj ekranındaki profil kartından buraya taşındı.
@@ -71,6 +73,25 @@ export default function Header() {
         else setAvatarAdres(null);
       });
   }, [user, profilTetik]);
+
+  // OKUNMAMIŞ MESAJ SAYISI.
+  //
+  // Menü her açıldığında tazeleniyor, aralıkla YOKLANMIYOR: yüz binlerce
+  // kullanıcıda her başlığın düzenli sorgu atması, sicil sorgusundaki çift
+  // çağrı sorununun çok daha büyüğü olurdu. Kullanıcı sayacı ancak menüyü
+  // açtığında görüyor; tam o anda tazelemek yeterli ve en ucuzu.
+  useEffect(() => {
+    if (!user || !isDropdownOpen) return;
+    let iptal = false;
+    okunmamisSayisi()
+      .then((n) => { if (!iptal) setOkunmamis(n); })
+      .catch(() => { /* sayaç yan bilgi; hatası ekranda yer kaplamamalı */ });
+    return () => { iptal = true; };
+  }, [user, isDropdownOpen]);
+
+  // Oturum kapanınca sayaç sıfırlanıyor: sonraki kullanıcı öncekinin
+  // okunmamış sayısını görmemeli.
+  useEffect(() => { if (!user) setOkunmamis(0); }, [user]);
 
   // Hesabım ekranından görsel yüklendiğinde menü de tazeleniyor. Bu olay
   // olmadan kullanıcı sayfayı yenileyene kadar baş harflerini görmeye
@@ -150,7 +171,7 @@ export default function Header() {
     { href: '/garage', label: 'Tescilli Taşıtlarım (Garaj)' },
     { href: '/my-listings', label: 'Vitrindeki Araçlarım' },
     { href: '/favorilerim', label: 'Favorilerim' },
-    { href: '/mesajlar', label: 'Mesajlarım' },
+    { href: '/mesajlar', label: 'Mesajlarım', rozet: okunmamis },
     { href: '/query-history', label: 'Sorgulama Geçmişim' },
     { href: '/packages', label: 'Ücretler & Ödemeler' },
     { href: '/account', label: 'Hesabım' },
@@ -171,13 +192,11 @@ export default function Header() {
             </Link>
 
             <nav aria-label="Ana menü" className="hidden md:flex items-center gap-6 text-xs font-bold text-slate-500">
-              <Link
-                href="/"
-                onClick={closeMenus}
-                className={`transition-colors rounded ${ODAK} ${pathname === '/' ? 'text-indigo-600 font-extrabold' : 'hover:text-slate-900'}`}
-              >
-                Pazaryeri Vitrini
-              </Link>
+              {/* "Pazaryeri Vitrini" KALDIRILDI: logonun gittiği yere
+                  gidiyordu (ikisi de `/`). Menüde ikinci bir anasayfa
+                  bağlantısı yer kaplıyor ama hiçbir yere GÖTÜRMÜYOR —
+                  kullanıcı bir seçenek sanıp tıklıyor, bulunduğu sayfada
+                  kalıyordu. Logo zaten evrensel anasayfa bağlantısı. */}
               {/* "Karne Sorgula" BURADAN KALKTI, yerine devir geldi.
                   Gerekçe: karne sorgulama anasayfadaki "Künye Sorgula"
                   kartında, footer'da ve /devir sayfasının altında zaten var —
@@ -309,7 +328,17 @@ export default function Header() {
                           className={`px-4 py-2.5 hover:bg-slate-50 flex justify-between items-center transition-colors text-slate-700 font-semibold text-xs group ${ODAK}`}
                         >
                           <span>{m.label}</span>
-                          <svg className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400 transition-colors" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                          <span className="flex items-center gap-2">
+                            {/* Rozet YALNIZCA sayı sıfırdan büyükse basılıyor.
+                                "0" göstermek okunmamış mesaj varmış izlenimi
+                                veriyor ve rozetin anlamını öldürüyor. */}
+                            {m.rozet > 0 && (
+                              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-600 text-white text-[10px] font-black grid place-items-center">
+                                {m.rozet > 99 ? '99+' : m.rozet}
+                              </span>
+                            )}
+                            <svg className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400 transition-colors" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                          </span>
                         </Link>
                       ))}
                     </div>

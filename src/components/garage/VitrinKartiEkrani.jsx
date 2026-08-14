@@ -269,22 +269,39 @@ export default function VitrinKartiEkrani({ pin }) {
           {/* Eksik alan varsa SÖYLENİYOR ve tek kaynağa yönlendiriliyor.
               Modal bunları burada tekrar sorup araç kaydını güncellemiyordu:
               iki kopya ayrışıyordu. */}
+          {/* ⚠ EKSİKLİK SÖYLENİYORSA DÜZELTME YOLU DA VERİLİYOR.
+              Eski hâlinde bu uyarının altındaki tek bağlantı `/details/[pin]`
+              idi ve o sayfa SALT OKUNUR: kullanıcıya "tamamlayın" deniyor,
+              tamamlayacak yer verilmiyordu. Çıkışsız yol. */}
           {eksikAlanlar.length > 0 && (
-            <div role="status" className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+            <div role="status" className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
               <p className="metin-yardimci text-amber-900">
                 Araç kaydınızda <strong>{eksikAlanlar.join(', ')}</strong> eksik. Vitrin kartı bu
                 bilgileri araç kaydından alıyor.
               </p>
+              <Link href={`/garage/${encodeURIComponent(pin)}/duzenle`} className={dugme('birincil')}>
+                <Icon name="duzenle" size="sm" />
+                Eksikleri tamamla
+              </Link>
             </div>
           )}
 
-          <Link
-            href={`/details/${encodeURIComponent(pin)}`}
-            className="inline-flex items-center gap-1.5 min-h-[36px] metin-yardimci text-indigo-600 hover:text-indigo-800 hover:underline"
-          >
-            <Icon name="duzenle" size="xs" />
-            Araç kaydını görüntüle
-          </Link>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <Link
+              href={`/garage/${encodeURIComponent(pin)}/duzenle`}
+              className="inline-flex items-center gap-1.5 min-h-[36px] metin-yardimci text-indigo-600 hover:text-indigo-800 hover:underline"
+            >
+              <Icon name="duzenle" size="xs" />
+              Araç kaydını düzenle
+            </Link>
+            <Link
+              href={`/details/${encodeURIComponent(pin)}`}
+              className="inline-flex items-center gap-1.5 min-h-[36px] metin-yardimci text-slate-500 hover:text-slate-800 hover:underline"
+            >
+              <Icon name="goz" size="xs" />
+              Araç kaydını görüntüle
+            </Link>
+          </div>
         </section>
 
         <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
