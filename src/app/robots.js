@@ -24,6 +24,7 @@ export default function robots() {
         disallow: [
           '/garage',
           '/my-listings',
+          '/favorilerim',
           '/add-vehicle/',
           '/login',
           '/register',

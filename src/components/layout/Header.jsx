@@ -132,6 +132,7 @@ export default function Header() {
     { href: '/dashboard', label: 'Bana Özel Özet' },
     { href: '/garage', label: 'Tescilli Taşıtlarım (Garaj)' },
     { href: '/my-listings', label: 'Vitrindeki Araçlarım' },
+    { href: '/favorilerim', label: 'Favorilerim' },
     { href: '/query-history', label: 'Sorgulama Geçmişim' },
     { href: '/packages', label: 'Ücretler & Ödemeler' },
     { href: '/account', label: 'Hesabım' },

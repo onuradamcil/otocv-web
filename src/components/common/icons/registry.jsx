@@ -136,6 +136,15 @@ export const CIZIMLER = {
     </>
   ),
 
+  // Kalp — favori. Tek çizgi yol; `dolu` prop'uyla içi doldurulabiliyor
+  // (bkz. Icon.jsx). Favori aç/kapa iki DURUM taşıyor ve durumu yalnızca
+  // renkle anlatmak yetmiyor: renk körü kullanıcı ikisini ayırt edemez.
+  kalp: (
+    <>
+      <path d="M12 20.3l-1.4-1.3C5.4 14.4 2 11.3 2 7.6 2 4.6 4.4 2.3 7.4 2.3c1.7 0 3.4.8 4.6 2.1 1.2-1.3 2.9-2.1 4.6-2.1 3 0 5.4 2.3 5.4 5.3 0 3.7-3.4 6.8-8.6 11.4L12 20.3z" />
+    </>
+  ),
+
   yildiz: (
     <>
       <path d="M12 3.4l2.6 5.6 5.9.7-4.3 4 1.2 5.9-5.4-3-5.4 3 1.2-5.9-4.3-4 5.9-.7L12 3.4z" />

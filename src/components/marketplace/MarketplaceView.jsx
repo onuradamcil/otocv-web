@@ -7,6 +7,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { favoriKimlikleri, favoriDegistir } from '../../services/favoriService';
 import { fetchMarketplaceListings } from '../../services/marketplaceService';
 import { useToast } from '../../context/ToastContext';
 import Icon from '../common/icons';
@@ -43,6 +44,39 @@ export default function MarketplaceView({
   useEffect(() => {
     loadLiveListings();
   }, []);
+
+  // Favoriler ayrı çekiliyor: vitrin listesi oturumsuz da görünüyor, favori
+  // ise oturuma bağlı. İkisini tek sorguya bağlamak listeyi oturum
+  // gerektirir hâle getirirdi.
+  const [favoriler, setFavoriler] = useState(() => new Set());
+
+  useEffect(() => {
+    let iptal = false;
+    favoriKimlikleri().then((k) => { if (!iptal) setFavoriler(k); });
+    return () => { iptal = true; };
+  }, []);
+
+  const favoriTikla = async (listingId) => {
+    const suAn = favoriler.has(listingId);
+
+    // İYİMSER GÜNCELLEME: kalp anında dönüyor. Ağ yanıtını beklemek, tek
+    // tıklık bir işlemi yavaş hissettiriyor. Hata gelirse geri alınıyor.
+    setFavoriler((önceki) => {
+      const yeni = new Set(önceki);
+      if (suAn) yeni.delete(listingId); else yeni.add(listingId);
+      return yeni;
+    });
+
+    const { favorili, hata } = await favoriDegistir(listingId, suAn);
+
+    setFavoriler((önceki) => {
+      const yeni = new Set(önceki);
+      if (favorili) yeni.add(listingId); else yeni.delete(listingId);
+      return yeni;
+    });
+
+    if (hata) toast.hata(hata);
+  };
 
   const loadLiveListings = async () => {
     try {
@@ -448,7 +482,13 @@ export default function MarketplaceView({
                 /* ARABAM.COM STYLE VİTRİN KARTLARI GRİDİ */
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3.5">
                   {displayedVitrinListings.map((item) => (
-                    <ArabamStyleVitrinCard key={item.listing_id || item.id} item={item} onSelectVehicle={onSelectVehicle} />
+                    <ArabamStyleVitrinCard
+                      key={item.listing_id || item.id}
+                      item={item}
+                      onSelectVehicle={onSelectVehicle}
+                      favorili={favoriler.has(item.listing_id)}
+                      onFavori={favoriTikla}
+                    />
                   ))}
                 </div>
               )}
@@ -466,15 +506,46 @@ export default function MarketplaceView({
 // =========================================================================
 // 🚀 ARABAM.COM PIXEL-PERFECT VİTRİN KARTI (ArabamStyleVitrinCard)
 // =========================================================================
-function ArabamStyleVitrinCard({ item, onSelectVehicle }) {
+function ArabamStyleVitrinCard({ item, onSelectVehicle, favorili = false, onFavori }) {
   const firstPhoto = item.image_url ? item.image_url.split(',')[0].trim() : null;
 
   return (
-    <div 
-      onClick={() => onSelectVehicle(item)} 
-      className="bg-white border border-slate-200/90 hover:border-slate-400 rounded-md overflow-hidden shadow-2xs hover:shadow-md transition-all duration-150 cursor-pointer group flex flex-col justify-between select-none p-1.5"
+    // KART ARTIK `div` DEĞİL — KLAVYEYLE AÇILABİLİYOR.
+    // Eskiden `<div onClick>` idi: fare olmadan hiçbir araca girilemiyordu.
+    // Kalp ayrı bir düğme olduğu için kart `button` değil `article` +
+    // içindeki başlık bağlantısı olmalıydı; ama mevcut düzeni bozmadan en
+    // küçük doğru çözüm: karta `role="button"`, `tabIndex` ve klavye
+    // işleyicisi vermek.
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onSelectVehicle(item)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectVehicle(item); }
+      }}
+      aria-label={`${item.brand || ''} ${item.model || ''} ${item.year || ''} — sicilini görüntüle`}
+      className="bg-white border border-slate-200/90 hover:border-slate-400 rounded-md overflow-hidden shadow-2xs hover:shadow-md transition-all duration-150 cursor-pointer group flex flex-col justify-between select-none p-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-1"
     >
       <div className="h-36 w-full bg-[#F1F5F9] rounded flex items-center justify-center overflow-hidden shrink-0 relative">
+        {/* FAVORİ — kartın kendi tıklamasını TETİKLEMEMELİ.
+            `stopPropagation` olmadan kalbe basmak aracı da açardı. */}
+        {onFavori && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onFavori(item.listing_id); }}
+            aria-pressed={!!favorili}
+            aria-label={favorili ? 'Favorilerden çıkar' : 'Favorilere ekle'}
+            className={`absolute top-1.5 right-1.5 z-10 w-9 h-9 grid place-items-center rounded-full bg-white/90 backdrop-blur-sm border transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 ${
+              favorili
+                ? 'border-rose-200 text-rose-600 hover:bg-rose-50'
+                : 'border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200'
+            }`}
+          >
+            {/* `dolu`: durum yalnızca RENKLE anlatılmıyor. Renk körü
+                kullanıcı dolu/boş farkını biçimden görüyor. */}
+            <Icon name="kalp" size="md" dolu={!!favorili} />
+          </button>
+        )}
         {firstPhoto ? (
           <img 
             src={firstPhoto} 

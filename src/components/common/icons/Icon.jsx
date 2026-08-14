@@ -80,6 +80,10 @@ export default function Icon({
   className = '',
   label,
   strokeWidth = 2,
+  // İçi dolu varyant. Kayıt tek çizgi ikon üzerine kurulu ama favori gibi
+  // AÇIK/KAPALI durumu olan ikonlarda doluluk, durumu renkten bağımsız
+  // olarak anlatıyor — renk körü kullanıcı için tek ayırt edici bu.
+  dolu = false,
   ...rest
 }) {
   const cizim = CIZIMLER[name];
@@ -100,7 +104,7 @@ export default function Icon({
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="none"
+      fill={dolu ? 'currentColor' : 'none'}
       stroke="currentColor"
       strokeWidth={strokeWidth}
       strokeLinecap="round"
