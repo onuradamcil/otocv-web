@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase';
 import NotificationDropdown from '@/context/NotificationDropdown';
 import MobileDrawer from './MobileDrawer';
 import Icon from '@/components/common/icons';
+import { avatarUrl } from '@/services/hesapService';
 
 const ODAK = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2';
 
@@ -29,6 +30,8 @@ export default function Header() {
   // Açılır menü başlığı için: ham e-posta yerine ad, baş harfler ve üyelik.
   // Bu bilgi garaj ekranındaki profil kartından buraya taşındı.
   const [profil, setProfil] = useState(null);
+  // Profil görseli imzalı URL ile geliyor: kova özel.
+  const [avatarAdres, setAvatarAdres] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -47,10 +50,10 @@ export default function Header() {
   // Profil adı ve üyelik. `is_premium` de çekiliyor: açılır menü başlığı
   // artık ham e-posta değil, kimliği gösteren bir kart.
   useEffect(() => {
-    if (!user) { setNavbarName(''); setProfil(null); return; }
+    if (!user) { setNavbarName(''); setProfil(null); setAvatarAdres(null); return; }
     supabase
       .from('profiles')
-      .select('first_name, last_name, is_premium')
+      .select('first_name, last_name, is_premium, avatar_yolu')
       .eq('id', user.id)
       .single()
       .then(({ data, error }) => {
@@ -61,6 +64,9 @@ export default function Header() {
           setNavbarName('Hesabım');
           setProfil(data || null);
         }
+        // Görsel varsa baş harflerin yerine o gösteriliyor.
+        if (data?.avatar_yolu) avatarUrl(data.avatar_yolu).then(setAvatarAdres);
+        else setAvatarAdres(null);
       });
   }, [user]);
 
@@ -250,8 +256,23 @@ export default function Header() {
                         bilgi (baş harfler, ad soyad, üyelik) buraya taşındı —
                         bilgi kaybolmadı, ait olduğu yere geldi. */}
                     <div className="px-4 py-3.5 border-b border-slate-100 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-black text-xs shrink-0 font-display">
-                        {basHarfler}
+                      <div className="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-black text-xs shrink-0 font-display overflow-hidden">
+                        {/* Görsel varsa baş harflerin YERİNE geçiyor; yoksa
+                            baş harfler duruyor. İkisini birden göstermek
+                            aynı bilgiyi iki kez basmak olurdu. */}
+                        {avatarAdres
+                          ? (
+                            <>
+                              {/* eslint-disable-next-line @next/next/no-img-element --
+                          next/image BURADA YANLIŞ: kova özel olduğu için adres
+                          kısa ömürlü İMZALI URL ve her yüklemede değişiyor.
+                          next/image bu adresleri kendi iyileştirme yolundan
+                          geçirip önbelleğe alır; imza süresi dolunca da bozuk
+                          görsel gösterir. */}
+                      <img src={avatarAdres} alt="" className="w-full h-full object-cover" />
+                            </>
+                          )
+                          : basHarfler}
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-slate-900 font-black text-xs truncate">

@@ -60,7 +60,7 @@ export function authHatasi(hata) {
 export async function profilGetir(userId) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('first_name, last_name, phone_number, is_premium, pazarlama_izni, pazarlama_izni_at, created_at')
+    .select('first_name, last_name, phone_number, is_premium, pazarlama_izni, pazarlama_izni_at, avatar_yolu, created_at')
     .eq('id', userId)
     .single();
 
@@ -190,4 +190,92 @@ export async function aracOzeti(userId) {
 
   if (error) return { araclar: [], hata: error.message };
   return { araclar: data || [], hata: null };
+}
+
+// -------------------------------------------------------------------------
+// PROFİL GÖRSELİ
+//
+// Kova ÖZEL (`public: false`): profil görseli bir kişinin yüzü olabiliyor.
+// Genel kovada dosya adını tahmin eden herkes ona ulaşır; üstelik klasör
+// adı kullanıcı kimliği olduğu için genel kova "bu kimliğin görseli var mı"
+// sorusunu da cevaplar. Okuma imzalı URL ile — `belgeler` kovasındaki
+// kalıbın aynısı.
+// -------------------------------------------------------------------------
+
+const AVATAR_KOVASI = 'avatarlar';
+
+/** Görsel için kısa ömürlü imzalı URL. Yol yoksa null. */
+export async function avatarUrl(yol, saniye = 3600) {
+  if (!yol) return null;
+  const { data, error } = await supabase.storage
+    .from(AVATAR_KOVASI)
+    .createSignedUrl(yol, saniye);
+
+  if (error) {
+    console.error('Avatar URL üretilemedi:', error.message);
+    return null;
+  }
+  return data?.signedUrl ?? null;
+}
+
+/**
+ * Profil görselini yükler ve `profiles.avatar_yolu` alanını günceller.
+ *
+ * Dosya adı zaman damgalı: aynı adla üzerine yazmak, tarayıcı ve CDN
+ * önbelleğinde eski görselin kalmasına yol açıyor ve kullanıcı "değişmedi"
+ * sanıyor. Yeni ad bu sorunu tamamen kaldırıyor.
+ *
+ * Boyut ve tür sınırı KOVADA da var (2 MB, yalnızca görüntü). Buradaki
+ * kontrol kullanıcıya hızlı geri bildirim için; asıl kapı sunucuda.
+ */
+export async function avatarYukle(userId, dosya) {
+  if (!dosya) return { yol: null, hata: 'Dosya seçilmedi.' };
+
+  if (!/^image\/(jpeg|png|webp)$/.test(dosya.type)) {
+    return { yol: null, hata: 'Yalnızca JPG, PNG veya WEBP yükleyebilirsiniz.' };
+  }
+  if (dosya.size > 2 * 1024 * 1024) {
+    return { yol: null, hata: 'Görsel 2 MB’den küçük olmalı.' };
+  }
+
+  const uzanti = dosya.type === 'image/png' ? 'png' : dosya.type === 'image/webp' ? 'webp' : 'jpg';
+  const yol = `${userId}/${Date.now()}.${uzanti}`;
+
+  const { error: yuklemeHatasi } = await supabase.storage
+    .from(AVATAR_KOVASI)
+    .upload(yol, dosya, { upsert: false, contentType: dosya.type });
+
+  if (yuklemeHatasi) {
+    console.error('Avatar yüklenemedi:', yuklemeHatasi.message);
+    return { yol: null, hata: 'Görsel yüklenemedi. Lütfen tekrar deneyin.' };
+  }
+
+  // Eski dosya, yeni yol yazıldıktan SONRA siliniyor. Sıra önemli: önce
+  // silip sonra yazma başarısız olursa kullanıcı görselsiz kalırdı.
+  const { data: onceki } = await supabase
+    .from('profiles').select('avatar_yolu').eq('id', userId).single();
+
+  const { error } = await supabase
+    .from('profiles').update({ avatar_yolu: yol }).eq('id', userId);
+
+  if (error) return { yol: null, hata: error.message };
+
+  if (onceki?.avatar_yolu && onceki.avatar_yolu !== yol) {
+    await supabase.storage.from(AVATAR_KOVASI).remove([onceki.avatar_yolu]);
+  }
+
+  return { yol, hata: null };
+}
+
+/** Profil görselini kaldırır. */
+export async function avatarKaldir(userId, yol) {
+  const { error } = await supabase
+    .from('profiles').update({ avatar_yolu: null }).eq('id', userId);
+
+  if (error) return { basarili: false, hata: error.message };
+
+  // Dosyayı silmek başarısız olsa bile profil temiz: kayıt tek gerçek
+  // kaynak. Yetim dosya, görünen bozuk görselden iyidir.
+  if (yol) await supabase.storage.from(AVATAR_KOVASI).remove([yol]);
+  return { basarili: true, hata: null };
 }

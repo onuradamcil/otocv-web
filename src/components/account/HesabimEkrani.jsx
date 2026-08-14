@@ -23,7 +23,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../../context/ToastContext';
@@ -32,6 +32,7 @@ import GlobalStepLoader from '../common/GlobalStepLoader';
 import HesapKapatmaDialog from './HesapKapatmaDialog';
 import {
   profilGetir, profilGuncelle, pazarlamaIzniYaz,
+  avatarUrl, avatarYukle, avatarKaldir,
   epostaDegistir, sifreDegistir,
   bekleyenKapatmaTalebi, kapatmaTalepEt, kapatmaTalebiIptal, aracOzeti,
 } from '../../services/hesapService';
@@ -46,6 +47,12 @@ export default function HesabimEkrani() {
   const [kullanici, setKullanici] = useState(null);
   const [profil, setProfil] = useState(null);
   const [yukleniyor, setYukleniyor] = useState(true);
+
+  // Profil görseli. `avatarAdres` imzalı URL — kova özel olduğu için
+  // doğrudan bir genel adres yok.
+  const [avatarAdres, setAvatarAdres] = useState(null);
+  const [avatarYukleniyor, setAvatarYukleniyor] = useState(false);
+  const dosyaRef = useRef(null);
 
   // Profil formu
   const [ad, setAd] = useState('');
@@ -96,6 +103,7 @@ export default function HesabimEkrani() {
       setTelefon(veri?.phone_number || '');
       setTalep(mevcutTalep);
       setAraclar(liste);
+      if (veri?.avatar_yolu) setAvatarAdres(await avatarUrl(veri.avatar_yolu));
       setYukleniyor(false);
     })();
 
@@ -150,6 +158,34 @@ export default function HesabimEkrani() {
     if (!basarili) { toast.hata(hata); return; }
     setMevcutSifre(''); setYeniSifre(''); setYeniSifreTekrar('');
     toast.basari('Şifreniz değiştirildi.');
+  };
+
+  const gorselSec = async (e) => {
+    const dosya = e.target.files?.[0];
+    // Aynı dosyayı tekrar seçebilmek için girdi sıfırlanıyor: aksi hâlde
+    // `change` olayı ikinci kez tetiklenmiyor.
+    e.target.value = '';
+    if (!dosya) return;
+
+    setAvatarYukleniyor(true);
+    const { yol, hata } = await avatarYukle(kullanici.id, dosya);
+    if (hata) { setAvatarYukleniyor(false); toast.hata(hata); return; }
+
+    setProfil((p) => ({ ...p, avatar_yolu: yol }));
+    setAvatarAdres(await avatarUrl(yol));
+    setAvatarYukleniyor(false);
+    toast.basari('Profil görseliniz güncellendi.');
+  };
+
+  const gorselKaldir = async () => {
+    setAvatarYukleniyor(true);
+    const { basarili, hata } = await avatarKaldir(kullanici.id, profil?.avatar_yolu);
+    setAvatarYukleniyor(false);
+    if (!basarili) { toast.hata(hata); return; }
+
+    setProfil((p) => ({ ...p, avatar_yolu: null }));
+    setAvatarAdres(null);
+    toast.basari('Profil görseliniz kaldırıldı.');
   };
 
   const izniDegistir = async (deger) => {
@@ -241,7 +277,61 @@ export default function HesabimEkrani() {
         )}
 
         {/* ---------------------------------------------------------------- */}
-        <Bolum baslik="Profil" ozet="Ad, soyad ve telefon numaranız.">
+        <Bolum baslik="Profil" ozet="Görseliniz, ad, soyad ve telefon numaranız.">
+          {/* PROFİL GÖRSELİ.
+              Kova ÖZEL: görsel bir kişinin yüzü olabiliyor ve genel kovada
+              dosya adını tahmin eden herkes ona ulaşırdı. Okuma imzalı URL
+              ile yapılıyor. */}
+          <div className="flex items-center gap-4 pb-4 mb-4 border-b border-slate-100">
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-indigo-50 border border-indigo-100 grid place-items-center shrink-0">
+              {avatarAdres ? (
+                /* eslint-disable-next-line @next/next/no-img-element --
+                   next/image BURADA YANLIŞ: kova özel olduğu için adres kısa
+                   ömürlü İMZALI URL ve her yüklemede değişiyor. next/image
+                   bu adresleri önbelleğe alır; imza süresi dolunca bozuk
+                   görsel gösterir. */
+                <img src={avatarAdres} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-indigo-600 font-black text-sm font-display">
+                  {(ad?.[0] || '').toLocaleUpperCase('tr-TR')}{(soyad?.[0] || '').toLocaleUpperCase('tr-TR')}
+                </span>
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => dosyaRef.current?.click()}
+                  disabled={avatarYukleniyor}
+                  className="min-h-[36px] px-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {avatarYukleniyor ? 'Yükleniyor…' : avatarAdres ? 'Değiştir' : 'Görsel yükle'}
+                </button>
+                {avatarAdres && (
+                  <button
+                    type="button"
+                    onClick={gorselKaldir}
+                    disabled={avatarYukleniyor}
+                    className="min-h-[36px] px-3 bg-white border border-rose-200 hover:bg-rose-50 text-rose-700 font-bold text-xs rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    Kaldır
+                  </button>
+                )}
+              </div>
+              <p className="metin-yardimci text-slate-500">JPG, PNG veya WEBP · en fazla 2 MB</p>
+            </div>
+
+            <input
+              ref={dosyaRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={gorselSec}
+              className="hidden"
+              aria-label="Profil görseli seç"
+            />
+          </div>
+
           <form onSubmit={profilKaydet} className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label className="block">
