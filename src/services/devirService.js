@@ -147,9 +147,57 @@ export async function devirOnizleme(kod) {
   return cagir('devir_onizleme', { p_kod: kod });
 }
 
-/** Devri tamamlar. Başarılıysa `veri.yeni_pin` döner. */
-export async function devirTamamla(kod) {
-  return cagir('devir_tamamla', { p_kod: kod });
+/**
+ * ⚠ `devirTamamla` KALDIRILDI.
+ *
+ * Eskiden kodu giren kişi aracı ANINDA üzerine alıyordu; araç sahibinin
+ * ikinci bir onayı ve devir ücreti yoktu. `devir_tamamla` artık istemciye
+ * kapalı (yalnızca service_role). Açık kalsaydı devralan kişi hem onayı hem
+ * ücreti atlayabilir, aşağıdaki akış yalnızca arayüzde var olan bir süs
+ * olurdu.
+ *
+ * Devir artık üç adım: istek -> araç sahibinin onayı -> ücret.
+ */
+
+/**
+ * DEVRALAN: kod üzerinden devir isteği açar. ARAÇ GEÇMEZ, araç sahibine
+ * bildirim gider.
+ */
+export async function devirIstekOlustur(kod) {
+  return cagir('devir_istek_olustur', { p_kod: kod });
+}
+
+/** ARAÇ SAHİBİ: kendisine gelen açık devir talepleri. */
+export async function devirGelenTalepler() {
+  return cagir('devir_gelen_talepler');
+}
+
+/**
+ * ARAÇ SAHİBİ: talebi onaylar ya da reddeder.
+ *
+ * Rıza metni BURADA istenmiyor: rıza kod üretilirken bir kez alınıyor
+ * (ürün sahibinin kararı). Aynı metni iki kez onaylatmak onayı refleks
+ * hâline getiriyordu.
+ */
+export async function devirIstekKarari(istekId, onay) {
+  return cagir('devir_istek_karari', { p_istek_id: istekId, p_onay: onay });
+}
+
+/** DEVRALAN: onay bekleyen ve ödeme bekleyen devir işlemlerim. */
+export async function devirBekleyenlerim() {
+  return cagir('devir_bekleyenlerim');
+}
+
+/**
+ * DEVRALAN: ücreti öder ve aracı devralır.
+ *
+ * ⚠ TUTAR İSTEMCİDEN GİTMİYOR. `demo_satin_alma` tutarı istemciden alıyor,
+ * yani oradan geçirilseydi ₺0 gönderilebilirdi. Satın alma kaydını
+ * fonksiyonun kendisi oluşturuyor ve tutarı sunucudaki `devir_ucreti()`
+ * sabitinden yazıyor.
+ */
+export async function devirOdeyipTamamla(istekId) {
+  return cagir('devir_odeyip_tamamla', { p_istek_id: istekId });
 }
 
 /** Araç sahibine devir talebi gönderir. */

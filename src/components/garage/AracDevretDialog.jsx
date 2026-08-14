@@ -32,7 +32,7 @@ import {
   devirDurumu,
   devirKoduUret,
   devirKoduIptal,
-  devirTalepKarari,
+  devirIstekKarari,
 } from '../../services/devirService';
 
 /** Saniyeyi "1 gün 3 saat" gibi okunur süreye çevirir. */
@@ -170,7 +170,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
   const talepKarari = async (istekId, onay) => {
     setIslemde(true);
     setHata('');
-    const sonuc = await devirTalepKarari(istekId, onay);
+    const sonuc = await devirIstekKarari(istekId, onay);
     setIslemde(false);
 
     if (!sonuc.basarili) { setHata(sonuc.hata); return; }

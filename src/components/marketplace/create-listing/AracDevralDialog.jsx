@@ -32,7 +32,7 @@ import Icon from '../../common/icons';
 import {
   devirKoduNormalize,
   devirOnizleme,
-  devirTamamla,
+  devirIstekOlustur,
 } from '../../../services/devirService';
 
 export default function AracDevralDialog({
@@ -76,13 +76,22 @@ export default function AracDevralDialog({
     setOnizleme(r.veri);
   };
 
-  const devral = async () => {
+  /**
+   * ⚠ ARTIK ARACI DEVRALMIYOR, TALEP AÇIYOR.
+   *
+   * Eskiden bu düğme aracı ANINDA devralıyordu: araç sahibinin ikinci bir
+   * onayı yoktu ve devir ücreti alınmıyordu. Artık üç adım var —
+   * istek, araç sahibinin onayı, ücret — ve bu düğme yalnızca ilkini
+   * yapıyor. `devir_tamamla` istemciye tamamen kapatıldı ki adımlar
+   * atlanamasın.
+   */
+  const talepGonder = async () => {
     setIslemde(true);
     setHata('');
-    const r = await devirTamamla(normalKod);
+    const r = await devirIstekOlustur(normalKod);
     setIslemde(false);
     if (!r.basarili) { setHata(r.hata); return; }
-    setSonuc({ yeni_pin: r.veri?.yeni_pin, plaka: r.veri?.plaka });
+    setSonuc({ talep: true, zatenVar: r.veri?.zaten_var === true });
   };
 
   const kutu = 'bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5 relative border border-slate-100';
@@ -100,7 +109,51 @@ export default function AracDevralDialog({
         </button>
 
         {/* ---- SONUÇ EKRANLARI ---- */}
-        {sonuc?.yeni_pin ? (
+        {sonuc?.talep ? (
+          /* TALEP İLETİLDİ EKRANI.
+             Eskiden burada "Araç sizin oldu" yazıyordu çünkü devir anında
+             tamamlanıyordu. Artık araç GEÇMEDİ; kullanıcıya ne olduğunu ve
+             sırada ne olduğunu olduğu gibi söylüyoruz. Beklentiyi yanlış
+             kurmak, sonraki adımı "çalışmıyor" gibi gösterirdi. */
+          <div className="text-center space-y-4 pt-1">
+            <div className="w-12 h-12 mx-auto rounded-full bg-indigo-50 border border-indigo-200/80 flex items-center justify-center text-indigo-600">
+              <Icon name="onay" size="lg" strokeWidth={2.5} />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                {sonuc.zatenVar ? 'Talebiniz zaten iletilmişti' : 'Talebiniz iletildi'}
+              </h3>
+              <p className="text-sm text-slate-500 font-normal leading-relaxed">
+                Araç sahibinin onayı bekleniyor. Onaylandığında bildirim alacak ve
+                devir ücretini ödeyerek işlemi tamamlayabileceksiniz.
+              </p>
+            </div>
+            <ol className="text-left bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+              {[
+                ['1', 'Talebiniz araç sahibine iletildi', true],
+                ['2', 'Araç sahibi onaylıyor', false],
+                ['3', 'Devir ücretini ödüyorsunuz (2 gün içinde)', false],
+                ['4', 'Araç garajınıza geçiyor', false],
+              ].map(([no, metin, tamam]) => (
+                <li key={no} className="flex items-start gap-2.5">
+                  <span className={`w-5 h-5 rounded-full grid place-items-center text-[10px] font-black shrink-0 ${
+                    tamam ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'
+                  }`}>{no}</span>
+                  <span className={`text-[12px] leading-relaxed ${tamam ? 'text-slate-900 font-bold' : 'text-slate-500'}`}>
+                    {metin}
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer"
+            >
+              Anladım
+            </button>
+          </div>
+        ) : sonuc?.yeni_pin ? (
           <div className="text-center space-y-4 pt-1">
             <div className="w-12 h-12 mx-auto rounded-full bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600">
               <Icon name="onay" size="lg" strokeWidth={2.5} />
@@ -208,13 +261,19 @@ export default function AracDevralDialog({
                   </div>
                 </div>
 
-                {/* Satıcının onayladığı metin alıcıya da gösteriliyor: neyin
-                    devredildiği iki taraf için de aynı cümleyle yazılı olsun. */}
+                {/* Araç sahibinin onayladığı metin devralana da gösteriliyor:
+                    neyin devredildiği iki taraf için de aynı cümleyle yazılı
+                    olsun.
+
+                    ⚠ BAŞLIK "Satıcının onayı" İDİ. İki ayrı kusur vardı:
+                    "satıcı" bu üründe yasaklı kelime, ve dil testi bu
+                    diyaloğa hiç ulaşmıyor çünkü ancak geçerli kod girilince
+                    açılıyor. */}
                 <div className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-1.5">
                   <div className="flex items-center gap-2">
                     <Icon name="kalkan" size="sm" className="text-slate-500" />
                     <p className="text-[11px] font-black uppercase tracking-wider text-slate-700">
-                      Satıcının onayı
+                      Araç sahibinin onayı
                     </p>
                   </div>
                   <p className="text-[11px] text-slate-600 leading-relaxed">{onizleme.riza_metni}</p>
@@ -230,7 +289,7 @@ export default function AracDevralDialog({
                   </button>
                   <button
                     type="button"
-                    onClick={devral}
+                    onClick={talepGonder}
                     disabled={islemde}
                     className="bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
                   >

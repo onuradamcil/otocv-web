@@ -98,6 +98,28 @@ async function rpc(istemci, fonksiyon, parametreler) {
 
 test.describe.configure({ mode: 'serial' });
 
+/**
+ * DEVRİ UÇTAN UCA TAMAMLAR — ÜÇ ADIMLI YENİ AKIŞ.
+ *
+ * `devir_tamamla` artık istemciye KAPALI. Açık kalsaydı devralan kişi hem
+ * araç sahibinin son onayını hem devir ücretini atlayabilirdi. Devir artık
+ * üç adım: istek -> onay -> ödeme.
+ *
+ * @param devralan  Aracı alacak istemci (isteği o açar, ücreti o öder)
+ * @param sahip     Aracın o anki sahibi (onayı o verir)
+ */
+async function devriTamamla(devralan, sahip, kod) {
+  const istek = await rpc(devralan, 'devir_istek_olustur', { p_kod: kod });
+  if (!istek?.basarili) return istek;
+
+  const karar = await rpc(sahip, 'devir_istek_karari', {
+    p_istek_id: istek.istek_id, p_onay: true,
+  });
+  if (!karar?.basarili) return karar;
+
+  return rpc(devralan, 'devir_odeyip_tamamla', { p_istek_id: istek.istek_id });
+}
+
 test.describe('Araç devri', () => {
   test.afterAll(async () => {
     // ---- DEVRİ GERİ AL VE SAHTE GEÇMİŞİ SİL ----
@@ -113,7 +135,7 @@ test.describe('Araç devri', () => {
       const kod = await rpc(alici, 'devir_kodu_uret', {
         p_plaka: DEVIR_PLAKA, p_riza_metni: 'Test sonrası geri devir.',
       });
-      if (kod?.kod) await rpc(satici, 'devir_tamamla', { p_kod: kod.kod });
+      if (kod?.kod) await devriTamamla(satici, alici, kod.kod);
     }
 
     const { data: sonArac } = await satici
@@ -170,7 +192,7 @@ test.describe('Araç devri', () => {
 
     // İptal edilen kod kullanılamaz.
     const alici = await aliciIstemcisi();
-    const dene = await rpc(alici, 'devir_tamamla', { p_kod: kod.kod });
+    const dene = await rpc(alici, 'devir_istek_olustur', { p_kod: kod.kod });
     expect(dene?.hata, 'iptal edilen kod çalıştı').toBe('kod_gecersiz');
   });
 
@@ -231,7 +253,7 @@ test.describe('Araç devri', () => {
     const kod = await rpc(satici, 'devir_kodu_uret', { p_plaka: DEVIR_PLAKA, p_riza_metni: RIZA });
     expect(kod?.kod).toBeTruthy();
 
-    const sonuc = await rpc(alici, 'devir_tamamla', { p_kod: kod.kod });
+    const sonuc = await devriTamamla(alici, satici, kod.kod);
     expect(sonuc?.basarili, JSON.stringify(sonuc)).toBe(true);
     expect(sonuc?.yeni_pin, 'PIN yenilenmedi').not.toBe(once.pin_code);
 
@@ -272,7 +294,7 @@ test.describe('Araç devri', () => {
     }
 
     // Kullanılmış kod tekrar çalışmamalı.
-    const tekrar = await rpc(alici, 'devir_tamamla', { p_kod: kod.kod });
+    const tekrar = await rpc(alici, 'devir_istek_olustur', { p_kod: kod.kod });
     expect(tekrar?.hata).toBe('kod_gecersiz');
   });
 
@@ -347,7 +369,7 @@ test.describe('Araç devri', () => {
     });
     expect(uret?.kod, JSON.stringify(uret)).toBeTruthy();
 
-    const tamam = await rpc(satici, 'devir_tamamla', { p_kod: uret.kod });
+    const tamam = await devriTamamla(satici, alici, uret.kod);
     expect(tamam?.basarili, JSON.stringify(tamam)).toBe(true);
 
     const { data: { user: u1 } } = await satici.auth.getUser();
@@ -408,5 +430,116 @@ test.describe('Araç devri', () => {
     await page.waitForTimeout(800);
     const govde2 = await page.locator('body').textContent();
     expect(govde2, 'onay olmadan kod üretildi').toContain('onay kutusunu işaretlemeniz');
+  });
+});
+
+// =========================================================================
+// YENİ AKIŞIN KİLİTLERİ: ONAY VE ÜCRET ATLANAMAZ
+//
+// Devir artık üç adım: istek -> araç sahibinin onayı -> ücret. Bu bölüm
+// adımların ATLANAMADIĞINI sınıyor. Bir tanesi bile atlanabiliyorsa akış
+// yalnızca arayüzde var olan bir süs demektir.
+// =========================================================================
+test.describe('Devir onay ve ücret kilitleri', () => {
+
+  test('ESKİ TEK ADIMLI YOL KAPALI: devir_tamamla istemciden çağrılamıyor', async () => {
+    const alici = await aliciIstemcisi();
+    const satici = await supabaseIstemcisi();
+
+    // ⚠ EN KRİTİK DENETİM. Açık kalsaydı devralan hem onayı hem ücreti
+    // atlayıp aracı doğrudan üzerine alabilirdi.
+    for (const [ad, istemci] of [['alıcı', alici], ['satıcı', satici]]) {
+      const { data, error } = await istemci.rpc('devir_tamamla', { p_kod: 'DV-XXXX-XXXX' });
+      expect(
+        !!error || data?.hata === 'oturum_yok',
+        `devir_tamamla ${ad} tarafından çağrılabiliyor — onay ve ücret atlanabilir`
+      ).toBeTruthy();
+    }
+  });
+
+  test('ONAY ATLANAMIYOR: onaysız istekte ödeme reddediliyor', async () => {
+    const satici = await supabaseIstemcisi();
+    const alici = await aliciIstemcisi();
+
+    const kod = await rpc(satici, 'devir_kodu_uret', { p_plaka: DEVIR_PLAKA, p_riza_metni: RIZA });
+    test.skip(!kod?.kod, 'kod üretilemedi (araç bu koşumda satıcıda değil)');
+
+    const istek = await rpc(alici, 'devir_istek_olustur', { p_kod: kod.kod });
+    expect(istek?.basarili, JSON.stringify(istek)).toBe(true);
+
+    // Araç sahibi HENÜZ onaylamadı.
+    const odeme = await rpc(alici, 'devir_odeyip_tamamla', { p_istek_id: istek.istek_id });
+    expect(odeme?.basarili, 'onaysız devir tamamlandı').toBe(false);
+    expect(odeme?.hata).toBe('onay_bekliyor');
+
+    // Araç hâlâ satıcıda olmalı.
+    const { data: arac } = await satici
+      .from('vehicles').select('plate_number').eq('plate_number', DEVIR_PLAKA);
+    expect(arac?.length, 'onaysız devir aracı taşıdı').toBe(1);
+
+    await rpc(satici, 'devir_kodu_iptal', { p_plaka: DEVIR_PLAKA });
+  });
+
+  test('DEVRALAN KENDİ İSTEĞİNİ ONAYLAYAMIYOR', async () => {
+    const satici = await supabaseIstemcisi();
+    const alici = await aliciIstemcisi();
+
+    const kod = await rpc(satici, 'devir_kodu_uret', { p_plaka: DEVIR_PLAKA, p_riza_metni: RIZA });
+    test.skip(!kod?.kod, 'kod üretilemedi');
+
+    const istek = await rpc(alici, 'devir_istek_olustur', { p_kod: kod.kod });
+    expect(istek?.basarili).toBe(true);
+
+    // Taraf olmayan/yetkisiz karar: isteğin VARLIĞI bile sızmamalı.
+    const karar = await rpc(alici, 'devir_istek_karari', { p_istek_id: istek.istek_id, p_onay: true });
+    expect(karar?.basarili, 'devralan kendi isteğini onayladı').toBe(false);
+    expect(karar?.hata).toBe('bulunamadi');
+
+    await rpc(satici, 'devir_kodu_iptal', { p_plaka: DEVIR_PLAKA });
+  });
+
+  test('ONAY 2 GÜNLÜK ÖDEME SÜRESİ AÇIYOR ve ücret sunucuda sabit', async () => {
+    const satici = await supabaseIstemcisi();
+    const alici = await aliciIstemcisi();
+
+    const kod = await rpc(satici, 'devir_kodu_uret', { p_plaka: DEVIR_PLAKA, p_riza_metni: RIZA });
+    test.skip(!kod?.kod, 'kod üretilemedi');
+
+    const istek = await rpc(alici, 'devir_istek_olustur', { p_kod: kod.kod });
+    const karar = await rpc(satici, 'devir_istek_karari', { p_istek_id: istek.istek_id, p_onay: true });
+    expect(karar?.basarili, JSON.stringify(karar)).toBe(true);
+    expect(karar?.odeme_son_tarih, 'ödeme süresi açılmadı').toBeTruthy();
+
+    // Süre ~2 gün olmalı. Dar bir pencere yerine 1.9-2.1 gün aralığı:
+    // testin saat farkına takılmasını istemiyoruz.
+    const fark = (new Date(karar.odeme_son_tarih).getTime() - Date.now()) / 86_400_000;
+    expect(fark, `ödeme süresi 2 gün değil: ${fark.toFixed(2)} gün`).toBeGreaterThan(1.9);
+    expect(fark).toBeLessThan(2.1);
+
+    // ÜCRET SUNUCUDAN: istemci tutarı belirleyemiyor.
+    const bekleyen = await rpc(alici, 'devir_bekleyenlerim');
+    const kayit = (bekleyen || []).find((b) => b.istek_id === istek.istek_id);
+    expect(kayit?.ucret, 'ücret bildirilmiyor').toBe(150);
+
+    // ⚠ PLAKA DÖNMEMELİ.
+    expect(Object.keys(kayit || {}), 'bekleyen devir listesi plaka döndürüyor')
+      .not.toContain('vehicle_plate');
+
+    // Temizlik: devri tamamlayıp aracı geri devrediyoruz.
+    const odeme = await rpc(alici, 'devir_odeyip_tamamla', { p_istek_id: istek.istek_id });
+    expect(odeme?.basarili, JSON.stringify(odeme)).toBe(true);
+
+    const geri = await rpc(alici, 'devir_kodu_uret', { p_plaka: DEVIR_PLAKA, p_riza_metni: RIZA });
+    if (geri?.kod) await devriTamamla(satici, alici, geri.kod);
+  });
+
+  test('devir istek tablosu ve süre düşürücü istemciye kapalı', async () => {
+    const alici = await aliciIstemcisi();
+
+    const { data, error } = await alici.from('devir_istekleri').select('*');
+    expect(error || (data && data.length === 0), 'devir_istekleri istemciye açık').toBeTruthy();
+
+    const { error: fnHata } = await alici.rpc('_devir_sureleri_dusur');
+    expect(fnHata, '_devir_sureleri_dusur istemciden çağrılabiliyor').toBeTruthy();
   });
 });
