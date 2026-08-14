@@ -33,6 +33,7 @@ import {
 } from '../../services/mesajService';
 import SikayetDialog from './SikayetDialog';
 import useCanliTazeleme from '../../hooks/useCanliTazeleme';
+import { aracKapakGorseli } from '../../utils/aracGorseli';
 
 function saatBicimi(ts) {
   if (!ts) return '';
@@ -215,9 +216,16 @@ export default function MesajlarEkrani() {
                       ${secili === k.konusma_id ? 'bg-indigo-50/70' : ''}`}
                   >
                     <span className="w-11 h-11 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 grid place-items-center">
-                      {k.image_url
-                        ? <img src={k.image_url} alt="" className="w-full h-full object-contain" />
-                        : <Icon name="arac" size="md" className="text-slate-400" />}
+                      {/* ⚠ HAM ALAN BASILAMAZ: `image_url` virgülle birleştirilmiş
+                          ÇOKLU adres tutabiliyor. Denetimde bu ekranda iki
+                          kırık görsel ölçüldü — devir ekranları düzeltilirken
+                          burası atlanmıştı. */}
+                      <img
+                        src={aracKapakGorseli(k.image_url)}
+                        alt=""
+                        className="w-full h-full object-contain"
+                        onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-car.jpg'; }}
+                      />
                     </span>
 
                     <span className="min-w-0 flex-1">

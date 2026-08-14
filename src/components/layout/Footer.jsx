@@ -15,7 +15,11 @@ import Link from 'next/link';
 function Sutun({ baslik, children }) {
   return (
     <div className="space-y-3">
-      <h3 className="text-[10px] font-black text-slate-900 tracking-wider uppercase">{baslik}</h3>
+      {/* h2: sayfaların çoğunda tek bir h1 var ve alt bilgi h3 kullanınca
+          başlık hiyerarşisinde h1 -> h3 atlaması oluşuyordu (denetimde
+          dashboard, mesajlar, sorgu geçmişi ve devir sayfalarında ölçüldü).
+          Ekran okuyucu kullanıcısı için başlık ağacı bozuk demek. */}
+      <h2 className="text-[10px] font-black text-slate-900 tracking-wider uppercase">{baslik}</h2>
       <ul className="space-y-1">{children}</ul>
     </div>
   );

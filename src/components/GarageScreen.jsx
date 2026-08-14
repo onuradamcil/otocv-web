@@ -278,9 +278,13 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
               >
                 Hemen Teklif Al
               </button>
+              {/* `title` tek başına güvenilir bir erişilebilir ad değil: ekran
+                  okuyucuların bir kısmı okumuyor, dokunmatikte hiç
+                  görünmüyor. Denetimde bu düğme "adsız" olarak ölçüldü. */}
               <button
                 onClick={() => setIsBannerDismissed(true)}
                 title="Uyarıyı Kapat"
+                aria-label="Uyarıyı kapat"
                 className="text-white/80 hover:text-white p-1.5 hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
               >
                 <Icon name="kapat" size="md" strokeWidth={2.5} />
