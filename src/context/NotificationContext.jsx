@@ -9,6 +9,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { parseVehicleDate } from '../utils/dateHelper';
+import { bildirimDuyur } from '../lib/canliOlay';
 
 const NotificationContext = createContext();
 
@@ -199,6 +200,11 @@ export function NotificationProvider({ children }) {
           if (payload.eventType === 'INSERT') {
             setNotifications(prev => [payload.new, ...prev]);
             setUnreadCount(prev => prev + 1);
+            // Ekranlara "tazele" sinyali. Gerekçesi `src/lib/canliOlay.js`
+            // başlığında: `devir_istekleri` ve `konusmalar` Realtime'a
+            // açılmıyor (plaka tutuyorlar); bildirim akışı sinyal, veri
+            // her zaman RPC'den geliyor.
+            bildirimDuyur(payload.new);
           }
           else if (payload.eventType === 'UPDATE') {
             setNotifications(prev => 
@@ -218,7 +224,14 @@ export function NotificationProvider({ children }) {
         }
       );
 
-    channel.subscribe();
+    // ⚠ DURUM GERİ ÇAĞIRMASI ŞART: `subscribe()` argümansız çağrıldığında
+    // `CHANNEL_ERROR` ve `TIMED_OUT` sessizce yutuluyor. Mesaj realtime'ı
+    // aylarca bu yüzden bozuk kalabilirdi — abonelik kuruluyor sanılıyordu.
+    channel.subscribe((durum, hata) => {
+      if (durum === 'CHANNEL_ERROR' || durum === 'TIMED_OUT') {
+        console.error(`Bildirim aboneliği kurulamadı (${durum}):`, hata?.message || '');
+      }
+    });
 
     return () => {
       supabase.removeChannel(channel);

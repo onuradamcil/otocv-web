@@ -619,3 +619,67 @@ test.describe('Devir ödeme ekranı', () => {
     if (geri?.kod) await devriTamamla(satici, alici, geri.kod);
   });
 });
+
+// =========================================================================
+// GELEN TALEPLER EKRANI + BİLDİRİM HEDEFİ
+//
+// Araç sahibi, hangi aracına talep geldiğini sayfada göremiyordu: talepler
+// yalnızca araç kartından açılan diyaloğun bir sekmesinde ve PLAKA BAZINDA
+// duruyordu. Bildirimler de tıklanınca hep `/garage` açıyordu, çünkü
+// `Header` bildirim nesnesini yok sayıyordu.
+// =========================================================================
+test.describe('Gelen talepler ve bildirim hedefi', () => {
+
+  test('araç sahibi talebi /devir sayfasında görüp onaylayabiliyor', async ({ page }) => {
+    const satici = await supabaseIstemcisi();
+    const alici = await aliciIstemcisi();
+
+    await rpc(satici, 'devir_kodu_iptal', { p_plaka: DEVIR_PLAKA });
+    const kod = await rpc(satici, 'devir_kodu_uret', { p_plaka: DEVIR_PLAKA, p_riza_metni: RIZA });
+    test.skip(!kod?.kod, 'kod üretilemedi (araç bu koşumda satıcıda değil)');
+
+    const istek = await rpc(alici, 'devir_istek_olustur', { p_kod: kod.kod });
+    expect(istek?.basarili, JSON.stringify(istek)).toBe(true);
+
+    // ⚠ ARAÇ KARTI AÇILMIYOR. Bütün mesele buydu: sahibin talebi görmek
+    // için araçlarını tek tek açması gerekiyordu.
+    await girisYap(page);
+    await page.goto('/devir');
+    await page.waitForLoadState('networkidle');
+
+    await expect(
+      page.getByRole('heading', { name: 'Size gelen devir talepleri' }),
+      'gelen talepler bölümü /devir sayfasında yok'
+    ).toBeVisible({ timeout: 20_000 });
+
+    const metin = await hamMetin(page);
+    expect(metin, 'talebin hangi araca ait olduğu yazmıyor').toContain(kod.pin_code || 'CV-');
+
+    await page.getByRole('button', { name: /Onayla ve devret/i }).first().click();
+    await expect(page.getByText('Onayladınız.')).toBeVisible({ timeout: 20_000 });
+
+    // Temizlik: onay ödeme bekliyor; iptal edilip kod düşürülüyor.
+    await rpc(satici, 'devir_kodu_iptal', { p_plaka: DEVIR_PLAKA });
+  });
+
+  test('devir bildirimi kendi hedefini taşıyor', async () => {
+    const alici = await aliciIstemcisi();
+    const { data: { user } } = await alici.auth.getUser();
+
+    const { data } = await alici
+      .from('notifications')
+      .select('title, type, hedef_yol')
+      .eq('user_id', user.id)
+      .not('hedef_yol', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    // Hedefi olan en az bir bildirim bulunmalı; hepsi uygulama içi bir yola
+    // işaret etmeli. Eskiden hangi bildirime tıklanırsa tıklansın `/garage`
+    // açılıyordu çünkü bildirimde hedef alanı YOKTU.
+    expect((data || []).length, 'hedef taşıyan bildirim yok').toBeGreaterThan(0);
+    for (const b of data) {
+      expect(b.hedef_yol, `geçersiz hedef: ${b.hedef_yol}`).toMatch(/^\//);
+    }
+  });
+});

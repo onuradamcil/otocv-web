@@ -9,7 +9,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNotifications } from '../context/NotificationContext';
 
-export default function NotificationDropdown({ onNavigateToGarage }) {
+export default function NotificationDropdown({ onNavigate }) {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -24,19 +24,23 @@ export default function NotificationDropdown({ onNavigateToGarage }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // 🚀 404 KORUMALI AKILLI TIKLAMA VE OKUNDU MOTORU
+  // TIKLAMA: OKUNDU İŞARETLE + BİLDİRİMİN KENDİ HEDEFİNE GİT
+  //
+  // ⚠ Prop'un adı eskiden `onNavigateToGarage` idi ve `Header` ona
+  // `() => router.push('/garage')` veriyordu — yani ARGÜMANI YOK SAYIYORDU.
+  // Sonuç: hangi bildirime tıklanırsa tıklansın garaj açılıyordu. Mesaj
+  // bildirimi de, devir bildirimi de. Adı `onNavigate` oldu ki çağıranın
+  // bildirimi kullanması gerektiği imzadan anlaşılsın.
   const handleNotificationClick = (item) => {
-    // 1. Okunmamışsa anında okundu yap ve sayacı düşür (0ms Tepki)
+    // Okunmamışsa anında okundu yap ve sayacı düşür (0ms tepki).
     if (!item.is_read) {
       markAsRead(item.id);
     }
 
-    // 2. Dropdown panelini kapat
     setIsOpen(false);
 
-    // 3. Eğer prop olarak sekme değiştirici verildiyse güvenle çalıştır kanka!
-    if (typeof onNavigateToGarage === 'function') {
-      onNavigateToGarage(item);
+    if (typeof onNavigate === 'function') {
+      onNavigate(item);
     }
   };
 

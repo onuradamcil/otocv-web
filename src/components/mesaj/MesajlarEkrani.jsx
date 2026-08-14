@@ -32,6 +32,7 @@ import {
   konusmaEngelle, konusmaSikayetEt, mesajlariDinle, SIKAYET_SEBEPLERI,
 } from '../../services/mesajService';
 import SikayetDialog from './SikayetDialog';
+import useCanliTazeleme from '../../hooks/useCanliTazeleme';
 
 function saatBicimi(ts) {
   if (!ts) return '';
@@ -80,6 +81,11 @@ export default function MesajlarEkrani() {
   }, []);
 
   useEffect(() => { listeyiYukle(false); }, [listeyiYukle]);
+
+  // CANLI: AÇIK konuşmayı `mesajlariDinle` canlandırıyor, ama başka bir
+  // konuşmaya gelen mesaj listede görünmüyordu. Bildirim sinyali onu da
+  // kapatıyor: okunmamış sayacı ve son mesaj önizlemesi anlık tazeleniyor.
+  useCanliTazeleme(['mesaj', 'info'], () => listeyiYukle(false));
 
   const konusmayiAc = useCallback(async (konusmaId) => {
     setSecili(konusmaId);

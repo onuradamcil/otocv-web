@@ -32,6 +32,7 @@ import AracDevretDialog from '@/components/garage/AracDevretDialog';
 import AracDevralDialog from '@/components/marketplace/create-listing/AracDevralDialog';
 import SahipsizGeriYukleDialog from '@/components/marketplace/create-listing/SahipsizGeriYukleDialog';
 import BekleyenDevirlerim from '@/components/garage/BekleyenDevirlerim';
+import GelenDevirTalepleri from '@/components/garage/GelenDevirTalepleri';
 import { plakaDurumu, devirOnizleme, devirKoduNormalize } from '@/services/devirService';
 
 /** Plakayı okunur biçime sokar: 34ABC123 -> 34 ABC 123 */
@@ -266,6 +267,16 @@ export default function DevirPage() {
           kart={kart}
           onDevralindi={() => router.push('/garage')}
         />
+
+        {/* GELEN TALEPLER — araç sahibi tarafı.
+            Eskiden talepler yalnızca araç kartından açılan diyaloğun bir
+            sekmesinde ve PLAKA BAZINDA görünüyordu: sahibin hangi aracına
+            talep geldiğini öğrenmesi için araçlarını tek tek açması
+            gerekiyordu. Bekleyen talep yoksa bölüm hiç basılmıyor. */}
+        {/* `onDegisti` verilmiyor: onay aracı HEMEN taşımıyor, devralanın
+            ödemesi bekleniyor. Araç listesi bu adımda değişmediği için
+            tazelemek boş sorgu olurdu. */}
+        <GelenDevirTalepleri kart={kart} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 

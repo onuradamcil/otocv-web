@@ -33,6 +33,7 @@ import Icon from '../common/icons';
 import { dugme } from '../common/dugme';
 import { useToast } from '../../context/ToastContext';
 import { devirBekleyenlerim, devirOdeyipTamamla } from '../../services/devirService';
+import useCanliTazeleme from '../../hooks/useCanliTazeleme';
 
 /** "1 gün 4 saat" gibi okunur kalan süre. Geçmişse null. */
 function kalanSure(sonTarih) {
@@ -70,6 +71,12 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
   }, []);
 
   useEffect(() => { yukle(false); }, [yukle]);
+
+  // CANLI: araç sahibi onayladığı anda bu ekran kendiliğinden güncelleniyor.
+  // Eskiden yalnızca mount'ta veri çekiyordu; kullanıcı onayı görmek için
+  // sayfayı yenilemek zorundaydı. `yukle(false)` iskelet göstermiyor —
+  // liste ekranda dururken altından çekmek kötü.
+  useCanliTazeleme(['devir', 'success', 'warning'], () => yukle(false));
 
   async function ode(istekId) {
     setOdenen(istekId);

@@ -19,6 +19,7 @@ import MobileDrawer from './MobileDrawer';
 import Icon from '@/components/common/icons';
 import { avatarUrl, AVATAR_DEGISTI } from '@/services/hesapService';
 import { okunmamisSayisi } from '@/services/mesajService';
+import useCanliTazeleme from '@/hooks/useCanliTazeleme';
 
 const ODAK = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2';
 
@@ -92,6 +93,13 @@ export default function Header() {
   // Oturum kapanınca sayaç sıfırlanıyor: sonraki kullanıcı öncekinin
   // okunmamış sayısını görmemeli.
   useEffect(() => { if (!user) setOkunmamis(0); }, [user]);
+
+  // CANLI ROZET. Menü açılmasını beklemeden güncelleniyor — ama yine
+  // YOKLAMA YOK: tazeleme yalnızca gerçek bir bildirim düştüğünde oluyor.
+  useCanliTazeleme(['mesaj', 'info'], () => {
+    if (!user) return;
+    okunmamisSayisi().then(setOkunmamis).catch(() => {});
+  });
 
   // Hesabım ekranından görsel yüklendiğinde menü de tazeleniyor. Bu olay
   // olmadan kullanıcı sayfayı yenileyene kadar baş harflerini görmeye
@@ -253,7 +261,15 @@ export default function Header() {
               <span>Araç Kaydet</span>
             </Link>
 
-            <NotificationDropdown onNavigateToGarage={() => router.push(uyeHedef('/garage'))} />
+            {/* BİLDİRİM ARTIK KENDİ HEDEFİNE GİDİYOR.
+                Eskiden buraya `() => router.push('/garage')` veriliyordu ve
+                bildirim nesnesi YOK SAYILIYORDU: mesaj bildirimi de, devir
+                bildirimi de garajı açıyordu. `hedef_yol` alanı bildirimi
+                üreten fonksiyonda yazılıyor; taşımayan eski bildirimler
+                garaja düşüyor. */}
+            <NotificationDropdown
+              onNavigate={(bildirim) => router.push(uyeHedef(bildirim?.hedef_yol || '/garage'))}
+            />
 
             {/* HESAP — masaüstü */}
             {!user ? (

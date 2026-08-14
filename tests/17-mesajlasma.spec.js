@@ -293,3 +293,78 @@ test.describe('Mesajlaşma arayüzü', () => {
     ).toBeVisible({ timeout: 20_000 });
   });
 });
+
+// =========================================================================
+// CANLI TESLİMAT
+//
+// Mesaj realtime'ı aylarca sessizce bozuk kalabilirdi: `mesajlar`
+// politikası `konusmalar` tablosuna başvuruyordu ama o tablo istemciye
+// kapalı. RLS ifadeleri sorguyu ATAN rolün yetkisiyle değerlendirildiği
+// için politika `42501 permission denied` veriyor, Realtime de RLS'e
+// uyduğu için hiçbir olay yayınlamıyordu.
+//
+// Bu paket iki şeyi birden tutuyor: teslimatın çalıştığını VE onarımın
+// gölge engellemeyi ifşa etmediğini.
+// =========================================================================
+test.describe('Mesaj canlı teslimat', () => {
+
+  test('yeni mesaj aboneye ANLIK düşüyor ve `teslim` sızmıyor', async () => {
+    const sahip = await supabaseIstemcisi();
+    const alici = await aliciIstemcisi();
+    const pin = await ornekPin();
+    test.skip(!pin, 'örnek PIN yok');
+
+    await alici.rpc('konusma_baslat', { p_pin: pin, p_govde: 'canli teslimat testi' });
+    const { data: liste } = await alici.rpc('konusmalarim');
+    const konusmaId = (liste || []).find((k) => k.pin_code === pin)?.konusma_id;
+    expect(konusmaId, 'konuşma kurulamadı').toBeTruthy();
+
+    const gelenler = [];
+    let abonelik = 'yok';
+    const kanal = alici
+      .channel(`test-canli:${konusmaId}`)
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'mesajlar', filter: `konusma_id=eq.${konusmaId}` },
+        (y) => gelenler.push(y.new))
+      .subscribe((d) => { abonelik = d; });
+
+    for (let i = 0; i < 40 && abonelik !== 'SUBSCRIBED'; i++) {
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    expect(abonelik, 'realtime aboneliği kurulamadı').toBe('SUBSCRIBED');
+
+    // Gövde her koşumda benzersiz: aynı konuşmada önceki koşumdan kalan
+    // mesajlar da akışa düşebiliyor, sıraya güvenmek kırılgan olurdu.
+    const damga = `anlik teslim ${konusmaId.slice(0, 8)}-${(await sahip.rpc('devir_ucreti')).data}`;
+    await sahip.rpc('mesaj_gonder', { p_konusma_id: konusmaId, p_govde: damga });
+
+    for (let i = 0; i < 40 && !gelenler.some((m) => m.govde === damga); i++) {
+      await new Promise((r) => setTimeout(r, 250));
+    }
+
+    await alici.removeChannel(kanal);
+
+    const bizimki = gelenler.find((m) => m.govde === damga);
+    expect(bizimki, 'mesaj anlık gelmedi — realtime yine sessizce bozuk').toBeTruthy();
+
+    // ⚠ GÖLGE ENGELLEME İFŞA OLMAMALI.
+    // `teslim = false` engellendiğini ele verir. Politika onarılınca istemci
+    // `mesajlar`ı okuyabilir hâle geldi; sütun yetkisi bu yüzden daraltıldı.
+    expect(
+      Object.keys(bizimki),
+      'realtime yükünde `teslim` var — engellenen kullanıcı engellendiğini anlayabilir'
+    ).not.toContain('teslim');
+  });
+
+  test('REGRESYON: `konusmalar` hâlâ istemciye kapalı', async () => {
+    const alici = await aliciIstemcisi();
+
+    // Politikayı onarmanın KOLAY yolu `grant select on konusmalar` idi ve o
+    // grant plakayı istemciye açardı. Bu test o kapıyı kilitli tutuyor.
+    const { data, error } = await alici.from('konusmalar').select('*');
+    expect(
+      error || (data && data.length === 0),
+      'konusmalar istemciye açılmış — plaka sızıyor'
+    ).toBeTruthy();
+  });
+});

@@ -128,23 +128,42 @@ export default function AracDevralDialog({
                 devir ücretini ödeyerek işlemi tamamlayabileceksiniz.
               </p>
             </div>
-            <ol className="text-left bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+            {/* ADIMLAR SONUÇ ANLATIYOR, İŞLEM DEĞİL.
+                Eskiden 3. adım "Devir ücretini ödüyorsunuz" idi ve liste bir
+                ödeme akışı gibi okunuyordu. Adımın işi kullanıcıya sürecin
+                NEREDE olduğunu söylemek; ücret ise bir kez, aşağıda, nötr
+                bir satırda geçiyor — saklanmıyor ama başlığı da işgal
+                etmiyor. */}
+            <ol className="text-left bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
               {[
-                ['1', 'Talebiniz araç sahibine iletildi', true],
-                ['2', 'Araç sahibi onaylıyor', false],
-                ['3', 'Devir ücretini ödüyorsunuz (2 gün içinde)', false],
-                ['4', 'Araç garajınıza geçiyor', false],
-              ].map(([no, metin, tamam]) => (
+                ['1', 'Talep iletildi',
+                 'Araç sahibine bildirim gönderildi.', true],
+                ['2', 'Onay bekleniyor',
+                 'Sicilin devri için araç sahibinin onayı gerekiyor.', false],
+                ['3', 'Devir tamamlanıyor',
+                 'Onaydan sonra işlemi 2 gün içinde bitirmeniz gerekiyor.', false],
+                ['4', 'Sicil garajınıza geçiyor',
+                 'Bakım geçmişi ve belgeler araçla birlikte aktarılır.', false],
+              ].map(([no, baslik, aciklama, tamam]) => (
                 <li key={no} className="flex items-start gap-2.5">
-                  <span className={`w-5 h-5 rounded-full grid place-items-center text-[10px] font-black shrink-0 ${
+                  <span className={`w-5 h-5 rounded-full grid place-items-center text-[10px] font-black shrink-0 mt-0.5 ${
                     tamam ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'
                   }`}>{no}</span>
-                  <span className={`text-[12px] leading-relaxed ${tamam ? 'text-slate-900 font-bold' : 'text-slate-500'}`}>
-                    {metin}
+                  <span className="min-w-0">
+                    <span className={`block text-[12px] leading-snug ${tamam ? 'text-slate-900 font-black' : 'text-slate-700 font-bold'}`}>
+                      {baslik}
+                    </span>
+                    <span className="block text-[11px] text-slate-500 leading-relaxed mt-0.5">
+                      {aciklama}
+                    </span>
                   </span>
                 </li>
               ))}
             </ol>
+
+            <p className="text-[11px] text-slate-500 leading-relaxed text-left">
+              Devir işlemi için platform ücreti ₺150&apos;dir; devralan taraf öder.
+            </p>
             <button
               type="button"
               onClick={onClose}

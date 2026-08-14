@@ -69,9 +69,14 @@ const HATA_METNI = {
   odeme_bekliyor:       'Sicili garajınıza almak için ödemeyi tamamlayın.',
   bekleme_suresi:       'Bekleme süresi henüz dolmadı.',
   belgeli_yol:          'Bu başvuru belge doğrulaması bekliyor; kendiliğinden tamamlanamaz.',
-  sahip_degil:          'Bu araç sizin garajınızda değil.',
   kisit_yok:            'Bu aracın belgeleri zaten açık.',
   sahip_degismis:       'Araç bu sırada el değiştirmiş.',
+
+  // ⚠ AŞAĞIDAKİ ÜÇÜ EKSİKTİ ve kullanıcı "Bilinmeyen bir hata oluştu."
+  // görüyordu. Üçü de devir onay/ödeme akışının GERÇEK dalları:
+  bulunamadi:           'Bu devir işlemi bulunamadı ya da artık geçerli değil.',
+  durum_uygun_degil:    'Bu talep zaten karara bağlanmış.',
+  suresi_doldu:         'Ödeme süresi doldu; işlem sıfırlandı. Araç sahibinden yeni bir devir kodu isteyin.',
 };
 
 /** RPC sarmalayıcı: hata kodunu okunur metne çevirir, exception atmaz. */
@@ -115,19 +120,15 @@ export async function devirKoduIptal(plaka) {
   return cagir('devir_kodu_iptal', { p_plaka: plaka });
 }
 
-/** Bekleyen bir talebi onaylar ya da reddeder. */
-export async function devirTalepKarari(istekId, onay) {
-  return cagir('devir_talep_karari', {
-    p_istek_id: istekId,
-    p_onay: onay,
-    // Ret durumunda da metin gönderiliyor: fonksiyon onu yalnızca onayda
-    // kullanıyor, ama iki ayrı çağrı imzası tutmaya gerek yok.
-    p_riza_metni: onay ? RIZA_METNI : 'ret',
-  });
-}
 
 // -------------------------------------------------------------------------
 // ALICI TARAFI
+//
+// ⚠ `devirTalepKarari` ve `devirTalepEt` KALDIRILDI. İkisi de hiçbir yerden
+// çağrılmıyordu: ilkinin yerini `devirIstekKarari` aldı, ikincisi ise
+// sunucuda zaten yetkisiz (`20260814140000_devir_talep_yolu_kapatildi.sql`)
+// — çağrılsa yetki hatası dönerdi. Çalışmayan bir fonksiyonu serviste
+// tutmak, sonraki okuyucuya var olmayan bir yol vaat ediyor.
 // -------------------------------------------------------------------------
 
 /** Plakanın durumu: kayıtlı mı, benim mi? Modalın üç durumu için. */
@@ -200,10 +201,6 @@ export async function devirOdeyipTamamla(istekId) {
   return cagir('devir_odeyip_tamamla', { p_istek_id: istekId });
 }
 
-/** Araç sahibine devir talebi gönderir. */
-export async function devirTalepEt(plaka, mesaj) {
-  return cagir('devir_talep_et', { p_plaka: plaka, p_mesaj: mesaj });
-}
 
 // -------------------------------------------------------------------------
 // SAHİPSİZ ARAÇ HAVUZU
