@@ -16,6 +16,8 @@ import useSicil from '../hooks/useSicil';
 import FaturaOnizleme from './common/FaturaOnizleme';
 import SicilPuaniKirilim from './common/SicilPuaniKirilim';
 import { dugme } from './common/dugme';
+import MesajBaslatDialog from './mesaj/MesajBaslatDialog';
+import { konusmaBaslat } from '../services/mesajService';
 import { favoriKimlikleri, favoriDegistir } from '../services/favoriService';
 // Hasar katalogu ORTAK. Bu iki sabit eskiden uc dosyada ayri ayri tanimliydi
 // ve birbirinden kaymisti: ayni parca iki farkli isimle, ayni durum iki farkli
@@ -136,6 +138,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
   // favorileyemediği için düğme hiç gösterilmiyor.
   // -------------------------------------------------------------------------
   const [favorili, setFavorili] = useState(false);
+  const [mesajAcik, setMesajAcik] = useState(false);
   const [favoriIsleniyor, setFavoriIsleniyor] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
@@ -210,6 +213,21 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
     setFavorili(sonuc);
     setFavoriIsleniyor(false);
     if (hata) toast.hata(hata);
+  };
+
+  /**
+   * İlk mesajı gönderir ve konuşmayı açar.
+   *
+   * ⚠ ENGELLENMİŞ KULLANICI BUNU ÖĞRENMİYOR. `konusma_baslat` engel
+   * durumunda da başarı dönüyor ve buradaki mesaj aynı kalıyor. Sebebi
+   * ürün kararı: "engellendiniz" demek, misilleme için ikinci hesap açmayı
+   * doğrudan teşvik ediyor.
+   */
+  const mesajGonderIlk = async (govde) => {
+    const { basarili, hata } = await konusmaBaslat(vehicle.pin_code, govde);
+    if (!basarili) { toast.hata(hata); return; }
+    setMesajAcik(false);
+    toast.basari('Mesajınız gönderildi. Yanıtı Mesajlarım bölümünden takip edebilirsiniz.');
   };
 
   // ⚙️ SCROLL & Observer Kontrolcüsü
@@ -1307,6 +1325,21 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   </button>
                 )}
 
+                {/* ARAÇ SAHİBİNE MESAJ — kaldırılan telefon düğmesinin yerine.
+                    Telefon geri getirilmedi: numara sahibin kontrol edemediği
+                    kalıcı bir kanal, mesajlaşma ise engellenebilir, şikayet
+                    edilebilir ve kayıt altında. */}
+                {isPublicView && vehicle?.pin_code && (
+                  <button
+                    type="button"
+                    onClick={() => setMesajAcik(true)}
+                    className={dugme('ikincil', { tamGenislik: true })}
+                  >
+                    <Icon name="zil" size="sm" />
+                    Araç Sahibine Mesaj
+                  </button>
+                )}
+
                 {isPublicView && vehicle?.pin_code && (
                   <button
                     type="button"
@@ -1361,6 +1394,14 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
         </div>
 
       </div>
+
+      {mesajAcik && (
+        <MesajBaslatDialog
+          arac={vehicle}
+          onKapat={() => setMesajAcik(false)}
+          onGonder={mesajGonderIlk}
+        />
+      )}
 
       {/* 🚀 LIGHTBOX GALERİ MODALI */}
       {isFullscreen && imageList.length > 0 && (

@@ -30,6 +30,7 @@ const UYE_MENU = [
   { href: '/garage', label: 'Tescilli Taşıtlarım (Garaj)' },
   { href: '/my-listings', label: 'Vitrindeki Araçlarım' },
   { href: '/favorilerim', label: 'Favorilerim' },
+  { href: '/mesajlar', label: 'Mesajlarım' },
   { href: '/dashboard', label: 'Bana Özel Özet' },
   { href: '/query-history', label: 'Sorgulama Geçmişim' },
   { href: '/packages', label: 'Ücretler & Ödemeler' },
