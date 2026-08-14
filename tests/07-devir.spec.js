@@ -81,6 +81,8 @@ const {
   supabaseIstemcisi,
   aliciIstemcisi,
   ORNEK_PLAKA,
+  girisYapAlici,
+  hamMetin,
 } = require('./yardimcilar');
 
 // Devir testleri bu araç üzerinde çalışıyor. ORNEK_PLAKA kullanılmıyor:
@@ -541,5 +543,79 @@ test.describe('Devir onay ve ücret kilitleri', () => {
 
     const { error: fnHata } = await alici.rpc('_devir_sureleri_dusur');
     expect(fnHata, '_devir_sureleri_dusur istemciden çağrılabiliyor').toBeTruthy();
+  });
+});
+
+// =========================================================================
+// ARAYÜZ: ÖDEME EKRANI
+//
+// Akışın son halkasıydı ve ekranı YOKTU: araç sahibi onayladıktan sonra
+// devralan kişi bildirimi alıyor ama ödeme yapacak yeri bulamıyordu. Akış
+// son adımda tıkanıyordu; bu paket o halkanın çalıştığını sınıyor.
+// =========================================================================
+test.describe('Devir ödeme ekranı', () => {
+
+  test('onay öncesi ve sonrası doğru ekranı gösteriyor, ödeme aracı taşıyor', async ({ page }) => {
+    const satici = await supabaseIstemcisi();
+    const alici = await aliciIstemcisi();
+
+    await rpc(satici, 'devir_kodu_iptal', { p_plaka: DEVIR_PLAKA });
+    const kod = await rpc(satici, 'devir_kodu_uret', { p_plaka: DEVIR_PLAKA, p_riza_metni: RIZA });
+    test.skip(!kod?.kod, 'kod üretilemedi (araç bu koşumda satıcıda değil)');
+
+    const istek = await rpc(alici, 'devir_istek_olustur', { p_kod: kod.kod });
+    expect(istek?.basarili, JSON.stringify(istek)).toBe(true);
+
+    // ---- 'bekliyor': kullanıcının yapabileceği bir şey yok ----
+    await girisYapAlici(page);
+    await page.goto('/devir');
+    await page.waitForLoadState('networkidle');
+
+    await expect(
+      page.getByText('Araç sahibinin onayı bekleniyor'),
+      'onay beklerken durum bildirilmiyor'
+    ).toBeVisible({ timeout: 20_000 });
+
+    // Ödeme düğmesi HENÜZ olmamalı: tıklanacak bir şey yokken düğme
+    // göstermek "bozuk" izlenimi verir.
+    await expect(
+      page.getByRole('button', { name: /Ücreti öde ve devral/i }),
+      'onay gelmeden ödeme düğmesi görünüyor'
+    ).toHaveCount(0);
+
+    // ---- A onaylıyor ----
+    const karar = await rpc(satici, 'devir_istek_karari', { p_istek_id: istek.istek_id, p_onay: true });
+    expect(karar?.basarili, JSON.stringify(karar)).toBe(true);
+
+    // ---- 'onaylandi': ücret, kalan süre ve ödeme düğmesi ----
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.getByText('Araç üzerinize geçmeye hazır')).toBeVisible({ timeout: 20_000 });
+
+    const metin = await hamMetin(page);
+    expect(metin, 'devir ücreti gösterilmiyor').toContain('150');
+    // Süre dolduğunda her şey sıfırlanıyor; kullanıcı bunu ödemeden ÖNCE bilmeli.
+    expect(metin, 'kalan süre bildirilmiyor').toMatch(/kaldı/);
+    expect(metin, 'süre dolarsa ne olacağı söylenmiyor').toContain('sıfırlanır');
+
+    // ---- ödeme ----
+    await page.getByRole('button', { name: /Ücreti öde ve devral/i }).click();
+    await page.waitForURL('**/garage', { timeout: 30_000 });
+
+    const { data: aracAlicida } = await alici
+      .from('vehicles').select('plate_number').eq('plate_number', DEVIR_PLAKA);
+    expect(aracAlicida?.length, 'ödeme sonrası araç devralana geçmedi').toBe(1);
+
+    // Ücret SUNUCUDAN yazılıyor: istemci tutarı belirleyemiyor.
+    const { data: alim } = await alici
+      .from('satin_almalar').select('tutar, durum')
+      .eq('urun_kodu', 'devir').order('id', { ascending: false }).limit(1);
+    expect(Number(alim?.[0]?.tutar), 'devir ücreti sunucudaki tutardan farklı').toBe(150);
+    expect(alim?.[0]?.durum).toBe('tamamlandi');
+
+    // Temizlik: araç geri devrediliyor, sonraki koşumlar bozulmasın.
+    const geri = await rpc(alici, 'devir_kodu_uret', { p_plaka: DEVIR_PLAKA, p_riza_metni: RIZA });
+    if (geri?.kod) await devriTamamla(satici, alici, geri.kod);
   });
 });

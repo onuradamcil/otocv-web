@@ -31,6 +31,7 @@ import Icon from '@/components/common/icons';
 import AracDevretDialog from '@/components/garage/AracDevretDialog';
 import AracDevralDialog from '@/components/marketplace/create-listing/AracDevralDialog';
 import SahipsizGeriYukleDialog from '@/components/marketplace/create-listing/SahipsizGeriYukleDialog';
+import BekleyenDevirlerim from '@/components/garage/BekleyenDevirlerim';
 import { plakaDurumu, devirOnizleme, devirKoduNormalize } from '@/services/devirService';
 
 /** Plakayı okunur biçime sokar: 34ABC123 -> 34 ABC 123 */
@@ -254,6 +255,18 @@ export default function DevirPage() {
           </div>
         </div>
       ) : (
+        <>
+        {/* BEKLEYEN DEVİRLER — EN ÜSTTE.
+            Akışın son halkası buydu ve ekranı yoktu: araç sahibi onayladıktan
+            sonra devralan kişi bildirimi alıyor ama ödeme yapacak yeri
+            bulamıyordu. Bölüm en üstte çünkü burada duran bir kayıt varsa
+            kullanıcının yapması gereken tek iş o; kod üretmek ya da plaka
+            aramak değil. Bekleyen yoksa bölüm hiç basılmıyor. */}
+        <BekleyenDevirlerim
+          kart={kart}
+          onDevralindi={() => router.push('/garage')}
+        />
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
           {/* ---------------- SATICI TARAFI ---------------- */}
@@ -261,8 +274,9 @@ export default function DevirPage() {
             <div className="space-y-1">
               <h2 className="text-sm font-black text-slate-900">Aracımı devretmek istiyorum</h2>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                Aracı seçin, devir kodu üretin ve alıcıya verin. Alıcı kodu
-                girdiğinde araç ve sicili ona geçer.
+                Aracı seçin, devir kodu üretin ve aracı alan kişiye verin. Kodu
+                giren kişi size talep gönderir; araç ancak siz onayladıktan ve
+                devir ücreti ödendikten sonra geçer.
               </p>
             </div>
 
@@ -327,8 +341,9 @@ export default function DevirPage() {
             <div className="space-y-1">
               <h2 className="text-sm font-black text-slate-900">Aracı devralacağım</h2>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                Elinizde devir kodu varsa doğrudan girin. Kod, sicilin
-                yalnızca satıcının onayıyla geçtiğinin kanıtı.
+                Elinizde devir kodu varsa girin. Kod, aracı devreden kişiyle
+                gerçekten temas kurduğunuzun kanıtı; sicil yine de yalnızca
+                onun onayıyla ve devir ücreti ödendikten sonra geçer.
               </p>
             </div>
 
@@ -429,6 +444,7 @@ export default function DevirPage() {
             </div>
           </section>
         </div>
+        </>
       )}
 
       {/* Karne sorgulama menüden kalktı; buradan erişilebilir kalıyor. */}
