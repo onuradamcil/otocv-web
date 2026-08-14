@@ -292,42 +292,68 @@ test.describe('Araç devri', () => {
   });
 
   // -----------------------------------------------------------------------
-  test('TALEP YOLU: talep, sınırlar ve onay', async () => {
-    // Araç şu an ALICIDA (önceki test devretti). Satıcı geri talep ediyor.
+  // -----------------------------------------------------------------------
+  // TALEP YOLU KAPATILDI — ARTIK BUNU DENETLİYORUZ
+  //
+  // `devir_talep_et` herhangi bir oturumlu kullanıcının YALNIZCA PLAKAYI
+  // bilerek araç sahibine bildirim göndermesine izin veriyordu. Plakalar
+  // sokakta görünüyor; yol bir taciz kanalıydı.
+  //
+  // Üstelik zaten işlemiyordu: arayüzdeki gerekçesi "satıcıya
+  // ulaşamıyorsanız" idi ama `devir_talep_karari` sahibin AKTİF onayını ve
+  // rıza metnini istiyor — ulaşılamayan satıcı talebi de onaylayamaz.
+  // Satıcı ulaşılabilir olduğunda ise zaten devir kodu üretebiliyor.
+  //
+  // Yetki veritabanında geri alındı. Bu test onun geri açılmadığını
+  // denetliyor: bir migration ya da "şunu da açalım" düzenlemesi kanalı
+  // sessizce geri getirebilir.
+  // -----------------------------------------------------------------------
+  test('TALEP YOLU KAPALI: plakayı bilen sahibe bildirim gönderemiyor', async () => {
     const satici = await supabaseIstemcisi();
     const alici = await aliciIstemcisi();
 
-    const t1 = await rpc(satici, 'devir_talep_et', {
-      p_plaka: DEVIR_PLAKA, p_mesaj: 'Test: aracı geri alıyorum.',
+    for (const [ad, istemci] of [['satıcı', satici], ['alıcı', alici]]) {
+      const r = await rpc(istemci, 'devir_talep_et', {
+        p_plaka: DEVIR_PLAKA, p_mesaj: 'kilit denemesi',
+      });
+      // `rpc` yardımcısı hata durumunda `{hata_mesaji}` döndürüyor.
+      expect(
+        r?.hata_mesaji || r?.hata,
+        `${ad} hâlâ devir talebi gönderebiliyor — taciz kanalı yeniden açık`
+      ).toBeTruthy();
+    }
+
+    const anon = anonIstemcisi();
+    const ra = await rpc(anon, 'devir_talep_et', { p_plaka: DEVIR_PLAKA, p_mesaj: 'x' });
+    expect(ra?.hata_mesaji || ra?.hata, 'anon talep gönderebiliyor').toBeTruthy();
+  });
+
+  // -----------------------------------------------------------------------
+  // ARACI GERİ DÖNDÜR — KOD YOLUYLA
+  //
+  // Önceki test aracı alıcıya devretti. Eskiden geri dönüş TALEP yoluyla
+  // yapılıyordu; o yol kapandığı için artık kod yolu kullanılıyor. Bu aynı
+  // zamanda kod yolunun İKİ YÖNDE de çalıştığını gösteriyor.
+  //
+  // Geri döndürmek şart: araç bu hesapta kalırsa sonraki koşumlar bozulur.
+  // -----------------------------------------------------------------------
+  test('araç kod yoluyla satıcıya geri dönüyor', async () => {
+    const satici = await supabaseIstemcisi();
+    const alici = await aliciIstemcisi();
+
+    // Araç şu an ALICIDA; kodu o üretiyor.
+    const uret = await rpc(alici, 'devir_kodu_uret', {
+      p_plaka: DEVIR_PLAKA, p_riza_metni: RIZA,
     });
-    expect(t1?.basarili, JSON.stringify(t1)).toBe(true);
+    expect(uret?.kod, JSON.stringify(uret)).toBeTruthy();
 
-    // SINIR: aynı araca ikinci bekleyen talep açılamaz.
-    const t2 = await rpc(satici, 'devir_talep_et', { p_plaka: DEVIR_PLAKA, p_mesaj: 'ikinci' });
-    expect(t2?.hata, 'ikinci talep engellenmedi').toBe('zaten_bekleyen_talep');
-
-    // Yeni sahip talebi görüyor.
-    const durum = await rpc(alici, 'devir_durumu', { p_plaka: DEVIR_PLAKA });
-    expect((durum?.talepler || []).length, 'sahip talebi görmüyor').toBe(1);
-    expect(durum.talepler[0].mesaj).toContain('geri alıyorum');
-
-    // SAHİP OLMAYAN karar veremez.
-    const yanlis = await rpc(satici, 'devir_talep_karari', {
-      p_istek_id: t1.istek_id, p_onay: true, p_riza_metni: RIZA,
-    });
-    expect(yanlis?.hata, 'sahip olmayan karar verebildi').toBe('sahip_degil');
-
-    // Sahip onaylıyor → devir tamamlanıyor.
-    const karar = await rpc(alici, 'devir_talep_karari', {
-      p_istek_id: t1.istek_id, p_onay: true, p_riza_metni: RIZA,
-    });
-    expect(karar?.basarili, JSON.stringify(karar)).toBe(true);
-    expect(karar?.karar).toBe('onaylandi');
+    const tamam = await rpc(satici, 'devir_tamamla', { p_kod: uret.kod });
+    expect(tamam?.basarili, JSON.stringify(tamam)).toBe(true);
 
     const { data: { user: u1 } } = await satici.auth.getUser();
     const { data: son } = await satici
       .from('vehicles').select('user_id').eq('plate_number', DEVIR_PLAKA).single();
-    expect(son?.user_id, 'talep onayı devri tamamlamadı').toBe(u1.id);
+    expect(son?.user_id, 'araç satıcıya geri dönmedi').toBe(u1.id);
   });
 
   // -----------------------------------------------------------------------

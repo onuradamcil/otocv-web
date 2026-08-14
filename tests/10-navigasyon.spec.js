@@ -121,6 +121,64 @@ test.describe('Üst menü', () => {
       .toBeVisible({ timeout: 15_000 });
   });
 
+  // -------------------------------------------------------------------------
+  // DEVİR KODU GİRİLECEK YER — BULUNAN MANTIK HATASI
+  //
+  // Satıcı devir kodu üretiyordu ama alıcı tarafında yalnızca PLAKA
+  // girilebilen bir form vardı. Elindeki kodu yazacak yer yoktu: kullanıcı
+  // önce plakayı yazmak, sonra açılan diyalogda "Devir kodum var" seçeneğini
+  // bulmak zorundaydı. Kod, kendisi bir kimlik belgesiyken ikinci bir
+  // kimliğin (plakanın) arkasına saklanmıştı.
+  //
+  // `devir_onizleme(kod)` aracı zaten kodun kendisinden çözüyor; plakaya
+  // hiç ihtiyaç yok. Eksik olan tek şey giriş alanıydı.
+  // -------------------------------------------------------------------------
+  test.describe('Devir kodu girişi', () => {
+    test.beforeEach(async ({ page }) => {
+      await girisYap(page);
+      await page.goto('/devir');
+      await expect(page.getByLabel('Devir kodum var')).toBeVisible({ timeout: 15_000 });
+    });
+
+    test('alıcı tarafında kod alanı var ve plakadan önce geliyor', async ({ page }) => {
+      const kodAlani = page.locator('#devir-kodu');
+      const plakaAlani = page.locator('#devir-plaka');
+      await expect(kodAlani).toBeVisible();
+      await expect(plakaAlani).toBeVisible();
+
+      // Kod elinde olan kullanıcı önce onu görmeli: plaka ikincil yol.
+      const kodKutu = await kodAlani.boundingBox();
+      const plakaKutu = await plakaAlani.boundingBox();
+      expect(kodKutu.y, 'kod alanı plakanın altında kalmış').toBeLessThan(plakaKutu.y);
+    });
+
+    test('bozuk biçimli kod SUNUCUYA GİTMEDEN reddediliyor', async ({ page }) => {
+      // Devir kodunda kaba kuvvet sayacı var; elle yazarken yapılan biçim
+      // hatasının boşuna bir deneme sayılmaması gerekiyor.
+      let istekGitti = false;
+      page.on('request', (r) => {
+        if (r.url().includes('/rpc/devir_onizleme')) istekGitti = true;
+      });
+
+      await page.locator('#devir-kodu').fill('ABC');
+      await page.getByRole('button', { name: 'Kodu Kullan' }).click();
+      await page.waitForTimeout(1200);
+
+      await expect(page.getByText(/8 karakter olmalı/)).toBeVisible();
+      expect(istekGitti, 'bozuk kod sunucuya gönderildi — deneme sayacını boşa harcıyor').toBe(false);
+    });
+
+    test('var olmayan kod anlaşılır hata veriyor', async ({ page }) => {
+      await page.locator('#devir-kodu').fill('DV-ZZZZ-ZZZZ');
+      await page.getByRole('button', { name: 'Kodu Kullan' }).click();
+      await page.waitForTimeout(3000);
+
+      // Ekran boş kalmıyor, ham hata da basmıyor.
+      const govde = await page.locator('body').textContent();
+      expect(govde).toMatch(/geçerli değil|süresi|bulunamadı/i);
+    });
+  });
+
   test.describe('Hesap menüsü', () => {
     test.beforeEach(async ({ page }) => {
       await girisYap(page);

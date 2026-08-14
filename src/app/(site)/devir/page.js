@@ -31,7 +31,7 @@ import Icon from '@/components/common/icons';
 import AracDevretDialog from '@/components/garage/AracDevretDialog';
 import AracDevralDialog from '@/components/marketplace/create-listing/AracDevralDialog';
 import SahipsizGeriYukleDialog from '@/components/marketplace/create-listing/SahipsizGeriYukleDialog';
-import { plakaDurumu } from '@/services/devirService';
+import { plakaDurumu, devirOnizleme, devirKoduNormalize } from '@/services/devirService';
 
 /** Plakayı okunur biçime sokar: 34ABC123 -> 34 ABC 123 */
 function plakaBicimle(plaka) {
@@ -55,8 +55,25 @@ export default function DevirPage() {
   const [plakaGirdi, setPlakaGirdi] = useState('');
   const [aranıyor, setAraniyor] = useState(false);
   const [aramaHatasi, setAramaHatasi] = useState('');
-  const [devralPlaka, setDevralPlaka] = useState(null);
   const [sahipsizPlaka, setSahipsizPlaka] = useState(null);
+
+  // -----------------------------------------------------------------------
+  // DEVİR KODU DOĞRUDAN GİRİLEBİLİYOR
+  //
+  // Bulunan mantık hatası: satıcı devir kodu üretiyordu ama alıcı tarafında
+  // yalnızca PLAKA girilebilen bir form vardı. Elindeki kodu yazacak yer
+  // yoktu; kullanıcı önce plakayı yazmak, sonra açılan diyalogda "Devir
+  // kodum var" seçeneğini bulmak zorundaydı. Kod, kendisi bir kimlik
+  // belgesiyken ikinci bir kimliğin (plakanın) arkasına saklanmıştı.
+  //
+  // `devir_onizleme(kod)` aracı zaten kodun kendisinden çözüyor — plakaya
+  // hiç ihtiyaç yok. Eksik olan tek şey giriş alanıydı.
+  // -----------------------------------------------------------------------
+  const [kodGirdi, setKodGirdi] = useState('');
+  const [kodAraniyor, setKodAraniyor] = useState(false);
+  const [kodHatasi, setKodHatasi] = useState('');
+  const [kodPlaka, setKodPlaka] = useState(null);   // kod çözülünce plaka
+  const [gecerliKod, setGecerliKod] = useState('');
 
   useEffect(() => {
     let iptal = false;
@@ -89,6 +106,38 @@ export default function DevirPage() {
    * belirliyor. İstemci tahmin etmiyor: "kayıtlı mı, benim mi, sahipsiz mi"
    * kararı sunucuda veriliyor.
    */
+  /**
+   * Devir kodunu çözer ve devralma diyaloğunu doğrudan kod adımında açar.
+   *
+   * Kod istemcide ÖNCE normalleştiriliyor: `devirKoduNormalize` karışan
+   * karakterleri katlıyor (I/L -> 1, O -> 0) ve alfabe dışı karakteri
+   * reddediyor. Böylece elle yazarken yapılan tipik hata sunucuya hiç
+   * gitmiyor ve boşuna bir deneme sayılmıyor — devir kodunda kaba kuvvet
+   * sayacı var.
+   */
+  const kodulAra = async (e) => {
+    e.preventDefault();
+    setKodHatasi('');
+
+    const normal = devirKoduNormalize(kodGirdi);
+    if (!normal) {
+      setKodHatasi('Devir kodu 8 karakter olmalı. Örnek: DV-A4B7-C2D9');
+      return;
+    }
+
+    setKodAraniyor(true);
+    const r = await devirOnizleme(normal);
+    setKodAraniyor(false);
+
+    if (!r.basarili) {
+      setKodHatasi(r.hata || 'Bu kod geçerli değil ya da süresi dolmuş.');
+      return;
+    }
+
+    setGecerliKod(normal);
+    setKodPlaka(r.veri?.plaka || '');
+  };
+
   const plakayiAra = async (e) => {
     e.preventDefault();
     setAramaHatasi('');
@@ -119,7 +168,33 @@ export default function DevirPage() {
       setSahipsizPlaka(temiz);
       return;
     }
-    setDevralPlaka(temiz);
+
+    // -----------------------------------------------------------------------
+    // BAŞKASININ ARACI — BURADA BİTİYOR, SAHİBE HİÇBİR ŞEY GİTMİYOR.
+    //
+    // Eskiden bu satır `AracDevralDialog`'u açıyor ve kullanıcı oradan araç
+    // sahibine "devir talebi" gönderebiliyordu. Talep yolu kaldırıldı; iki
+    // sebeple:
+    //
+    // 1. TACİZ KANALIYDI. Plakalar sokakta görünüyor. Bir plakayı
+    //    fotoğraflayan herkes, aracın sahibine bildirim gönderebiliyordu.
+    //    Devir kodu ise gerçek bir kanıt: kodu bilen kişi satıcıyla temas
+    //    kurmuş demektir.
+    //
+    // 2. ZATEN İŞLEMİYORDU. Yolun ekrandaki gerekçesi "satıcıya
+    //    ulaşamıyorsanız" idi. Ama `devir_talep_karari` araç sahibinin
+    //    AKTİF ONAYINI ve rıza metnini istiyor — ulaşılamayan satıcı talebi
+    //    de onaylayamaz. Yol, var olma sebebini kendi kendine çürütüyordu.
+    //    Satıcı ulaşılabilir olduğunda ise zaten devir kodu üretebiliyor.
+    //
+    // Yani yol, çalışmayan bir işlev karşılığında çalışan bir taciz kanalı
+    // açıyordu. Kullanıcı artık ne yapması gerektiğini öğreniyor, sahibi
+    // ise hiçbir şey görmüyor.
+    // -----------------------------------------------------------------------
+    setAramaHatasi(
+      'Bu araç başka bir kullanıcının garajında. Devralmak için satıcıdan ' +
+      'devir kodu isteyin — kodu yukarıdaki alana girip sicili devralabilirsiniz.'
+    );
   };
 
   // Süzme hem plakada hem marka/modelde çalışıyor: kullanıcı aracını
@@ -252,16 +327,62 @@ export default function DevirPage() {
             <div className="space-y-1">
               <h2 className="text-sm font-black text-slate-900">Aracı devralacağım</h2>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                Satın aldığınız aracın plakasını yazın. Aracın durumuna göre
-                doğru yolu açacağız.
+                Elinizde devir kodu varsa doğrudan girin. Kod, sicilin
+                yalnızca satıcının onayıyla geçtiğinin kanıtı.
               </p>
+            </div>
+
+            {/* -------- 1. YOL: DEVİR KODU --------
+                Kod, aracı tek başına tanımlıyor: `devir_onizleme(kod)` plakayı
+                kodun kendisinden çözüyor. Eskiden bu alan HİÇ YOKTU — satıcı
+                kod üretiyordu ama alıcının onu yazacağı bir yer yoktu.
+                Kullanıcı önce plakayı yazmak, sonra açılan diyalogda "Devir
+                kodum var" seçeneğini bulmak zorundaydı. */}
+            <form onSubmit={kodulAra} className="space-y-3 bg-indigo-50/50 border border-indigo-100 rounded-xl p-4">
+              <label htmlFor="devir-kodu" className="block text-xs font-bold text-slate-700">
+                Devir kodum var
+              </label>
+              <input
+                id="devir-kodu"
+                type="text"
+                value={kodGirdi}
+                onChange={(e) => { setKodGirdi(e.target.value.toUpperCase()); setKodHatasi(''); }}
+                placeholder="DV-A4B7-C2D9"
+                autoComplete="off"
+                spellCheck={false}
+                className="w-full px-3.5 py-3 border border-slate-200 bg-white rounded-xl text-sm font-mono font-black tracking-widest text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
+              />
+
+              {kodHatasi && (
+                <p role="alert" className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3 leading-relaxed">
+                  {kodHatasi}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={kodAraniyor || !kodGirdi.trim()}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer"
+              >
+                {kodAraniyor ? 'Kod kontrol ediliyor…' : 'Kodu Kullan'}
+              </button>
+            </form>
+
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-slate-200" />
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">veya</span>
+              <span className="h-px flex-1 bg-slate-200" />
             </div>
 
             <form onSubmit={plakayiAra} className="space-y-3">
               <div>
                 <label htmlFor="devir-plaka" className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Aracın plakası
+                  Kodum yok — aracın durumunu sorgula
                 </label>
+                {/* Bu alan araç sahibine HİÇBİR ŞEY GÖNDERMİYOR; yalnızca
+                    ne yapılması gerektiğini söylüyor. Talep yolu, plakayı
+                    bilen herkesin araç sahibine bildirim göndermesine izin
+                    verdiği için kaldırıldı. */}
                 {/* NOT: Bu, Step 1/Step 2 sihirbazındaki plaka bileşeni DEĞİL.
                     Onlara dokunulmuyor; bu bağımsız ve sade bir alan. */}
                 <input
@@ -294,9 +415,9 @@ export default function DevirPage() {
                 yazmadan hangi durumda ne olacağını görüyor. */}
             <div className="border-t border-slate-100 pt-4 space-y-2">
               {[
-                ['Devir kodunuz varsa', 'Satıcıdan aldığınız kodu girip devralırsınız.'],
-                ['Satıcıya ulaşamıyorsanız', 'Devir talebi gönderirsiniz; satıcı onaylar.'],
-                ['Satıcı hesabını kapatmışsa', 'Sicili geri yükleme yoluna yönlendirilirsiniz.'],
+                ['Devir kodunuz varsa', 'Satıcıdan aldığınız kodu girip sicili devralırsınız.'],
+                ['Kodunuz yoksa', 'Satıcıdan istemeniz gerekiyor; sicil yalnızca onun onayıyla geçer.'],
+                ['Satıcı hesabını kapatmışsa', 'Plakayla sicili geri yükleme yoluna yönlendirilirsiniz.'],
               ].map(([baslik, aciklama]) => (
                 <div key={baslik} className="flex items-start gap-2">
                   <span className="text-slate-300 shrink-0 mt-0.5"><Icon name="onay" size="xs" strokeWidth={3} /></span>
@@ -330,11 +451,15 @@ export default function DevirPage() {
         />
       )}
 
-      {devralPlaka && (
+      {/* KOD YOLU: diyalog doğrudan kod adımında ve kod dolu açılıyor.
+          Kullanıcı kodu iki kez yazmıyor. */}
+      {kodPlaka !== null && (
         <AracDevralDialog
-          plaka={devralPlaka}
-          onClose={() => setDevralPlaka(null)}
-          onDevralindi={() => { setDevralPlaka(null); router.push('/garage'); }}
+          plaka={kodPlaka}
+          baslangicYolu="kod"
+          baslangicKodu={gecerliKod}
+          onClose={() => { setKodPlaka(null); setGecerliKod(''); }}
+          onDevralindi={() => { setKodPlaka(null); setGecerliKod(''); setKodGirdi(''); router.push('/garage'); }}
         />
       )}
 

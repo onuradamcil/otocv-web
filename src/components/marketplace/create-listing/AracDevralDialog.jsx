@@ -33,12 +33,27 @@ import {
   devirKoduNormalize,
   devirOnizleme,
   devirTamamla,
-  devirTalepEt,
 } from '../../../services/devirService';
 
-export default function AracDevralDialog({ plaka, onClose, onDevralindi }) {
-  const [yol, setYol] = useState(null);          // null | 'kod' | 'talep'
-  const [kodGirdi, setKodGirdi] = useState('');
+export default function AracDevralDialog({
+  plaka,
+  onClose,
+  onDevralindi,
+  // -----------------------------------------------------------------------
+  // KOD YOLUYLA DOĞRUDAN AÇILMA
+  //
+  // Kullanıcı devir kodunu /devir sayfasında girdiğinde diyalog artık yol
+  // seçme ekranından değil, doğrudan kod adımından açılıyor. Kodu bir kez
+  // yazıp burada ikinci kez yazmak zorunda kalmak anlamsızdı.
+  //
+  // `plaka` bu yolda GEREKMİYOR: `devir_onizleme(kod)` aracı kodun
+  // kendisinden çözüyor. Plaka yalnızca TALEP yolunda kullanılıyor.
+  // -----------------------------------------------------------------------
+  baslangicYolu = null,
+  baslangicKodu = '',
+}) {
+  const [yol, setYol] = useState(baslangicYolu);  // null | 'kod' | 'talep'
+  const [kodGirdi, setKodGirdi] = useState(baslangicKodu);
   const [mesaj, setMesaj] = useState('');
   const [onizleme, setOnizleme] = useState(null);
   const [sonuc, setSonuc] = useState(null);      // {yeni_pin} | {talep:true}
@@ -68,15 +83,6 @@ export default function AracDevralDialog({ plaka, onClose, onDevralindi }) {
     setIslemde(false);
     if (!r.basarili) { setHata(r.hata); return; }
     setSonuc({ yeni_pin: r.veri?.yeni_pin, plaka: r.veri?.plaka });
-  };
-
-  const talepGonder = async () => {
-    setIslemde(true);
-    setHata('');
-    const r = await devirTalepEt(plaka, mesaj);
-    setIslemde(false);
-    if (!r.basarili) { setHata(r.hata); return; }
-    setSonuc({ talep: true });
   };
 
   const kutu = 'bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5 relative border border-slate-100';
@@ -281,52 +287,9 @@ export default function AracDevralDialog({ plaka, onClose, onDevralindi }) {
                   </button>
                 </div>
               </form>
-            ) : yol === 'talep' ? (
-              /* ---- TALEP ---- */
-              <form onSubmit={(e) => { e.preventDefault(); talepGonder(); }} className="space-y-4">
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
-                    Araç sahibine bir bildirim gideceğiz. <strong>Onaylamadan hiçbir şey
-                    değişmez.</strong> Sizi tanıması için kısa bir not bırakın.
-                  </p>
-                </div>
-                <div className="space-y-1.5">
-                  <label htmlFor="devir-mesaj" className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                    Notunuz (isteğe bağlı)
-                  </label>
-                  <textarea
-                    id="devir-mesaj"
-                    value={mesaj}
-                    onChange={(e) => setMesaj(e.target.value)}
-                    rows={3}
-                    maxLength={300}
-                    placeholder="Örn: Aracı 12 Ağustos'ta sizden satın aldım, noter devri yapıldı."
-                    className="w-full py-3 px-4 bg-slate-50 border-2 border-gray-200 focus:border-indigo-500 rounded-xl text-xs font-medium text-slate-900 outline-none transition-colors resize-none placeholder:text-slate-400"
-                  />
-                  <p className="text-[11px] text-slate-400 text-right tabular-nums">{mesaj.length}/300</p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => { setYol(null); setHata(''); }}
-                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3.5 rounded-xl transition-colors cursor-pointer"
-                  >
-                    Geri
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={islemde}
-                    className="bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
-                  >
-                    {islemde ? (
-                      <>
-                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Gönderiliyor...
-                      </>
-                    ) : 'Talebi Gönder'}
-                  </button>
-                </div>
-              </form>
+            /* TALEP DALI KALDIRILDI: yola ulaşan düğme yok ve
+               `devir_talep_et` yetkisi veritabanında geri alındı.
+               Ulaşılamayan koda dokunulmuş gibi görünmesin diye silindi. */
             ) : (
               /* ---- YOL SEÇİMİ ---- */
               <div className="space-y-3">
@@ -349,16 +312,18 @@ export default function AracDevralDialog({ plaka, onClose, onDevralindi }) {
                   <Icon name="pinKod" size="sm" />
                   Devir kodum var
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setYol('talep')}
-                  className="w-full bg-white border border-gray-200 hover:bg-slate-50 text-slate-800 font-bold text-sm py-3.5 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <Icon name="zil" size="sm" className="text-slate-500" />
-                  Kodum yok, sahibinden talep et
-                </button>
+                {/* "Kodum yok, sahibinden talep et" KALDIRILDI.
+                    Plakayı bilen herkesin araç sahibine bildirim
+                    göndermesine izin veriyordu ve plakalar sokakta
+                    görünüyor. Üstelik yol zaten işlemiyordu: karar
+                    fonksiyonu sahibin AKTİF onayını istiyor, yani
+                    "ulaşamadığınız" satıcı talebi de onaylayamıyordu.
+                    `devir_talep_et` yetkisi veritabanında da geri alındı;
+                    çalışmayan bir düğme bırakmamak için arayüzden de
+                    kalktı. */}
                 <p className="text-[11px] text-slate-500 leading-relaxed text-center pt-1">
-                  Devir kodunu aracı sattığınız kişi OTO.CV garajından üretip size verir.
+                  Devir kodunu, aracı satan kişi OTO.CV garajından üretip size verir.
+                  Sicil yalnızca onun onayıyla geçer.
                 </p>
               </div>
             )}
