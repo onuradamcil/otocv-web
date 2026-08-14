@@ -161,7 +161,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
   
-  const [showPhone, setShowPhone] = useState(false);
+  // `showPhone` kaldırıldı: telefon açma düğmesiyle birlikte gitti.
   const [activeSection, setActiveSection] = useState('sec-description');
   const [isSticky, setIsSticky] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -180,9 +180,16 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
   // görüyordu. Ön izleme, yayımlanacak şeyi göstermek zorunda; bilmediğimiz bir
   // sayıyı göstermemeli. Puan yayımdan sonra veritabanında hesaplanıyor.
 
-  const sellerName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Onur Adamcil';
-  const sellerPhone = user?.user_metadata?.phone || '0 (532) 123 45 67';
-  const memberSince = 'Mart 2026';
+  // ⚠ ÜÇ UYDURMA ALAN KALDIRILDI — yukarıdaki "her zaman 92" hatasının aynısı:
+  //     sellerName  = ... || 'Onur Adamcil'      (yedek olarak SABİT bir isim)
+  //     sellerPhone = ... || '0 (532) 123 45 67' (uydurma telefon)
+  //     memberSince = 'Mart 2026'                (her kullanıcıda sabit)
+  //
+  // Bunlar sağdaki "satıcı & iletişim" kartını besliyordu. Kart araç detay
+  // sayfasından da kaldırıldı: telefon numarası araç sahibine ulaşmanın en
+  // doğrudan yolu ve o kanal, plakanın kaldırılmasıyla aynı gerekçeyle
+  // kapalı. Dolayısıyla ön izlemenin bu paneli göstermesi çifte hataydı —
+  // hem uydurma veri, hem de yayımdan sonra var olmayacak bir panel.
   const damageReport = formData.damage_report || formData.damageReport || {};
 
   // Kullanıcının Seçtiği Donanımlar
@@ -349,8 +356,11 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
 
       </div>
 
-      {/* 🏛️ 2 BAĞIMSIZ KURUMSAL PANEL ALANI */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start relative z-20">
+      {/* ANA İÇERİK + SİCİL ÖZETİ
+          `items-start` kaldırıldı: sağdaki sütun içeriği kadar yükselince
+          içindeki `sticky` kartın hareket alanı kalmıyor ve kart ilk ekranda
+          kayboluyordu. Araç detay sayfasındaki aynı hatanın kopyası. */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 relative z-20">
         
         {/* SOL ANA KONTEYNER (9 KOLON) */}
         <div className="lg:col-span-9 space-y-5">
@@ -1106,40 +1116,44 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
 
         </div>
 
-        {/* 📞 SAĞ BAĞIMSIZ KART: SATICI & İLETİŞİM PANELİ (3 KOLON) */}
-        <div className="lg:col-span-3 space-y-4">
-          <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-2xs space-y-4 sticky top-20">
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-              <div className="w-11 h-11 rounded-full bg-slate-900 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs border border-slate-800">
-                {sellerName.substring(0, 2).toUpperCase()}
+        {/* SAĞ SÜTUN: SİCİL ÖZETİ — araç detay sayfasındakinin aynısı.
+            Ön izlemenin işi yayımlanacak sayfayı göstermek; burada farklı
+            bir panel göstermek kullanıcıya olmayan bir şey vaat etmek olur.
+            Kayıt anında henüz bilinmeyen alanlar sayı uydurmak yerine ne
+            zaman doldurulacağını söylüyor. */}
+        <div className="lg:col-span-3">
+          <div className="sticky top-20 space-y-4">
+            <div className="bg-white border border-slate-200 rounded-md shadow-2xs overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-600">
+                  Sicil Özeti
+                </span>
               </div>
-              <div className="space-y-0.5 overflow-hidden">
-                <h3 className="text-sm font-black text-slate-900 tracking-tight truncate">{sellerName}</h3>
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-semibold">
-                  <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 font-mono">Bireysel Üye</span>
-                  <span>• {memberSince}</span>
+
+              <dl className="px-4 py-3 space-y-2 text-[11px]">
+                <div className="flex items-baseline justify-between gap-2">
+                  <dt className="text-slate-500 font-semibold">Sicil puanı</dt>
+                  <dd className="font-bold text-slate-500">Kayıttan sonra</dd>
                 </div>
-              </div>
+                <div className="flex items-baseline justify-between gap-2">
+                  <dt className="text-slate-500 font-semibold">Bakım kaydı</dt>
+                  <dd className="font-mono font-bold text-slate-800 tabular-nums">0</dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-2 border-t border-slate-100 pt-2">
+                  <dt className="text-slate-500 font-semibold">Sicil no</dt>
+                  <dd className="font-bold text-slate-500">Kayıttan sonra</dd>
+                </div>
+              </dl>
             </div>
 
-            <div className="space-y-2">
-              <button type="button" onClick={() => setShowPhone(!showPhone)} className="w-full bg-rose-600 hover:bg-rose-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm py-3 px-4 rounded transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2">
-                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.828-1.42-5.11-3.702-6.53-6.529l1.294-.97c.362-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
-                <span>{showPhone ? sellerPhone : `Cep Telefonunu Göster`}</span>
-              </button>
-              <button type="button" onClick={() => toast.bilgi('Mesajlaşma yakında açılacak.')} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-2.5 px-4 rounded transition-all cursor-pointer flex items-center justify-center gap-2 border border-slate-200/80">
-                <svg className="w-4 h-4 text-slate-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
-                <span>Araç Sahibine Mesaj</span>
-              </button>
-            </div>
-
-            <div className="bg-slate-50 border border-slate-200/80 rounded p-3 space-y-1.5">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-md p-3 space-y-1.5">
               <div className="flex items-center gap-1.5 text-indigo-700 font-bold text-xs">
-                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 2.714z" /></svg>
-                <span>OTO.CV Güvenlik İpucu</span>
+                <Icon name="kalkan" size="sm" />
+                <span>Bu sayfayı ziyaretçi böyle görecek</span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                Güvenliğiniz için aracı görmeden, ruhsat sahibini doğrulamadan kapora veya ödeme yapmayınız.
+                Plakanız ve iletişim bilgileriniz ziyaretçiye gösterilmez. Sicil puanı, kayıt
+                tamamlandıktan sonra girdiğiniz veriden hesaplanır.
               </p>
             </div>
           </div>

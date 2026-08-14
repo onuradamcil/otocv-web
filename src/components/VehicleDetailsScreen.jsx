@@ -140,7 +140,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
   
-  const [showPhone, setShowPhone] = useState(false);
+  // `showPhone` kaldırıldı: telefon açma düğmesiyle birlikte gitti.
   const [activeSection, setActiveSection] = useState('sec-description');
   const [isSticky, setIsSticky] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -280,9 +280,33 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
   const ownerPlate = rawPlate || 'Tescilli Plaka';
   const pinCode = vehicle.pin_code || 'CV-RESMI';
 
-  const sellerName = vehicle.owner_name || 'Tescilli Araç Sahibi';
-  const sellerPhone = vehicle.owner_phone || '0 (532) 123 45 67';
-  const memberSince = 'Mart 2026';
+  // ⚠ BURADA ÜÇ UYDURMA ALAN VARDI — KALDIRILDI:
+  //     sellerName  = vehicle.owner_name  || 'Tescilli Araç Sahibi'
+  //     sellerPhone = vehicle.owner_phone || '0 (532) 123 45 67'
+  //     memberSince = 'Mart 2026'
+  //
+  // `vehicles` tablosunda owner_name ve owner_phone SÜTUNLARI YOK (canlıda
+  // doğrulandı). Yani üç değer de her araçta sabitti: her ziyaretçi aynı
+  // adı, aynı tarihi ve aynı UYDURMA telefon numarasını görüyordu. Numara
+  // "Cep Telefonunu Göster" düğmesinin arkasındaydı, yani kullanıcı gerçek
+  // bir iletişim bilgisi açtığını sanıyordu.
+  //
+  // Kaldırılmasının iki ayrı gerekçesi var:
+  //  1. Veri uydurma. Bu üründe beyan edilmemiş bilgi gösterilmiyor.
+  //  2. Telefonu gerçek olsaydı bile gösterilmemeliydi. Plaka, araç
+  //     sahibini rahatsız etmeye yarayabildiği için pazaryerinden ve devir
+  //     akışından kaldırılmıştı; telefon numarası çok daha doğrudan bir
+  //     taciz kanalı. Üstelik ziyaretçiye telefon açmak KVKK'da ayrı bir
+  //     rıza gerektiriyor ve bu rıza hiçbir yerde alınmıyor.
+  //
+  // Araç sahibine ulaşma yolu şu an ürün genelinde YOK; mesajlaşma
+  // altyapısı kurulana kadar burada da sahte bir yol gösterilmiyor.
+
+  // Sicil özeti — hepsi gerçek veriden, uydurma yok.
+  const sonBakim = maintenanceRecords.reduce((en, k) => {
+    const t = k?.service_date ? new Date(k.service_date).getTime() : 0;
+    return Number.isFinite(t) && t > (en?.t || 0) ? { t, kayit: k } : en;
+  }, null);
 
   // 🛠️ HASAR RAPORU (DAMAGE REPORT) JSON PARSE ZIRHI
   let rawDamageReport = vehicle.damage_report || vehicle.damageReport || {};
@@ -431,8 +455,14 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
         </div>
       </div>
 
-      {/* 🏛️ 2 BAĞIMSIZ KURUMSAL PANEL ALANI */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start relative z-20">
+      {/* ANA İÇERİK + SİCİL ÖZETİ
+          `items-start` KALDIRILDI. Onunla birlikte sağdaki sütun içeriği
+          kadar yükseliyor, dolayısıyla içindeki `sticky` kartın hareket
+          alanı kalmıyordu — kart ilk ekranda kaybolup 5498px'lik sayfanın
+          geri kalanında sağdaki dörtte biri bomboş bırakıyordu. Varsayılan
+          `stretch` ile sütun ana içerik boyunda oluyor ve kart tüm kaydırma
+          boyunca yapışık kalıyor. */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 relative z-20">
         
         {/* SOL ANA KONTEYNER (9 KOLON) */}
         <div className="lg:col-span-9 space-y-5">
@@ -1213,70 +1243,118 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
 
         </div>
 
-        {/* 📞 SAĞ BAĞIMSIZ KART: SATICI & İLETİŞİM PANELİ (3 KOLON) */}
-        <div className="lg:col-span-3 space-y-4">
-          <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-2xs space-y-4 sticky top-20">
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-              <div className="w-11 h-11 rounded-full bg-slate-900 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs border border-slate-800">
-                {sellerName.substring(0, 2).toUpperCase()}
-              </div>
-              <div className="space-y-0.5 overflow-hidden">
-                <h3 className="text-sm font-black text-slate-900 tracking-tight truncate">{sellerName}</h3>
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-semibold">
-                  <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 font-mono">Bireysel Üye</span>
-                  <span>• {memberSince}</span>
+        {/* SAĞ SÜTUN: SİCİL ÖZETİ (3 KOLON)
+            -----------------------------------------------------------------
+            Eski hâli "satıcı & iletişim paneli"ydi ve gösterdiği üç bilginin
+            üçü de uydurmaydı — gerekçesi sellerName'in kaldırıldığı yerdeki
+            notta. Yerine SİCİL ÖZETİ geldi: 5498px'lik sayfada kaydırırken
+            hangi araca baktığını ve karnesinin özetini hatırlatıyor.
+            Tamamı gerçek veriden. */}
+        <div className="lg:col-span-3">
+          <div className="sticky top-20 space-y-4">
+
+            <div className="bg-white border border-slate-200 rounded-md shadow-2xs overflow-hidden">
+              <div className={`px-4 py-3 border-b ${
+                otocvScore >= 70 ? 'bg-emerald-50/80 border-emerald-200/90'
+                : otocvScore >= 40 ? 'bg-amber-50/70 border-amber-200/90'
+                : 'bg-slate-50 border-slate-200'
+              }`}>
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-600">
+                    Sicil Puanı
+                  </span>
+                  <span className="flex items-baseline gap-0.5">
+                    <span className={`text-2xl font-black font-mono tabular-nums ${
+                      otocvScore >= 70 ? 'text-emerald-600'
+                      : otocvScore >= 40 ? 'text-amber-600' : 'text-slate-500'
+                    }`}>{otocvScore}</span>
+                    <span className="text-[11px] font-bold text-slate-400 font-mono">/100</span>
+                  </span>
                 </div>
+              </div>
+
+              <dl className="px-4 py-3 space-y-2 text-[11px]">
+                <div className="flex items-baseline justify-between gap-2">
+                  <dt className="text-slate-500 font-semibold">Bakım kaydı</dt>
+                  <dd className="font-mono font-bold text-slate-800 tabular-nums">
+                    {maintenanceRecords.length}
+                  </dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-2">
+                  <dt className="text-slate-500 font-semibold">Son işlem</dt>
+                  <dd className="font-mono font-bold text-slate-800">
+                    {sonBakim?.kayit
+                      ? formatTrDate(sonBakim.kayit.service_date, 'Belirtilmemiş')
+                      : 'Kayıt yok'}
+                  </dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-2">
+                  <dt className="text-slate-500 font-semibold">Sicile giriş</dt>
+                  <dd className="font-mono font-bold text-slate-800">
+                    {formatTrDate(vehicle.created_at, 'Belirtilmemiş')}
+                  </dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-2 border-t border-slate-100 pt-2">
+                  <dt className="text-slate-500 font-semibold">Sicil no</dt>
+                  <dd className="font-mono font-bold text-indigo-600 select-all">{pinCode}</dd>
+                </div>
+              </dl>
+
+              <div className="px-4 pb-4 space-y-2">
+                {onViewKarne && (
+                  <button type="button" onClick={onViewKarne} className={dugme('birincil', { tamGenislik: true })}>
+                    Sicil Karnesini Gör
+                  </button>
+                )}
+
+                {isPublicView && vehicle?.pin_code && (
+                  <button
+                    type="button"
+                    onClick={favoriTikla}
+                    disabled={favoriIsleniyor}
+                    aria-pressed={favorili}
+                    className={dugme('ikincil', {
+                      tamGenislik: true,
+                      ek: favorili ? 'text-rose-700 border-rose-200 hover:bg-rose-50' : '',
+                    })}
+                  >
+                    <Icon name="kalp" size="sm" dolu={favorili} />
+                    {favorili ? 'Favorilerimde' : 'Favorilerime Ekle'}
+                  </button>
+                )}
+
+                {!isPublicView && onManageInGarage && (
+                  <button type="button" onClick={onManageInGarage} className={dugme('ikincil', { tamGenislik: true })}>
+                    <Icon name="arac" size="sm" />
+                    Garajımda Yönet
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* ROL AYRIMI: iletişim paneli yalnızca ziyaretçiye gösterilir.
-                Sahip kendi aracına mesaj atmaz; onun aksiyonları garaj kartlarında. */}
+            {/* ROL AYRIMI: ziyaretçiye güvenlik uyarısı, sahibe kendi
+                sayfasında neyin görünüp neyin görünmediği. */}
             {isPublicView ? (
-              <>
-                <div className="space-y-2">
-                  <button type="button" onClick={() => setShowPhone(!showPhone)} className="w-full bg-rose-600 hover:bg-rose-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm py-3 px-4 rounded transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2">
-                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.828-1.42-5.11-3.702-6.53-6.529l1.294-.97c.362-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
-                    <span>{showPhone ? sellerPhone : `Cep Telefonunu Göster`}</span>
-                  </button>
-                  <button type="button" onClick={() => toast.bilgi('Mesajlaşma yakında açılacak.')} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-2.5 px-4 rounded transition-all cursor-pointer flex items-center justify-center gap-2 border border-slate-200/80">
-                    <svg className="w-4 h-4 text-slate-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
-                    <span>Araç Sahibine Mesaj</span>
-                  </button>
+              <div className="bg-slate-50 border border-slate-200/80 rounded-md p-3 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-indigo-700 font-bold text-xs">
+                  <Icon name="kalkan" size="sm" />
+                  <span>Güvenlik ipucu</span>
                 </div>
-
-                <div className="bg-slate-50 border border-slate-200/80 rounded p-3 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-indigo-700 font-bold text-xs">
-                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 2.714z" /></svg>
-                    <span>OTO.CV Güvenlik İpucu</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                    Güvenliğiniz için aracı görmeden, ruhsat sahibini doğrulamadan kapora veya ödeme yapmayınız.
-                  </p>
-                </div>
-              </>
+                <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                  Aracı görmeden ve ruhsat sahibini doğrulamadan kapora ya da ödeme yapmayın.
+                  Buradaki bilgilerin bir bölümü araç sahibinin beyanıdır.
+                </p>
+              </div>
             ) : (
-              <div className="space-y-3">
-                <div className="bg-indigo-50 border border-indigo-100 rounded p-3 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-indigo-700 font-bold text-xs">
-                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 2.714z" /></svg>
-                    <span>Bu araç sizin garajınızda</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                    Ziyaretçiler bu sayfada plakanızı ve iletişim bilgilerinizi göremez. Bakım kaydı ekleme,
-                    karne üretme ve vitrine çıkarma işlemlerini garajınızdaki araç kartından yapabilirsiniz.
-                  </p>
+              <div className="bg-indigo-50 border border-indigo-100 rounded-md p-3 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-indigo-700 font-bold text-xs">
+                  <Icon name="kalkan" size="sm" />
+                  <span>Bu araç sizin garajınızda</span>
                 </div>
-
-                {onManageInGarage && (
-                  <button
-                    type="button"
-                    onClick={onManageInGarage}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm py-3 px-4 rounded transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
-                    <span>Garajımda Yönet</span>
-                  </button>
-                )}
+                <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                  Ziyaretçiler bu sayfada plakanızı göremez. Bakım kaydı ekleme, karne üretme
+                  ve vitrine çıkarma işlemlerini garajınızdaki araç kartından yapabilirsiniz.
+                </p>
               </div>
             )}
           </div>

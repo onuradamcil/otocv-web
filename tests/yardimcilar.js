@@ -194,6 +194,23 @@ async function girisYap(page) {
 }
 
 /**
+ * İKİNCİ hesapla arayüzden giriş yapar.
+ *
+ * NİYE AYRI BİR YARDIMCI: araç detay ekranı `isPublicView` ile ikiye
+ * ayrılıyor ve iki dal FARKLI şeyler basıyor. Sahip hesabıyla girip
+ * ziyaretçi dalını denetlediğini sanmak, o dalda duran bir hatayı
+ * görünmez kılıyor — uydurma telefon numarası tam olarak orada duruyordu.
+ */
+async function girisYapAlici(page) {
+  await page.goto('/login');
+  await page.waitForLoadState('networkidle');
+  await page.fill("input[type='email']", ortam('OTOCV_TEST_EMAIL2'));
+  await page.fill("input[type='password']", ortam('OTOCV_TEST_PASSWORD2'));
+  await page.click("button[type='submit']");
+  await page.waitForURL((u) => !u.toString().includes('/login'), { timeout: 30_000 });
+}
+
+/**
  * Karne belgesinin "Detaylı" sekmesini açar.
  * Belge varsayılan sekmede DEĞİL; ilk sekme ilan paylaşım kartı.
  * Bu ayrımı bilmeyen bir test, belge hiç açılmadığı hâlde "yasaklı ifade
@@ -267,6 +284,7 @@ module.exports = {
   test,
   expect: base.expect,
   girisYap,
+  girisYapAlici,
   belgeSekmesiniAc,
   hamMetin,
   supabaseIstemcisi,
