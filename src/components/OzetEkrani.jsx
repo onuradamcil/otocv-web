@@ -225,7 +225,7 @@ export default function OzetEkrani() {
               <TarihSatiri
                 key={`${k.plaka}-${k.belge}`}
                 kayit={k}
-                onAc={() => router.push(`/garage/${k.plaka}/duzenle`)}
+                onAc={() => k.pin && router.push(`/garage/${k.pin}/duzenle`)}
               />
             ))}
           </div>
@@ -275,7 +275,7 @@ export default function OzetEkrani() {
               <TarihSatiri
                 key={`${k.plaka}-${k.belge}`}
                 kayit={k}
-                onAc={() => router.push(`/garage/${k.plaka}/duzenle`)}
+                onAc={() => k.pin && router.push(`/garage/${k.pin}/duzenle`)}
               />
             ))}
           </div>

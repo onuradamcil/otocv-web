@@ -98,6 +98,11 @@ export function ozetHesapla(araclar, kayitlar) {
       if (durum.status === 'unknown') { eksikTarih += 1; continue; }
       tarihler.push({
         plaka: arac.plate_number,
+        // ⚠ PIN ZORUNLU: araç düzenleme rotası `/garage/[pin]/duzenle`
+        // PLAKA değil PIN bekliyor. İlk yazımda plaka gönderilmiş ve ekran
+        // "Araç bulunamadı" demişti — satır tıklanabilirdi ama hiçbir yere
+        // götürmüyordu. Testte satıra TIKLANMADIĞI için de yakalanmamıştı.
+        pin: arac.pin_code,
         arac: [arac.brand, arac.model].filter(Boolean).join(' '),
         belge: belge.ad,
         tarih: arac[belge.alan],

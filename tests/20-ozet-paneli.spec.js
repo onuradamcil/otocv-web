@@ -168,4 +168,26 @@ test.describe('Bana Özel Özet', () => {
     );
     expect(yatay, 'panel mobilde yatay kaydırma yapıyor').toBe(false);
   });
+
+  test('SATIRA TIKLAYINCA gercekten arac sayfasi aciliyor', async ({ page }) => {
+    // ⚠ BU TEST BIR HATAYI KACIRDIGI ICIN YAZILDI.
+    // Panel ilk yazildiginda satirlar `/garage/${plaka}/duzenle` adresine
+    // gidiyordu; oysa rota PLAKA degil PIN bekliyor. Sonuc: her satir
+    // tiklanabilir gorunuyor ama "Araç bulunamadı" ekranina dusuyordu.
+    //
+    // Diger testler paneli okuyordu ama HICBIRI TIKLAMIYORDU. Okunan bir
+    // ekran calisiyor demek degil — bagi izlemeyen test, kirik bagi gormez.
+    const satirlar = page.locator('section button').filter({ hasText: /Sigortası|Poliçesi|Muayenesi/ });
+    const adet = await satirlar.count();
+    test.skip(adet === 0, 'panelde belge satırı yok');
+
+    await satirlar.first().click();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1500);
+
+    const metin = await hamMetin(page);
+    expect(metin, 'belge satırı "Araç bulunamadı" ekranına götürüyor')
+      .not.toContain('Araç bulunamadı');
+    expect(page.url(), 'araç sayfasına gidilmedi').toContain('/garage/');
+  });
 });
