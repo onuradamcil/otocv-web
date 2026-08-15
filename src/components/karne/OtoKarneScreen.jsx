@@ -279,7 +279,7 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
                 type="button"
                 onClick={() => setShowShareModal(false)}
                 aria-label="Pencereyi kapat"
-                className="w-9 h-9 grid place-items-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                className="w-9 h-9 grid place-items-center rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
               >
                 <Icon name="kapat" size="md" />
               </button>

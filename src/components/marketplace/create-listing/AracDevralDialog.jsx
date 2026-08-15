@@ -104,7 +104,7 @@ export default function AracDevralDialog({
           type="button"
           onClick={onClose}
           aria-label="Pencereyi kapat"
-          className="absolute top-5 right-5 w-11 h-11 -m-3 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+          className="absolute top-5 right-5 w-11 h-11 -m-3 flex items-center justify-center text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
         >
           <Icon name="kapat" size="md" />
         </button>
@@ -277,7 +277,7 @@ export default function AracDevralDialog({
                       ['Sicil puanı', `${onizleme.sicil_puani}/100`],
                     ].map(([etiket, deger]) => (
                       <div key={etiket} className="bg-white border border-slate-200 rounded-lg py-2">
-                        <p className="text-etiket font-bold uppercase tracking-wide text-slate-400">{etiket}</p>
+                        <p className="text-etiket font-bold uppercase tracking-wide text-slate-500">{etiket}</p>
                         <p className="text-sm font-semibold font-mono text-slate-900 tabular-nums">{deger}</p>
                       </div>
                     ))}

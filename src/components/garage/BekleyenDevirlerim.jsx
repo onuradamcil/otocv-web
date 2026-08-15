@@ -195,7 +195,7 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
 
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="etiket text-slate-400">Devir ücreti</p>
+                      <p className="etiket text-slate-500">Devir ücreti</p>
                       <p className="sayi-vurgu text-slate-900">
                         ₺{Number(d.ucret || 0).toLocaleString('tr-TR')}
                       </p>

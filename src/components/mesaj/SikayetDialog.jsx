@@ -84,7 +84,7 @@ export default function SikayetDialog({ sebepler, onKapat, onGonder }) {
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
           <fieldset className="space-y-2">
-            <legend className="etiket text-slate-400">Sebep</legend>
+            <legend className="etiket text-slate-500">Sebep</legend>
             {sebepler.map((s) => (
               <label
                 key={s.kod}
@@ -106,7 +106,7 @@ export default function SikayetDialog({ sebepler, onKapat, onGonder }) {
           </fieldset>
 
           <label className="block">
-            <span className="etiket text-slate-400">Açıklama (isteğe bağlı)</span>
+            <span className="etiket text-slate-500">Açıklama (isteğe bağlı)</span>
             <textarea
               value={aciklama}
               onChange={(e) => setAciklama(e.target.value)}

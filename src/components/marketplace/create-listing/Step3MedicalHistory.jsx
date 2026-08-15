@@ -301,7 +301,7 @@ const Step3Medical = forwardRef(({
                 </div>
 
                 {/* SAĞ ÜST KONTROL İCONU */}
-                <div className="hidden sm:flex w-11 h-11 border border-slate-200 rounded-xl items-center justify-center text-slate-400 bg-slate-50 shrink-0">
+                <div className="hidden sm:flex w-11 h-11 border border-slate-200 rounded-xl items-center justify-center text-slate-500 bg-slate-50 shrink-0">
                   <ShieldCheckIcon />
                 </div>
               </div>
@@ -358,7 +358,7 @@ const Step3Medical = forwardRef(({
                   <span>İlk Servis & Bakım Kaydını Ekle</span>
                 </button>
 
-                <div className="flex items-center justify-center gap-1.5 text-yardimci text-slate-400 font-medium pt-1">
+                <div className="flex items-center justify-center gap-1.5 text-yardimci text-slate-500 font-medium pt-1">
                   <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                   </svg>
@@ -627,7 +627,7 @@ const Step3Medical = forwardRef(({
                           {/* YATAY AYIRICI ÇİZGİ & GRUP 4: FATURA YÜKLEME ALANI */}
                           <div className="pt-3 border-t border-slate-100 space-y-1.5">
                             <span className="text-yardimci font-semibold text-slate-600 uppercase tracking-wide block">
-                              Servis Makbuzu / Faturası <span className="text-slate-400 font-normal font-mono">(Opsiyonel - %95+ Güven Skoru)</span>
+                              Servis Makbuzu / Faturası <span className="text-slate-500 font-normal font-mono">(Opsiyonel - %95+ Güven Skoru)</span>
                             </span>
 
                             <input 

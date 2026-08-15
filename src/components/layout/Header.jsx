@@ -227,7 +227,7 @@ export default function Header() {
               >
                 Araç Devir
               </Link>
-              <span className="text-slate-400 cursor-not-allowed">Kurumsal Çözümler</span>
+              <span className="text-slate-500 cursor-not-allowed">Kurumsal Çözümler</span>
             </nav>
           </div>
 

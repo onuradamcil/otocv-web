@@ -174,7 +174,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
           type="button"
           onClick={onClose}
           aria-label="Pencereyi kapat"
-          className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors w-11 h-11 rounded-full hover:bg-slate-100 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+          className="absolute top-5 right-5 text-slate-500 hover:text-slate-600 transition-colors w-11 h-11 rounded-full hover:bg-slate-100 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
         >
           <Icon name="kapat" size="md" />
         </button>
@@ -378,7 +378,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                   onChange={dosyaSec}
                   className="block w-full text-xs text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 file:cursor-pointer cursor-pointer"
                 />
-                <p className="text-yardimci text-slate-400 leading-relaxed">
+                <p className="text-yardimci text-slate-500 leading-relaxed">
                   JPG, PNG, WEBP, HEIC ya da PDF · en fazla 10 MB. Belgeniz özel
                   alanda saklanır, yalnızca inceleme için görüntülenir.
                 </p>
@@ -407,7 +407,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
               </button>
             </div>
 
-            <p className="text-yardimci text-slate-400 leading-relaxed text-center">
+            <p className="text-yardimci text-slate-500 leading-relaxed text-center">
               Başvuru ücretsizdir. Ödeme, devralma anında alınır.
             </p>
           </div>

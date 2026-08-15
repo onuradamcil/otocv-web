@@ -117,7 +117,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
           GÜVENLİ SİCİL SORGULAMA
         </span>
         <h1 className="text-3xl font-semibold text-slate-900 tracking-tight">Oto-Karne Doğrula</h1>
-        <p className="text-xs md:text-sm text-slate-400 font-medium leading-relaxed">
+        <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed">
           Araç sahibi tarafından paylaşılan benzersiz PIN kodunu girerek ya da tescilli QR barkodunu okutarak bağımsız, doğrulanmış geçmiş raporuna anında ulaşın.
         </p>
       </div>
@@ -157,7 +157,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
             <div className="space-y-6 animate-fadeIn flex-1 flex flex-col justify-between">
               <div className="space-y-1">
                 <h2 className="text-xl font-semibold text-slate-900">Dijital PIN Sorgulama</h2>
-                <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                <p className="text-xs text-slate-500 font-medium leading-relaxed">
                   Ruhsat sahibinin size ilettiği benzersiz OTO.CV kodunu girin. Bu kod, aracın kilometresini, kaza geçmişini ve servis kayıtlarını tesciller.
                 </p>
               </div>
@@ -214,7 +214,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
             <div className="space-y-5 animate-fadeIn flex-1 flex flex-col justify-between">
               <div className="space-y-1">
                 <h2 className="text-xl font-semibold text-slate-900">Akıllı Barkod & QR Tarama</h2>
-                <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                <p className="text-xs text-slate-500 font-medium leading-relaxed">
                   Sistemimizdeki resmi belgede basılı olan QR kodunu cihaz kameranız ile taratın. Kimlik eşleşmesi yapılıp rapor otomatik getirilir.
                 </p>
               </div>
@@ -264,7 +264,11 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
               </div>
               <div className="space-y-1">
                 <h4 className="text-sm font-semibold tracking-wide text-slate-100">Değiştirilemez Blokzincir Sicili</h4>
-                <p className="text-yardimci text-slate-400 font-medium leading-relaxed">
+                {/* ⚠ KOYU ZEMİN: bu kart `bg-[#0B1329]` üzerinde. Toplu slate-400 ->
+                    slate-500 taramasında burası da koyulaştırılmış ve kontrast
+                    7:1'den 3.87:1'e DÜŞMÜŞTÜ. Koyu zeminde yön terstir:
+                    metin açılır. Ölçüm olmasa bu gerileme görülmezdi. */}
+                <p className="text-yardimci text-slate-300 font-medium leading-relaxed">
                   OTO.CV aracılığıyla oluşturulan tescil belgeleri, noter onaylı beyanlar ve ekspertiz kayıtları kriptografik imzalarla korunur, geriye dönük asla değiştirilemez.
                 </p>
               </div>

@@ -65,7 +65,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
           
           <div className="space-y-1.5 text-center">
             <h1 className="text-xl font-semibold tracking-tight text-[#0F172A]">Yeni Şifre Belirle</h1>
-            <p className="text-xs text-slate-400 font-medium leading-relaxed">Hesap güvenliğiniz için akılda kalıcı ve güçlü bir şifre tescil edin.</p>
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">Hesap güvenliğiniz için akılda kalıcı ve güçlü bir şifre tescil edin.</p>
           </div>
 
           {errorMessage && (
@@ -84,7 +84,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
 
           <form onSubmit={handleUpdatePassword} className="space-y-4">
             <div className="space-y-1 relative">
-              <label className="text-etiket font-semibold text-slate-400 uppercase tracking-wider pl-0.5">Yeni Şifre</label>
+              <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Yeni Şifre</label>
               <div className="relative">
                 <input type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none shadow-sm" />
                 {/* Etiket ikonda değil BUTONDA: içeriği tek başına ikon olan
@@ -94,7 +94,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
                   aria-pressed={showPassword}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 grid place-items-center rounded-lg text-slate-400 hover:text-[#0F172A] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 grid place-items-center rounded-lg text-slate-500 hover:text-[#0F172A] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]"
                 >
                   <Icon name={showPassword ? 'gozKapali' : 'goz'} size="md" />
                 </button>
@@ -102,7 +102,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
             </div>
 
             <div className="space-y-1">
-              <label className="text-etiket font-semibold text-slate-400 uppercase tracking-wider pl-0.5">Şifreyi Tekrarla</label>
+              <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifreyi Tekrarla</label>
               <input type={showPassword ? 'text' : 'password'} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none shadow-sm" />
             </div>
 

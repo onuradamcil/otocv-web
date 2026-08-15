@@ -157,7 +157,7 @@ export default function AracSeciciDialog({
             type="button"
             onClick={onClose}
             aria-label="Kapat"
-            className="w-9 h-9 -mt-1 -mr-1 grid place-items-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0 cursor-pointer"
+            className="w-9 h-9 -mt-1 -mr-1 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0 cursor-pointer"
           >
             <Icon name="kapat" size="md" />
           </button>

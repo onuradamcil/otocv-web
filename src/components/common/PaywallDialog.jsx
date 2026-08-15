@@ -143,7 +143,7 @@ export default function PaywallDialog({
             type="button"
             onClick={onKapat}
             aria-label="Pencereyi kapat"
-            className={`absolute right-4 text-slate-400 hover:text-slate-600 transition-colors w-11 h-11 rounded-full hover:bg-slate-100 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${DEMO_MOD ? 'top-12' : 'top-4'}`}
+            className={`absolute right-4 text-slate-500 hover:text-slate-600 transition-colors w-11 h-11 rounded-full hover:bg-slate-100 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${DEMO_MOD ? 'top-12' : 'top-4'}`}
           >
             <Icon name="kapat" size="md" />
           </button>
@@ -176,7 +176,7 @@ export default function PaywallDialog({
 
           <div className="flex items-end justify-between border-t border-slate-100 pt-4">
             <div>
-              <p className="text-etiket font-bold uppercase tracking-wide text-slate-400">
+              <p className="text-etiket font-bold uppercase tracking-wide text-slate-500">
                 Tek seferlik
               </p>
               <p className="text-3xl font-semibold text-slate-900 tabular-nums leading-none mt-0.5">
@@ -190,7 +190,7 @@ export default function PaywallDialog({
             </div>
             {/* Abonelik DEĞİL olduğu açıkça yazıyor: tekrar eden ödeme
                 beklentisi oluşmasın. */}
-            <p className="text-yardimci text-slate-400 font-medium text-right max-w-[45%] leading-relaxed">
+            <p className="text-yardimci text-slate-500 font-medium text-right max-w-[45%] leading-relaxed">
               Abonelik değil, tekrar eden ödeme yok
             </p>
           </div>
@@ -225,7 +225,7 @@ export default function PaywallDialog({
           </div>
 
           {DEMO_MOD && (
-            <p className="text-yardimci text-slate-400 leading-relaxed text-center">
+            <p className="text-yardimci text-slate-500 leading-relaxed text-center">
               Ödeme altyapısı henüz bağlı değil. Bu adım işlemi ücretsiz
               tamamlar; kartınızdan hiçbir tutar çekilmez.
             </p>

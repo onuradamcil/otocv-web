@@ -210,7 +210,7 @@ export default function VehicleDetailsPage() {
             geçici olarak yavaşlatıldı. Yaklaşık <strong className="text-slate-700">10 dakika</strong> sonra
             tekrar deneyebilirsiniz.
           </p>
-          <p className="text-yardimci text-slate-400 leading-relaxed">
+          <p className="text-yardimci text-slate-500 leading-relaxed">
             Bu sınır, araç sicillerinin toplu olarak taranmasını engellemek için var.
           </p>
           <button

@@ -144,7 +144,7 @@ export default function GelenDevirTalepleri({ kart, onDegisti }) {
                   {/* PLAKA DEĞİL PIN: araç kimliği hep PIN ile gösteriliyor. */}
                   <p className="metin-yardimci font-mono text-indigo-600">{t.pin_code}</p>
                 </div>
-                <span className="metin-yardimci text-slate-400 shrink-0 tabular-nums">
+                <span className="metin-yardimci text-slate-500 shrink-0 tabular-nums">
                   {tarihBicimi(t.olustu)}
                 </span>
               </div>

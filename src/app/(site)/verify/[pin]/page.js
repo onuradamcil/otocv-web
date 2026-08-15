@@ -63,7 +63,7 @@ export default function VerifyWithPinPage() {
         className="min-h-[60vh] flex flex-col items-center justify-center gap-3"
       >
         <div className="rounded-full h-6 w-6 border-2 border-indigo-600 border-t-transparent motion-safe:animate-spin motion-reduce:animate-pulse" />
-        <span className="text-yardimci font-bold text-slate-400 tracking-wide">
+        <span className="text-yardimci font-bold text-slate-500 tracking-wide">
           <span className="font-mono">{pin}</span> kodu sorgulanıyor...
         </span>
       </div>

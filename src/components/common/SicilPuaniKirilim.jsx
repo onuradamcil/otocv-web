@@ -65,7 +65,7 @@ const BICIM = {
   tam:         { kutu: 'border-emerald-200 bg-emerald-50/60', puan: 'text-emerald-700', ikon: 'onay',   ikonRenk: 'text-emerald-600' },
   kismi:       { kutu: 'border-amber-200 bg-amber-50/50',     puan: 'text-amber-700',   ikon: 'bilgi',  ikonRenk: 'text-amber-600' },
   olumsuz:     { kutu: 'border-rose-200 bg-rose-50/50',       puan: 'text-rose-700',    ikon: 'uyari',  ikonRenk: 'text-rose-600' },
-  bilinmiyor:  { kutu: 'border-slate-300 border-dashed bg-slate-50/60', puan: 'text-slate-500', ikon: 'gozKapali', ikonRenk: 'text-slate-400' },
+  bilinmiyor:  { kutu: 'border-slate-300 border-dashed bg-slate-50/60', puan: 'text-slate-500', ikon: 'gozKapali', ikonRenk: 'text-slate-500' },
 };
 
 // -------------------------------------------------------------------------
@@ -180,7 +180,7 @@ export default function SicilPuaniKirilim({ kirilim, puan, className = '' }) {
                     <Icon
                       name="asagi"
                       size="xs"
-                      className={`text-slate-400 shrink-0 transition-transform ${acik ? 'rotate-180' : ''}`}
+                      className={`text-slate-500 shrink-0 transition-transform ${acik ? 'rotate-180' : ''}`}
                     />
                   )}
                 </span>

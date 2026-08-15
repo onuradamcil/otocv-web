@@ -131,7 +131,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
               </div>
 
               <div>
-                <p className="text-etiket font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <p className="text-etiket font-semibold text-slate-500 uppercase tracking-wider mb-2">
                   Üzerinizdeki araçlar ({araclar.length})
                 </p>
                 <ul className="space-y-1.5">
@@ -164,7 +164,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
               </div>
 
               <label className="block">
-                <span className="text-etiket font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-etiket font-semibold text-slate-500 uppercase tracking-wider">
                   Sebebiniz (isteğe bağlı)
                 </span>
                 <textarea
@@ -178,7 +178,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
               </label>
 
               <label className="block">
-                <span className="text-etiket font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-etiket font-semibold text-slate-500 uppercase tracking-wider">
                   Onaylamak için <span className="text-slate-700 font-mono">{ONAY_KELIMESI}</span> yazın
                 </span>
                 <input

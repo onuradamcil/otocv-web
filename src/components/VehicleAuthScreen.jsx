@@ -198,7 +198,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
               {authMode === 'register_step2' && 'Profili Tamamla'}
               {authMode === 'forgot_password' && 'Şifremi Unuttum'}
             </h1>
-            <p className="text-xs text-slate-400 font-medium leading-relaxed">
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
               {authMode === 'login' && 'Oto.CV tescilli dünyasına güvenle adım atın.'}
               {authMode === 'register_step1' && 'Dijital garajınızı kurmak için ilk adımı atın.'}
               {authMode === 'register_step2' && 'Kurumsal kimlik tesciliniz için bilgileri doldurun.'}
@@ -225,12 +225,12 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
           {authMode === 'login' && (
             <form onSubmit={handleAuthSubmit} className="space-y-4 animate-fadeIn">
               <div className="space-y-1">
-                <label className="text-etiket font-semibold text-slate-400 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
+                <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
                 <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@otocv.com" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none transition-colors shadow-sm" />
               </div>
               
               <div className="space-y-1 relative">
-                <label className="text-etiket font-semibold text-slate-400 uppercase tracking-wider pl-0.5">Şifre</label>
+                <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifre</label>
                 <div className="relative">
                   <input type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none transition-colors pr-12 shadow-sm" />
                   {/* Etiket BUTONDA: içeriği tek başına ikon olan butonun adını ekran
@@ -241,7 +241,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
                     aria-pressed={showPassword}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 grid place-items-center rounded-lg text-slate-400 hover:text-[#0F172A] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 grid place-items-center rounded-lg text-slate-500 hover:text-[#0F172A] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]"
                   >
                     <Icon name={showPassword ? 'gozKapali' : 'goz'} size="md" />
                   </button>
@@ -269,7 +269,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
               {/* ARA BÖLÜCÜ ÇİZGİ */}
               <div className="relative flex py-1 items-center">
                 <div className="flex-grow border-t border-slate-100"></div>
-                <span className="flex-shrink mx-3 text-etiket text-slate-300 font-bold uppercase tracking-widest">veya</span>
+                <span className="flex-shrink mx-3 text-etiket text-slate-500 font-bold uppercase tracking-widest">veya</span>
                 <div className="flex-grow border-t border-slate-100"></div>
               </div>
 
@@ -308,7 +308,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
           {authMode === 'register_step1' && (
             <form onSubmit={handleRegisterStep1Submit} className="space-y-4 animate-fadeIn">
               <div className="space-y-1.5">
-                <label className="text-etiket font-semibold text-slate-400 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
+                <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
                 <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@otocv.com" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none transition-colors shadow-sm" />
               </div>
               <button type="submit" className="w-full bg-[#0F172A] hover:bg-slate-800 text-white py-3 rounded-xl font-semibold text-xs tracking-wide shadow-sm transition-colors active:scale-[0.99] flex items-center justify-center gap-1 mt-2">
@@ -323,16 +323,16 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
             <form onSubmit={handleAuthSubmit} className="space-y-3.5 animate-fadeIn">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-etiket font-semibold text-slate-400 uppercase tracking-wider pl-0.5">Adınız</label>
+                  <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Adınız</label>
                   <input type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Örn: Ahmet" className="w-full py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#0F172A] transition-colors" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-etiket font-semibold text-slate-400 uppercase tracking-wider pl-0.5">Soyadınız</label>
+                  <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Soyadınız</label>
                   <input type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Örn: Yılmaz" className="w-full py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#0F172A] transition-colors" />
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-etiket font-semibold text-slate-400 uppercase tracking-wider pl-0.5">Cep Telefonu (Sıfırsız)</label>
+                <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Cep Telefonu (Sıfırsız)</label>
                 <input 
                   type="tel" required maxLength={10} value={phone} onChange={handlePhoneChange} 
                   placeholder="5XX XXX XX XX" 
@@ -340,7 +340,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
                 />
               </div>
               <div className="space-y-1 relative">
-                <label className="text-etiket font-semibold text-slate-400 uppercase tracking-wider pl-0.5">Şifre Belirle</label>
+                <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifre Belirle</label>
                 <div className="relative">
                   <input type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#0F172A] pr-12 transition-colors" />
                   {/* Etiket BUTONDA: içeriği tek başına ikon olan butonun adını ekran
@@ -351,7 +351,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
                     aria-pressed={showPassword}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 grid place-items-center rounded-lg text-slate-400 hover:text-[#0F172A] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 grid place-items-center rounded-lg text-slate-500 hover:text-[#0F172A] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]"
                   >
                     <Icon name={showPassword ? 'gozKapali' : 'goz'} size="md" />
                   </button>
@@ -367,7 +367,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
           {authMode === 'forgot_password' && (
             <form onSubmit={handlePasswordReset} className="space-y-4 animate-fadeIn">
               <div className="space-y-1.5">
-                <label className="text-etiket font-semibold text-slate-400 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
+                <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
                 <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Kayıtlı e-posta adresinizi girin..." className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none transition-colors shadow-sm" />
               </div>
               <button type="submit" disabled={loading} className="w-full bg-[#0F172A] hover:bg-slate-800 text-white py-3 rounded-xl font-semibold text-xs tracking-wide shadow-sm transition-colors active:scale-[0.99] mt-2 flex justify-center items-center gap-1.5">
@@ -411,7 +411,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
             okumak isteyen biri için en kötü davranış. Artık gerçek sayfalar. */}
         {/* inline-flex + min-h: küçük punto olsalar da dokunma alanı 24
             pikselin altına inmemeli (WCAG AA). */}
-        <div className="text-yardimci text-slate-400 font-medium flex items-center gap-3 tracking-wide mt-8">
+        <div className="text-yardimci text-slate-500 font-medium flex items-center gap-3 tracking-wide mt-8">
           <Link href="/kullanim-sartlari" className="inline-flex items-center min-h-[36px] hover:text-[#0F172A] transition-colors rounded">
             Kullanım Şartları
           </Link>

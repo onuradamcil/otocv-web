@@ -105,7 +105,7 @@ export default function MesajBaslatDialog({ arac, onKapat, onGonder }) {
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
           <label className="block">
-            <span className="etiket text-slate-400">Mesajınız</span>
+            <span className="etiket text-slate-500">Mesajınız</span>
             <textarea
               value={govde}
               onChange={(e) => setGovde(e.target.value)}
@@ -114,7 +114,7 @@ export default function MesajBaslatDialog({ arac, onKapat, onGonder }) {
               placeholder="Aracın bakım geçmişi hakkında bilgi almak istiyorum…"
               className="mt-1.5 w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors resize-none"
             />
-            <span className="metin-yardimci text-slate-400 mt-1 block">
+            <span className="metin-yardimci text-slate-500 mt-1 block">
               {govde.length}/2000
             </span>
           </label>

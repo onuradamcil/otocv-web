@@ -785,7 +785,7 @@ useEffect(() => {
                     <span className="text-slate-500 font-normal">Renk Seçiniz</span>
                   )}
                 </div>
-                <span className="text-xs text-slate-400">▼</span>
+                <span className="text-xs text-slate-500">▼</span>
               </button>
 
               {colorDropdownOpen && (
@@ -1186,7 +1186,7 @@ useEffect(() => {
 
               <div className="space-y-1.5 pt-1 max-w-xs">
                 <label className={`text-xs font-bold transition-colors ${
-                  tramerStatus === 'Tramer Var' ? 'text-slate-700' : 'text-slate-400'
+                  tramerStatus === 'Tramer Var' ? 'text-slate-700' : 'text-slate-500'
                 }`}>
                   Tramer Tutarı
                 </label>
@@ -1204,7 +1204,7 @@ useEffect(() => {
                     }`}
                   />
                   <span className={`absolute right-3 text-xs font-bold font-mono transition-colors ${
-                    tramerStatus === 'Tramer Var' ? 'text-slate-500' : 'text-slate-300'
+                    tramerStatus === 'Tramer Var' ? 'text-slate-500' : 'text-slate-500'
                   }`}>
                     TL
                   </span>
@@ -1403,7 +1403,7 @@ useEffect(() => {
                             type="button"
                             onClick={() => setActivePartPopover(null)}
                             aria-label="Parça seçimini kapat"
-                            className="text-slate-400 hover:text-white w-6 h-6 flex items-center justify-center rounded cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                            className="text-slate-300 hover:text-white w-6 h-6 flex items-center justify-center rounded cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                           >
                             <Icon name="kapat" size="xs" strokeWidth={3} />
                           </button>
@@ -1947,7 +1947,7 @@ useEffect(() => {
               onBlur={() => handleBlur('description')}
               onInput={handleEditorInput}
               suppressContentEditableWarning
-              className="w-full p-4 text-xs sm:text-sm font-medium text-slate-800 outline-none min-h-[180px] max-h-[400px] overflow-y-auto leading-relaxed focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 empty:before:font-normal [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1"
+              className="w-full p-4 text-xs sm:text-sm font-medium text-slate-800 outline-none min-h-[180px] max-h-[400px] overflow-y-auto leading-relaxed focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-slate-500 empty:before:font-normal [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1"
               data-placeholder="Aracın ek özellikleri, genel durumu ve bilmesi gereken detayları bu alana yazabilirsin..."
             />
 

@@ -174,7 +174,7 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
         <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label className="block">
-              <span className="etiket text-slate-400">İl</span>
+              <span className="etiket text-slate-500">İl</span>
               <select
                 value={form.city}
                 onChange={(e) => ilDegisti(e.target.value)}
@@ -186,7 +186,7 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
             </label>
 
             <label className="block">
-              <span className="etiket text-slate-400">İlçe</span>
+              <span className="etiket text-slate-500">İlçe</span>
               <select
                 value={form.district}
                 onChange={(e) => setForm((f) => ({ ...f, district: e.target.value }))}
@@ -200,7 +200,7 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
           </div>
 
           <label className="block">
-            <span className="etiket text-slate-400">Başlık</span>
+            <span className="etiket text-slate-500">Başlık</span>
             <input
               type="text"
               value={form.title}
@@ -212,7 +212,7 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
           </label>
 
           <label className="block">
-            <span className="etiket text-slate-400">Açıklama</span>
+            <span className="etiket text-slate-500">Açıklama</span>
             <textarea
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
@@ -221,7 +221,7 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
               placeholder="Aracın durumu, bakım geçmişi ve bilinmesini istediğiniz noktalar."
               className="mt-1.5 w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors resize-none"
             />
-            <span className={`metin-yardimci mt-1 block ${aciklamaYeterli ? 'text-slate-400' : 'text-amber-700'}`}>
+            <span className={`metin-yardimci mt-1 block ${aciklamaYeterli ? 'text-slate-500' : 'text-amber-700'}`}>
               {aciklamaYeterli
                 ? `${form.description.trim().length}/4000`
                 : `En az ${ACIKLAMA_ASGARI} karakter yazın (${form.description.trim().length}).`}

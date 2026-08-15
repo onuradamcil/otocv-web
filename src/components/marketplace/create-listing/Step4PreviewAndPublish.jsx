@@ -311,7 +311,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                 Tescil Öncesi
               </span>
             </div>
-            <p className="text-xs text-slate-300 font-normal leading-relaxed">
+            <p className="text-xs text-slate-500 font-normal leading-relaxed">
               Bu ekran tescil öncesi canlı simülasyondur. Bilgilerde eksik veya düzeltme varsa önceki adımlara dönebilirsiniz.
             </p>
           </div>
@@ -442,8 +442,8 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                     <p className="text-yardimci text-slate-500 font-medium">Yayımdan sonra hesaplanır</p>
                   </div>
                   <div className="text-right flex items-baseline gap-0.5">
-                    <span className="text-2xl font-semibold font-mono text-slate-400">—</span>
-                    <span className="text-xs font-bold text-slate-400 font-mono">/100</span>
+                    <span className="text-2xl font-semibold font-mono text-slate-500">—</span>
+                    <span className="text-xs font-bold text-slate-500 font-mono">/100</span>
                   </div>
                 </div>
 
@@ -585,8 +585,8 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                 {/* Sağ Taraf: Karne Rozet Puanı */}
                 <div className="hidden sm:flex items-center gap-2 shrink-0 py-2">
                   <div className="bg-white border border-slate-200/90 px-3.5 py-1.5 rounded-lg flex items-center gap-2 shadow-2xs">
-                    <span className="text-etiket font-semibold text-slate-400 uppercase font-mono tracking-wider leading-none">KARNE PUANI</span>
-                    <span className="text-xs sm:text-sm font-semibold font-mono text-slate-400 leading-none">—/100</span>
+                    <span className="text-etiket font-semibold text-slate-500 uppercase font-mono tracking-wider leading-none">KARNE PUANI</span>
+                    <span className="text-xs sm:text-sm font-semibold font-mono text-slate-500 leading-none">—/100</span>
                   </div>
                 </div>
               </div>
@@ -898,7 +898,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                               className={`flex items-center justify-between p-2.5 rounded transition-all text-xs ${
                                 isSelected 
                                   ? 'bg-emerald-50/80 border border-emerald-200 text-slate-900 font-semibold shadow-2xs' 
-                                  : 'bg-slate-50/40 border border-slate-100 text-slate-400 font-normal opacity-60'
+                                  : 'bg-slate-50/40 border border-slate-100 text-slate-500 font-normal opacity-60'
                               }`}
                             >
                               <span className="truncate pr-2">{featName}</span>
@@ -907,7 +907,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                                   <Icon name="onay" size="xs" strokeWidth={3} />
                                 </span>
                               ) : (
-                                <span className="text-slate-300 font-bold px-1.5 select-none">−</span>
+                                <span className="text-slate-500 font-bold px-1.5 select-none">−</span>
                               )}
                             </div>
                           );
@@ -941,7 +941,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
             </div>
 
             {rawServiceRecords.length === 0 ? (
-              <div className="text-center py-10 text-xs font-semibold text-slate-400 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+              <div className="text-center py-10 text-xs font-semibold text-slate-500 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
                 Bu araca ait henüz kayıtlı bir sanayi veya servis sicili eklenmemiştir.
               </div>
             ) : (
@@ -1040,7 +1040,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                             )}
                           </div>
 
-                          <div className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                          <div className={`text-slate-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
                             <Icon name="asagi" size="md" />
                           </div>
                         </div>
@@ -1051,22 +1051,22 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                           
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white p-3 rounded-md border border-slate-200/80 text-xs">
                             <div>
-                              <span className="text-slate-400 font-medium block text-etiket uppercase">İşlem KM</span>
+                              <span className="text-slate-500 font-medium block text-etiket uppercase">İşlem KM</span>
                               <span className="font-bold text-slate-800 font-mono">{item.km || '0'} KM</span>
                             </div>
                             <div>
-                              <span className="text-slate-400 font-medium block text-etiket uppercase">Servis Noktası</span>
+                              <span className="text-slate-500 font-medium block text-etiket uppercase">Servis Noktası</span>
                               <span className="font-bold text-slate-800 truncate block">{item.shop_name || 'Belirtilmedi'}</span>
                             </div>
                             <div className="col-span-2 sm:col-span-1">
-                              <span className="text-slate-400 font-medium block text-etiket uppercase">İşlem Tarihi</span>
+                              <span className="text-slate-500 font-medium block text-etiket uppercase">İşlem Tarihi</span>
                               <span className="font-bold text-slate-800">{formatTrDate(item.service_date, 'Belirtilmedi')}</span>
                             </div>
                           </div>
 
                           {descStr && (
                             <div className="space-y-1">
-                              <span className="text-etiket font-bold text-slate-400 tracking-wider block uppercase">İşlem Detayı & Usta Notu</span>
+                              <span className="text-etiket font-bold text-slate-500 tracking-wider block uppercase">İşlem Detayı & Usta Notu</span>
                               <p className="text-xs text-slate-700 font-normal leading-relaxed bg-white p-3 rounded-md border border-slate-200/80">
                                 {descStr}
                               </p>
@@ -1075,7 +1075,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
 
                           {invoiceUrl && (
                             <div className="space-y-1.5 pt-1">
-                              <span className="text-etiket font-bold text-slate-400 tracking-wider block uppercase">Servis Faturası / Evrak</span>
+                              <span className="text-etiket font-bold text-slate-500 tracking-wider block uppercase">Servis Faturası / Evrak</span>
                               <button
                                 type="button"
                                 onClick={() => setInvoiceModalUrl(invoiceUrl)}

@@ -206,7 +206,7 @@ export default function MarketplaceView({
             }}
             className="max-w-2xl mx-auto bg-white p-1 rounded-xl border border-slate-700 shadow-lg flex items-center gap-2"
           >
-            <div className="text-slate-400 pl-3">
+            <div className="text-slate-500 pl-3">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
               </svg>
@@ -224,7 +224,7 @@ export default function MarketplaceView({
                 type="button"
                 onClick={() => setSearchQuery('')}
                 aria-label="Aramayı temizle"
-                className="w-8 h-8 grid place-items-center rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                className="w-8 h-8 grid place-items-center rounded-md text-slate-500 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
               >
                 <Icon name="kapat" size="sm" />
               </button>
@@ -269,7 +269,7 @@ export default function MarketplaceView({
                   }`}
                 >
                   <span>Vitrindeki Araçlar</span>
-                  <span className="text-xs text-slate-500 font-mono font-normal">({featuredListings.length})</span>
+                  <span className="text-xs text-slate-600 font-mono font-normal">({featuredListings.length})</span>
                 </button>
 
                 <button type="button" 
@@ -314,7 +314,7 @@ export default function MarketplaceView({
                         }`}
                       >
                         <span>{b}</span>
-                        <span className="text-yardimci text-slate-500 font-mono font-normal">({count})</span>
+                        <span className="text-yardimci text-slate-600 font-mono font-normal">({count})</span>
                       </button>
                     );
                   })}
@@ -508,7 +508,9 @@ export default function MarketplaceView({
                         {k.ozet}
                       </p>
                     </div>
-                    <div className={`mt-2 text-etiket font-bold border-b-2 w-max opacity-80 group-hover:opacity-100 transition-all ${k.alt}`}>
+                    <div /* `opacity-80` kaldırıldı: eşik altı kontrast üretiyordu. Fare vurgusu
+                           zaten alt çizgi ve kart gölgesiyle veriliyor. */
+                      className={`mt-2 text-etiket font-bold border-b-2 w-max transition-all ${k.alt}`}>
                       {k.eylem} &gt;
                     </div>
                   </button>
@@ -617,7 +619,7 @@ function ArabamStyleVitrinCard({ item, onSelectVehicle, favorili = false, onFavo
             className={`absolute top-1.5 right-1.5 z-10 w-9 h-9 grid place-items-center rounded-full bg-white/90 backdrop-blur-sm border transition-colors cursor-pointer ${
               favorili
                 ? 'border-rose-200 text-rose-600 hover:bg-rose-50'
-                : 'border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200'
+                : 'border-slate-200 text-slate-500 hover:text-rose-500 hover:border-rose-200'
             }`}
           >
             {/* `dolu`: durum yalnızca RENKLE anlatılmıyor. Renk körü

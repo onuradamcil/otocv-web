@@ -76,7 +76,7 @@ export default function NotificationDropdown({ onNavigate }) {
         {unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 flex h-4 w-4">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-[18px] min-w-[18px] px-1 bg-rose-500 etiket text-white items-center justify-center shadow-sm">
+            <span className="relative inline-flex rounded-full h-[18px] min-w-[18px] px-1 bg-rose-600 etiket text-white items-center justify-center shadow-sm">
               {unreadCount}
             </span>
           </span>
@@ -109,16 +109,16 @@ export default function NotificationDropdown({ onNavigate }) {
 
           <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100 scrollbar-thin">
             {loading ? (
-              <div className="p-8 text-center text-xs font-medium text-slate-400">
+              <div className="p-8 text-center text-xs font-medium text-slate-500">
                 Bildirim havuzu kontrol ediliyor...
               </div>
             ) : notifications.length === 0 ? (
               <div className="p-10 text-center flex flex-col items-center justify-center space-y-2">
-                <div className="p-3 bg-slate-50 text-slate-400 rounded-full">
+                <div className="p-3 bg-slate-50 text-slate-500 rounded-full">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 </div>
                 <p className="text-xs font-bold text-slate-700">Güncel bildiriminiz bulunmuyor</p>
-                <p className="text-yardimci text-slate-400 leading-relaxed max-w-[200px]">Aracınızın sigorta, kasko ve muayene periyotları yaklaştığında burada listelenir.</p>
+                <p className="text-yardimci text-slate-500 leading-relaxed max-w-[200px]">Aracınızın sigorta, kasko ve muayene periyotları yaklaştığında burada listelenir.</p>
               </div>
             ) : (
               notifications.map((item) => {
@@ -150,7 +150,7 @@ export default function NotificationDropdown({ onNavigate }) {
                           {new Date(item.created_at).toLocaleDateString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-                      <p className={`text-yardimci leading-relaxed ${item.is_read ? 'text-slate-400 font-normal' : 'text-slate-600 font-semibold'}`}>
+                      <p className={`text-yardimci leading-relaxed ${item.is_read ? 'text-slate-500 font-normal' : 'text-slate-600 font-semibold'}`}>
                         {item.message}
                       </p>
                     </div>
@@ -162,7 +162,7 @@ export default function NotificationDropdown({ onNavigate }) {
                         deleteNotification(item.id);
                       }}
                       title="Bildirimi Sil"
-                      className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-600 p-1 rounded-md hover:bg-rose-50 transition-all shrink-0 self-center"
+                      className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-600 p-1 rounded-md hover:bg-rose-50 transition-all shrink-0 self-center"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />

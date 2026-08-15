@@ -80,7 +80,7 @@ export default function Page() {
                   <p className="text-xl font-semibold text-slate-900 tabular-nums leading-none">
                     {fiyatYaz(urun.fiyat)}
                   </p>
-                  <p className="text-etiket text-slate-400 font-bold uppercase tracking-wide mt-1">
+                  <p className="text-etiket text-slate-500 font-bold uppercase tracking-wide mt-1">
                     {urun.sureGun ? `${urun.sureGun} gün` : 'Tek seferlik'}
                   </p>
                 </div>
@@ -115,7 +115,7 @@ export default function Page() {
           'Sigorta, kasko ve muayene takibi',
         ].map((k) => (
           <div key={k} className="flex items-start gap-2.5">
-            <span className="text-slate-400 shrink-0 mt-0.5">
+            <span className="text-slate-500 shrink-0 mt-0.5">
               <Icon name="onay" size="xs" strokeWidth={3} />
             </span>
             <span className="text-xs text-slate-600 font-medium leading-relaxed">{k}</span>
@@ -128,7 +128,7 @@ export default function Page() {
         <h2 className="text-sm font-semibold text-slate-900">Ödeme geçmişi</h2>
         <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-1">
           <p className="text-xs font-bold text-slate-600">Henüz ödeme kaydınız yok</p>
-          <p className="text-yardimci text-slate-400 font-medium leading-relaxed">
+          <p className="text-yardimci text-slate-500 font-medium leading-relaxed">
             Tahsilat başladığında ödemeleriniz ve faturalarınız burada listelenecek.
           </p>
         </div>

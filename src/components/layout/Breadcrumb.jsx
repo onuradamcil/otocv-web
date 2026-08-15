@@ -54,7 +54,7 @@ export default function Breadcrumb() {
         >
           Anasayfa
         </Link>
-        <span className="text-slate-300" aria-hidden="true">›</span>
+        <span className="text-slate-500" aria-hidden="true">›</span>
         <span className="text-slate-900 font-bold" aria-current="page">{etiket}</span>
       </div>
     </nav>

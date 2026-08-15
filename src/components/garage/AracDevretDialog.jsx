@@ -218,7 +218,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
             type="button"
             onClick={onClose}
             aria-label="Pencereyi kapat"
-            className="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors cursor-pointer shrink-0"
+            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors cursor-pointer shrink-0"
           >
             <Icon name="kapat" size="lg" strokeWidth={2.5} />
           </button>
@@ -377,7 +377,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                         <p className="text-xs font-semibold text-slate-900 truncate">
                           {t.isteyen || 'İsim belirtilmemiş'}
                         </p>
-                        <span className="text-etiket font-semibold text-slate-400 shrink-0 tabular-nums">
+                        <span className="text-etiket font-semibold text-slate-500 shrink-0 tabular-nums">
                           {new Date(t.olustu).toLocaleDateString('tr-TR', {
                             day: '2-digit', month: '2-digit', year: 'numeric',
                             hour: '2-digit', minute: '2-digit',

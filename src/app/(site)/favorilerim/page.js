@@ -79,7 +79,7 @@ export default function FavorilerimPage() {
 
       {liste.length === 0 ? (
         <div className="py-20 flex flex-col items-center text-center space-y-3 bg-white rounded-2xl border border-dashed border-slate-300">
-          <span className="w-12 h-12 rounded-2xl bg-slate-50 grid place-items-center text-slate-300">
+          <span className="w-12 h-12 rounded-2xl bg-slate-50 grid place-items-center text-slate-500">
             <Icon name="kalp" size="xl" />
           </span>
           <div>
@@ -109,7 +109,7 @@ export default function FavorilerimPage() {
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <span className="text-etiket font-semibold text-slate-400">GÖRSEL YOK</span>
+                    <span className="text-etiket font-semibold text-slate-500">GÖRSEL YOK</span>
                   )}
 
                   <button

@@ -557,7 +557,7 @@ function SuzgecCipi({ deger, etiket, renk = 'bg-slate-100 text-slate-700', secil
       className={`inline-flex items-center gap-2 pl-3 pr-2 min-h-[36px] rounded-full border transition-colors
         focus-visible:ring-offset-2 ${
         bos && !secili
-          ? 'border-slate-200 bg-white text-slate-400 cursor-default'
+          ? 'border-slate-200 bg-white text-slate-500 cursor-default'
           : secili
             ? 'border-indigo-600 bg-indigo-600 text-white cursor-pointer'
             : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 cursor-pointer'
@@ -569,7 +569,7 @@ function SuzgecCipi({ deger, etiket, renk = 'bg-slate-100 text-slate-700', secil
           için sayı hiyerarşiyi bozmadan öne çıkabiliyor. `tabular-nums`
           şart: 9 -> 10 olunca çipin genişliği zıplamasın. */}
       <span className={`metin-yardimci font-semibold font-mono tabular-nums min-w-[22px] text-center px-1.5 py-0.5 rounded-full ${
-        secili ? 'bg-white/25 text-white' : bos ? 'bg-slate-100 text-slate-400' : renk
+        secili ? 'bg-white/25 text-white' : bos ? 'bg-slate-100 text-slate-500' : renk
       }`}>
         {deger}
       </span>
@@ -605,7 +605,7 @@ function MerkezEylem({ eylem, onAc }) {
         <span
           className={`w-12 h-12 rounded-2xl grid place-items-center shrink-0 transition-colors ${
             kapali
-              ? 'bg-slate-100 text-slate-400'
+              ? 'bg-slate-100 text-slate-500'
               : 'bg-indigo-50 text-indigo-600 ring-1 ring-inset ring-indigo-100 group-hover:bg-indigo-600 group-hover:text-white group-hover:ring-indigo-600'
           }`}
         >
@@ -854,7 +854,12 @@ function PoliceCipi({ etiket, durum, onAc }) {
       onClick={onAc}
       className={`border px-2 py-1.5 rounded-xl flex flex-col justify-center items-start gap-0.5 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 shadow-2xs text-left ${durum.bgClass}`}
     >
-      <span className="etiket opacity-70">{etiket}</span>
+      {/* ⚠ `opacity-70` KALDIRILDI: çipin renkli zemini üzerinde etiketi
+          %70 saydamlığa düşürmek kontrastı 4.5:1 eşiğinin altına indiriyordu
+          (ölçüldü). Saydamlık bir vurgu aracı değil, burada bilgiyi
+          okunmaz yapan şeydi — "SİGORTA/KASKO/MUAYENE" zaten `.etiket`
+          ile ikincil, ayrıca soldurmaya gerek yok. */}
+      <span className="etiket">{etiket}</span>
       {/* `truncate` KALDIRILDI: tablette ölçüldü, "Süresi Doldu" 70px'lik
           kutuda 72px istiyordu ve "Süresi Do..." diye kesiliyordu. Kesmek
           bilgi kaybettiriyor; sarmak kaybettirmiyor. Üç çip aynı ızgara
@@ -876,7 +881,7 @@ function MenuOgesi({ ikon, etiket, ipucu, onSec }) {
       onClick={onSec}
       className="w-full text-left px-3.5 py-2.5 hover:bg-slate-50 transition-colors flex items-start gap-2.5 cursor-pointer focus-visible:outline-none focus-visible:bg-slate-50"
     >
-      <span className="text-slate-400 mt-0.5 shrink-0">
+      <span className="text-slate-500 mt-0.5 shrink-0">
         <Icon name={ikon} size="sm" />
       </span>
       <span className="min-w-0">

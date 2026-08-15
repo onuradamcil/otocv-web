@@ -724,12 +724,12 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
               ) : (
                 <div className="text-rose-600 font-bold flex flex-wrap items-center gap-2 text-xs sm:text-sm tracking-normal">
                   <span>{selectedCategory}</span>
-                  {selectedYear && <><span className="text-slate-400 font-normal">&gt;</span><span>{selectedYear}</span></>}
-                  {selectedFuel && <><span className="text-slate-400 font-normal">&gt;</span><span>{selectedFuel}</span></>}
-                  {selectedBrand && <><span className="text-slate-400 font-normal">&gt;</span><span>{selectedBrand.name}</span></>}
-                  {selectedSeries && <><span className="text-slate-400 font-normal">&gt;</span><span>{selectedSeries.name}</span></>}
-                  {selectedModel && <><span className="text-slate-400 font-normal">&gt;</span><span>{selectedModel.name}</span></>}
-                  {selectedPackage && <><span className="text-slate-400 font-normal">&gt;</span><span>{selectedPackage.name}</span></>}
+                  {selectedYear && <><span className="text-slate-500 font-normal">&gt;</span><span>{selectedYear}</span></>}
+                  {selectedFuel && <><span className="text-slate-500 font-normal">&gt;</span><span>{selectedFuel}</span></>}
+                  {selectedBrand && <><span className="text-slate-500 font-normal">&gt;</span><span>{selectedBrand.name}</span></>}
+                  {selectedSeries && <><span className="text-slate-500 font-normal">&gt;</span><span>{selectedSeries.name}</span></>}
+                  {selectedModel && <><span className="text-slate-500 font-normal">&gt;</span><span>{selectedModel.name}</span></>}
+                  {selectedPackage && <><span className="text-slate-500 font-normal">&gt;</span><span>{selectedPackage.name}</span></>}
                 </div>
               )}
             </div>

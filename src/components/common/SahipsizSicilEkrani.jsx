@@ -77,7 +77,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
           </div>
         )}
 
-        <p className="text-yardimci text-slate-400 leading-relaxed">
+        <p className="text-yardimci text-slate-500 leading-relaxed">
           Araç sizinse, plakanızla başvurup ruhsatınızı doğrulattıktan sonra
           sicili garajınıza aktarabilirsiniz.
         </p>
@@ -103,7 +103,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
         </div>
 
         {pin && (
-          <p className="text-etiket text-slate-300 font-mono">{pin}</p>
+          <p className="text-etiket text-slate-500 font-mono">{pin}</p>
         )}
       </div>
     </div>

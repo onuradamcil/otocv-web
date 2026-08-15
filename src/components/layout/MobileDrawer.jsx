@@ -148,7 +148,7 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
           {user && (
             <>
               <div className="mt-1 px-4 py-2 border-t border-slate-100">
-                <span className="text-etiket font-bold text-slate-400 tracking-wider uppercase">Hesabım</span>
+                <span className="text-etiket font-bold text-slate-500 tracking-wider uppercase">Hesabım</span>
               </div>
               {UYE_MENU.map((m) => (
                 <Link key={m.href} href={m.href} onClick={onClose} className={`${SATIR} text-slate-700 font-semibold hover:bg-slate-50`}>

@@ -1002,7 +1002,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                               className={`flex items-center justify-between p-2.5 rounded transition-all text-xs ${
                                 isSelected 
                                   ? 'bg-emerald-50/80 border border-emerald-200 text-slate-900 font-semibold shadow-2xs' 
-                                  : 'bg-slate-50/40 border border-slate-100 text-slate-400 font-normal opacity-60'
+                                  : 'bg-slate-50/40 border border-slate-100 text-slate-500 font-normal opacity-60'
                               }`}
                             >
                               <span className="truncate pr-2">{featName}</span>
@@ -1011,7 +1011,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                                   <Icon name="onay" size="xs" strokeWidth={3} />
                                 </span>
                               ) : (
-                                <span className="text-slate-300 font-bold px-1.5 select-none">−</span>
+                                <span className="text-slate-500 font-bold px-1.5 select-none">−</span>
                               )}
                             </div>
                           );
@@ -1154,7 +1154,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                             )}
                           </div>
 
-                          <div className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                          <div className={`text-slate-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
                             <Icon name="asagi" size="md" />
                           </div>
                         </div>
