@@ -125,3 +125,103 @@ test.describe('Vitrin görünürlüğü', () => {
     }
   });
 });
+
+
+// =========================================================================
+// `listings` TABLOSU ZİYARETÇİYE KAPALI
+//
+// -------------------------------------------------------------------------
+// NİYE BU BLOK VAR
+// -------------------------------------------------------------------------
+// Yukarıdaki testler pazaryeri LİSTESİNİN plaka sızdırmadığını denetliyor.
+// Ama liste temiz olsa bile TABLONUN KENDİSİ açıksa koruma yok: politika
+// "Herkes ilanları görebilir" SELECT / rol PUBLIC / USING(true) idi ve anon
+// anahtarıyla yapılan gerçek bir sorgu şunu döndürdü:
+//
+//     3 satır · vehicle_plate 3/3 dolu · price bir satırda 100000
+//     ayrıca contact_phone, previous_price, tramer_amount
+//
+// Yani ürünün iki temel kısıtı — plakayı gizlemek ve araç fiyatı
+// göstermemek — tek REST çağrısıyla atlanıyordu. `vitrin_listesi` RPC'si
+// tam da bunu denetlemek için yazılmıştı; tablo açık kaldığı için
+// atlanabiliyordu.
+//
+// Ders: RPC ile denetlenen her tablo, tablo düzeyinde de kapatılmalı.
+// Yoksa RPC bir kapı değil, yalnızca bir öneri oluyor.
+//
+// ⚠ HİÇBİR YAZMA YOK.
+// =========================================================================
+
+test.describe('listings tablosu kapali', () => {
+  test('ANON listings tablosunu okuyamiyor', async () => {
+    const anon = anonIstemcisi();
+    const { data, error } = await anon.from('listings').select('*');
+
+    expect(
+      error || (data && data.length === 0),
+      'listings tablosu ziyaretçiye açık — plaka ve araç fiyatı tek REST çağrısıyla alınabiliyor'
+    ).toBeTruthy();
+    expect(data?.length ?? 0).toBe(0);
+  });
+
+  test('OTURUMLU kullanici BASKASININ ilanini okuyamiyor', async () => {
+    const alici = await aliciIstemcisi();
+    const { data: { user } } = await alici.auth.getUser();
+    const { data } = await alici.from('listings').select('user_id');
+
+    const yabanci = (data || []).filter((x) => x.user_id !== user.id);
+    expect(
+      yabanci,
+      `başka kullanıcının ilan satırı görünüyor: ${yabanci.length} satır`
+    ).toEqual([]);
+  });
+
+  test('vitrin RPC hala calisiyor ve plaka/fiyat sizdirmiyor', async () => {
+    // Tabloyu kapatmak vitrini bozmamalı: genel okuma security-definer
+    // RPC'den geçiyor ve RLS'e tabi değil.
+    const anon = anonIstemcisi();
+    const { data } = await anon.rpc('vitrin_listesi', { p_sehir: null, p_kullanici: null });
+    const kayitlar = Array.isArray(data) ? data : [];
+
+    expect(kayitlar.length, 'tablo kapatılınca vitrin de boşaldı — RPC bozulmuş').toBeGreaterThan(0);
+    for (const k of kayitlar) {
+      expect(k.plate_number, 'vitrin ziyaretçiye plaka sızdırıyor').toBeFalsy();
+      expect(Object.keys(k), 'vitrin araç fiyatı döndürüyor').not.toContain('price');
+    }
+  });
+
+  test('yazma RPC leri ANON a kapali', async () => {
+    const anon = anonIstemcisi();
+
+    const y = await anon.rpc('vitrin_yayinla', {
+      p_plaka: 'CV-YOK', p_baslik: 'x', p_aciklama: 'x', p_il: 'x', p_ilce: 'x',
+    });
+    expect(y.error, 'vitrin_yayinla anon a açık').toBeTruthy();
+
+    const k = await anon.rpc('vitrin_kaldir', { p_plaka: 'CV-YOK' });
+    expect(k.error, 'vitrin_kaldir anon a açık').toBeTruthy();
+  });
+
+  test('BASKASININ aracini vitrine cikaramiyor / kaldiramiyor', async () => {
+    // Sahiplik ARAÇ üzerinden denetleniyor, ilan üzerinden değil. Sebep:
+    // devir sonrası ilan satırı hâlâ eski sahipte kalıyor ve ilan üzerinden
+    // yapılan denetim orada sessizce başarısız oluyordu.
+    const sahip = await supabaseIstemcisi();
+    const alici = await aliciIstemcisi();
+
+    const { data: benim } = await sahip.from('listings').select('vehicle_plate').limit(1);
+    test.skip(!benim || benim.length === 0, 'sahibin vitrin kaydı yok');
+    const plaka = benim[0].vehicle_plate;
+
+    const y = await alici.rpc('vitrin_yayinla', {
+      p_plaka: plaka, p_baslik: 'ELE GECIRME', p_aciklama: 'olmamali',
+      p_il: 'X', p_ilce: 'Y',
+    });
+    expect(y.data?.basarili, 'başkası aracı vitrine çıkarabildi').toBe(false);
+    expect(y.data?.hata).toBe('sahip_degil');
+
+    const k = await alici.rpc('vitrin_kaldir', { p_plaka: plaka });
+    expect(k.data?.basarili, 'başkası aracı vitrinden kaldırabildi').toBe(false);
+    expect(k.data?.hata).toBe('sahip_degil');
+  });
+});

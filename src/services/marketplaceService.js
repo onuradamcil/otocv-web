@@ -18,59 +18,57 @@ export const publishVehicleListing = async (vehicle, listingPayload) => {
 
     const plate = vehicle.plate_number;
 
-    // PLAKAYA AİT KAYIT ARANIYOR — DURUMA BAKILMADAN.
+    // =====================================================================
+    // ⚠ ARTIK DOĞRUDAN TABLOYA YAZILMIYOR — `vitrin_yayinla` RPC'si
+    // ---------------------------------------------------------------------
+    // İki ayrı sorunu birden çözdüğü için taşındı.
     //
-    // Eskiden yalnızca `status='active'` aranıyordu. Kaldırma işlemi kaydı
-    // sildiği sürece bu çalışıyordu; artık kaldırma kaydı `pasif` yapıyor
-    // (kalıcı silme veri kaybıydı). Filtre 'active' kalsaydı pasif kayıt
-    // bulunamaz, INSERT denenir ve `unique_active_listing_per_plate`
-    // kısıtına takılırdı.
+    // 1. GÜVENLİK. `listings` tablosunun SELECT politikası PUBLIC'e
+    //    `USING(true)` veriyordu; anon anahtarıyla ölçüldü ve tablo tamamen
+    //    okunuyordu: `vehicle_plate` (3/3 satır), `price` (bir satırda
+    //    100000), `contact_phone`. Plakayı gizlemek ve araç fiyatı
+    //    göstermemek ürünün iki temel kısıtı; ikisi de tek REST çağrısıyla
+    //    atlanıyordu. Tablo kapatıldı, yazma işi sunucuya alındı.
     //
-    // ⚠ O kısıtın adı yanıltıcı: `UNIQUE (vehicle_plate)` — koşulsuz. Yani
-    // plaka başına yalnızca BİR satır olabiliyor, durumu ne olursa olsun.
-    const { data: existingListings } = await supabase
-      .from('listings')
-      .select('id')
-      .eq('vehicle_plate', plate)
-      .limit(1);
+    // 2. SESSİZ BAŞARISIZLIK. Eski akış şuydu:
+    //       a) plakaya ait satırı SELECT et (sahiplik filtresi YOK —
+    //          genel okuma politikası başkasının satırını da gösteriyordu)
+    //       b) bulduysa o id'yi UPDATE et
+    //    Ama UPDATE sahiplik politikasına tabi. Araç DEVREDİLDİKTEN sonra
+    //    satır hâlâ ESKİ sahibin üzerinde olduğu için UPDATE 0 satır
+    //    etkiliyor, Supabase HATA DÖNDÜRMÜYOR ve servis `success: true`
+    //    diyordu. Yani devraldığınız aracı vitrine çıkarınca hiçbir şey
+    //    olmuyor, ekran başarı gösteriyordu.
+    //
+    // RPC sahipliği İLAN üzerinden değil ARAÇ üzerinden denetliyor ve satır
+    // varsa `user_id`yi yeni sahibe devralıyor.
+    //
+    // ⚠ `price` HİÇ GÖNDERİLMİYOR ve RPC de yazmıyor: araca ait fiyat
+    // üründe yok.
+    // =====================================================================
+    const { data, error } = await supabase.rpc('vitrin_yayinla', {
+      p_plaka: plate,
+      p_baslik: listingPayload.title?.trim(),
+      p_aciklama: listingPayload.description?.trim(),
+      p_il: listingPayload.city,
+      p_ilce: listingPayload.district,
+      p_tramer: Number(listingPayload.tramerAmount || 0),
+      p_one_cikar: listingPayload.isFeatured || false,
+    });
 
-    let result;
-    if (existingListings && existingListings.length > 0) {
-      // VARSA: mevcut kaydı güncelle ve yeniden yayına al.
-      result = await supabase
-        .from('listings')
-        .update({
-          title: listingPayload.title?.trim(),
-          description: listingPayload.description?.trim(),
-          city: listingPayload.city,
-          district: listingPayload.district,
-          tramer_amount: Number(listingPayload.tramerAmount || 0),
-          is_featured: listingPayload.isFeatured || false,
-          status: 'active',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existingListings[0].id)
-        .select();
-    } else {
-      // YOKSA: Sıfırdan Yeni İlan Oluştur (INSERT)
-      result = await supabase
-        .from('listings')
-        .insert({
-          vehicle_plate: plate,
-          user_id: user.id,
-          title: listingPayload.title?.trim(),
-          description: listingPayload.description?.trim(),
-          city: listingPayload.city,
-          district: listingPayload.district,
-          tramer_amount: Number(listingPayload.tramerAmount || 0),
-          is_featured: listingPayload.isFeatured || false,
-          status: 'active'
-        })
-        .select();
+    if (error) throw error;
+    if (!data?.basarili) {
+      // Sunucunun verdiği sebep kullanıcı diline çevriliyor. Ham anahtarı
+      // ekrana basmak kullanıcıya bir şey anlatmıyor.
+      const METIN = {
+        oturum_yok: 'Oturumunuz sonlanmış. Yeniden giriş yapın.',
+        arac_yok: 'Bu plakaya kayıtlı araç bulunamadı.',
+        sahip_degil: 'Bu araç sizin garajınızda değil.',
+        eksik_alan: 'Başlık, açıklama, il ve ilçe zorunlu.',
+      };
+      throw new Error(METIN[data?.hata] || 'Vitrin kartı yayınlanamadı.');
     }
-
-    if (result.error) throw result.error;
-    return { success: true, data: result.data?.[0] };
+    return { success: true, data };
   } catch (error) {
     console.error('❌ [Marketplace Service] Vitrin kartı yayınlama hatası:', error.message);
     return { success: false, error: error.message };
@@ -110,14 +108,20 @@ export const unpublishVehicleListing = async (vehicle) => {
   try {
     const plate = typeof vehicle === 'object' ? vehicle.plate_number : vehicle;
 
-    const { data, error } = await supabase
-      .from('listings')
-      .update({ status: 'pasif', updated_at: new Date().toISOString() })
-      .eq('vehicle_plate', plate)
-      .eq('status', 'active')
-      .select();
+    // Yayınlamayla aynı gerekçe: tablo ziyaretçiye kapatıldı, yazma sunucuya
+    // alındı. Kaldırma da sahipliği ARAÇ üzerinden denetliyor, böylece devir
+    // sonrası sessizce başarısız olmuyor.
+    const { data, error } = await supabase.rpc('vitrin_kaldir', { p_plaka: plate });
 
     if (error) throw error;
+    if (!data?.basarili) {
+      const METIN = {
+        oturum_yok: 'Oturumunuz sonlanmış. Yeniden giriş yapın.',
+        arac_yok: 'Bu plakaya kayıtlı araç bulunamadı.',
+        sahip_degil: 'Bu araç sizin garajınızda değil.',
+      };
+      throw new Error(METIN[data?.hata] || 'Vitrinden kaldırılamadı.');
+    }
     return { success: true, data };
   } catch (error) {
     console.error('❌ [Marketplace Service] Pazaryerinden kaldırma hatası:', error.message);
