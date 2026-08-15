@@ -15,6 +15,7 @@ import Icon from '../common/icons';
 import { supabase } from '../../lib/supabase';
 import useSicil from '../../hooks/useSicil';
 import GlobalStepLoader from '../common/GlobalStepLoader';
+import { tiklanabilir } from '../../utils/tiklanabilir';
 
 export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPublicView = false }) {
   // =========================================================================
@@ -283,7 +284,7 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
                 <Icon name="kapat" size="md" />
               </button>
             </div>
-            <div onClick={copyVerificationLink} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-gray-200 hover:bg-slate-100 cursor-pointer transition-all">
+            <div {...tiklanabilir(copyVerificationLink)} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-gray-200 hover:bg-slate-100 cursor-pointer transition-all">
               <div className="flex-1 min-w-0">
                 <span className="text-xs font-bold text-[#0F172A] block">Linki Kopyala</span>
                 <span className="text-[10px] text-indigo-600 font-mono truncate block mt-0.5">{verificationUrl}</span>

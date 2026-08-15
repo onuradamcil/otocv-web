@@ -293,3 +293,36 @@ body {
     animation: none !important;
   }
 }
+
+/* =========================================================================
+   ♿ KLAVYE ODAĞI HER ZAMAN GÖRÜNÜR
+   -------------------------------------------------------------------------
+   ÖLÇÜLDÜ (tarayıcıda, CSSOM üzerinden): bu kurulumda `ring-2`,
+   `focus-visible:ring-2` ve `focus-visible:ring-indigo-600` yardımcı
+   sınıfları HİÇ ÜRETİLMİYOR. Kaynakta 46 yerde yazılı olmalarına rağmen
+   karşılık gelen CSS kuralı yok — yani o odak halkalarının hiçbiri
+   çizilmiyor. `border-[1.5px]` ile aynı sınıf tuzak: sınıf hata vermiyor,
+   sessizce yok sayılıyor.
+
+   Bu tek başına kötüydü; `focus-visible:outline-none` ile birlikte
+   FELAKET oluyordu: tarayıcının kendi odak halkası kaldırılıyor, yerine
+   konması gereken halka ise hiç çizilmiyordu. Sonuç: klavyeyle gezen
+   kullanıcı nerede olduğunu göremiyordu.
+
+   Çözüm yardımcı sınıfa değil, doğrudan CSS'e bağlandı. `:focus-visible`
+   yalnızca KLAVYE odağında eşleşiyor; fareyle tıklayana halka çıkmıyor.
+
+   ⚠ Bu kural bilerek `*` üzerinde: yeni eklenen her düğme, bağlantı ve
+   form alanı otomatik olarak korunuyor. Tek tek sınıf yazmayı unutmak
+   erişilebilirliği bozmasın.
+   ========================================================================= */
+:focus-visible {
+  outline: 2px solid #4f46e5;   /* indigo-600 */
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Koyu zeminlerde indigo okunmuyor; oralarda beyaz halka kullanılıyor. */
+.odak-acik:focus-visible {
+  outline-color: #ffffff;
+}

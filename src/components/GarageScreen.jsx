@@ -404,7 +404,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
             <button
               type="button"
               onClick={() => setSuzgec('tumu')}
-              className="inline-flex items-center gap-1.5 min-h-[28px] px-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 metin-yardimci font-semibold hover:bg-indigo-100 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+              className="inline-flex items-center gap-1.5 min-h-[28px] px-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 metin-yardimci font-semibold hover:bg-indigo-100 transition-colors cursor-pointer"
             >
               {SUZGEC_ADI[suzgec]}
               <Icon name="kapat" size="xs" />
@@ -555,7 +555,7 @@ function SuzgecCipi({ deger, etiket, renk = 'bg-slate-100 text-slate-700', secil
       disabled={bos && !secili}
       aria-pressed={secili}
       className={`inline-flex items-center gap-2 pl-3 pr-2 min-h-[36px] rounded-full border transition-colors
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 ${
+        focus-visible:ring-offset-2 ${
         bos && !secili
           ? 'border-slate-200 bg-white text-slate-400 cursor-default'
           : secili
@@ -594,7 +594,7 @@ function MerkezEylem({ eylem, onAc }) {
       className={`text-left p-4 rounded-2xl border transition-all group ${
         kapali
           ? 'border-slate-100 bg-slate-50/60 cursor-not-allowed'
-          : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40 hover:shadow-sm active:scale-[0.99] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2'
+          : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40 hover:shadow-sm active:scale-[0.99] cursor-pointer focus-visible:ring-offset-2'
       }`}
     >
       <span className="flex items-center gap-2.5 mb-2">
@@ -852,7 +852,7 @@ function PoliceCipi({ etiket, durum, onAc }) {
     <button
       type="button"
       onClick={onAc}
-      className={`border px-2 py-1.5 rounded-xl flex flex-col justify-center items-start gap-0.5 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 shadow-2xs text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 ${durum.bgClass}`}
+      className={`border px-2 py-1.5 rounded-xl flex flex-col justify-center items-start gap-0.5 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 shadow-2xs text-left ${durum.bgClass}`}
     >
       <span className="etiket opacity-70">{etiket}</span>
       {/* `truncate` KALDIRILDI: tablette ölçüldü, "Süresi Doldu" 70px'lik

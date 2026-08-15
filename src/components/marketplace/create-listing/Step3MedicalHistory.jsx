@@ -388,7 +388,7 @@ const Step3Medical = forwardRef(({
                     >
                       {/* KAPALI YATAY BANT */}
                       {!record.is_expanded && (
-                        <div 
+                        <button type="button" 
                           onClick={() => toggleExpand(record.id)}
                           className="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
                         >
@@ -426,7 +426,7 @@ const Step3Medical = forwardRef(({
                             )}
                             <Icon name="asagi" size="md" className="text-slate-400" strokeWidth={2.5} />
                           </div>
-                        </div>
+                        </button>
                       )}
 
                       {/* AÇIK İÇ İÇE FORM PANELİ */}

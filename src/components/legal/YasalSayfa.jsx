@@ -98,7 +98,7 @@ export default function YasalSayfa({ baslik, ozet, bolumler }) {
           <Link
             key={yol}
             href={yol}
-            className="text-yardimci font-bold text-indigo-600 hover:text-indigo-700 hover:underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+            className="text-yardimci font-bold text-indigo-600 hover:text-indigo-700 hover:underline rounded"
           >
             {ad}
           </Link>

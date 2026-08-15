@@ -748,7 +748,8 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                 {CATEGORIES.map(cat => {
                   const isSelected = selectedCategory === cat;
                   return (
-                    <div 
+                    <button
+                      type="button"
                       key={cat}
                       onClick={() => updateFormData({ 
                         selectedCategory: cat, 
@@ -761,14 +762,14 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                         isFinalConfirmed: false 
                       })}
                       style={isSelected ? arrowTabStyle : {}}
-                      className={`px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center ${
+                      className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
                         isSelected 
                           ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                           : 'hover:bg-slate-50 text-slate-700 rounded'
                       }`}
                     >
                       <span className="truncate">{cat}</span>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -783,7 +784,8 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   {YEARS.map(yr => {
                     const isSelected = selectedYear === yr;
                     return (
-                      <div 
+                      <button
+                        type="button"
                         key={yr}
                         onClick={() => updateFormData({ 
                           selectedYear: yr, 
@@ -795,14 +797,14 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                           isFinalConfirmed: false 
                         })}
                         style={isSelected ? arrowTabStyle : {}}
-                        className={`px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center ${
+                        className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
                           isSelected 
                             ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                             : 'hover:bg-slate-50 text-slate-700 rounded'
                         }`}
                       >
                         <span>{yr}</span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -818,7 +820,8 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   {FUELS.map(fuel => {
                     const isSelected = selectedFuel === fuel;
                     return (
-                      <div 
+                      <button
+                        type="button"
                         key={fuel}
                         onClick={() => updateFormData({ 
                           selectedFuel: fuel, 
@@ -829,14 +832,14 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                           isFinalConfirmed: false 
                         })}
                         style={isSelected ? arrowTabStyle : {}}
-                        className={`px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center ${
+                        className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
                           isSelected 
                             ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                             : 'hover:bg-slate-50 text-slate-700 rounded'
                         }`}
                       >
                         <span className="truncate">{fuel}</span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -852,18 +855,19 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   {brands.map(b => {
                     const isSelected = selectedBrand?.id === b.id;
                     return (
-                      <div 
+                      <button
+                        type="button"
                         key={b.id}
                         onClick={() => handleBrandClick(b)}
                         style={isSelected ? arrowTabStyle : {}}
-                        className={`px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center ${
+                        className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
                           isSelected 
                             ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                             : 'hover:bg-slate-50 text-slate-700 rounded'
                         }`}
                       >
                         <span className="truncate">{b.name}</span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -879,18 +883,19 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   {seriesList.map(s => {
                     const isSelected = selectedSeries?.id === s.id;
                     return (
-                      <div 
+                      <button
+                        type="button"
                         key={s.id}
                         onClick={() => handleSeriesClick(s)}
                         style={isSelected ? arrowTabStyle : {}}
-                        className={`px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center ${
+                        className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
                           isSelected 
                             ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                             : 'hover:bg-slate-50 text-slate-700 rounded'
                         }`}
                       >
                         <span className="truncate">{s.name}</span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -906,18 +911,19 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   {modelsList.map(m => {
                     const isSelected = selectedModel?.id === m.id;
                     return (
-                      <div 
+                      <button
+                        type="button"
                         key={m.id}
                         onClick={() => handleModelClick(m)}
                         style={isSelected ? arrowTabStyle : {}}
-                        className={`px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center ${
+                        className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
                           isSelected 
                             ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                             : 'hover:bg-slate-50 text-slate-700 rounded'
                         }`}
                       >
                         <span className="truncate">{m.name}</span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -933,18 +939,19 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   {packagesList.map(p => {
                     const isSelected = selectedPackage?.id === p.id;
                     return (
-                      <div 
+                      <button
+                        type="button"
                         key={p.id}
                         onClick={() => updateFormData({ selectedPackage: p, isFinalConfirmed: false })}
                         style={isSelected ? arrowTabStyle : {}}
-                        className={`px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center ${
+                        className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
                           isSelected 
                             ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                             : 'hover:bg-slate-50 text-slate-700 rounded'
                         }`}
                       >
                         <span className="truncate">{p.name}</span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -956,9 +963,15 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   <div className="space-y-2">
                     <span className="text-[11px] font-bold text-slate-500 font-mono block uppercase">EŞLEŞEN ARAÇ KÜNYESİ</span>
                     
-                    <div 
-                      onClick={() => updateFormData({ isFinalConfirmed: true })}
-                      className={`p-3 rounded-md border bg-white cursor-pointer transition-all ${
+                    {/* ⚠ `<div onClick>` DEĞİL `<label>`: içinde radyo düğmesi var.
+                        `<button>` yapılamaz (düğme içinde form denetimi geçersiz),
+                        `role="button"` de doğru olmaz — asıl denetim radyonun
+                        kendisi. `<label>` kartın tamamını radyoya bağlıyor: fare
+                        için tıklama alanı aynı kalıyor, klavye için radyo zaten
+                        odaklanabilir ve Space ile seçiliyor. Ayrıca ekran okuyucu
+                        kart metnini radyonun ADI olarak okuyor. */}
+                    <label
+                      className={`block p-3 rounded-md border bg-white cursor-pointer transition-all focus-within:ring-2 focus-within:ring-indigo-600 ${
                         isFinalConfirmed ? 'border-rose-600 ring-1 ring-rose-600/30' : 'border-slate-200 hover:border-slate-300'
                       }`}
                     >
@@ -974,7 +987,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </label>
                   </div>
 
                   <p className="text-[13px] text-slate-500 mt-3">

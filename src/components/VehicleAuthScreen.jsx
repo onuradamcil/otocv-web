@@ -10,6 +10,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 import Icon from './common/icons';
+import { tiklanabilir } from '../utils/tiklanabilir';
 
 export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess, onBack }) {
   // =========================================================================
@@ -256,7 +257,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
                   />
                   <span>Oturum açık kalsın</span>
                 </label>
-                <span onClick={() => setAuthMode('forgot_password')} className="text-indigo-600 hover:text-indigo-800 cursor-pointer transition-colors font-bold">
+                <span {...tiklanabilir(() => setAuthMode('forgot_password'))} className="text-indigo-600 hover:text-indigo-800 cursor-pointer transition-colors font-bold">
                   Şifremi unuttum
                 </span>
               </div>
@@ -411,11 +412,11 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
         {/* inline-flex + min-h: küçük punto olsalar da dokunma alanı 24
             pikselin altına inmemeli (WCAG AA). */}
         <div className="text-yardimci text-slate-400 font-medium flex items-center gap-3 tracking-wide mt-8">
-          <Link href="/kullanim-sartlari" className="inline-flex items-center min-h-[36px] hover:text-[#0F172A] transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600">
+          <Link href="/kullanim-sartlari" className="inline-flex items-center min-h-[36px] hover:text-[#0F172A] transition-colors rounded">
             Kullanım Şartları
           </Link>
           <span aria-hidden="true">•</span>
-          <Link href="/kvkk" className="inline-flex items-center min-h-[36px] hover:text-[#0F172A] transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600">
+          <Link href="/kvkk" className="inline-flex items-center min-h-[36px] hover:text-[#0F172A] transition-colors rounded">
             KVKK Aydınlatma Metni
           </Link>
         </div>

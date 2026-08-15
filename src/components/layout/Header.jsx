@@ -21,7 +21,7 @@ import { avatarUrl, AVATAR_DEGISTI } from '@/services/hesapService';
 import { okunmamisSayisi } from '@/services/mesajService';
 import useCanliTazeleme from '@/hooks/useCanliTazeleme';
 
-const ODAK = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2';
+const ODAK = 'focus-visible:ring-offset-2';
 
 export default function Header() {
   const router = useRouter();

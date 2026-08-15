@@ -35,7 +35,7 @@
 // birini öne çıkarmak yanlış bilgi veriyordu.
 // =========================================================================
 
-const ODAK = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2';
+const ODAK = 'focus-visible:ring-offset-2';
 
 // Ortak taban: dokunma alanı, hizalama, geçiş ve odak halkası.
 // `min-h-[44px]` WCAG dokunma alanı asgarisi — mobilde teste bağlı.

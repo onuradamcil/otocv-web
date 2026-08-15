@@ -15,7 +15,7 @@ export const metadata = {
   title: 'Sayfa bulunamadı',
 };
 
-const ODAK = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2';
+const ODAK = 'focus-visible:ring-offset-2';
 
 export default function NotFound() {
   return (

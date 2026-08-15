@@ -30,7 +30,7 @@ function HazirLink({ href, children }) {
     <li>
       <Link
         href={href}
-        className="flex items-center min-h-[36px] metin-yardimci text-slate-600 hover:text-indigo-600 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+        className="flex items-center min-h-[36px] metin-yardimci text-slate-600 hover:text-indigo-600 transition-colors rounded"
       >
         {children}
       </Link>
@@ -109,7 +109,7 @@ export default function Footer() {
               testleri üç sayfada birden kırıldı. */}
           <Link
             href="/kvkk"
-            className="inline-flex items-center min-h-[36px] metin-yardimci text-slate-500 hover:text-slate-700 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+            className="inline-flex items-center min-h-[36px] metin-yardimci text-slate-500 hover:text-slate-700 transition-colors rounded"
           >
             Verileriniz nasıl işleniyor?
           </Link>

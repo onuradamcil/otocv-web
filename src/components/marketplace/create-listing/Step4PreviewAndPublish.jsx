@@ -17,6 +17,7 @@ import { CAR_PARTS, DAMAGE_STATUSES } from '../../../data/hasarKatalogu';
 import { tramerVarMi } from '../../../utils/tramerHelper';
 import { parseVehicleDate, formatTrDate } from '../../../utils/dateHelper';
 import { aracGorselleri } from '../../../utils/aracGorseli';
+import { tiklanabilir } from '../../../utils/tiklanabilir';
 
 // =========================================================================
 // 🎨 SABİTLER VE YARDIMCI FONKSİYONLAR
@@ -417,7 +418,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                       <button type="button" disabled={thumbPage === 0} onClick={() => setThumbPage(p => Math.max(p - 1, 0))} className="w-7 h-7 bg-white hover:bg-slate-100 border border-slate-200/90 rounded text-slate-700 cursor-pointer disabled:opacity-30">‹</button>
                       <div className="flex gap-2 px-1">
                         {Array.from({ length: Math.max(totalPages, 1) }).map((_, pIdx) => (
-                          <div key={pIdx} onClick={() => totalPages > 1 && setThumbPage(pIdx)} className={`rounded-full ${totalPages > 1 ? 'cursor-pointer' : ''} ${thumbPage === pIdx ? 'w-2.5 h-2.5 bg-slate-700' : 'w-2 h-2 bg-slate-300'}`} />
+                          <div key={pIdx} {...tiklanabilir(() => totalPages > 1 && setThumbPage(pIdx))} className={`rounded-full ${totalPages > 1 ? 'cursor-pointer' : ''} ${thumbPage === pIdx ? 'w-2.5 h-2.5 bg-slate-700' : 'w-2 h-2 bg-slate-300'}`} />
                         ))}
                       </div>
                       <button type="button" disabled={thumbPage === totalPages - 1 || totalPages <= 1} onClick={() => setThumbPage(p => Math.min(p + 1, totalPages - 1))} className="w-7 h-7 bg-white hover:bg-slate-100 border border-slate-200/90 rounded text-slate-700 cursor-pointer disabled:opacity-30">›</button>
@@ -1004,7 +1005,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                       className="border border-slate-200 rounded-lg overflow-hidden bg-white transition-all duration-150 hover:border-slate-300"
                     >
                       <div 
-                        onClick={() => setExpandedTileIndex(isExpanded ? null : index)}
+                        {...tiklanabilir(() => setExpandedTileIndex(isExpanded ? null : index))}
                         className="p-3.5 sm:p-4 flex justify-between items-center cursor-pointer select-none gap-3 hover:bg-slate-50/50"
                       >
                         <div className="flex items-center gap-3 min-w-0">

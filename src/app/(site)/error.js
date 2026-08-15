@@ -54,13 +54,13 @@ export default function SiteError({ error, reset }) {
           <button
             type="button"
             onClick={reset}
-            className="flex-1 inline-flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
+            className="flex-1 inline-flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer focus-visible:ring-offset-2"
           >
             Tekrar Dene
           </button>
           <Link
             href="/garage"
-            className="flex-1 inline-flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-xs rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+            className="flex-1 inline-flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-xs rounded-xl transition-colors"
           >
             Garajıma Dön
           </Link>

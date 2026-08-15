@@ -764,9 +764,9 @@ useEffect(() => {
                 <span>Renk</span>
               </label>
               
-              <div 
+              <button type="button"
                 onClick={() => setColorDropdownOpen(!colorDropdownOpen)}
-                className={`w-full border rounded-md px-3 text-sm font-semibold outline-none cursor-pointer flex items-center justify-between shadow-2xs h-[42px] transition-all ${
+                className={`w-full text-left w-full border rounded-md px-3 text-sm font-semibold outline-none cursor-pointer flex items-center justify-between shadow-2xs h-[42px] transition-all ${
                   isFieldInvalid('color')
                     ? 'border-rose-500 bg-rose-50/70 text-rose-900'
                     : 'border-slate-200/80 hover:border-slate-300 focus:border-indigo-600 bg-slate-100/70 hover:bg-slate-100 text-slate-800'
@@ -786,19 +786,19 @@ useEffect(() => {
                   )}
                 </div>
                 <span className="text-xs text-slate-400">▼</span>
-              </div>
+              </button>
 
               {colorDropdownOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-md shadow-xl z-30 max-h-56 overflow-y-auto p-1.5 space-y-0.5 animate-fadeIn">
                   {COLOR_OPTIONS.map((c) => (
-                    <div
+                    <button type="button"
                       key={c.name}
                       onClick={() => {
                         setSelectedColor(c);
                         handleFieldChange('color', c);
                         setColorDropdownOpen(false);
                       }}
-                      className={`flex items-center gap-2.5 px-3 py-2 text-xs font-bold rounded-md cursor-pointer transition-colors ${
+                      className={`w-full text-left flex items-center gap-2.5 px-3 py-2 text-xs font-bold rounded-md cursor-pointer transition-colors ${
                         (selectedColor?.name || selectedColor) === c.name ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-50 text-slate-700'
                       }`}
                     >
@@ -807,7 +807,7 @@ useEffect(() => {
                         style={{ background: c.hex }}
                       />
                       <span>{c.name}</span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
@@ -988,13 +988,13 @@ useEffect(() => {
                 <span>Bulunduğu İl</span>
               </label>
               
-              <div 
+              <button type="button"
                 onClick={() => {
                   setIsCityOpen(!isCityOpen);
                   setIsDistrictOpen(false);
                   if (isCityOpen) handleBlur('city');
                 }}
-                className={`w-full px-3.5 py-2.5 border rounded-md text-sm font-semibold flex justify-between items-center cursor-pointer transition-all shadow-2xs h-[42px] ${
+                className={`w-full text-left w-full px-3.5 py-2.5 border rounded-md text-sm font-semibold flex justify-between items-center cursor-pointer transition-all shadow-2xs h-[42px] ${
                   isFieldInvalid('city')
                     ? 'border-rose-500 bg-rose-50/70 text-rose-900'
                     : isCityOpen 
@@ -1006,7 +1006,7 @@ useEffect(() => {
                 <svg className={`w-4 h-4 transition-transform duration-200 shrink-0 ml-2 ${isFieldInvalid('city') ? 'text-rose-500' : 'text-slate-400'} ${isCityOpen ? 'rotate-180 text-indigo-600' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                 </svg>
-              </div>
+              </button>
 
               {isCityOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-md shadow-xl overflow-hidden z-30 animate-fadeIn">
@@ -1025,13 +1025,13 @@ useEffect(() => {
                       <div className="p-3 text-center text-xs font-medium text-slate-500">İl bulunamadı</div>
                     ) : (
                       filteredCities.map(cityName => (
-                        <div
+                        <button type="button"
                           key={cityName}
                           onClick={() => {
                             handleSelectCity(cityName);
                             handleBlur('city');
                           }}
-                          className={`px-3.5 py-2.5 text-xs font-semibold cursor-pointer transition-colors flex justify-between items-center ${
+                          className={`w-full text-left px-3.5 py-2.5 text-xs font-semibold cursor-pointer transition-colors flex justify-between items-center ${
                             city === cityName ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-800 hover:bg-slate-50'
                           }`}
                         >
@@ -1039,7 +1039,7 @@ useEffect(() => {
                           {city === cityName && (
                             <Icon name="onay" size="md" className="text-indigo-600 shrink-0" strokeWidth={2.5} />
                           )}
-                        </div>
+                        </button>
                       ))
                     )}
                   </div>
@@ -1057,13 +1057,13 @@ useEffect(() => {
                 <span>İlçe</span>
               </label>
 
-              <div 
+              <button type="button"
                 onClick={() => {
                   setIsDistrictOpen(!isDistrictOpen);
                   setIsCityOpen(false);
                   if (isDistrictOpen) handleBlur('district');
                 }}
-                className={`w-full px-3.5 py-2.5 border rounded-md text-sm font-semibold flex justify-between items-center cursor-pointer transition-all shadow-2xs h-[42px] ${
+                className={`w-full text-left w-full px-3.5 py-2.5 border rounded-md text-sm font-semibold flex justify-between items-center cursor-pointer transition-all shadow-2xs h-[42px] ${
                   isFieldInvalid('district')
                     ? 'border-rose-500 bg-rose-50/70 text-rose-900'
                     : isDistrictOpen 
@@ -1075,7 +1075,7 @@ useEffect(() => {
                 <svg className={`w-4 h-4 transition-transform duration-200 shrink-0 ml-2 ${isFieldInvalid('district') ? 'text-rose-500' : 'text-slate-400'} ${isDistrictOpen ? 'rotate-180 text-indigo-600' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                 </svg>
-              </div>
+              </button>
 
               {isDistrictOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-md shadow-xl overflow-hidden z-30 animate-fadeIn">
@@ -1094,13 +1094,13 @@ useEffect(() => {
                       <div className="p-3 text-center text-xs font-medium text-slate-500">İlçe bulunamadı</div>
                     ) : (
                       filteredDistricts.map(distName => (
-                        <div
+                        <button type="button"
                           key={distName}
                           onClick={() => {
                             handleSelectDistrict(distName);
                             handleBlur('district');
                           }}
-                          className={`px-3.5 py-2.5 text-xs font-semibold cursor-pointer transition-colors flex justify-between items-center ${
+                          className={`w-full text-left px-3.5 py-2.5 text-xs font-semibold cursor-pointer transition-colors flex justify-between items-center ${
                             district === distName ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-800 hover:bg-slate-50'
                           }`}
                         >
@@ -1108,7 +1108,7 @@ useEffect(() => {
                           {district === distName && (
                             <Icon name="onay" size="md" className="text-indigo-600 shrink-0" strokeWidth={2.5} />
                           )}
-                        </div>
+                        </button>
                       ))
                     )}
                   </div>
@@ -1563,9 +1563,9 @@ useEffect(() => {
                       : 'border-slate-200/90 hover:border-slate-300'
                   }`}
                 >
-                  <div 
+                  <button type="button"
                     onClick={() => toggleCategoryAccordion(cat.title)}
-                    className="w-full px-5 py-4 bg-slate-50/80 hover:bg-slate-100/80 cursor-pointer flex items-center justify-between select-none transition-colors min-h-[56px]"
+                    className="w-full text-left w-full px-5 py-4 bg-slate-50/80 hover:bg-slate-100/80 cursor-pointer flex items-center justify-between select-none transition-colors min-h-[56px]"
                   >
                     <div className="flex items-center gap-3">
                       <span className={`w-3 h-3 rounded-full transition-all shrink-0 ${
@@ -1599,7 +1599,7 @@ useEffect(() => {
                         </svg>
                       </div>
                     </div>
-                  </div>
+                  </button>
 
                   <div className={`grid transition-all duration-300 ease-in-out ${
                     isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
@@ -1624,28 +1624,40 @@ useEffect(() => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                           {filteredItems.map(item => {
                             const isChecked = selectedFeatures.includes(item);
+                            // ⚠ `<div onClick>` DEĞİL `<label>`, VE ONAY KUTUSU ARTIK GERÇEK DENETİM.
+                            // Eski hâlinde kutu `readOnly` + `pointer-events-none` idi; yani
+                            // ekranda onay kutusu GİBİ duran ama hiçbir şey yapmayan bir süstü.
+                            // Gerçek eylem dış `<div onClick>`'teydi ve o klavyeye kapalıydı:
+                            // Tab üzerine gelmiyor, Space bir şey yapmıyordu. Ekran okuyucu da
+                            // "işaretli/işaretsiz" bilgisini alamıyordu — kullanıcı hangi
+                            // donanımı seçtiğini duyamıyordu.
+                            // Artık kutunun kendisi denetim, `<label>` de tıklama alanını kartın
+                            // tamamına yayıyor. `<button>` olamaz: düğme içinde form denetimi
+                            // geçersiz HTML.
+                            //
+                            // ⚠ BU YORUM `return (` ÜSTÜNDE, İÇİNDE DEĞİL: orası ifade konumu
+                            // ve `{/* */}` orada JSX yorumu değil, nesne değişmezi sayılıyor.
                             return (
-                              <div
+                              <label
                                 key={item}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleFeature(item);
-                                }}
-                                className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-between cursor-pointer transition-all select-none h-[46px] shadow-2xs ${
+                                className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-between cursor-pointer transition-all select-none h-[46px] shadow-2xs focus-within:ring-2 focus-within:ring-indigo-600 ${
                                   isChecked
                                     ? 'bg-indigo-50/90 border-indigo-600 text-indigo-950 shadow-xs'
                                     : 'bg-slate-50/70 border-slate-200/80 text-slate-700 hover:bg-slate-100/80 hover:border-slate-300'
                                 }`}
                               >
                                 <span className="truncate mr-2">{item}</span>
-                                
+
                                 <input
                                   type="checkbox"
                                   checked={isChecked}
-                                  readOnly
-                                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-600 border-slate-300 accent-indigo-600 shrink-0 pointer-events-none"
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    toggleFeature(item);
+                                  }}
+                                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-600 border-slate-300 accent-indigo-600 shrink-0"
                                 />
-                              </div>
+                              </label>
                             );
                           })}
                         </div>

@@ -260,7 +260,7 @@ export default function MarketplaceView({
               
               <div className="flex flex-col gap-0.5 text-xs font-semibold pt-1">
                 
-                <div 
+                <button type="button" 
                   onClick={() => setQuickFilter('all')} 
                   className={`px-3 py-2 rounded-md cursor-pointer flex justify-between items-center transition-colors duration-75 border-l-2 ${
                     quickFilter === 'all' 
@@ -270,9 +270,9 @@ export default function MarketplaceView({
                 >
                   <span>Vitrindeki Araçlar</span>
                   <span className="text-xs text-slate-500 font-mono font-normal">({featuredListings.length})</span>
-                </div>
+                </button>
 
-                <div 
+                <button type="button" 
                   onClick={() => setQuickFilter('highTrust')} 
                   className={`px-3 py-2 rounded-md cursor-pointer flex justify-between items-center transition-colors duration-75 border-l-2 ${
                     quickFilter === 'highTrust' 
@@ -281,7 +281,7 @@ export default function MarketplaceView({
                   }`}
                 >
                   <span>Güven Skoru (%80+)</span>
-                </div>
+                </button>
 
               </div>
             </div>
@@ -294,7 +294,7 @@ export default function MarketplaceView({
                   type="button"
                   onClick={clearAllFilters}
                   aria-label="Tüm filtreleri sıfırla"
-                  className="inline-flex items-center min-h-[24px] px-1.5 -mx-1.5 rounded text-xs text-indigo-600 font-bold hover:underline cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+                  className="inline-flex items-center min-h-[24px] px-1.5 -mx-1.5 rounded text-xs text-indigo-600 font-bold hover:underline cursor-pointer"
                 >
                   Sıfırla
                 </button>
@@ -306,7 +306,7 @@ export default function MarketplaceView({
                   {uniqueBrands.map((b) => {
                     const count = b === 'Tümü' ? listings.length : (brandCounts[b] || 0);
                     return (
-                      <div 
+                      <button type="button" 
                         key={b} 
                         onClick={() => setSelectedBrand(b)} 
                         className={`px-2.5 py-1.5 rounded cursor-pointer flex justify-between items-center transition-colors duration-75 ${
@@ -315,7 +315,7 @@ export default function MarketplaceView({
                       >
                         <span>{b}</span>
                         <span className="text-yardimci text-slate-500 font-mono font-normal">({count})</span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -357,7 +357,7 @@ export default function MarketplaceView({
                     type="button"
                     onClick={() => setQuickFilter(c.anahtar)}
                     aria-pressed={quickFilter === c.anahtar}
-                    className={`shrink-0 min-h-[38px] px-3.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 ${
+                    className={`shrink-0 min-h-[38px] px-3.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
                       quickFilter === c.anahtar
                         ? 'bg-indigo-600 text-white border-indigo-600'
                         : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
@@ -371,7 +371,7 @@ export default function MarketplaceView({
                   type="button"
                   onClick={() => setSuzgecAcik((a) => !a)}
                   aria-expanded={suzgecAcik}
-                  className={`shrink-0 min-h-[38px] px-3.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer inline-flex items-center gap-1.5 ml-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 ${
+                  className={`shrink-0 min-h-[38px] px-3.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer inline-flex items-center gap-1.5 ml-auto ${
                     suzgecAcik ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200'
                   }`}
                 >
@@ -603,7 +603,7 @@ function ArabamStyleVitrinCard({ item, onSelectVehicle, favorili = false, onFavo
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectVehicle(item); }
       }}
       aria-label={`${item.brand || ''} ${item.model || ''} ${item.year || ''} — sicilini görüntüle`}
-      className="bg-white border border-slate-200/90 hover:border-slate-400 rounded-md overflow-hidden shadow-2xs hover:shadow-md transition-all duration-150 cursor-pointer group flex flex-col justify-between select-none p-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-1"
+      className="bg-white border border-slate-200/90 hover:border-slate-400 rounded-md overflow-hidden shadow-2xs hover:shadow-md transition-all duration-150 cursor-pointer group flex flex-col justify-between select-none p-1.5 focus-visible:ring-offset-1"
     >
       <div className="h-36 w-full bg-[#F1F5F9] rounded flex items-center justify-center overflow-hidden shrink-0 relative">
         {/* FAVORİ — kartın kendi tıklamasını TETİKLEMEMELİ.
@@ -614,7 +614,7 @@ function ArabamStyleVitrinCard({ item, onSelectVehicle, favorili = false, onFavo
             onClick={(e) => { e.stopPropagation(); onFavori(item.pin_code); }}
             aria-pressed={!!favorili}
             aria-label={favorili ? 'Favorilerden çıkar' : 'Favorilere ekle'}
-            className={`absolute top-1.5 right-1.5 z-10 w-9 h-9 grid place-items-center rounded-full bg-white/90 backdrop-blur-sm border transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 ${
+            className={`absolute top-1.5 right-1.5 z-10 w-9 h-9 grid place-items-center rounded-full bg-white/90 backdrop-blur-sm border transition-colors cursor-pointer ${
               favorili
                 ? 'border-rose-200 text-rose-600 hover:bg-rose-50'
                 : 'border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200'

@@ -453,7 +453,7 @@ export default function DevirPage() {
         <button
           type="button"
           onClick={() => router.push('/verify')}
-          className="text-yardimci font-bold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+          className="text-yardimci font-bold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer rounded"
         >
           Devir yapmadan önce aracın karnesini görmek ister misiniz? PIN ile sorgulayın →
         </button>

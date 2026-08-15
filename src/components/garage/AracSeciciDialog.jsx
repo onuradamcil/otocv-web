@@ -157,7 +157,7 @@ export default function AracSeciciDialog({
             type="button"
             onClick={onClose}
             aria-label="Kapat"
-            className="w-9 h-9 -mt-1 -mr-1 grid place-items-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+            className="w-9 h-9 -mt-1 -mr-1 grid place-items-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0 cursor-pointer"
           >
             <Icon name="kapat" size="md" />
           </button>
@@ -194,7 +194,7 @@ export default function AracSeciciDialog({
                   className={`w-full text-left flex items-center gap-3 p-3 rounded-2xl border transition-all ${
                     sebep
                       ? 'border-slate-100 bg-slate-50/70 cursor-not-allowed opacity-70'
-                      : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 active:scale-[0.99] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600'
+                      : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 active:scale-[0.99] cursor-pointer'
                   }`}
                 >
                   {/* Bu yorumun yazdığı kural artık tek yerde uygulanıyor:

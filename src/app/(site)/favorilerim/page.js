@@ -116,7 +116,7 @@ export default function FavorilerimPage() {
                     type="button"
                     onClick={() => cikar(f.pin_code)}
                     aria-label="Favorilerden çıkar"
-                    className="absolute top-1.5 right-1.5 w-9 h-9 grid place-items-center rounded-full bg-white/90 border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+                    className="absolute top-1.5 right-1.5 w-9 h-9 grid place-items-center rounded-full bg-white/90 border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                   >
                     <Icon name="kalp" size="md" dolu />
                   </button>

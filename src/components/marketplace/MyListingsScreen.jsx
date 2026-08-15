@@ -169,7 +169,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                     kurma ve alan adı eşleme sorunu tamamen kalktı. */}
                 <Link
                   href={`/garage/${encodeURIComponent(item.pin_code || '')}/vitrin`}
-                  className="w-full inline-flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 font-bold text-xs rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+                  className="w-full inline-flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 font-bold text-xs rounded-xl transition-colors"
                 >
                   Vitrin Kartını Düzenle
                 </Link>
