@@ -185,7 +185,7 @@ export default function MarketplaceView({
         <div className="max-w-7xl mx-auto text-center space-y-3">
           {/* "Güvenle Satın Alın" KALKTI: satış sitesi başlığıydı. Ürünün
               vaadi aracı satmak değil, geçmişini belgelemek. */}
-          <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-100">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-100">
             Aracın Geçmişini Bilin, Kararınızı Belgeyle Verin
           </h1>
           
@@ -217,7 +217,7 @@ export default function MarketplaceView({
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="Marka, model, şehir veya PIN ile ara"
               placeholder="Marka, model, şehir veya PIN kodu ile ara..."
-              className="w-full bg-transparent border-none outline-none text-sm text-slate-900 font-semibold placeholder:text-slate-400 placeholder:font-normal pl-0.5"
+              className="w-full bg-transparent border-none outline-none text-sm text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal pl-0.5"
             />
             {searchQuery && (
               <button
@@ -254,7 +254,7 @@ export default function MarketplaceView({
             
             {/* HIZLI SÜZGEÇ RADARI */}
             <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs space-y-2">
-              <h4 className="text-xs font-extrabold text-slate-900 tracking-tight pb-2.5 border-b border-slate-100">
+              <h4 className="text-xs font-semibold text-slate-900 tracking-tight pb-2.5 border-b border-slate-100">
                 Hızlı Süzgeç Radarı
               </h4>
               
@@ -269,7 +269,7 @@ export default function MarketplaceView({
                   }`}
                 >
                   <span>Vitrindeki Araçlar</span>
-                  <span className="text-xs text-slate-400 font-mono font-normal">({featuredListings.length})</span>
+                  <span className="text-xs text-slate-500 font-mono font-normal">({featuredListings.length})</span>
                 </div>
 
                 <div 
@@ -289,7 +289,7 @@ export default function MarketplaceView({
             {/* FİLTRE MATRİSİ */}
             <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs space-y-4">
               <div className="flex justify-between items-center pb-2.5 border-b border-slate-100">
-                <h4 className="text-xs font-extrabold text-slate-900 tracking-tight">Filtreler</h4>
+                <h4 className="text-xs font-semibold text-slate-900 tracking-tight">Filtreler</h4>
                 <button
                   type="button"
                   onClick={clearAllFilters}
@@ -301,7 +301,7 @@ export default function MarketplaceView({
               </div>
               
               <div className="space-y-1.5">
-                <span className="text-[11px] font-bold text-slate-500 block uppercase tracking-wider">Marka</span>
+                <span className="text-yardimci font-bold text-slate-500 block uppercase tracking-wider">Marka</span>
                 <div className="flex flex-col gap-0.5 text-xs text-slate-700 max-h-48 overflow-y-auto pr-1">
                   {uniqueBrands.map((b) => {
                     const count = b === 'Tümü' ? listings.length : (brandCounts[b] || 0);
@@ -314,7 +314,7 @@ export default function MarketplaceView({
                         }`}
                       >
                         <span>{b}</span>
-                        <span className="text-[11px] text-slate-400 font-mono font-normal">({count})</span>
+                        <span className="text-yardimci text-slate-500 font-mono font-normal">({count})</span>
                       </div>
                     );
                   })}
@@ -322,7 +322,7 @@ export default function MarketplaceView({
               </div>
 
               <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                <span className="text-[11px] font-bold text-slate-500 block uppercase tracking-wider">Model Yılı</span>
+                <span className="text-yardimci font-bold text-slate-500 block uppercase tracking-wider">Model Yılı</span>
                 <div className="grid grid-cols-2 gap-2">
                   <input type="number" placeholder="Min" value={filters.minYear} onChange={(e) => handleFilterChange('minYear', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded p-1.5 text-xs outline-none focus:border-indigo-600" />
                   <input type="number" placeholder="Max" value={filters.maxYear} onChange={(e) => handleFilterChange('maxYear', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded p-1.5 text-xs outline-none focus:border-indigo-600" />
@@ -385,8 +385,8 @@ export default function MarketplaceView({
               {suzgecAcik && (
                 <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 motion-safe:animate-fadeIn">
                   <div className="flex items-center justify-between">
-                    <span className="etiket text-slate-400">Marka</span>
-                    <button type="button" onClick={clearAllFilters} className="text-[11px] font-black text-indigo-600 hover:underline cursor-pointer">
+                    <span className="etiket text-slate-500">Marka</span>
+                    <button type="button" onClick={clearAllFilters} className="text-yardimci font-semibold text-indigo-600 hover:underline cursor-pointer">
                       Sıfırla
                     </button>
                   </div>
@@ -408,7 +408,7 @@ export default function MarketplaceView({
                   </div>
 
                   <div className="pt-2 border-t border-slate-100">
-                    <span className="etiket text-slate-400">Model Yılı</span>
+                    <span className="etiket text-slate-500">Model Yılı</span>
                     <div className="grid grid-cols-2 gap-2 mt-1.5">
                       <input type="number" placeholder="Min" value={filters.minYear} onChange={(e) => handleFilterChange('minYear', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 min-h-[38px] text-xs outline-none focus:border-indigo-600" />
                       <input type="number" placeholder="Max" value={filters.maxYear} onChange={(e) => handleFilterChange('maxYear', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 min-h-[38px] text-xs outline-none focus:border-indigo-600" />
@@ -508,7 +508,7 @@ export default function MarketplaceView({
                         {k.ozet}
                       </p>
                     </div>
-                    <div className={`mt-2 text-[10px] font-bold border-b-2 w-max opacity-80 group-hover:opacity-100 transition-all ${k.alt}`}>
+                    <div className={`mt-2 text-etiket font-bold border-b-2 w-max opacity-80 group-hover:opacity-100 transition-all ${k.alt}`}>
                       {k.eylem} &gt;
                     </div>
                   </button>
@@ -525,7 +525,7 @@ export default function MarketplaceView({
 <div className="flex justify-between items-baseline pb-2 border-b border-slate-200 select-none mb-3">
   
   {/* SOL KANAT: SADE VE NET BAŞLIK */}
-  <h3 className="text-lg font-black text-slate-900 tracking-tight">
+  <h3 className="text-lg font-semibold text-slate-900 tracking-tight">
     Vitrindeki Araçlar
   </h3>
 
@@ -547,7 +547,7 @@ export default function MarketplaceView({
               ) : displayedVitrinListings.length === 0 ? (
                 <div className="py-16 flex flex-col items-center justify-center text-center space-y-2 bg-white rounded-md border border-dashed border-slate-200 p-6">
                   <h4 className="text-xs font-bold text-slate-900">Vitrinde Araç Bulunamadı</h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
+                  <p className="text-yardimci text-slate-500 mt-0.5">
                     Anasayfada sadece <b>₺250 Vitrin Dopingi</b> satın alınan ayrıcalıklı araçlar sergilenmektedir.
                   </p>
                   <button
@@ -632,7 +632,7 @@ function ArabamStyleVitrinCard({ item, onSelectVehicle, favorili = false, onFavo
             className="w-full h-full object-contain" 
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-400 bg-slate-100">
+          <div className="w-full h-full flex items-center justify-center text-etiket font-bold text-slate-500 bg-slate-100">
             GÖRSEL YOK
           </div>
         )}
@@ -645,21 +645,21 @@ function ArabamStyleVitrinCard({ item, onSelectVehicle, favorili = false, onFavo
             <span className="text-slate-800 font-semibold">{item.year}</span>
           </div>
 
-          <h4 className="text-[12px] font-normal text-slate-700 leading-snug line-clamp-2 min-h-[32px]">
+          <h4 className="text-yardimci font-normal text-slate-700 leading-snug line-clamp-2 min-h-[32px]">
             {item.listing_title || `${item.brand} ${item.model} ${item.package || ''}`}
           </h4>
         </div>
 
         <div className="mt-2 bg-slate-50 border border-slate-200/80 rounded px-2 py-1 flex items-center justify-between">
-          <span className="text-[10px] text-slate-500 font-medium">Güven Karne Skoru</span>
-          <span className="text-[11px] font-bold text-indigo-600">{item.trust_score ?? 0}/100</span>
+          <span className="text-etiket text-slate-500 font-medium">Güven Karne Skoru</span>
+          <span className="text-yardimci font-bold text-indigo-600">{item.trust_score ?? 0}/100</span>
         </div>
 
         {/* ⚠ TUTAR GÖSTERİLMİYOR — HUKUKİ.
             Ürüne ait herhangi bir fiyat, platformu satış sitesi konumuna
             sokuyor. Bu ürün dijital taşıt sicili. Kartın vurgusu bedel
             değil SİCİL: karne, kartın asıl vaadi. */}
-        <div className="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-indigo-600">
+        <div className="mt-2 flex items-center gap-1.5 text-yardimci font-bold text-indigo-600">
           <Icon name="karne" size="xs" />
           Sicil karnesini gör
         </div>

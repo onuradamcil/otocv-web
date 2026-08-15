@@ -276,16 +276,16 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
       
       {/* 📜 2. ADIM: ARKA PLAN ÇAPRAZ FİLİGRAN (WATERMARK) KATMANI (ONARILMIŞ ÖN KATMAN) */}
       <div className="absolute inset-0 pointer-events-none select-none z-30 overflow-hidden flex flex-col justify-around opacity-[0.05] space-y-32 py-20">
-        <div className="rotate-[-25deg] whitespace-nowrap text-slate-900 font-black text-4xl sm:text-6xl tracking-widest uppercase">
+        <div className="rotate-[-25deg] whitespace-nowrap text-slate-900 font-semibold text-4xl sm:text-6xl tracking-widest uppercase">
           OTO.CV TESCİL ÖN İZLEME • RESMİ GEÇERLİLİĞİ YOKTUR • OTO.CV TESCİL ÖN İZLEME
         </div>
-        <div className="rotate-[-25deg] whitespace-nowrap text-slate-900 font-black text-4xl sm:text-6xl tracking-widest uppercase">
+        <div className="rotate-[-25deg] whitespace-nowrap text-slate-900 font-semibold text-4xl sm:text-6xl tracking-widest uppercase">
           OTO.CV TESCİL ÖN İZLEME • RESMİ GEÇERLİLİĞİ YOKTUR • OTO.CV TESCİL ÖN İZLEME
         </div>
-        <div className="rotate-[-25deg] whitespace-nowrap text-slate-900 font-black text-4xl sm:text-6xl tracking-widest uppercase">
+        <div className="rotate-[-25deg] whitespace-nowrap text-slate-900 font-semibold text-4xl sm:text-6xl tracking-widest uppercase">
           OTO.CV TESCİL ÖN İZLEME • RESMİ GEÇERLİLİĞİ YOKTUR • OTO.CV TESCİL ÖN İZLEME
         </div>
-        <div className="rotate-[-25deg] whitespace-nowrap text-slate-900 font-black text-4xl sm:text-6xl tracking-widest uppercase">
+        <div className="rotate-[-25deg] whitespace-nowrap text-slate-900 font-semibold text-4xl sm:text-6xl tracking-widest uppercase">
           OTO.CV TESCİL ÖN İZLEME • RESMİ GEÇERLİLİĞİ YOKTUR • OTO.CV TESCİL ÖN İZLEME
         </div>
       </div>
@@ -303,10 +303,10 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="text-xs sm:text-sm font-extrabold tracking-tight text-white">
+              <h4 className="text-xs sm:text-sm font-semibold tracking-tight text-white">
                 DİJİTAL KARNE ÖN İZLEME MODU
               </h4>
-              <span className="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded">
+              <span className="text-etiket font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded">
                 Tescil Öncesi
               </span>
             </div>
@@ -321,7 +321,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
           <button
             type="button"
             onClick={onEdit || (() => window.history.back())}
-            className="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-white rounded-lg text-xs font-extrabold transition-all shadow-xs cursor-pointer flex items-center justify-center gap-2 border border-indigo-500/50"
+            className="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-white rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer flex items-center justify-center gap-2 border border-indigo-500/50"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
@@ -345,7 +345,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
           <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-2xs space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div className="space-y-1">
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
+                <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
                   {formData.title || `${formData.selectedYear || ''} ${formData.selectedBrand?.name || ''} ${formData.selectedSeries?.name || ''} ${formData.selectedModel?.name || ''}`}
                 </h1>
                 {/* ⚠ UYDURMA KONUM KALDIRILDI: eskiden il/ilçe seçilmemişse
@@ -391,8 +391,8 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                       <button type="button" onClick={(e) => { e.stopPropagation(); setSelectedIndex((prev) => (prev + 1) % imageList.length); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-8 h-8 rounded flex items-center justify-center font-bold text-lg cursor-pointer">›</button>
                     </>
                   )}
-                  <div className="absolute bottom-2.5 left-2.5 bg-slate-900/80 backdrop-blur text-white px-2.5 py-1 rounded text-[11px] font-mono font-bold">{selectedIndex + 1} / {imageList.length}</div>
-                  <button type="button" onClick={() => { setFullscreenIndex(selectedIndex); setIsFullscreen(true); }} className="absolute bottom-2.5 right-2.5 bg-slate-900/80 hover:bg-slate-900 text-white px-2.5 py-1 rounded cursor-pointer flex items-center gap-1.5 text-[11px] font-bold">
+                  <div className="absolute bottom-2.5 left-2.5 bg-slate-900/80 backdrop-blur text-white px-2.5 py-1 rounded text-yardimci font-mono font-bold">{selectedIndex + 1} / {imageList.length}</div>
+                  <button type="button" onClick={() => { setFullscreenIndex(selectedIndex); setIsFullscreen(true); }} className="absolute bottom-2.5 right-2.5 bg-slate-900/80 hover:bg-slate-900 text-white px-2.5 py-1 rounded cursor-pointer flex items-center gap-1.5 text-yardimci font-bold">
                     <span>Büyüt</span>
                   </button>
                 </div>
@@ -432,24 +432,24 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                   <div>
                     <div className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-slate-400" />
-                      <span className="text-[11px] font-extrabold uppercase text-slate-700 font-mono">SİCİL PUANI</span>
+                      <span className="text-yardimci font-semibold uppercase text-slate-700 font-mono">SİCİL PUANI</span>
                     </div>
                     {/* Eskiden burada sabit 92 yazıyordu ve altında "Tescil Güven
                         Rozeti" ibaresi vardı. İkisi de yanlıştı: puan hesaplanmış
                         değildi ve "tescil" hiçbir yerde doğrulanmıyordu. Puan
                         yayımdan sonra veritabanında, gerçek veriden hesaplanıyor. */}
-                    <p className="text-[11px] text-slate-500 font-medium">Yayımdan sonra hesaplanır</p>
+                    <p className="text-yardimci text-slate-500 font-medium">Yayımdan sonra hesaplanır</p>
                   </div>
                   <div className="text-right flex items-baseline gap-0.5">
-                    <span className="text-2xl font-black font-mono text-slate-400">—</span>
+                    <span className="text-2xl font-semibold font-mono text-slate-400">—</span>
                     <span className="text-xs font-bold text-slate-400 font-mono">/100</span>
                   </div>
                 </div>
 
                 <div className="bg-slate-50/80 border border-slate-200 rounded-md p-3.5 space-y-2">
                   <div className="flex justify-between border-b border-slate-200 pb-2">
-                    <span className="text-[11px] font-black text-slate-900 uppercase">ARAÇ KÜNYESİ</span>
-                    <span className="text-[11px] font-black text-emerald-600 font-mono">%100 Tescilli</span>
+                    <span className="text-yardimci font-semibold text-slate-900 uppercase">ARAÇ KÜNYESİ</span>
+                    <span className="text-yardimci font-semibold text-emerald-600 font-mono">%100 Tescilli</span>
                   </div>
                   
                   <div className="space-y-1.5 text-xs divide-y divide-slate-200/70">
@@ -519,7 +519,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
 
                     <div className="flex justify-between items-center py-1">
                       <span className="text-slate-900 font-medium">Plaka Durumu</span>
-                      <span className="font-mono text-slate-800 font-semibold text-[11px] uppercase bg-slate-200/60 px-1.5 py-0.5 rounded">TR (Gizlenmiş)</span>
+                      <span className="font-mono text-slate-800 font-semibold text-yardimci uppercase bg-slate-200/60 px-1.5 py-0.5 rounded">TR (Gizlenmiş)</span>
                     </div>
 
                     <div className="flex justify-between py-1">
@@ -568,7 +568,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
 
                   {/* Araç Başlığı, Tescil Rozeti ve Araç Metaları */}
                   <div className="flex flex-col min-w-0 justify-center gap-1.5">
-                    <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight leading-snug truncate max-w-[280px] sm:max-w-[520px]">
+                    <h3 className="text-sm sm:text-base font-semibold text-slate-900 tracking-tight leading-snug truncate max-w-[280px] sm:max-w-[520px]">
                       {formData.title || `${formData.selectedBrand?.name || ''} ${formData.selectedSeries?.name || ''} ${formData.selectedModel?.name || ''}`}
                     </h3>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -584,8 +584,8 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                 {/* Sağ Taraf: Karne Rozet Puanı */}
                 <div className="hidden sm:flex items-center gap-2 shrink-0 py-2">
                   <div className="bg-white border border-slate-200/90 px-3.5 py-1.5 rounded-lg flex items-center gap-2 shadow-2xs">
-                    <span className="text-[10px] font-extrabold text-slate-400 uppercase font-mono tracking-wider leading-none">KARNE PUANI</span>
-                    <span className="text-xs sm:text-sm font-black font-mono text-slate-400 leading-none">—/100</span>
+                    <span className="text-etiket font-semibold text-slate-400 uppercase font-mono tracking-wider leading-none">KARNE PUANI</span>
+                    <span className="text-xs sm:text-sm font-semibold font-mono text-slate-400 leading-none">—/100</span>
                   </div>
                 </div>
               </div>
@@ -605,7 +605,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                       key={tab.id}
                       type="button"
                       onClick={() => scrollToSection(tab.id)}
-                      className={`py-3.5 mr-6 sm:mr-8 text-[13px] font-bold transition-all cursor-pointer select-none whitespace-nowrap border-b-[3px] outline-none ${
+                      className={`py-3.5 mr-6 sm:mr-8 text-govde font-bold transition-all cursor-pointer select-none whitespace-nowrap border-b-[3px] outline-none ${
                         isActive
                           ? 'border-rose-600 text-rose-600'
                           : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -623,7 +623,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
               
               {/* 1. BÖLÜM: AÇIKLAMA */}
               <div id="sec-description" className="space-y-3 pt-2 scroll-mt-32">
-                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                   <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
                   <span>Açıklama</span>
                 </h3>
@@ -644,7 +644,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
 
               {/* 2. BÖLÜM: BOYA, DEĞİŞEN VE TRAMER */}
               <div id="sec-damage" className="space-y-5 pt-8 scroll-mt-32">
-                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                   <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
                   <span>Boya, Değişen ve Tramer</span>
                 </h3>
@@ -689,7 +689,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                         </g>
                       </svg>
                     </div>
-                    <div className="flex flex-wrap items-center justify-center gap-3 pt-3 text-[11px] font-bold text-slate-700">
+                    <div className="flex flex-wrap items-center justify-center gap-3 pt-3 text-yardimci font-bold text-slate-700">
                       <div className="flex items-center gap-1.5"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.ORIGINAL.bg}`} /><span>{DAMAGE_STATUSES.ORIGINAL.label}</span></div>
                       <div className="flex items-center gap-1.5"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.PAINTED.bg}`} /><span>{DAMAGE_STATUSES.PAINTED.label}</span></div>
                       <div className="flex items-center gap-1.5"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.LOCAL_PAINTED.bg}`} /><span>{DAMAGE_STATUSES.LOCAL_PAINTED.label}</span></div>
@@ -705,25 +705,25 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
                           <span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.ORIGINAL.bg}`} /><span>{DAMAGE_STATUSES.ORIGINAL.label} ({groupedParts.ORIGINAL.length})</span>
                         </div>
-                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.ORIGINAL.length > 0 ? groupedParts.ORIGINAL.join(' • ') : '-'}</p>
+                        <p className="text-yardimci text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.ORIGINAL.length > 0 ? groupedParts.ORIGINAL.join(' • ') : '-'}</p>
                       </div>
                       <div className="space-y-1 pt-1 border-t border-slate-200/60">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
                           <span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.LOCAL_PAINTED.bg}`} /><span>{DAMAGE_STATUSES.LOCAL_PAINTED.label} ({groupedParts.LOCAL_PAINTED.length})</span>
                         </div>
-                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.LOCAL_PAINTED.length > 0 ? groupedParts.LOCAL_PAINTED.join(' • ') : '-'}</p>
+                        <p className="text-yardimci text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.LOCAL_PAINTED.length > 0 ? groupedParts.LOCAL_PAINTED.join(' • ') : '-'}</p>
                       </div>
                       <div className="space-y-1 pt-1 border-t border-slate-200/60">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
                           <span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.PAINTED.bg}`} /><span>{DAMAGE_STATUSES.PAINTED.label} ({groupedParts.PAINTED.length})</span>
                         </div>
-                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.PAINTED.length > 0 ? groupedParts.PAINTED.join(' • ') : '-'}</p>
+                        <p className="text-yardimci text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.PAINTED.length > 0 ? groupedParts.PAINTED.join(' • ') : '-'}</p>
                       </div>
                       <div className="space-y-1 pt-1 border-t border-slate-200/60">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
                           <span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.CHANGED.bg}`} /><span>{DAMAGE_STATUSES.CHANGED.label} ({groupedParts.CHANGED.length})</span>
                         </div>
-                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.CHANGED.length > 0 ? groupedParts.CHANGED.join(' • ') : '-'}</p>
+                        <p className="text-yardimci text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.CHANGED.length > 0 ? groupedParts.CHANGED.join(' • ') : '-'}</p>
                       </div>
                     </div>
 
@@ -735,13 +735,13 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                           </div>
                           <span className="text-xs font-bold text-slate-800">Tramer Hasar Kaydı</span>
                         </div>
-                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md ${tramerVarMi(formData) ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                        <span className={`text-yardimci font-bold px-2.5 py-0.5 rounded-md ${tramerVarMi(formData) ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
                           {tramerVarMi(formData) ? 'Hasar Kaydı Var' : 'Hasar Kaydı Yok'}
                         </span>
                       </div>
                       <div className="pt-2 border-t border-slate-100 flex items-baseline justify-between">
                         <span className="text-xs text-slate-500 font-medium">Toplam Hasar Tutarı</span>
-                        <span className="text-base font-black font-mono text-slate-900">{tramerVarMi(formData) ? `${formData.tramerAmount || '0'} TL` : '0 TL'}</span>
+                        <span className="text-base font-semibold font-mono text-slate-900">{tramerVarMi(formData) ? `${formData.tramerAmount || '0'} TL` : '0 TL'}</span>
                       </div>
                     </div>
                   </div>
@@ -750,7 +750,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
 
               {/* 3. BÖLÜM: ARAÇ BİLGİLERİ */}
               <div id="sec-info" className="space-y-4 pt-10 scroll-mt-32">
-                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2 mb-5">
+                <h3 className="text-sm font-semibold text-slate-900 tracking-tight flex items-center gap-2 mb-5">
                   <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
                   <span>Araç Bilgileri</span>
                 </h3>
@@ -760,8 +760,8 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                   {/* GENEL BAKIŞ */}
                   <div className="space-y-0.5 divide-y divide-slate-100">
                     <div className="flex justify-between items-center py-2.5 px-4 bg-slate-50/50">
-                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-wider">GENEL BAKIŞ</span>
-                      <span className="text-[11px] font-black text-emerald-600 font-mono">%100 Tescilli</span>
+                      <span className="text-yardimci font-semibold text-slate-900 uppercase tracking-wider">GENEL BAKIŞ</span>
+                      <span className="text-yardimci font-semibold text-emerald-600 font-mono">%100 Tescilli</span>
                     </div>
 
                     {[
@@ -797,7 +797,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                   {/* TESCİL VE BELGE DURUMU */}
                   <div className="space-y-0.5 divide-y divide-slate-100 border-t border-slate-200">
                     <div className="flex justify-between items-center py-2.5 px-4 bg-slate-50/50 mt-0.5">
-                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-wider">TESCİL VE BELGE DURUMU</span>
+                      <span className="text-yardimci font-semibold text-slate-900 uppercase tracking-wider">TESCİL VE BELGE DURUMU</span>
                     </div>
 
                     {(() => {
@@ -843,7 +843,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
 
               {/* 4. BÖLÜM: DİNAMİK & KATEGORİZE EDİLMİŞ DONANIM MATRİSİ */}
               <div id="sec-features" className="space-y-6 pt-8 scroll-mt-32">
-                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                   <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
                   <span>Donanım Özellikleri</span>
                 </h3>
@@ -853,10 +853,10 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                   {extraFeatures.length > 0 && (
                     <div className="space-y-3 bg-emerald-50/40 p-3.5 rounded-md border border-emerald-200/80">
                       <div className="flex items-center justify-between border-l-2 border-emerald-600 pl-2.5">
-                        <span className="text-xs font-black text-emerald-900 uppercase tracking-wider">
+                        <span className="text-xs font-semibold text-emerald-900 uppercase tracking-wider">
                           Öne Çıkan & Ekstra Seçilen Donanımlar ({extraFeatures.length})
                         </span>
-                        <span className="text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
+                        <span className="text-etiket font-mono font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
                           Tescilli Seçimler
                         </span>
                       </div>
@@ -865,7 +865,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                         {extraFeatures.map((extFeat, exIdx) => (
                           <div 
                             key={exIdx} 
-                            className="flex items-center justify-between p-2.5 rounded bg-white border border-emerald-300 text-slate-900 font-extrabold text-xs shadow-2xs"
+                            className="flex items-center justify-between p-2.5 rounded bg-white border border-emerald-300 text-slate-900 font-semibold text-xs shadow-2xs"
                           >
                             <span className="truncate pr-2">{extFeat}</span>
                             <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
@@ -880,7 +880,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                   {FEATURE_CATALOG.map((catGroup, cIdx) => (
                     <div key={cIdx} className="space-y-3 border-b border-slate-100 last:border-0 pb-5 last:pb-0">
                       <div className="flex items-center gap-2 border-l-2 border-indigo-600 pl-2.5">
-                        <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                        <span className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
                           {catGroup.category}
                         </span>
                       </div>
@@ -896,7 +896,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                               key={fIdx} 
                               className={`flex items-center justify-between p-2.5 rounded transition-all text-xs ${
                                 isSelected 
-                                  ? 'bg-emerald-50/80 border border-emerald-200 text-slate-900 font-extrabold shadow-2xs' 
+                                  ? 'bg-emerald-50/80 border border-emerald-200 text-slate-900 font-semibold shadow-2xs' 
                                   : 'bg-slate-50/40 border border-slate-100 text-slate-400 font-normal opacity-60'
                               }`}
                             >
@@ -926,7 +926,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
             
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="space-y-0.5">
-                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                   <span className="w-1.5 h-4 bg-emerald-600 rounded-full" />
                   <span>Bakım Geçmişi Sicili (OTO.CV Onaylı)</span>
                 </h3>
@@ -934,7 +934,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                   Usta faturaları, periyodik değişimler ve servis işlemlerinin zaman damgalı dökümü.
                 </p>
               </div>
-              <span className="text-[11px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-md shrink-0">
+              <span className="text-yardimci font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-md shrink-0">
                 {rawServiceRecords.length} Onaylı İşlem
               </span>
             </div>
@@ -955,16 +955,16 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                       </svg>
                     </div>
                     <div className="space-y-0.5">
-                      <span className="text-[10px] font-bold text-indigo-900 tracking-wider uppercase block">
+                      <span className="text-etiket font-bold text-indigo-900 tracking-wider uppercase block">
                         TOPLAM BELGELENMİŞ SERVİS YATIRIMI
                       </span>
-                      <p className="text-[11px] text-slate-500 font-medium">
+                      <p className="text-yardimci text-slate-500 font-medium">
                         Araca yapılan tüm şeffaf bakımların belgelenmiş maliyet toplamı.
                       </p>
                     </div>
                   </div>
 
-                  <div className="self-end sm:self-center bg-white border border-slate-200 px-3 py-1 rounded-md text-sm font-black font-mono text-indigo-700 shadow-2xs">
+                  <div className="self-end sm:self-center bg-white border border-slate-200 px-3 py-1 rounded-md text-sm font-semibold font-mono text-indigo-700 shadow-2xs">
                     {formattedTotalCost}
                   </div>
                 </div>
@@ -1014,7 +1014,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
 
                           <div className="min-w-0">
                             <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{titleStr}</h4>
-                            <p className="text-[11px] text-slate-500 font-medium mt-0.5 flex items-center gap-2">
+                            <p className="text-yardimci text-slate-500 font-medium mt-0.5 flex items-center gap-2">
                               <span className="inline-flex items-center gap-1">
                                 <Icon name="anahtar" size="xs" />
                                 {item.shop_name || 'Özel Servis'}
@@ -1032,7 +1032,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                           <div className="text-right">
                             <span className="text-xs sm:text-sm font-bold font-mono text-slate-900">{costFormatted}</span>
                             {belgeVar && (
-                              <span className="flex items-center justify-end gap-1 text-[10px] font-bold text-emerald-600 mt-0.5">
+                              <span className="flex items-center justify-end gap-1 text-etiket font-bold text-emerald-600 mt-0.5">
                                 <Icon name="onay" size="xs" strokeWidth={2.5} />
                                 Mühürlü Evrak
                               </span>
@@ -1050,22 +1050,22 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                           
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white p-3 rounded-md border border-slate-200/80 text-xs">
                             <div>
-                              <span className="text-slate-400 font-medium block text-[10px] uppercase">İşlem KM</span>
+                              <span className="text-slate-400 font-medium block text-etiket uppercase">İşlem KM</span>
                               <span className="font-bold text-slate-800 font-mono">{item.km || '0'} KM</span>
                             </div>
                             <div>
-                              <span className="text-slate-400 font-medium block text-[10px] uppercase">Servis Noktası</span>
+                              <span className="text-slate-400 font-medium block text-etiket uppercase">Servis Noktası</span>
                               <span className="font-bold text-slate-800 truncate block">{item.shop_name || 'Belirtilmedi'}</span>
                             </div>
                             <div className="col-span-2 sm:col-span-1">
-                              <span className="text-slate-400 font-medium block text-[10px] uppercase">İşlem Tarihi</span>
+                              <span className="text-slate-400 font-medium block text-etiket uppercase">İşlem Tarihi</span>
                               <span className="font-bold text-slate-800">{formatTrDate(item.service_date, 'Belirtilmedi')}</span>
                             </div>
                           </div>
 
                           {descStr && (
                             <div className="space-y-1">
-                              <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">İşlem Detayı & Usta Notu</span>
+                              <span className="text-etiket font-bold text-slate-400 tracking-wider block uppercase">İşlem Detayı & Usta Notu</span>
                               <p className="text-xs text-slate-700 font-normal leading-relaxed bg-white p-3 rounded-md border border-slate-200/80">
                                 {descStr}
                               </p>
@@ -1074,7 +1074,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
 
                           {invoiceUrl && (
                             <div className="space-y-1.5 pt-1">
-                              <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">Servis Faturası / Evrak</span>
+                              <span className="text-etiket font-bold text-slate-400 tracking-wider block uppercase">Servis Faturası / Evrak</span>
                               <button
                                 type="button"
                                 onClick={() => setInvoiceModalUrl(invoiceUrl)}
@@ -1115,12 +1115,12 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
           <div className="sticky top-20 space-y-4">
             <div className="bg-white border border-slate-200 rounded-md shadow-2xs overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-600">
+                <span className="text-etiket font-semibold uppercase tracking-wider text-slate-600">
                   Sicil Özeti
                 </span>
               </div>
 
-              <dl className="px-4 py-3 space-y-2 text-[11px]">
+              <dl className="px-4 py-3 space-y-2 text-yardimci">
                 <div className="flex items-baseline justify-between gap-2">
                   <dt className="text-slate-500 font-semibold">Sicil puanı</dt>
                   <dd className="font-bold text-slate-500">Kayıttan sonra</dd>
@@ -1141,7 +1141,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                 <Icon name="kalkan" size="sm" />
                 <span>Bu sayfayı ziyaretçi böyle görecek</span>
               </div>
-              <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+              <p className="text-yardimci text-slate-500 font-medium leading-relaxed">
                 Plakanız ve iletişim bilgileriniz ziyaretçiye gösterilmez. Sicil puanı, kayıt
                 tamamlandıktan sonra girdiğiniz veriden hesaplanır.
               </p>
@@ -1164,7 +1164,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
         <button 
           type="button"
           onClick={onSuccess}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm py-3.5 px-8 rounded-lg transition-all shadow-sm cursor-pointer select-none active:scale-98 flex items-center gap-2"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm py-3.5 px-8 rounded-lg transition-all shadow-sm cursor-pointer select-none active:scale-98 flex items-center gap-2"
         >
           <span>Onayla ve Tescille</span>
           <span className="text-base">›</span>

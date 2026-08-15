@@ -258,7 +258,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
 
   if (!vehicle) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-xs font-semibold text-slate-400">
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-xs font-semibold text-slate-500">
         Araç sicil verileri yükleniyor...
       </div>
     );
@@ -415,7 +415,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
           <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-2xs space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div className="space-y-1">
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
+                <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
                   {vehicle.title || `${vehicle.year || ''} ${vehicle.brand || ''} ${vehicle.series || ''} ${vehicle.model || ''} ${vehicle.package || ''}`}
                 </h1>
                 {/* ⚠ BURADA UYDURMA KONUM VARDI:
@@ -458,8 +458,8 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                       <button type="button" onClick={(e) => { e.stopPropagation(); setSelectedIndex((prev) => (prev + 1) % imageList.length); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-8 h-8 rounded flex items-center justify-center font-bold text-lg cursor-pointer">›</button>
                     </>
                   )}
-                  <div className="absolute bottom-2.5 left-2.5 bg-slate-900/80 backdrop-blur text-white px-2.5 py-1 rounded text-[11px] font-mono font-bold">{selectedIndex + 1} / {imageList.length}</div>
-                  <button type="button" onClick={() => { setFullscreenIndex(selectedIndex); setIsFullscreen(true); }} className="absolute bottom-2.5 right-2.5 bg-slate-900/80 hover:bg-slate-900 text-white px-2.5 py-1 rounded cursor-pointer flex items-center gap-1.5 text-[11px] font-bold">
+                  <div className="absolute bottom-2.5 left-2.5 bg-slate-900/80 backdrop-blur text-white px-2.5 py-1 rounded text-yardimci font-mono font-bold">{selectedIndex + 1} / {imageList.length}</div>
+                  <button type="button" onClick={() => { setFullscreenIndex(selectedIndex); setIsFullscreen(true); }} className="absolute bottom-2.5 right-2.5 bg-slate-900/80 hover:bg-slate-900 text-white px-2.5 py-1 rounded cursor-pointer flex items-center gap-1.5 text-yardimci font-bold">
                     <span>Büyüt</span>
                   </button>
                 </div>
@@ -507,30 +507,30 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   : 'bg-slate-50 border-slate-300 border-dashed'
                 }`}>
                   <div>
-                    <span className="text-[11px] font-extrabold uppercase text-slate-700 font-mono">
+                    <span className="text-yardimci font-semibold uppercase text-slate-700 font-mono">
                       OTO.CV SİCİL PUANI
                     </span>
-                    <p className="text-[11px] text-slate-500 font-medium">
+                    <p className="text-yardimci text-slate-500 font-medium">
                       Girilmiş veriden hesaplanır
                     </p>
                   </div>
                   <div className="text-right flex items-baseline gap-0.5">
-                    <span className={`text-3xl font-black font-mono tabular-nums ${
+                    <span className={`text-3xl font-semibold font-mono tabular-nums ${
                       otocvScore >= 70 ? 'text-emerald-600'
                       : otocvScore >= 40 ? 'text-amber-600'
                       : 'text-slate-500'
                     }`}>{otocvScore}</span>
-                    <span className="text-xs font-bold text-slate-400 font-mono">/100</span>
+                    <span className="text-xs font-bold text-slate-500 font-mono">/100</span>
                   </div>
                 </div>
 
                 <div className="bg-slate-50/80 border border-slate-200 rounded-md p-3.5 space-y-2">
                   <div className="flex justify-between border-b border-slate-200 pb-2">
-                    <span className="text-[11px] font-black text-slate-900 uppercase">ARAÇ KÜNYESİ</span>
+                    <span className="text-yardimci font-semibold text-slate-900 uppercase">ARAÇ KÜNYESİ</span>
                     {/* "%100 Tescilli" ibaresi kaldırıldı: tescil hiçbir yerde
                         sorgulanmıyor, dolayısıyla doğrulanmamış bir iddiaydı.
                         Yerine kaydın gerçekte ne olduğu yazıyor. */}
-                    <span className="text-[11px] font-bold text-slate-500 font-mono">Araç sahibi beyanı</span>
+                    <span className="text-yardimci font-bold text-slate-500 font-mono">Araç sahibi beyanı</span>
                   </div>
                   
                   {/* 🟢 ZIRHLI VE DOĞRUDAN FORMATLANAN KÜNYE LİSTESİ */}
@@ -604,7 +604,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                     {!isPublicView && (
                       <div className="flex justify-between items-center py-1">
                         <span className="text-slate-900 font-medium">Plaka</span>
-                        <span className="font-mono text-slate-800 font-semibold text-[11px] uppercase bg-slate-200/60 px-1.5 py-0.5 rounded">{ownerPlate}</span>
+                        <span className="font-mono text-slate-800 font-semibold text-yardimci uppercase bg-slate-200/60 px-1.5 py-0.5 rounded">{ownerPlate}</span>
                       </div>
                     )}
 
@@ -673,7 +673,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   </div>
 
                   <div className="flex flex-col min-w-0 justify-center gap-1.5">
-                    <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight leading-snug truncate max-w-[280px] sm:max-w-[520px]">
+                    <h3 className="text-sm sm:text-base font-semibold text-slate-900 tracking-tight leading-snug truncate max-w-[280px] sm:max-w-[520px]">
                       {vehicle.title || `${vehicle.year || ''} ${vehicle.brand || ''} ${vehicle.series || ''} ${vehicle.model || ''}`}
                     </h3>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -686,8 +686,8 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
 
                 <div className="hidden sm:flex items-center gap-2 shrink-0 py-2">
                   <div className="bg-white border border-slate-200/90 px-3.5 py-1.5 rounded-lg flex items-center gap-2 shadow-2xs">
-                    <span className="text-[10px] font-extrabold text-slate-400 uppercase font-mono tracking-wider leading-none">KARNE PUANI</span>
-                    <span className={`text-xs sm:text-sm font-black font-mono tabular-nums leading-none ${
+                    <span className="text-etiket font-semibold text-slate-500 uppercase font-mono tracking-wider leading-none">KARNE PUANI</span>
+                    <span className={`text-xs sm:text-sm font-semibold font-mono tabular-nums leading-none ${
                       otocvScore >= 70 ? 'text-emerald-600' : otocvScore >= 40 ? 'text-amber-600' : 'text-slate-500'
                     }`}>{otocvScore}/100</span>
                   </div>
@@ -709,7 +709,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                       key={tab.id}
                       type="button"
                       onClick={() => scrollToSection(tab.id)}
-                      className={`py-3.5 mr-6 sm:mr-8 text-[13px] font-bold transition-all cursor-pointer select-none whitespace-nowrap border-b-[3px] outline-none ${
+                      className={`py-3.5 mr-6 sm:mr-8 text-govde font-bold transition-all cursor-pointer select-none whitespace-nowrap border-b-[3px] outline-none ${
                         isActive
                           ? 'border-indigo-600 text-indigo-600'
                           : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -727,7 +727,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
               
               {/* 1. BÖLÜM: AÇIKLAMA */}
               <div id="sec-description" className="space-y-3 pt-2 scroll-mt-24">
-                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                   <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
                   <span>Açıklama</span>
                 </h3>
@@ -748,7 +748,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
 
               {/* 2. BÖLÜM: BOYA, DEĞİŞEN VE TRAMER */}
               <div id="sec-damage" className="space-y-5 pt-8 scroll-mt-24">
-                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                   <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
                   <span>Boya, Değişen ve Tramer</span>
                 </h3>
@@ -793,7 +793,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                         </g>
                       </svg>
                     </div>
-                    <div className="flex flex-wrap items-center justify-center gap-3 pt-3 text-[11px] font-bold text-slate-700">
+                    <div className="flex flex-wrap items-center justify-center gap-3 pt-3 text-yardimci font-bold text-slate-700">
                       <div className="flex items-center gap-1.5"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.ORIGINAL.bg}`} /><span>{DAMAGE_STATUSES.ORIGINAL.label}</span></div>
                       <div className="flex items-center gap-1.5"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.PAINTED.bg}`} /><span>{DAMAGE_STATUSES.PAINTED.label}</span></div>
                       <div className="flex items-center gap-1.5"><span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.LOCAL_PAINTED.bg}`} /><span>{DAMAGE_STATUSES.LOCAL_PAINTED.label}</span></div>
@@ -809,25 +809,25 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
                           <span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.ORIGINAL.bg}`} /><span>{DAMAGE_STATUSES.ORIGINAL.label} ({groupedParts.ORIGINAL.length})</span>
                         </div>
-                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.ORIGINAL.length > 0 ? groupedParts.ORIGINAL.join(' • ') : '-'}</p>
+                        <p className="text-yardimci text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.ORIGINAL.length > 0 ? groupedParts.ORIGINAL.join(' • ') : '-'}</p>
                       </div>
                       <div className="space-y-1 pt-1 border-t border-slate-200/60">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
                           <span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.LOCAL_PAINTED.bg}`} /><span>{DAMAGE_STATUSES.LOCAL_PAINTED.label} ({groupedParts.LOCAL_PAINTED.length})</span>
                         </div>
-                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.LOCAL_PAINTED.length > 0 ? groupedParts.LOCAL_PAINTED.join(' • ') : '-'}</p>
+                        <p className="text-yardimci text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.LOCAL_PAINTED.length > 0 ? groupedParts.LOCAL_PAINTED.join(' • ') : '-'}</p>
                       </div>
                       <div className="space-y-1 pt-1 border-t border-slate-200/60">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
                           <span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.PAINTED.bg}`} /><span>{DAMAGE_STATUSES.PAINTED.label} ({groupedParts.PAINTED.length})</span>
                         </div>
-                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.PAINTED.length > 0 ? groupedParts.PAINTED.join(' • ') : '-'}</p>
+                        <p className="text-yardimci text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.PAINTED.length > 0 ? groupedParts.PAINTED.join(' • ') : '-'}</p>
                       </div>
                       <div className="space-y-1 pt-1 border-t border-slate-200/60">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
                           <span className={`w-2.5 h-2.5 rounded-full ${DAMAGE_STATUSES.CHANGED.bg}`} /><span>{DAMAGE_STATUSES.CHANGED.label} ({groupedParts.CHANGED.length})</span>
                         </div>
-                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.CHANGED.length > 0 ? groupedParts.CHANGED.join(' • ') : '-'}</p>
+                        <p className="text-yardimci text-slate-600 font-normal leading-relaxed pl-4">{groupedParts.CHANGED.length > 0 ? groupedParts.CHANGED.join(' • ') : '-'}</p>
                       </div>
                     </div>
 
@@ -839,13 +839,13 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                           </div>
                           <span className="text-xs font-bold text-slate-800">Tramer Hasar Kaydı</span>
                         </div>
-                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md ${tramerVarMi(vehicle) ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                        <span className={`text-yardimci font-bold px-2.5 py-0.5 rounded-md ${tramerVarMi(vehicle) ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
                           {tramerVarMi(vehicle) ? 'Hasar Kaydı Var' : 'Hasar Kaydı Yok'}
                         </span>
                       </div>
                       <div className="pt-2 border-t border-slate-100 flex items-baseline justify-between">
                         <span className="text-xs text-slate-500 font-medium">Toplam Hasar Tutarı</span>
-                        <span className="text-base font-black font-mono text-slate-900">{tramerVarMi(vehicle) ? `${vehicle.tramer_amount || '0'} TL` : '0 TL'}</span>
+                        <span className="text-base font-semibold font-mono text-slate-900">{tramerVarMi(vehicle) ? `${vehicle.tramer_amount || '0'} TL` : '0 TL'}</span>
                       </div>
                     </div>
                   </div>
@@ -854,7 +854,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
 
               {/* 3. BÖLÜM: ARAÇ BİLGİLERİ */}
               <div id="sec-info" className="space-y-4 pt-10 scroll-mt-24">
-                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2 mb-5">
+                <h3 className="text-sm font-semibold text-slate-900 tracking-tight flex items-center gap-2 mb-5">
                   <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
                   <span>Araç Bilgileri</span>
                 </h3>
@@ -864,8 +864,8 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   {/* GENEL BAKIŞ */}
                   <div className="space-y-0.5 divide-y divide-slate-100">
                     <div className="flex justify-between items-center py-2.5 px-4 bg-slate-50/50">
-                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-wider">GENEL BAKIŞ</span>
-                      <span className="text-[11px] font-black text-emerald-600 font-mono">%100 Tescilli</span>
+                      <span className="text-yardimci font-semibold text-slate-900 uppercase tracking-wider">GENEL BAKIŞ</span>
+                      <span className="text-yardimci font-semibold text-emerald-600 font-mono">%100 Tescilli</span>
                     </div>
 
                     {[
@@ -880,7 +880,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                         label: 'Plaka',
                         value: ownerPlate,
                         isMono: true,
-                        textClass: 'text-indigo-600 font-extrabold'
+                        textClass: 'text-indigo-600 font-semibold'
                       }]),
                       { label: 'Sahiplik Durumu', value: vehicle.is_first_owner || vehicle.isFirstOwner ? 'İlk Sahibi' : 'Tescilli Sahip' },
                       { 
@@ -901,7 +901,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   {/* TESCİL VE BELGE DURUMU */}
                   <div className="space-y-0.5 divide-y divide-slate-100 border-t border-slate-200">
                     <div className="flex justify-between items-center py-2.5 px-4 bg-slate-50/50 mt-0.5">
-                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-wider">TESCİL VE BELGE DURUMU</span>
+                      <span className="text-yardimci font-semibold text-slate-900 uppercase tracking-wider">TESCİL VE BELGE DURUMU</span>
                     </div>
 
                     {(() => {
@@ -947,7 +947,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
 
               {/* 4. BÖLÜM: DİNAMİK & KATEGORİZE EDİLMİŞ DONANIM MATRİSİ */}
               <div id="sec-features" className="space-y-6 pt-8 scroll-mt-24">
-                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                   <span className="w-1.5 h-4 bg-indigo-600 rounded-full" />
                   <span>Donanım Özellikleri</span>
                 </h3>
@@ -957,10 +957,10 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   {extraFeatures.length > 0 && (
                     <div className="space-y-3 bg-emerald-50/40 p-3.5 rounded-md border border-emerald-200/80">
                       <div className="flex items-center justify-between border-l-2 border-emerald-600 pl-2.5">
-                        <span className="text-xs font-black text-emerald-900 uppercase tracking-wider">
+                        <span className="text-xs font-semibold text-emerald-900 uppercase tracking-wider">
                           Öne Çıkan & Ekstra Seçilen Donanımlar ({extraFeatures.length})
                         </span>
-                        <span className="text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
+                        <span className="text-etiket font-mono font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
                           Tescilli Seçimler
                         </span>
                       </div>
@@ -969,7 +969,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                         {extraFeatures.map((extFeat, exIdx) => (
                           <div 
                             key={exIdx} 
-                            className="flex items-center justify-between p-2.5 rounded bg-white border border-emerald-300 text-slate-900 font-extrabold text-xs shadow-2xs"
+                            className="flex items-center justify-between p-2.5 rounded bg-white border border-emerald-300 text-slate-900 font-semibold text-xs shadow-2xs"
                           >
                             <span className="truncate pr-2">{extFeat}</span>
                             <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
@@ -984,7 +984,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   {FEATURE_CATALOG.map((catGroup, cIdx) => (
                     <div key={cIdx} className="space-y-3 border-b border-slate-100 last:border-0 pb-5 last:pb-0">
                       <div className="flex items-center gap-2 border-l-2 border-indigo-600 pl-2.5">
-                        <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                        <span className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
                           {catGroup.category}
                         </span>
                       </div>
@@ -1000,7 +1000,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                               key={fIdx} 
                               className={`flex items-center justify-between p-2.5 rounded transition-all text-xs ${
                                 isSelected 
-                                  ? 'bg-emerald-50/80 border border-emerald-200 text-slate-900 font-extrabold shadow-2xs' 
+                                  ? 'bg-emerald-50/80 border border-emerald-200 text-slate-900 font-semibold shadow-2xs' 
                                   : 'bg-slate-50/40 border border-slate-100 text-slate-400 font-normal opacity-60'
                               }`}
                             >
@@ -1030,7 +1030,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
             
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="space-y-0.5">
-                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                   <span className="w-1.5 h-4 bg-emerald-600 rounded-full" />
                   <span>Bakım Geçmişi Sicili (OTO.CV Onaylı)</span>
                 </h3>
@@ -1038,7 +1038,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   Usta faturaları, periyodik değişimler ve servis işlemlerinin zaman damgalı dökümü.
                 </p>
               </div>
-              <span className="text-[11px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-md shrink-0">
+              <span className="text-yardimci font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-md shrink-0">
                 {maintenanceRecords.length} Onaylı İşlem
               </span>
             </div>
@@ -1060,7 +1060,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                 </p>
               </div>
             ) : maintenanceRecords.length === 0 ? (
-              <div className="text-center py-10 text-xs font-semibold text-slate-400 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+              <div className="text-center py-10 text-xs font-semibold text-slate-500 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
                 Bu araca ait henüz kayıtlı bir sanayi veya servis sicili eklenmemiştir.
               </div>
             ) : (
@@ -1075,16 +1075,16 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                       </svg>
                     </div>
                     <div className="space-y-0.5">
-                      <span className="text-[10px] font-bold text-indigo-900 tracking-wider uppercase block">
+                      <span className="text-etiket font-bold text-indigo-900 tracking-wider uppercase block">
                         TOPLAM BELGELENMİŞ SERVİS YATIRIMI
                       </span>
-                      <p className="text-[11px] text-slate-500 font-medium">
+                      <p className="text-yardimci text-slate-500 font-medium">
                         Araca yapılan tüm şeffaf bakımların belgelenmiş maliyet toplamı.
                       </p>
                     </div>
                   </div>
 
-                  <div className="self-end sm:self-center bg-white border border-slate-200 px-3 py-1 rounded-md text-sm font-black font-mono text-indigo-700 shadow-2xs">
+                  <div className="self-end sm:self-center bg-white border border-slate-200 px-3 py-1 rounded-md text-sm font-semibold font-mono text-indigo-700 shadow-2xs">
                     {formattedTotalCost}
                   </div>
                 </div>
@@ -1125,7 +1125,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
 
                           <div className="min-w-0">
                             <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{titleStr}</h4>
-                            <p className="text-[11px] text-slate-500 font-medium mt-0.5 flex items-center gap-2">
+                            <p className="text-yardimci text-slate-500 font-medium mt-0.5 flex items-center gap-2">
                               <span className="inline-flex items-center gap-1">
                                 <Icon name="anahtar" size="xs" />
                                 {item.shop_name || 'Özel Servis'}
@@ -1146,7 +1146,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                                 dolu gelir; `invoice_path` yalnızca sahibe döner. Nişan
                                 için varlık bilgisi yeterli — görsel açığa çıkmıyor. */}
                             {item.faturali && (
-                              <span className="flex items-center justify-end gap-1 text-[10px] font-bold text-emerald-600 mt-0.5">
+                              <span className="flex items-center justify-end gap-1 text-etiket font-bold text-emerald-600 mt-0.5">
                                 <Icon name="onay" size="xs" strokeWidth={2.5} />
                                 Mühürlü Evrak
                               </span>
@@ -1164,22 +1164,22 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                           
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white p-3 rounded-md border border-slate-200/80 text-xs">
                             <div>
-                              <span className="text-slate-400 font-medium block text-[10px] uppercase">İşlem KM</span>
+                              <span className="text-slate-500 font-medium block text-etiket uppercase">İşlem KM</span>
                               <span className="font-bold text-slate-800 font-mono">{kmVal ? kmVal.toLocaleString('tr-TR') : '0'} KM</span>
                             </div>
                             <div>
-                              <span className="text-slate-400 font-medium block text-[10px] uppercase">Servis Noktası</span>
+                              <span className="text-slate-500 font-medium block text-etiket uppercase">Servis Noktası</span>
                               <span className="font-bold text-slate-800 truncate block">{item.shop_name || 'Belirtilmedi'}</span>
                             </div>
                             <div className="col-span-2 sm:col-span-1">
-                              <span className="text-slate-400 font-medium block text-[10px] uppercase">İşlem Tarihi</span>
+                              <span className="text-slate-500 font-medium block text-etiket uppercase">İşlem Tarihi</span>
                               <span className="font-bold text-slate-800">{formatTrDate(item.service_date, 'Belirtilmedi')}</span>
                             </div>
                           </div>
 
                           {descStr && (
                             <div className="space-y-1">
-                              <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">İşlem Detayı & Usta Notu</span>
+                              <span className="text-etiket font-bold text-slate-500 tracking-wider block uppercase">İşlem Detayı & Usta Notu</span>
                               <p className="text-xs text-slate-700 font-normal leading-relaxed bg-white p-3 rounded-md border border-slate-200/80">
                                 {descStr}
                               </p>
@@ -1220,20 +1220,20 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                 : 'bg-slate-50 border-slate-200'
               }`}>
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-600">
+                  <span className="text-etiket font-semibold uppercase tracking-wider text-slate-600">
                     Sicil Puanı
                   </span>
                   <span className="flex items-baseline gap-0.5">
-                    <span className={`text-2xl font-black font-mono tabular-nums ${
+                    <span className={`text-2xl font-semibold font-mono tabular-nums ${
                       otocvScore >= 70 ? 'text-emerald-600'
                       : otocvScore >= 40 ? 'text-amber-600' : 'text-slate-500'
                     }`}>{otocvScore}</span>
-                    <span className="text-[11px] font-bold text-slate-400 font-mono">/100</span>
+                    <span className="text-yardimci font-bold text-slate-500 font-mono">/100</span>
                   </span>
                 </div>
               </div>
 
-              <dl className="px-4 py-3 space-y-2 text-[11px]">
+              <dl className="px-4 py-3 space-y-2 text-yardimci">
                 <div className="flex items-baseline justify-between gap-2">
                   <dt className="text-slate-500 font-semibold">Bakım kaydı</dt>
                   <dd className="font-mono font-bold text-slate-800 tabular-nums">
@@ -1328,7 +1328,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   <Icon name="kalkan" size="sm" />
                   <span>Güvenlik ipucu</span>
                 </div>
-                <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                <p className="text-yardimci text-slate-500 font-medium leading-relaxed">
                   Aracı görmeden ve ruhsat sahibini doğrulamadan kapora ya da ödeme yapmayın.
                   Buradaki bilgilerin bir bölümü araç sahibinin beyanıdır.
                 </p>
@@ -1339,7 +1339,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   <Icon name="kalkan" size="sm" />
                   <span>Bu araç sizin garajınızda</span>
                 </div>
-                <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                <p className="text-yardimci text-slate-500 font-medium leading-relaxed">
                   Ziyaretçiler bu sayfada plakanızı göremez. Bakım kaydı ekleme, karne üretme
                   ve vitrine çıkarma işlemlerini garajınızdaki araç kartından yapabilirsiniz.
                 </p>

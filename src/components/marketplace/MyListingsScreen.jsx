@@ -49,10 +49,10 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
       {/* ÜST BAŞLIK BARI */}
       <div className="flex justify-between items-center border-b border-slate-200 pb-4">
         <div>
-          <span className="text-[10px] font-bold text-indigo-600 uppercase font-mono tracking-wider block">
+          <span className="text-etiket font-bold text-indigo-600 uppercase font-mono tracking-wider block">
             PAZARYERİ VİTRİNİ
           </span>
-          <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight mt-0.5">
+          <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight mt-0.5">
             Vitrindeki Araçlarım ({listings.length})
           </h1>
         </div>
@@ -73,8 +73,8 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
           <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400">
             <Icon name="arac" size="xl" />
           </div>
-          <h3 className="text-sm font-extrabold text-slate-900">Vitrinde aracınız yok</h3>
-          <p className="text-xs text-slate-400 max-w-sm">Garajınızdaki araçları vitrine çıkarınca buradan yönetebilirsiniz.</p>
+          <h3 className="text-sm font-semibold text-slate-900">Vitrinde aracınız yok</h3>
+          <p className="text-xs text-slate-500 max-w-sm">Garajınızdaki araçları vitrine çıkarınca buradan yönetebilirsiniz.</p>
           <button 
             onClick={onNavigateToGarage}
             className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
@@ -105,11 +105,11 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-400">GÖRSEL YOK</div>
+                      <div className="w-full h-full flex items-center justify-center text-etiket font-bold text-slate-500">GÖRSEL YOK</div>
                     )}
                     
                     {item.is_featured && (
-                      <div className="absolute top-3 left-3 bg-amber-400 text-slate-950 text-[9px] font-black px-2 py-0.5 rounded font-mono uppercase shadow-xs">
+                      <div className="absolute top-3 left-3 bg-amber-400 text-slate-950 text-etiket font-semibold px-2 py-0.5 rounded font-mono uppercase shadow-xs">
                         ÖNE ÇIKAN
                       </div>
                     )}
@@ -117,8 +117,8 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
 
                   {/* İLAN BAŞLIK VE LOKASYON */}
                   <div>
-                    <span className="text-[10px] font-bold text-slate-400 font-mono uppercase">{item.year} • {item.vehicle_plate || item.plate_number}</span>
-                    <h4 className="text-sm font-extrabold text-slate-900 truncate">{item.brand} {item.model}</h4>
+                    <span className="text-etiket font-bold text-slate-500 font-mono uppercase">{item.year} • {item.vehicle_plate || item.plate_number}</span>
+                    <h4 className="text-sm font-semibold text-slate-900 truncate">{item.brand} {item.model}</h4>
                     <p className="text-xs text-slate-500 font-medium truncate mt-0.5">{item.title}</p>
                   </div>
 

@@ -37,9 +37,9 @@ import {
   bekleyenKapatmaTalebi, kapatmaTalepEt, kapatmaTalebiIptal, aracOzeti,
 } from '../../services/hesapService';
 
-const GIRDI = 'w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 placeholder:text-slate-400 placeholder:font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:bg-white transition-colors disabled:opacity-60';
-const ETIKET = 'text-[10px] font-black text-slate-400 uppercase tracking-wider';
-const BIRINCIL = 'min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-black text-xs rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed';
+const GIRDI = 'w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 placeholder:text-slate-500 placeholder:font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:bg-white transition-colors disabled:opacity-60';
+const ETIKET = 'text-etiket font-semibold text-slate-500 uppercase tracking-wider';
+const BIRINCIL = 'min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-500 text-white font-semibold text-xs rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed';
 
 export default function HesabimEkrani() {
   const toast = useToast();
@@ -229,7 +229,7 @@ export default function HesabimEkrani() {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-4">
         <div className="text-center space-y-3">
-          <h1 className="text-lg font-black text-slate-900">Hesabım</h1>
+          <h1 className="text-lg font-semibold text-slate-900">Hesabım</h1>
           <p className="text-xs text-slate-500 font-semibold">Bu sayfa için oturum açmanız gerekiyor.</p>
           <Link href="/login" className={`inline-flex items-center justify-center ${BIRINCIL}`}>Giriş Yap</Link>
         </div>
@@ -244,7 +244,7 @@ export default function HesabimEkrani() {
       <div className="max-w-3xl mx-auto space-y-5">
 
         <div className="border-b border-slate-200 pb-4">
-          <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-900">Hesabım</h1>
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-900">Hesabım</h1>
           <p className="text-xs text-slate-500 font-semibold mt-1">
             Kimlik bilgileriniz, giriş güvenliğiniz ve veri haklarınız.
           </p>
@@ -257,8 +257,8 @@ export default function HesabimEkrani() {
             <div className="flex items-start gap-3 min-w-0">
               <span className="text-rose-600 mt-0.5 shrink-0"><Icon name="uyari" size="md" /></span>
               <div className="min-w-0">
-                <p className="text-xs font-black text-rose-900">Hesap kapatma talebiniz alındı</p>
-                <p className="text-[11px] text-rose-900/80 font-semibold mt-0.5 leading-relaxed">
+                <p className="text-xs font-semibold text-rose-900">Hesap kapatma talebiniz alındı</p>
+                <p className="text-yardimci text-rose-900/80 font-semibold mt-0.5 leading-relaxed">
                   Talep tarihi: {new Date(talep.olustu).toLocaleDateString('tr-TR')} · Talep anındaki araç
                   sayınız: {talep.arac_sayisi}. Kapatma uygulanana kadar hesabınızı kullanmaya devam
                   edebilir, talebinizi iptal edebilirsiniz.
@@ -269,7 +269,7 @@ export default function HesabimEkrani() {
               type="button"
               onClick={talebiIptalEt}
               disabled={talepGonderiliyor}
-              className="shrink-0 min-h-[44px] px-4 bg-white border border-rose-200 hover:bg-rose-100 text-rose-700 font-black text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+              className="shrink-0 min-h-[44px] px-4 bg-white border border-rose-200 hover:bg-rose-100 text-rose-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50"
             >
               Talebi iptal et
             </button>
@@ -292,7 +292,7 @@ export default function HesabimEkrani() {
                    görsel gösterir. */
                 <img src={avatarAdres} alt="" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-indigo-600 font-black text-sm font-display">
+                <span className="text-indigo-600 font-semibold text-sm font-display">
                   {(ad?.[0] || '').toLocaleUpperCase('tr-TR')}{(soyad?.[0] || '').toLocaleUpperCase('tr-TR')}
                 </span>
               )}
@@ -366,13 +366,13 @@ export default function HesabimEkrani() {
         {/* ---------------------------------------------------------------- */}
         <Bolum baslik="E-posta adresi" ozet="Giriş yaparken kullandığınız adres.">
           <div className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-3 mb-3">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mevcut adres</p>
+            <p className="text-etiket font-semibold text-slate-500 uppercase tracking-wider">Mevcut adres</p>
             <p className="text-xs font-bold text-slate-800 mt-0.5 break-all">{kullanici.email}</p>
           </div>
 
           {epostaBekliyor && (
             <div role="status" className="bg-indigo-50 border border-indigo-200 rounded-xl p-3 mb-3">
-              <p className="text-[11px] text-indigo-900 font-semibold leading-relaxed">
+              <p className="text-yardimci text-indigo-900 font-semibold leading-relaxed">
                 Doğrulama bağlantısı gönderildi. <strong>Adresiniz siz bağlantıya tıklayana kadar
                 değişmiyor</strong>; o ana dek mevcut adresinizle giriş yapmaya devam edin.
               </p>
@@ -445,7 +445,7 @@ export default function HesabimEkrani() {
                 type="button"
                 onClick={() => setSifreGorunur((g) => !g)}
                 aria-pressed={sifreGorunur}
-                className="inline-flex items-center gap-1.5 min-h-[36px] text-[11px] font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 min-h-[36px] text-yardimci font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
               >
                 <Icon name={sifreGorunur ? 'gozKapali' : 'goz'} size="sm" />
                 {sifreGorunur ? 'Şifreleri gizle' : 'Şifreleri göster'}
@@ -472,8 +472,8 @@ export default function HesabimEkrani() {
                 <Icon name="yildiz" size="md" />
               </span>
               <div>
-                <p className="text-xs font-black text-slate-900">{uyelikMetni}</p>
-                <p className="text-[11px] text-slate-500 font-semibold">
+                <p className="text-xs font-semibold text-slate-900">{uyelikMetni}</p>
+                <p className="text-yardimci text-slate-500 font-semibold">
                   Bireysel tarafta abonelik yok; ödemeler işlem başına alınıyor.
                 </p>
               </div>
@@ -496,8 +496,8 @@ export default function HesabimEkrani() {
             <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
               <span className="text-slate-400 mt-0.5 shrink-0"><Icon name="kalkan" size="sm" /></span>
               <div className="min-w-0">
-                <p className="text-xs font-black text-slate-800">Devir ve sicil bildirimleri</p>
-                <p className="text-[11px] text-slate-500 font-semibold mt-0.5 leading-relaxed">
+                <p className="text-xs font-semibold text-slate-800">Devir ve sicil bildirimleri</p>
+                <p className="text-yardimci text-slate-500 font-semibold mt-0.5 leading-relaxed">
                   Kapatılamaz. Aracınız için devir talebi geldiğini ya da sicilinizde bir değişiklik
                   olduğunu bildiren iletiler işlem bildirimidir; susturulması güvenliğinizi
                   zayıflatır.
@@ -515,8 +515,8 @@ export default function HesabimEkrani() {
                 aria-label="Ticari elektronik ileti izni"
               />
               <span className="min-w-0">
-                <span className="block text-xs font-black text-slate-800">Kampanya ve duyuru iletileri</span>
-                <span className="block text-[11px] text-slate-500 font-semibold mt-0.5 leading-relaxed">
+                <span className="block text-xs font-semibold text-slate-800">Kampanya ve duyuru iletileri</span>
+                <span className="block text-yardimci text-slate-500 font-semibold mt-0.5 leading-relaxed">
                   Açık rızanız olmadan ticari ileti göndermiyoruz. İzni istediğiniz an geri
                   çekebilirsiniz.
                   {profil?.pazarlama_izni_at && (
@@ -531,7 +531,7 @@ export default function HesabimEkrani() {
         {/* ---------------------------------------------------------------- */}
         <Bolum baslik="Verilerim" ozet="KVKK kapsamındaki haklarınız.">
           <div className="space-y-3">
-            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed">
+            <p className="text-yardimci text-slate-600 font-semibold leading-relaxed">
               Kişisel verilerinizin nasıl işlendiğini{' '}
               <Link href="/kvkk" className="text-indigo-600 hover:underline font-bold">KVKK Aydınlatma Metni</Link>{' '}
               ve <Link href="/gizlilik" className="text-indigo-600 hover:underline font-bold">Gizlilik Politikası</Link>{' '}
@@ -540,8 +540,8 @@ export default function HesabimEkrani() {
 
             <div className="border-t border-slate-100 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-xs font-black text-slate-800">Hesabımı kapatmak istiyorum</p>
-                <p className="text-[11px] text-slate-500 font-semibold mt-0.5 leading-relaxed">
+                <p className="text-xs font-semibold text-slate-800">Hesabımı kapatmak istiyorum</p>
+                <p className="text-yardimci text-slate-500 font-semibold mt-0.5 leading-relaxed">
                   Talebiniz kaydedilir ve elle uygulanır. Araç kayıtları ve bakım geçmişi silinmez —
                   araç sahipsiz havuza geçer.
                 </p>
@@ -550,7 +550,7 @@ export default function HesabimEkrani() {
                 type="button"
                 onClick={() => setKapatmaAcik(true)}
                 disabled={!!talep}
-                className="shrink-0 min-h-[44px] px-4 bg-white border border-rose-200 hover:bg-rose-50 disabled:opacity-50 disabled:cursor-not-allowed text-rose-700 font-black text-xs rounded-xl transition-colors cursor-pointer"
+                className="shrink-0 min-h-[44px] px-4 bg-white border border-rose-200 hover:bg-rose-50 disabled:opacity-50 disabled:cursor-not-allowed text-rose-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
               >
                 {talep ? 'Talebiniz bekliyor' : 'Kapatma talebi oluştur'}
               </button>
@@ -575,8 +575,8 @@ function Bolum({ baslik, ozet, children }) {
   return (
     <section className="bg-white border border-slate-200 rounded-2xl p-5 shadow-[0_4px_20px_rgba(15,23,42,0.03)]">
       <div className="mb-4">
-        <h2 className="text-sm font-black text-slate-900 tracking-tight">{baslik}</h2>
-        <p className="text-[11px] text-slate-500 font-semibold mt-0.5">{ozet}</p>
+        <h2 className="text-sm font-semibold text-slate-900 tracking-tight">{baslik}</h2>
+        <p className="text-yardimci text-slate-500 font-semibold mt-0.5">{ozet}</p>
       </div>
       {children}
     </section>

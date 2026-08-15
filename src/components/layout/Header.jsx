@@ -223,7 +223,7 @@ export default function Header() {
               <Link
                 href="/devir"
                 onClick={closeMenus}
-                className={`transition-colors rounded ${ODAK} ${pathname.startsWith('/devir') ? 'text-indigo-600 font-extrabold' : 'hover:text-slate-900'}`}
+                className={`transition-colors rounded ${ODAK} ${pathname.startsWith('/devir') ? 'text-indigo-600 font-semibold' : 'hover:text-slate-900'}`}
               >
                 Araç Devir
               </Link>
@@ -312,7 +312,7 @@ export default function Header() {
                         bilgi (baş harfler, ad soyad, üyelik) buraya taşındı —
                         bilgi kaybolmadı, ait olduğu yere geldi. */}
                     <div className="px-4 py-3.5 border-b border-slate-100 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-black text-xs shrink-0 font-display overflow-hidden">
+                      <div className="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-semibold text-sm shrink-0 font-display overflow-hidden">
                         {/* Görsel varsa baş harflerin YERİNE geçiyor; yoksa
                             baş harfler duruyor. İkisini birden göstermek
                             aynı bilgiyi iki kez basmak olurdu. */}
@@ -331,11 +331,11 @@ export default function Header() {
                           : basHarfler}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-slate-900 font-black text-xs truncate">
+                        <p className="text-slate-900 baslik-kart truncate">
                           {tamAd || 'Hesabım'}
                         </p>
-                        <p className="text-slate-400 font-medium text-[11px] truncate">{user.email}</p>
-                        <span className={`inline-flex items-center gap-1 mt-1 text-[10px] font-black tracking-wide ${
+                        <p className="text-slate-500 metin-yardimci truncate">{user.email}</p>
+                        <span className={`inline-flex items-center gap-1 mt-1 etiket ${
                           profil?.is_premium ? 'text-amber-600' : 'text-slate-500'
                         }`}>
                           {profil?.is_premium && <Icon name="yildiz" size="xs" />}
@@ -358,12 +358,12 @@ export default function Header() {
                                 "0" göstermek okunmamış mesaj varmış izlenimi
                                 veriyor ve rozetin anlamını öldürüyor. */}
                             {m.yakinda && (
-                              <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400 border border-slate-200 rounded px-1.5 py-0.5">
+                              <span className="etiket text-slate-500 border border-slate-200 rounded px-1.5 py-0.5">
                                 Yakında
                               </span>
                             )}
                             {m.rozet > 0 && (
-                              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-600 text-white text-[10px] font-black grid place-items-center">
+                              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-600 text-white etiket grid place-items-center">
                                 {m.rozet > 99 ? '99+' : m.rozet}
                               </span>
                             )}

@@ -151,7 +151,7 @@ export default function VehicleDetailsPage() {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
         <div className="bg-white border border-slate-200 rounded-2xl p-8 max-w-md w-full text-center space-y-4 shadow-sm">
-          <h1 className="text-lg font-black text-slate-900 tracking-tight">Araç detayına ulaşılamadı</h1>
+          <h1 className="text-lg font-semibold text-slate-900 tracking-tight">Araç detayına ulaşılamadı</h1>
           <p className="text-xs text-slate-500 font-medium leading-relaxed">
             Sunucuya bağlanılamadı. Bağlantınızı kontrol edip tekrar deneyin.
             Aracın sicili yerinde duruyor.
@@ -185,13 +185,13 @@ export default function VehicleDetailsPage() {
     return (
       <div className="min-h-screen bg-[#FFFDFB] flex items-center justify-center p-4">
         <div className="bg-white border border-amber-200 rounded-2xl p-8 max-w-md w-full text-center space-y-4 shadow-sm">
-          <h1 className="text-lg font-black text-slate-900 tracking-tight">Çok fazla sorgu yapıldı</h1>
+          <h1 className="text-lg font-semibold text-slate-900 tracking-tight">Çok fazla sorgu yapıldı</h1>
           <p className="text-xs text-slate-500 font-medium leading-relaxed">
             Kısa süre içinde çok sayıda sicil sorgusu geldiği için bağlantınız
             geçici olarak yavaşlatıldı. Yaklaşık <strong className="text-slate-700">10 dakika</strong> sonra
             tekrar deneyebilirsiniz.
           </p>
-          <p className="text-[11px] text-slate-400 leading-relaxed">
+          <p className="text-yardimci text-slate-400 leading-relaxed">
             Bu sınır, araç sicillerinin toplu olarak taranmasını engellemek için var.
           </p>
           <button
@@ -214,7 +214,7 @@ export default function VehicleDetailsPage() {
     return (
       <div className="min-h-screen bg-[#FFFDFB] flex items-center justify-center p-4">
         <div className="bg-white border border-gray-200 rounded-2xl p-8 max-w-md w-full text-center space-y-4 shadow-sm">
-          <h1 className="text-lg font-black text-slate-900 tracking-tight">Araç bulunamadı</h1>
+          <h1 className="text-lg font-semibold text-slate-900 tracking-tight">Araç bulunamadı</h1>
           <p className="text-xs text-slate-500 font-medium leading-relaxed">
             <span className="font-mono font-bold text-slate-700">{pin}</span> koduna ait tescilli bir kayıt
             bulunamadı. Kodu kontrol edip tekrar deneyin.

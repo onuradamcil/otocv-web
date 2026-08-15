@@ -67,8 +67,8 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
             <Icon name={statusInfo.status === 'expired' ? 'uyari' : 'zil'} size="lg" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase font-mono">DİJİTAL SİCİL RADARI</span>
-            <h3 className="text-base font-extrabold text-slate-900 leading-snug">{titleText}</h3>
+            <span className="text-etiket font-bold text-slate-400 tracking-wider uppercase font-mono">DİJİTAL SİCİL RADARI</span>
+            <h3 className="text-base font-semibold text-slate-900 leading-snug">{titleText}</h3>
           </div>
         </div>
 
@@ -84,14 +84,14 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
           <div className="w-full h-px bg-slate-200/60" />
 
           {/* TARİH VE DURUM MATRİSİ */}
-          <div className="grid grid-cols-2 gap-2 text-[11px] font-semibold text-slate-600">
+          <div className="grid grid-cols-2 gap-2 text-yardimci font-semibold text-slate-600">
             <div>
-              <span className="block text-[10px] text-slate-400 font-bold uppercase">Son Geçerlilik Tarihi</span>
+              <span className="block text-etiket text-slate-400 font-bold uppercase">Son Geçerlilik Tarihi</span>
               <span className="text-slate-900 font-mono font-bold text-xs">{formattedEndDate}</span>
             </div>
             <div className="text-right">
-              <span className="block text-[10px] text-slate-400 font-bold uppercase">Durum / Kalan Süre</span>
-              <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold ${statusInfo.bgClass}`}>
+              <span className="block text-etiket text-slate-400 font-bold uppercase">Durum / Kalan Süre</span>
+              <span className={`inline-block px-2 py-0.5 rounded-md text-etiket font-bold ${statusInfo.bgClass}`}>
                 {statusInfo.text}
               </span>
             </div>

@@ -148,7 +148,7 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
           {user && (
             <>
               <div className="mt-1 px-4 py-2 border-t border-slate-100">
-                <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Hesabım</span>
+                <span className="text-etiket font-bold text-slate-400 tracking-wider uppercase">Hesabım</span>
               </div>
               {UYE_MENU.map((m) => (
                 <Link key={m.href} href={m.href} onClick={onClose} className={`${SATIR} text-slate-700 font-semibold hover:bg-slate-50`}>
@@ -163,7 +163,7 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
           <Link
             href={user ? '/add-vehicle/step1' : '/login'}
             onClick={onClose}
-            className="flex items-center justify-center min-h-[44px] w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600"
+            className="flex items-center justify-center min-h-[44px] w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-semibold text-xs rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600"
           >
             {/* Masaüstü başlığıyla aynı: ürün önce sicil, ilan ikincil.
                 "Ücretsiz" de artık yanlış olurdu — ilk araç ücretsiz, sonrası

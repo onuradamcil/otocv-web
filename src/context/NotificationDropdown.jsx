@@ -75,7 +75,7 @@ export default function NotificationDropdown({ onNavigate }) {
         {unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 flex h-4 w-4">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-500 text-[9px] font-black text-white items-center justify-center shadow-sm">
+            <span className="relative inline-flex rounded-full h-[18px] min-w-[18px] px-1 bg-rose-500 etiket text-white items-center justify-center shadow-sm">
               {unreadCount}
             </span>
           </span>
@@ -88,9 +88,9 @@ export default function NotificationDropdown({ onNavigate }) {
           
           <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-black tracking-tight text-[#0F172A]">Bildirimler</span>
+              <span className="baslik-kart text-slate-900">Bildirimler</span>
               {unreadCount > 0 && (
-                <span className="px-2 py-0.5 bg-rose-100 text-rose-700 text-[10px] font-extrabold rounded-full">
+                <span className="px-2 py-0.5 bg-rose-100 text-rose-700 etiket rounded-full">
                   {unreadCount} Yeni
                 </span>
               )}
@@ -99,7 +99,7 @@ export default function NotificationDropdown({ onNavigate }) {
               <button
                 type="button"
                 onClick={markAllAsRead}
-                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors focus:outline-none"
+                className="text-yardimci font-bold text-indigo-600 hover:text-indigo-800 transition-colors focus:outline-none"
               >
                 Tümünü Okundu İşaretle
               </button>
@@ -117,7 +117,7 @@ export default function NotificationDropdown({ onNavigate }) {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 </div>
                 <p className="text-xs font-bold text-slate-700">Güncel bildiriminiz bulunmuyor</p>
-                <p className="text-[11px] text-slate-400 leading-relaxed max-w-[200px]">Aracınızın sigorta, kasko ve muayene periyotları yaklaştığında burada listelenir.</p>
+                <p className="text-yardimci text-slate-400 leading-relaxed max-w-[200px]">Aracınızın sigorta, kasko ve muayene periyotları yaklaştığında burada listelenir.</p>
               </div>
             ) : (
               notifications.map((item) => {
@@ -142,14 +142,14 @@ export default function NotificationDropdown({ onNavigate }) {
 
                     <div className="space-y-0.5 flex-1 min-w-0">
                       <div className="flex justify-between items-baseline gap-2">
-                        <p className={`text-xs tracking-tight truncate ${item.is_read ? 'font-medium text-slate-500' : 'font-black text-slate-900'}`}>
+                        <p className={`metin-govde truncate ${item.is_read ? 'text-slate-500' : 'font-semibold text-slate-900'}`}>
                           {item.title}
                         </p>
-                        <span className="text-[9px] font-semibold text-slate-400 shrink-0 font-mono">
+                        <span className="etiket text-slate-500 shrink-0 font-mono">
                           {new Date(item.created_at).toLocaleDateString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-                      <p className={`text-[11px] leading-relaxed ${item.is_read ? 'text-slate-400 font-normal' : 'text-slate-600 font-semibold'}`}>
+                      <p className={`text-yardimci leading-relaxed ${item.is_read ? 'text-slate-400 font-normal' : 'text-slate-600 font-semibold'}`}>
                         {item.message}
                       </p>
                     </div>

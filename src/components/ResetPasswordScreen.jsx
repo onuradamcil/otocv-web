@@ -69,14 +69,14 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
           </div>
 
           {errorMessage && (
-            <div role="alert" className="bg-red-50 border border-red-100 text-red-600 text-[11px] font-semibold px-4 py-2.5 rounded-xl flex items-start gap-2 animate-fadeIn">
+            <div role="alert" className="bg-red-50 border border-red-100 text-red-600 text-yardimci font-semibold px-4 py-2.5 rounded-xl flex items-start gap-2 animate-fadeIn">
               <Icon name="uyari" size="sm" className="mt-0.5" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {successMessage && (
-            <div role="status" className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-[11px] font-semibold px-4 py-2.5 rounded-xl flex items-start gap-2 animate-fadeIn">
+            <div role="status" className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-yardimci font-semibold px-4 py-2.5 rounded-xl flex items-start gap-2 animate-fadeIn">
               <Icon name="onay" size="sm" className="mt-0.5" />
               <span>{successMessage}</span>
             </div>
@@ -84,7 +84,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
 
           <form onSubmit={handleUpdatePassword} className="space-y-4">
             <div className="space-y-1 relative">
-              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider pl-0.5">Yeni Şifre</label>
+              <label className="text-etiket font-semibold text-slate-400 uppercase tracking-wider pl-0.5">Yeni Şifre</label>
               <div className="relative">
                 <input type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none shadow-sm" />
                 {/* Etiket ikonda değil BUTONDA: içeriği tek başına ikon olan
@@ -102,7 +102,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider pl-0.5">Şifreyi Tekrarla</label>
+              <label className="text-etiket font-semibold text-slate-400 uppercase tracking-wider pl-0.5">Şifreyi Tekrarla</label>
               <input type={showPassword ? 'text' : 'password'} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none shadow-sm" />
             </div>
 

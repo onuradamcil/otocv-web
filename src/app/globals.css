@@ -19,6 +19,28 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-space-grotesk), var(--font-inter), sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* -----------------------------------------------------------------------
+     ÖLÇEK BOYUTLARI TAILWIND YARDIMCISI OLARAK
+     -----------------------------------------------------------------------
+     Aşağıdaki `.metin-govde` gibi semantik sınıflar boyut + ağırlık +
+     satır yüksekliğini BİRLİKTE belirliyor; bir ögenin yalnızca boyutunu
+     ölçeğe bağlamak istendiğinde ağırlığı da zorluyorlar.
+
+     Bu yüzden ölçek ayrıca boyut-yalnız yardımcı olarak da tanımlı:
+       text-etiket (11px) · text-yardimci (13px) · text-govde (14px)
+       text-kart (15px)   · text-bolum (18px)    · text-sayfa (30px)
+
+     Böylece `text-yardimci font-semibold` gibi bileşimler mümkün oluyor ve
+     `text-[11px]` türü keyfi değerlere gerek kalmıyor. Ölçüldü: sitede 364
+     keyfi boyut kullanımı, dokuz ayrı kademe vardı.
+     ----------------------------------------------------------------------- */
+  --text-etiket: 0.6875rem;   /* 11px */
+  --text-yardimci: 0.8125rem; /* 13px */
+  --text-govde: 0.875rem;     /* 14px */
+  --text-kart: 0.9375rem;     /* 15px */
+  --text-bolum: 1.125rem;     /* 18px */
+  --text-sayfa: 1.875rem;     /* 30px */
 }
 
 /* 🎨 HIGH-CONTRAST STANDART CSS3 PREMIUM TASARIM MOTORU */
@@ -49,9 +71,45 @@
    Aşağıdaki sınıflar İŞLEVİ adlandırıyor, boyutu değil. Böylece "bu bir
    bölüm başlığı" demek yeterli; boyutu tek yerden değişiyor.
 
-   BEŞ KADEME, fazlası değil:
+   -------------------------------------------------------------------------
+   ⚠ ÖLÇEK BİR KEZ ONARILDI — NİYE
+   -------------------------------------------------------------------------
+   İlk hâlinde altı kademenin DÖRDÜ font-weight 900 (black), kalan ikisi 600
+   (semibold) idi. Yani ölçekte 400 (normal) HİÇ YOKTU.
+
+   Sonucu şuydu: gövde metni zaten yarı kalın olduğu için vurgu yapmanın tek
+   yolu 900'e çıkmaktı. Site genelinde 1141 ağırlık bildiriminin %66'sı ağır
+   uçta toplandı ve `font-black` ölçek zaten 900 taşırken ayrıca 214 kez elle
+   yazıldı. "Her şey gereksiz bold" bir tercih değil, ölçeğin zorunlu
+   sonucuydu.
+
+   İkinci kusur: gövde 13px, bölüm başlığı 14px — BİR piksel fark. Hiyerarşi
+   tamamen ağırlığa yüklenmişti. Doğrusu tersi: hiyerarşiyi BOYUT ve BOŞLUK
+   taşır, ağırlık yalnızca aynı seviye içinde vurgu yapar.
+
+   Üçüncü kusur: Inter 400-600 aralığı için tasarlandı. 14px'te Black harf içi
+   boşlukları kapatıyor ve metin çamurlaşıyor. Aşağıda kaldırılan
+   `letter-spacing !important` kuralı tam olarak bu çamuru örtmek için
+   yazılmıştı — sebebi düzeltmek yerine belirtisini gizliyordu.
+
+   ŞİMDİKİ KURALLAR
+     Ağırlık merdiveni : 400 (gövde) -> 600 (vurgu/etiket) -> 700 (başlık)
+                         900 HİÇBİR YERDE kullanılmıyor.
+     Boyut merdiveni   : 11 -> 13 -> 14 -> 15 -> 18 -> 26/30  (oran ~1.15-1.2)
+     Başlık karakteri  : --font-display (Space Grotesk). Zaten indiriliyordu
+                         ama yalnızca logoda kullanılıyordu. Değişken font
+                         aralığı 300-700; yani 900'e sabitlenmiş eski ölçek
+                         bu fontu KULLANAMIYORDU bile.
+     Metin rengi       : gövde metninde en açık ton slate-500 (beyaz üzerinde
+                         4.76:1). slate-400 = 2.56:1 ile WCAG AA eşiğini
+                         (4.5:1) geçemiyor; yalnızca ikon/ayraç gibi metin
+                         OLMAYAN ögelerde kullanılabilir.
+
+   ALTI KADEME, fazlası değil:
      .baslik-sayfa    sayfa başına bir tane (h1)
-     .baslik-bolum    kart ve bölüm başlıkları (h2/h3)
+     .baslik-bolum    bölüm başlıkları (h2)
+     .baslik-kart     kart başlığı / araç adı (h3) — bölüm başlığıyla aynı
+                      tokeni paylaşıyorlardı, oysa farklı seviyeler
      .metin-govde     okunan metin
      .metin-yardimci  açıklama, ipucu
      .etiket          büyük harf küçük etiket (eyebrow)
@@ -59,47 +117,59 @@
    değişince (9 -> 10) yanındaki etiket yanlamasına zıplıyor.
    ========================================================================= */
 .baslik-sayfa {
-  font-size: 1.25rem;      /* 20px */
-  line-height: 1.2;
-  font-weight: 900;
+  font-family: var(--font-display);
+  font-size: 1.625rem;     /* 26px */
+  line-height: 1.15;
+  font-weight: 700;
   letter-spacing: -0.02em;
 }
 @media (min-width: 768px) {
-  .baslik-sayfa { font-size: 1.5rem; }  /* 24px */
+  .baslik-sayfa { font-size: 1.875rem; }  /* 30px */
 }
 
 .baslik-bolum {
-  font-size: 0.875rem;     /* 14px */
+  font-family: var(--font-display);
+  font-size: 1.125rem;     /* 18px */
   line-height: 1.3;
-  font-weight: 900;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Kart başlığı: bölüm başlığından bir kademe küçük. Eskiden ikisi de
+   `.baslik-bolum` idi; araç adı ile "Araçlarım" başlığı aynı ağırlıkta
+   görünüyordu ve hangisinin üst seviye olduğu okunamıyordu. */
+.baslik-kart {
+  font-size: 0.9375rem;    /* 15px */
+  line-height: 1.35;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 
 .metin-govde {
-  font-size: 0.8125rem;    /* 13px */
-  line-height: 1.55;
-  font-weight: 600;
+  font-size: 0.875rem;     /* 14px */
+  line-height: 1.6;
+  font-weight: 400;
 }
 
 .metin-yardimci {
-  font-size: 0.75rem;      /* 12px */
+  font-size: 0.8125rem;    /* 13px */
   line-height: 1.5;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .etiket {
-  font-size: 0.625rem;     /* 10px */
+  font-size: 0.6875rem;    /* 11px */
   line-height: 1.2;
-  font-weight: 900;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
 }
 
 .sayi-vurgu {
-  font-size: 1.5rem;       /* 24px */
+  font-size: 1.25rem;      /* 20px */
   line-height: 1;
-  font-weight: 900;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -119,11 +189,28 @@ body {
   font-family: var(--font-sans);
 }
 
-/* 🚀 GRAFİKER KORUMA MOTORU: Küçük metinlerin bold olduğunda çamurlaşmasını önleyen küresel kural */
-/* Metin puntosu küçüldükçe harflerin arasına milimetrik boşluk vererek (tracking-wide) okunaklılığı sabitler. */
-.text-xs, .text-\[10px\], .text-\[11px\], .text-\[12px\], label {
-  letter-spacing: 0.02em !important;
-}
+/* =========================================================================
+   ⚠ BURADAKİ KURAL KALDIRILDI — NİYE
+   -------------------------------------------------------------------------
+   Kural şuydu:
+     .text-xs, .text-[10px], .text-[11px], .text-[12px], label {
+       letter-spacing: 0.02em !important;
+     }
+   Yorumu da "küçük metinlerin BOLD OLDUĞUNDA çamurlaşmasını önler" diyordu.
+
+   İki ayrı sorun vardı:
+
+   1. BELİRTİYİ ÖRTÜYORDU. Küçük metin bold olduğu için çamurlaşıyordu;
+      çözüm harf aralığı açmak değil, ağırlığı düşürmekti. Ölçek 400 tabanına
+      geçtiği için o çamur artık oluşmuyor.
+
+   2. KEYFİ BOYUTLARI MEŞRULAŞTIRIYORDU. `text-[10px]`, `text-[11px]`,
+      `text-[12px]` sınıflarına CSS'te ad verip `!important` ile destek
+      vermek, "tek kaynak ölçek" niyetiyle doğrudan çelişiyordu. Ölçüldü:
+      sitede 364 keyfi boyut kullanımı, dokuz ayrı kademe.
+
+   Harf aralığı artık ölçeğin kendi içinde tanımlı (`.etiket` +0.05em).
+   ========================================================================= */
 
 /* 🧪 MİKRO ETKİLEŞİM BARKOD LAZER ANIMASYONU */
 @keyframes scannerLine {

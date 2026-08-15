@@ -47,7 +47,7 @@ export default function Breadcrumb() {
       {/* Baglantinin dokunma alani min-h-[24px] ile WCAG 2.2 AA
           asgarisine (SC 2.5.8 Target Size Minimum, 24x24) cikarildi.
           Onceden salt metin oldugu icin yuksekligi 17px idi. */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center gap-1.5 text-[11px] font-semibold">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center gap-1.5 text-yardimci font-semibold">
         <Link
           href="/"
           className="inline-flex items-center min-h-[24px] px-0.5 text-slate-500 hover:text-indigo-600 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"

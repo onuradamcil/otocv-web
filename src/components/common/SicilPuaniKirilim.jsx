@@ -138,10 +138,10 @@ export default function SicilPuaniKirilim({ kirilim, puan, className = '' }) {
   return (
     <div className={`space-y-2.5 ${className}`}>
       <div className="flex items-baseline justify-between gap-3">
-        <h4 className="text-[11px] font-black tracking-wider uppercase text-slate-500">
+        <h4 className="text-yardimci font-semibold tracking-wider uppercase text-slate-500">
           Puan Nasıl Oluştu
         </h4>
-        <span className="text-[11px] font-bold font-mono text-slate-600 tabular-nums">
+        <span className="text-yardimci font-bold font-mono text-slate-600 tabular-nums">
           {puan}/{tavanToplam}
         </span>
       </div>
@@ -185,11 +185,11 @@ export default function SicilPuaniKirilim({ kirilim, puan, className = '' }) {
                   )}
                 </span>
 
-                <span className="text-[11px] text-slate-600 leading-snug flex-1 min-w-0 pl-5 sm:pl-0">
+                <span className="text-yardimci text-slate-600 leading-snug flex-1 min-w-0 pl-5 sm:pl-0">
                   {kalem.aciklama}
                 </span>
 
-                <span className={`text-xs font-black font-mono tabular-nums shrink-0 sm:w-14 sm:text-right pl-5 sm:pl-0 ${b.puan}`}>
+                <span className={`text-xs font-semibold font-mono tabular-nums shrink-0 sm:w-14 sm:text-right pl-5 sm:pl-0 ${b.puan}`}>
                   {kalem.puan}/{kalem.tavan}
                 </span>
               </button>
@@ -198,17 +198,17 @@ export default function SicilPuaniKirilim({ kirilim, puan, className = '' }) {
                   olmadığı için kırpılacak bir şey de yok. */}
               {bilgi && acik && (
                 <div id={panelId} className="px-3 pb-3 pt-1 bg-white space-y-2 border-t border-slate-100">
-                  <p className="text-[11px] leading-relaxed text-slate-600">{bilgi.olcer}</p>
-                  <p className="text-[11px] leading-relaxed text-slate-600">
+                  <p className="text-yardimci leading-relaxed text-slate-600">{bilgi.olcer}</p>
+                  <p className="text-yardimci leading-relaxed text-slate-600">
                     <span className="font-bold text-slate-800">Nasıl puanlanıyor: </span>
                     {bilgi.kural}
                   </p>
-                  <p className="text-[11px] leading-relaxed text-slate-500">{bilgi.niye}</p>
+                  <p className="text-yardimci leading-relaxed text-slate-500">{bilgi.niye}</p>
                   {kalem.kaynak && (
                     // Kaynak etiketi karnedeki mantığın aynısı: her bulgu
                     // nereden geldiğini söylüyor. "Hesaplandı" ile "Araç
                     // sahibi beyanı" arasındaki fark alıcı için kritik.
-                    <span className="inline-block text-[9px] font-bold uppercase tracking-wide text-slate-500 border border-slate-300 rounded px-1.5 py-0.5">
+                    <span className="inline-block text-etiket font-bold uppercase tracking-wide text-slate-500 border border-slate-300 rounded px-1.5 py-0.5">
                       Kaynak: {kalem.kaynak}
                     </span>
                   )}
@@ -219,7 +219,7 @@ export default function SicilPuaniKirilim({ kirilim, puan, className = '' }) {
         })}
       </ul>
 
-      <p className="text-[10px] text-slate-500 leading-relaxed">
+      <p className="text-etiket text-slate-500 leading-relaxed">
         Puan yalnızca sisteme girilmiş veriden hesaplanır. Kesikli çerçeveli
         kalemler bir olumsuzluk değil, <strong className="font-semibold">beyan edilmemiş</strong> bilgidir.
       </p>

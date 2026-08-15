@@ -225,7 +225,7 @@ export default function DevirPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
 
       <div className="space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Araç Devir</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">Araç Devir</h1>
         <p className="text-sm text-slate-500 font-medium leading-relaxed">
           Aracınızı sattığınızda sicili yeni sahibine aktarın; satın aldığınız
           aracın sicilini de buradan devralın. Bakım geçmişi, sicil puanı ve
@@ -283,7 +283,7 @@ export default function DevirPage() {
           {/* ---------------- SATICI TARAFI ---------------- */}
           <section className={kart}>
             <div className="space-y-1">
-              <h2 className="text-sm font-black text-slate-900">Aracımı devretmek istiyorum</h2>
+              <h2 className="text-sm font-semibold text-slate-900">Aracımı devretmek istiyorum</h2>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
                 Aracı seçin, devir kodu üretin ve aracı alan kişiye verin. Kodu
                 giren kişi size talep gönderir; araç ancak siz onayladıktan ve
@@ -323,10 +323,10 @@ export default function DevirPage() {
                       className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition-all text-left cursor-pointer"
                     >
                       <div className="inline-flex items-center bg-white border-2 border-slate-900 rounded overflow-hidden shrink-0 h-7">
-                        <div className="bg-[#003399] text-white px-1.5 h-full flex items-center font-mono font-black text-[9px] border-r border-slate-900">
+                        <div className="bg-[#003399] text-white px-1.5 h-full flex items-center font-mono font-semibold text-etiket border-r border-slate-900">
                           TR
                         </div>
-                        <div className="px-2 font-mono font-black text-[11px] text-slate-900 uppercase tracking-wider">
+                        <div className="px-2 font-mono font-semibold text-yardimci text-slate-900 uppercase tracking-wider">
                           {plakaBicimle(a.plate_number)}
                         </div>
                       </div>
@@ -350,7 +350,7 @@ export default function DevirPage() {
           {/* ---------------- ALICI TARAFI ---------------- */}
           <section className={kart}>
             <div className="space-y-1">
-              <h2 className="text-sm font-black text-slate-900">Aracı devralacağım</h2>
+              <h2 className="text-sm font-semibold text-slate-900">Aracı devralacağım</h2>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
                 Elinizde devir kodu varsa girin. Kod, aracı devreden kişiyle
                 gerçekten temas kurduğunuzun kanıtı; sicil yine de yalnızca
@@ -376,7 +376,7 @@ export default function DevirPage() {
                 placeholder="DV-A4B7-C2D9"
                 autoComplete="off"
                 spellCheck={false}
-                className="w-full px-3.5 py-3 border border-slate-200 bg-white rounded-xl text-sm font-mono font-black tracking-widest text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
+                className="w-full px-3.5 py-3 border border-slate-200 bg-white rounded-xl text-sm font-mono font-semibold tracking-widest text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
               />
 
               {kodHatasi && (
@@ -396,7 +396,7 @@ export default function DevirPage() {
 
             <div className="flex items-center gap-3">
               <span className="h-px flex-1 bg-slate-200" />
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">veya</span>
+              <span className="text-etiket font-semibold text-slate-400 uppercase tracking-wider">veya</span>
               <span className="h-px flex-1 bg-slate-200" />
             </div>
 
@@ -418,7 +418,7 @@ export default function DevirPage() {
                   onChange={(e) => { setPlakaGirdi(e.target.value.toUpperCase()); setAramaHatasi(''); }}
                   placeholder="34 ABC 123"
                   autoComplete="off"
-                  className="w-full px-3.5 py-3 border border-slate-200 rounded-xl text-sm font-mono font-black tracking-wider text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
+                  className="w-full px-3.5 py-3 border border-slate-200 rounded-xl text-sm font-mono font-semibold tracking-wider text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
                 />
               </div>
 
@@ -447,7 +447,7 @@ export default function DevirPage() {
               ].map(([baslik, aciklama]) => (
                 <div key={baslik} className="flex items-start gap-2">
                   <span className="text-slate-300 shrink-0 mt-0.5"><Icon name="onay" size="xs" strokeWidth={3} /></span>
-                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                  <p className="text-yardimci text-slate-500 font-medium leading-relaxed">
                     <span className="font-bold text-slate-600">{baslik}:</span> {aciklama}
                   </p>
                 </div>
@@ -463,7 +463,7 @@ export default function DevirPage() {
         <button
           type="button"
           onClick={() => router.push('/verify')}
-          className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+          className="text-yardimci font-bold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
         >
           Devir yapmadan önce aracın karnesini görmek ister misiniz? PIN ile sorgulayın →
         </button>

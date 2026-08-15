@@ -33,7 +33,7 @@ export default function Page() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
 
       <div className="space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
           Ücretler
         </h1>
         <p className="text-sm text-slate-500 font-medium leading-relaxed">
@@ -49,10 +49,10 @@ export default function Page() {
             <Icon name="uyari" size="sm" strokeWidth={2.5} />
           </span>
           <div className="space-y-0.5">
-            <p className="text-xs font-black text-amber-950">
+            <p className="text-xs font-semibold text-amber-950">
               Ödeme altyapısı henüz bağlı değil
             </p>
-            <p className="text-[11px] text-amber-900/80 font-medium leading-relaxed">
+            <p className="text-yardimci text-amber-900/80 font-medium leading-relaxed">
               Aşağıdaki tutarlar bilgilendirme amaçlıdır. Şu an hiçbir işlemde
               tahsilat yapılmıyor; ödeme adımları demo olarak çalışıyor.
             </p>
@@ -71,16 +71,16 @@ export default function Page() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-0.5 min-w-0">
-                  <h2 className="text-sm font-black text-slate-900">{urun.ad}</h2>
+                  <h2 className="text-sm font-semibold text-slate-900">{urun.ad}</h2>
                   <p className="text-xs text-slate-500 font-medium leading-relaxed">
                     {urun.ozet}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-xl font-black text-slate-900 tabular-nums leading-none">
+                  <p className="text-xl font-semibold text-slate-900 tabular-nums leading-none">
                     {fiyatYaz(urun.fiyat)}
                   </p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide mt-1">
+                  <p className="text-etiket text-slate-400 font-bold uppercase tracking-wide mt-1">
                     {urun.sureGun ? `${urun.sureGun} gün` : 'Tek seferlik'}
                   </p>
                 </div>
@@ -92,7 +92,7 @@ export default function Page() {
                     <span className="text-emerald-600 shrink-0 mt-0.5">
                       <Icon name="onay" size="xs" strokeWidth={3} />
                     </span>
-                    <span className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                    <span className="text-yardimci text-slate-600 font-medium leading-relaxed">
                       {k}
                     </span>
                   </li>
@@ -106,7 +106,7 @@ export default function Page() {
       {/* ÜCRETSİZ OLANLAR. Ne için para alınmadığını söylemek, ne için
           alındığı kadar önemli — kullanıcı belge yüklerken tereddüt etmesin. */}
       <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-2.5">
-        <h2 className="text-sm font-black text-slate-900">Her zaman ücretsiz</h2>
+        <h2 className="text-sm font-semibold text-slate-900">Her zaman ücretsiz</h2>
         {[
           'İlk aracınızın kaydı ve dijital karnesi',
           'Sınırsız bakım kaydı ve fatura yükleme',
@@ -125,10 +125,10 @@ export default function Page() {
 
       {/* ÖDEME GEÇMİŞİ. Boş ama gizlenmiyor. */}
       <div className="space-y-3">
-        <h2 className="text-sm font-black text-slate-900">Ödeme geçmişi</h2>
+        <h2 className="text-sm font-semibold text-slate-900">Ödeme geçmişi</h2>
         <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-1">
           <p className="text-xs font-bold text-slate-600">Henüz ödeme kaydınız yok</p>
-          <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+          <p className="text-yardimci text-slate-400 font-medium leading-relaxed">
             Tahsilat başladığında ödemeleriniz ve faturalarınız burada listelenecek.
           </p>
         </div>
@@ -137,7 +137,7 @@ export default function Page() {
       {/* Kurumsal fiyatlandırma henüz belirlenmedi — "yakında" demek yerine
           ne olduğunu ve ne olmadığını söylüyoruz. */}
       <div className="border-t border-slate-100 pt-6 space-y-2">
-        <h2 className="text-sm font-black text-slate-900">Galeri ve filo kullanımı</h2>
+        <h2 className="text-sm font-semibold text-slate-900">Galeri ve filo kullanımı</h2>
         <p className="text-xs text-slate-500 font-medium leading-relaxed">
           Çok sayıda araç yöneten galeri ve filo sahipleri için ayrı bir
           fiyatlandırma hazırlanıyor. Yukarıdaki tutarlar bireysel kullanım

@@ -138,7 +138,7 @@ export default function GelenDevirTalepleri({ kart, onDegisti }) {
                   />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="metin-govde font-black text-slate-900 truncate">
+                  <p className="metin-govde font-semibold text-slate-900 truncate">
                     {t.year} {t.brand} {t.model}
                   </p>
                   {/* PLAKA DEĞİL PIN: araç kimliği hep PIN ile gösteriliyor. */}

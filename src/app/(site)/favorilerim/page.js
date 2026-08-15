@@ -109,7 +109,7 @@ export default function FavorilerimPage() {
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <span className="text-[10px] font-black text-slate-400">GÖRSEL YOK</span>
+                    <span className="text-etiket font-semibold text-slate-400">GÖRSEL YOK</span>
                   )}
 
                   <button
@@ -122,7 +122,7 @@ export default function FavorilerimPage() {
                   </button>
 
                   {f.is_featured && (
-                    <span className="absolute top-1.5 left-1.5 bg-amber-400 text-slate-950 text-[9px] font-black px-2 py-0.5 rounded">
+                    <span className="absolute top-1.5 left-1.5 bg-amber-400 text-slate-950 text-etiket font-semibold px-2 py-0.5 rounded">
                       ÖNE ÇIKAN
                     </span>
                   )}
@@ -130,7 +130,7 @@ export default function FavorilerimPage() {
                       sicil sorgulayan kullanıcı). Bu bir süzgeç değil,
                       etiket: kart listeden düşmüyor, durumu yazıyor. */}
                   {!f.vitrinde && (
-                    <span className="absolute bottom-1.5 left-1.5 bg-slate-700/90 text-white text-[9px] font-black px-2 py-0.5 rounded">
+                    <span className="absolute bottom-1.5 left-1.5 bg-slate-700/90 text-white text-etiket font-semibold px-2 py-0.5 rounded">
                       VİTRİNDE DEĞİL
                     </span>
                   )}
@@ -147,8 +147,8 @@ export default function FavorilerimPage() {
 
                   <div className="mt-auto pt-2 space-y-2">
                     <div className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 flex items-center justify-between">
-                      <span className="text-[10px] text-slate-500 font-bold">Sicil Puanı</span>
-                      <span className="text-[11px] font-black text-indigo-600 font-mono tabular-nums">
+                      <span className="text-etiket text-slate-500 font-bold">Sicil Puanı</span>
+                      <span className="text-yardimci font-semibold text-indigo-600 font-mono tabular-nums">
                         {f.trust_score ?? 0}/100
                       </span>
                     </div>

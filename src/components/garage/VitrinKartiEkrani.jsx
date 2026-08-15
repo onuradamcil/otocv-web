@@ -243,8 +243,8 @@ export default function VitrinKartiEkrani({ pin }) {
         {/* ARAÇ ÖZETİ — DÜZENLENMİYOR, GÖSTERİLİYOR */}
         <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
           <div className="flex items-start gap-4">
-            <span className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono font-black h-7 overflow-hidden shrink-0">
-              <span className="bg-[#003399] text-white text-[9px] font-sans font-bold px-1.5 h-full flex items-center">TR</span>
+            <span className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono font-semibold h-7 overflow-hidden shrink-0">
+              <span className="bg-[#003399] text-white text-etiket font-sans font-bold px-1.5 h-full flex items-center">TR</span>
               <span className="px-2.5 text-slate-900 text-sm tracking-wider uppercase h-full flex items-center whitespace-nowrap">
                 {(arac.plate_number || '').replace(/\s+/g, '').replace(/^(\d{2})([A-Z]{1,3})(\d{2,4})$/, '$1 $2 $3')}
               </span>
@@ -328,7 +328,7 @@ export default function VitrinKartiEkrani({ pin }) {
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-2 flex-wrap">
                 <span className="baslik-bolum text-slate-800">Öne Çıkar</span>
-                <span className="text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                <span className="text-etiket font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
                   {fiyatYaz(URUNLER.vitrin.fiyat)}
                 </span>
               </span>

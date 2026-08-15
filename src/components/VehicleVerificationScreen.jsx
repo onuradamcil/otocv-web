@@ -112,11 +112,11 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
       
       {/* BAŞLIK VE KÜNYE ALANI */}
       <div className="text-center space-y-3 max-w-2xl mx-auto">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-indigo-600 text-[10px] font-black tracking-wider uppercase">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-indigo-600 text-etiket font-semibold tracking-wider uppercase">
           <Icon name="kalkan" size="sm" />
           GÜVENLİ SİCİL SORGULAMA
         </span>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Oto-Karne Doğrula</h1>
+        <h1 className="text-3xl font-semibold text-slate-900 tracking-tight">Oto-Karne Doğrula</h1>
         <p className="text-xs md:text-sm text-slate-400 font-medium leading-relaxed">
           Araç sahibi tarafından paylaşılan benzersiz PIN kodunu girerek ya da tescilli QR barkodunu okutarak bağımsız, doğrulanmış geçmiş raporuna anında ulaşın.
         </p>
@@ -156,7 +156,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
           {verifyTab === 'pin' ? (
             <div className="space-y-6 animate-fadeIn flex-1 flex flex-col justify-between">
               <div className="space-y-1">
-                <h2 className="text-xl font-black text-slate-900">Dijital PIN Sorgulama</h2>
+                <h2 className="text-xl font-semibold text-slate-900">Dijital PIN Sorgulama</h2>
                 <p className="text-xs text-slate-400 font-medium leading-relaxed">
                   Ruhsat sahibinin size ilettiği benzersiz OTO.CV kodunu girin. Bu kod, aracın kilometresini, kaza geçmişini ve servis kayıtlarını tesciller.
                 </p>
@@ -189,7 +189,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
               {searchError && (
                 <div className="bg-rose-50 border border-rose-100 rounded-xl px-4 py-3 flex gap-2.5 items-start">
                   <span className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0 mt-1.5" />
-                  <p className="text-[11px] font-semibold text-rose-700 leading-relaxed">{searchError}</p>
+                  <p className="text-yardimci font-semibold text-rose-700 leading-relaxed">{searchError}</p>
                 </div>
               )}
 
@@ -213,7 +213,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
           ) : (
             <div className="space-y-5 animate-fadeIn flex-1 flex flex-col justify-between">
               <div className="space-y-1">
-                <h2 className="text-xl font-black text-slate-900">Akıllı Barkod & QR Tarama</h2>
+                <h2 className="text-xl font-semibold text-slate-900">Akıllı Barkod & QR Tarama</h2>
                 <p className="text-xs text-slate-400 font-medium leading-relaxed">
                   Sistemimizdeki resmi belgede basılı olan QR kodunu cihaz kameranız ile taratın. Kimlik eşleşmesi yapılıp rapor otomatik getirilir.
                 </p>
@@ -224,15 +224,15 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                   <>
                     <div className="w-full h-0.5 bg-emerald-500 shadow-[0_0_15px_#10b981] absolute top-0 left-0 animate-scannerLine z-20" />
                     <div className="absolute inset-0 bg-emerald-950/20 animate-pulse z-10" />
-                    <div className="w-16 h-16 border-2 border-dashed border-emerald-400 rounded-xl flex items-center justify-center text-emerald-400 animate-spin text-xs font-black z-30">QR</div>
-                    <span className="text-[10px] font-mono font-bold text-emerald-400 tracking-widest mt-3 animate-pulse z-30">LAZER RADAR TARANIYOR...</span>
+                    <div className="w-16 h-16 border-2 border-dashed border-emerald-400 rounded-xl flex items-center justify-center text-emerald-400 animate-spin text-xs font-semibold z-30">QR</div>
+                    <span className="text-etiket font-mono font-bold text-emerald-400 tracking-widest mt-3 animate-pulse z-30">LAZER RADAR TARANIYOR...</span>
                   </>
                 ) : (
                   <>
                     <div className="w-28 h-28 border-2 border-dashed border-slate-700 rounded-2xl flex items-center justify-center text-slate-600 relative select-none">
                       <svg className="w-10 h-10 text-slate-700" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" /></svg>
                     </div>
-                    <span className="text-slate-500 text-[10px] font-bold mt-3 tracking-tight">Aracın OTO.CV sertifikasını taratın</span>
+                    <span className="text-slate-500 text-etiket font-bold mt-3 tracking-tight">Aracın OTO.CV sertifikasını taratın</span>
                   </>
                 )}
               </div>
@@ -263,33 +263,33 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286z" /></svg>
               </div>
               <div className="space-y-1">
-                <h4 className="text-sm font-black tracking-wide text-slate-100">Değiştirilemez Blokzincir Sicili</h4>
-                <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                <h4 className="text-sm font-semibold tracking-wide text-slate-100">Değiştirilemez Blokzincir Sicili</h4>
+                <p className="text-yardimci text-slate-400 font-medium leading-relaxed">
                   OTO.CV aracılığıyla oluşturulan tescil belgeleri, noter onaylı beyanlar ve ekspertiz kayıtları kriptografik imzalarla korunur, geriye dönük asla değiştirilemez.
                 </p>
               </div>
             </div>
             <div className="w-full h-px bg-white/5" />
-            <span className="text-[10px] font-mono font-bold tracking-widest text-indigo-400 block text-center bg-white/5 py-1.5 rounded-lg border border-white/5">%100 DOĞRULANMIŞ VERİ ALTYAPISI</span>
+            <span className="text-etiket font-mono font-bold tracking-widest text-indigo-400 block text-center bg-white/5 py-1.5 rounded-lg border border-white/5">%100 DOĞRULANMIŞ VERİ ALTYAPISI</span>
           </div>
 
           <div className="bg-white border border-gray-200/80 p-6 rounded-3xl space-y-4 shadow-sm">
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 11.513 1.293l-.041.02a.75.75 0 01-.513-1.293zM11.25 15.75l.041-.02a.75.75 0 11.513 1.293l-.041.02a.75.75 0 01-.513-1.293zM12 21a9 9 0 100-18 9 9 0 000 18z" /></svg>
-              <h4 className="text-xs font-black text-slate-900 tracking-wider uppercase">SORGULAMA NE SAĞLAR?</h4>
+              <h4 className="text-xs font-semibold text-slate-900 tracking-wider uppercase">SORGULAMA NE SAĞLAR?</h4>
             </div>
-            <ul className="space-y-3.5 text-[11px] md:text-xs font-semibold text-slate-600">
+            <ul className="space-y-3.5 text-yardimci md:text-xs font-semibold text-slate-600">
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full shrink-0 mt-1.5" />
-                <div><span className="text-slate-900 font-black">Kilometre Sahtekarlığı Engeli:</span> Periyodik servis faturaları ile km uyumu doğrulanır.</div>
+                <div><span className="text-slate-900 font-semibold">Kilometre Sahtekarlığı Engeli:</span> Periyodik servis faturaları ile km uyumu doğrulanır.</div>
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full shrink-0 mt-1.5" />
-                <div><span className="text-slate-900 font-black">Hasar (Tramer) Şeffaflığı:</span> Sigorta ve kasko poliçe süreleri ve tescilli hasar durumu gösterilir.</div>
+                <div><span className="text-slate-900 font-semibold">Hasar (Tramer) Şeffaflığı:</span> Sigorta ve kasko poliçe süreleri ve tescilli hasar durumu gösterilir.</div>
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full shrink-0 mt-1.5" />
-                <div><span className="text-slate-900 font-black">Blokzincir Güvenliği:</span> Araç sahibinin kendi rızasıyla sisteme aktardığı tescilli resmi evraklar listelenir.</div>
+                <div><span className="text-slate-900 font-semibold">Blokzincir Güvenliği:</span> Araç sahibinin kendi rızasıyla sisteme aktardığı tescilli resmi evraklar listelenir.</div>
               </li>
             </ul>
           </div>

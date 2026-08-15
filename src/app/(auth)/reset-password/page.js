@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
     return (
       <div className="min-h-screen bg-[#FFFDFB] flex items-center justify-center p-4">
         <div className="bg-white border border-gray-200 rounded-2xl p-8 max-w-md w-full text-center space-y-4 shadow-sm">
-          <h1 className="text-lg font-black text-slate-900 tracking-tight">Bağlantı geçerli değil</h1>
+          <h1 className="text-lg font-semibold text-slate-900 tracking-tight">Bağlantı geçerli değil</h1>
           <p className="text-xs text-slate-500 font-medium leading-relaxed">
             Şifre sıfırlama bağlantısı geçersiz ya da süresi dolmuş. Bağlantılar tek kullanımlıktır ve
             kısa süre sonra geçerliliğini yitirir. Giriş ekranından yeni bir bağlantı isteyebilirsiniz.

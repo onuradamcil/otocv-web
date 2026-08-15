@@ -15,12 +15,12 @@ export default function ComingSoon({ title, description }) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-16 animate-fadeIn">
       <div className="bg-white border border-gray-200 rounded-2xl p-8 md:p-10 shadow-sm space-y-5 text-center">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-indigo-600 text-[10px] font-black tracking-wider uppercase">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-indigo-600 text-etiket font-semibold tracking-wider uppercase">
           Yapım Aşamasında
         </span>
 
         <div className="space-y-2">
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">{title}</h1>
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">{title}</h1>
           <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed max-w-md mx-auto">
             {description}
           </p>

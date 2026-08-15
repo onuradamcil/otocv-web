@@ -25,10 +25,10 @@ export default function AuthLayout({ children }) {
 
       <div className="border-t border-slate-100 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-1.5">
-          <span className="text-[10px] font-semibold text-slate-400">
+          <span className="text-etiket font-semibold text-slate-400">
             © {yil} Oto.CV · Tüm hakları saklıdır
           </span>
-          <span className="text-[10px] font-medium text-slate-300">
+          <span className="text-etiket font-medium text-slate-300">
             Yasal metinler hazırlanıyor
           </span>
         </div>

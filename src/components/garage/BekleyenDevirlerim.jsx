@@ -161,7 +161,7 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
                   />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="metin-govde font-black text-slate-900 truncate">
+                  <p className="metin-govde font-semibold text-slate-900 truncate">
                     {d.year} {d.brand} {d.model}
                   </p>
                   {/* PLAKA DEĞİL PIN: araç kimliği hep PIN ile gösteriliyor. */}
@@ -176,7 +176,7 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
                   }`}>
                     <div className="flex items-center gap-1.5">
                       <Icon name="onay" size="sm" className={acil ? 'text-amber-600' : 'text-emerald-600'} />
-                      <p className={`metin-govde font-black ${acil ? 'text-amber-900' : 'text-emerald-900'}`}>
+                      <p className={`metin-govde font-semibold ${acil ? 'text-amber-900' : 'text-emerald-900'}`}>
                         Araç üzerinize geçmeye hazır
                       </p>
                     </div>

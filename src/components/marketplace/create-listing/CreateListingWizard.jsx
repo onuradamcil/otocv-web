@@ -1046,7 +1046,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
           
           <div className="space-y-1">
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none">
+            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-none">
               {currentStep === 1 && "Garaja Araç Ekle & Tescil"}
               {currentStep === 2 && "Araç Detayları & Ekspertiz"}
               {currentStep === 3 && "Servis & Bakım Geçmişi"}
@@ -1068,7 +1068,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                   (currentStep === 3 && !isStep3Valid)
                 }
                 onClick={handleNextStep}
-                className="w-64 sm:w-72 bg-rose-500 hover:bg-rose-600 disabled:bg-[#FFF5F7] disabled:text-[#FFC2CB] text-white font-extrabold text-xs sm:text-sm py-2.5 sm:py-3 px-5 rounded-md transition-all shadow-xs disabled:cursor-not-allowed text-center cursor-pointer active:scale-98 flex items-center justify-center gap-2"
+                className="w-64 sm:w-72 bg-rose-500 hover:bg-rose-600 disabled:bg-[#FFF5F7] disabled:text-[#FFC2CB] text-white font-semibold text-xs sm:text-sm py-2.5 sm:py-3 px-5 rounded-md transition-all shadow-xs disabled:cursor-not-allowed text-center cursor-pointer active:scale-98 flex items-center justify-center gap-2"
               >
                 {isUploadingPhotos || stepLoader.isLoading ? (
                   <>
@@ -1089,7 +1089,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 type="button"
                 disabled={stepLoader.isLoading}
                 onClick={handleFinalPublish}
-                className="w-64 sm:w-72 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-extrabold text-xs sm:text-sm py-2.5 sm:py-3 px-5 rounded-md transition-all shadow-xs text-center cursor-pointer flex items-center justify-center gap-2"
+                className="w-64 sm:w-72 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-semibold text-xs sm:text-sm py-2.5 sm:py-3 px-5 rounded-md transition-all shadow-xs text-center cursor-pointer flex items-center justify-center gap-2"
               >
                 {stepLoader.isLoading ? (
                   <>
@@ -1180,7 +1180,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
+                <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
                   Yarım kalan kaydınız var
                 </h3>
                 <p className="text-sm text-slate-500 font-normal leading-relaxed">
@@ -1251,7 +1251,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
+                <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
                   {mukerrerMetin.baslik}
                 </h3>
                 <p className="text-sm text-slate-500 font-normal leading-relaxed">
@@ -1262,10 +1262,10 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
             <div className="bg-slate-100/80 p-4 sm:p-5 rounded-xl flex items-center justify-center">
               <div className="inline-flex items-center bg-white border-2 border-slate-900 rounded-lg overflow-hidden shadow-xs h-11 sm:h-12">
-                <div className="bg-[#003399] text-white px-3 h-full flex items-center justify-center font-mono font-black text-xs sm:text-sm select-none border-r border-slate-900">
+                <div className="bg-[#003399] text-white px-3 h-full flex items-center justify-center font-mono font-semibold text-xs sm:text-sm select-none border-r border-slate-900">
                   TR
                 </div>
-                <div className="px-5 font-mono font-black text-lg sm:text-xl text-slate-900 uppercase tracking-widest select-all">
+                <div className="px-5 font-mono font-semibold text-lg sm:text-xl text-slate-900 uppercase tracking-widest select-all">
                   {duplicatePlateNumber}
                 </div>
               </div>
@@ -1293,7 +1293,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 verirken ne aldığını gerçek sayılarla görmeli. */}
             {duplicateSahipsiz && duplicateOzet && (
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5">
-                <p className="text-sm font-black text-slate-900">
+                <p className="text-sm font-semibold text-slate-900">
                   {duplicateOzet.yil} {duplicateOzet.marka} {duplicateOzet.model}
                 </p>
                 <div className="grid grid-cols-3 gap-2 text-center">
@@ -1303,8 +1303,8 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                     ['Sicil puanı', duplicateOzet.sicil_puani],
                   ].map(([etiket, deger]) => (
                     <div key={etiket} className="bg-white border border-slate-200 rounded-lg py-2">
-                      <div className="text-lg font-black text-slate-900 tabular-nums">{deger}</div>
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{etiket}</div>
+                      <div className="text-lg font-semibold text-slate-900 tabular-nums">{deger}</div>
+                      <div className="text-etiket text-slate-500 font-bold uppercase tracking-wide">{etiket}</div>
                     </div>
                   ))}
                 </div>
@@ -1412,7 +1412,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               <p className="text-xs font-bold text-slate-700">
                 İlk aracınız ücretsizdi; bu ikinci ve sonraki araç kaydınız.
               </p>
-              <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+              <p className="text-yardimci text-slate-500 font-medium leading-relaxed">
                 Girdiğiniz bilgiler korunuyor — satın alma tamamlanınca tescil
                 kaldığı yerden devam edecek.
               </p>

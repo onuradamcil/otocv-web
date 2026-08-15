@@ -88,7 +88,7 @@ function IslemKilidi({ title, subtitle }) {
       <div className="relative flex items-center justify-center">
         <div className="w-24 h-24 border-4 border-slate-100 border-t-indigo-600 border-r-rose-500 rounded-full motion-safe:animate-spin motion-reduce:animate-pulse" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-sm font-black text-slate-900 tracking-tight font-display">
+          <span className="text-sm font-semibold text-slate-900 tracking-tight font-display">
             OTO<span className="text-indigo-600">.CV</span>
           </span>
         </div>
@@ -97,7 +97,7 @@ function IslemKilidi({ title, subtitle }) {
       {/* BİLGİLENDİRME METNİ
           Başlık ne olduğunu, alt satır kullanıcıdan ne beklendiğini söyler. */}
       <div className="mt-6 text-center space-y-1.5 max-w-sm px-4">
-        <h4 className="text-base font-black text-slate-900 tracking-tight leading-snug">
+        <h4 className="text-base font-semibold text-slate-900 tracking-tight leading-snug">
           {title}
         </h4>
         <p className="text-xs font-medium text-slate-500 leading-relaxed">

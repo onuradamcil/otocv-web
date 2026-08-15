@@ -92,7 +92,7 @@ export function ToastProvider({ children }) {
             >
               <Icon name={s.ikon} size="md" className={`mt-0.5 ${s.ikonRenk}`} />
 
-              <p className={`flex-1 text-[11px] font-semibold leading-relaxed ${s.metin}`}>
+              <p className={`flex-1 text-yardimci font-semibold leading-relaxed ${s.metin}`}>
                 {t.mesaj}
               </p>
 

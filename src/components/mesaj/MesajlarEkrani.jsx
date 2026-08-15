@@ -233,7 +233,7 @@ export default function MesajlarEkrani() {
                         <span className="metin-govde font-bold text-slate-900 truncate">
                           {k.karsi_taraf}
                         </span>
-                        <span className="metin-yardimci text-slate-400 shrink-0 font-mono">
+                        <span className="metin-yardimci text-slate-500 shrink-0 font-mono">
                           {saatBicimi(k.son_mesaj_at)}
                         </span>
                       </span>
@@ -245,7 +245,7 @@ export default function MesajlarEkrani() {
                           {k.son_mesaj || '—'}
                         </span>
                         {k.okunmamis > 0 && (
-                          <span className="shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-600 text-white text-[10px] font-black grid place-items-center">
+                          <span className="shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-600 text-white text-etiket font-semibold grid place-items-center">
                             {k.okunmamis}
                           </span>
                         )}
@@ -298,7 +298,7 @@ export default function MesajlarEkrani() {
                 </button>
 
                 <div className="min-w-0 flex-1">
-                  <p className="metin-govde font-black text-slate-900 truncate">{konusma.karsi_taraf}</p>
+                  <p className="metin-govde font-semibold text-slate-900 truncate">{konusma.karsi_taraf}</p>
                   <p className="metin-yardimci text-slate-500 truncate">
                     {konusma.year} {konusma.brand} {konusma.model}
                     <span className="font-mono text-indigo-600 ml-1.5">{konusma.pin_code}</span>
@@ -333,7 +333,7 @@ export default function MesajlarEkrani() {
 
               <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/60">
                 {mesajlar.length === 0 && (
-                  <p className="metin-yardimci text-slate-400 text-center py-6">Henüz mesaj yok.</p>
+                  <p className="metin-yardimci text-slate-500 text-center py-6">Henüz mesaj yok.</p>
                 )}
                 {mesajlar.map((m) => (
                   <div key={m.id} className={`flex ${m.benim ? 'justify-end' : 'justify-start'}`}>
@@ -343,7 +343,7 @@ export default function MesajlarEkrani() {
                         : 'bg-white border border-slate-200 text-slate-800 rounded-bl-sm'
                     }`}>
                       <p className="metin-govde whitespace-pre-wrap break-words">{m.govde}</p>
-                      <p className={`metin-yardimci mt-0.5 font-mono ${m.benim ? 'text-indigo-200' : 'text-slate-400'}`}>
+                      <p className={`metin-yardimci mt-0.5 font-mono ${m.benim ? 'text-indigo-200' : 'text-slate-500'}`}>
                         {saatBicimi(m.olustu)}
                       </p>
                     </div>
@@ -361,7 +361,7 @@ export default function MesajlarEkrani() {
                   onChange={(e) => setTaslak(e.target.value)}
                   maxLength={2000}
                   placeholder="Mesajınızı yazın…"
-                  className="flex-1 min-h-[44px] px-3 rounded-xl border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
+                  className="flex-1 min-h-[44px] px-3 rounded-xl border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
                 />
                 <button type="submit" disabled={!taslak.trim() || gonderiliyor} className={dugme('birincil')}>
                   {gonderiliyor ? 'Gönderiliyor…' : 'Gönder'}

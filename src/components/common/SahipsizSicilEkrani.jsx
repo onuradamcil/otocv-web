@@ -38,7 +38,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
       <div className="bg-white border border-amber-200 rounded-2xl p-8 max-w-md w-full text-center space-y-5 shadow-sm">
 
         <div className="space-y-2">
-          <h1 className="text-lg font-black text-slate-900 tracking-tight">
+          <h1 className="text-lg font-semibold text-slate-900 tracking-tight">
             Bu aracın kayıtlı sahibi yok
           </h1>
           <p className="text-xs text-slate-500 font-medium leading-relaxed">
@@ -54,7 +54,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
         {(o.kayit !== undefined || o.marka) && (
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
             {o.marka && (
-              <p className="text-sm font-black text-slate-900">
+              <p className="text-sm font-semibold text-slate-900">
                 {o.yil} {o.marka} {o.model}
               </p>
             )}
@@ -65,10 +65,10 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
                 ['Sicil puanı', o.sicil_puani],
               ].map(([etiket, deger]) => (
                 <div key={etiket} className="bg-white border border-slate-200 rounded-lg py-2">
-                  <div className="text-lg font-black text-slate-900 tabular-nums">
+                  <div className="text-lg font-semibold text-slate-900 tabular-nums">
                     {deger ?? '—'}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">
+                  <div className="text-etiket text-slate-500 font-bold uppercase tracking-wide">
                     {etiket}
                   </div>
                 </div>
@@ -77,7 +77,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
           </div>
         )}
 
-        <p className="text-[11px] text-slate-400 leading-relaxed">
+        <p className="text-yardimci text-slate-400 leading-relaxed">
           Araç sizinse, plakanızla başvurup ruhsatınızı doğrulattıktan sonra
           sicili garajınıza aktarabilirsiniz.
         </p>
@@ -103,7 +103,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
         </div>
 
         {pin && (
-          <p className="text-[10px] text-slate-300 font-mono">{pin}</p>
+          <p className="text-etiket text-slate-300 font-mono">{pin}</p>
         )}
       </div>
     </div>

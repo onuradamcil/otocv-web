@@ -120,7 +120,7 @@ export default function AracDevralDialog({
               <Icon name="onay" size="lg" strokeWidth={2.5} />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">
+              <h3 className="text-xl font-semibold text-slate-900 tracking-tight">
                 {sonuc.zatenVar ? 'Talebiniz zaten iletilmişti' : 'Talebiniz iletildi'}
               </h3>
               <p className="text-sm text-slate-500 font-normal leading-relaxed">
@@ -146,14 +146,14 @@ export default function AracDevralDialog({
                  'Bakım geçmişi ve belgeler araçla birlikte aktarılır.', false],
               ].map(([no, baslik, aciklama, tamam]) => (
                 <li key={no} className="flex items-start gap-2.5">
-                  <span className={`w-5 h-5 rounded-full grid place-items-center text-[10px] font-black shrink-0 mt-0.5 ${
+                  <span className={`w-5 h-5 rounded-full grid place-items-center text-etiket font-semibold shrink-0 mt-0.5 ${
                     tamam ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'
                   }`}>{no}</span>
                   <span className="min-w-0">
-                    <span className={`block text-[12px] leading-snug ${tamam ? 'text-slate-900 font-black' : 'text-slate-700 font-bold'}`}>
+                    <span className={`block text-yardimci leading-snug ${tamam ? 'text-slate-900 font-semibold' : 'text-slate-700 font-bold'}`}>
                       {baslik}
                     </span>
-                    <span className="block text-[11px] text-slate-500 leading-relaxed mt-0.5">
+                    <span className="block text-yardimci text-slate-500 leading-relaxed mt-0.5">
                       {aciklama}
                     </span>
                   </span>
@@ -161,7 +161,7 @@ export default function AracDevralDialog({
               ))}
             </ol>
 
-            <p className="text-[11px] text-slate-500 leading-relaxed text-left">
+            <p className="text-yardimci text-slate-500 leading-relaxed text-left">
               Devir işlemi için platform ücreti ₺150&apos;dir; devralan taraf öder.
             </p>
             <button
@@ -178,19 +178,19 @@ export default function AracDevralDialog({
               <Icon name="onay" size="lg" strokeWidth={2.5} />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">Araç sizin oldu</h3>
+              <h3 className="text-xl font-semibold text-slate-900 tracking-tight">Araç sizin oldu</h3>
               <p className="text-sm text-slate-500 font-normal leading-relaxed">
                 Bakım kayıtları ve belgeler araçla birlikte devredildi. Araç artık garajınızda.
               </p>
             </div>
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-1">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <p className="text-yardimci font-bold uppercase tracking-wider text-slate-500">
                 Yeni sicil kodu
               </p>
-              <p className="text-lg font-black font-mono tracking-widest text-slate-900 select-all">
+              <p className="text-lg font-semibold font-mono tracking-widest text-slate-900 select-all">
                 {sonuc.yeni_pin}
               </p>
-              <p className="text-[11px] text-slate-500 leading-relaxed">
+              <p className="text-yardimci text-slate-500 leading-relaxed">
                 Aracın eski kodu güvenlik için geçersiz kılındı. Sicili paylaşmak için bu
                 yeni kodu kullanın.
               </p>
@@ -209,13 +209,13 @@ export default function AracDevralDialog({
               <Icon name="onay" size="lg" strokeWidth={2.5} />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">Talebiniz gönderildi</h3>
+              <h3 className="text-xl font-semibold text-slate-900 tracking-tight">Talebiniz gönderildi</h3>
               <p className="text-sm text-slate-500 font-normal leading-relaxed">
                 Araç sahibine bildirim gitti. Onayladığında araç garajınıza geçecek ve size
                 bildirim göndereceğiz.
               </p>
             </div>
-            <p className="text-[11px] text-slate-500 leading-relaxed bg-slate-50 border border-slate-200 rounded-xl p-3">
+            <p className="text-yardimci text-slate-500 leading-relaxed bg-slate-50 border border-slate-200 rounded-xl p-3">
               Araç sahibi onaylamadan hiçbir şey değişmez. Ulaşabiliyorsanız ondan bir devir
               kodu istemek en hızlı yol.
             </p>
@@ -235,7 +235,7 @@ export default function AracDevralDialog({
                 <Icon name="anahtar" size="lg" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                <h3 className="text-xl font-semibold text-slate-900 tracking-tight">
                   {onizleme ? 'Devralacağınız sicil' : 'Bu aracı devral'}
                 </h3>
                 <p className="text-sm text-slate-500 font-normal leading-relaxed">
@@ -258,11 +258,11 @@ export default function AracDevralDialog({
               <div className="space-y-4">
                 <div className="bg-slate-50/80 border border-slate-200 rounded-2xl p-4 space-y-3">
                   <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-sm font-black text-slate-900">
+                    <p className="text-sm font-semibold text-slate-900">
                       {[onizleme.marka, onizleme.model].filter(Boolean).join(' ')}
                       {onizleme.yil ? ` · ${onizleme.yil}` : ''}
                     </p>
-                    <span className="font-mono font-black text-xs text-slate-700 shrink-0">
+                    <span className="font-mono font-semibold text-xs text-slate-700 shrink-0">
                       {onizleme.plaka}
                     </span>
                   </div>
@@ -273,8 +273,8 @@ export default function AracDevralDialog({
                       ['Sicil puanı', `${onizleme.sicil_puani}/100`],
                     ].map(([etiket, deger]) => (
                       <div key={etiket} className="bg-white border border-slate-200 rounded-lg py-2">
-                        <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{etiket}</p>
-                        <p className="text-sm font-black font-mono text-slate-900 tabular-nums">{deger}</p>
+                        <p className="text-etiket font-bold uppercase tracking-wide text-slate-400">{etiket}</p>
+                        <p className="text-sm font-semibold font-mono text-slate-900 tabular-nums">{deger}</p>
                       </div>
                     ))}
                   </div>
@@ -291,11 +291,11 @@ export default function AracDevralDialog({
                 <div className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-1.5">
                   <div className="flex items-center gap-2">
                     <Icon name="kalkan" size="sm" className="text-slate-500" />
-                    <p className="text-[11px] font-black uppercase tracking-wider text-slate-700">
+                    <p className="text-yardimci font-semibold uppercase tracking-wider text-slate-700">
                       Araç sahibinin onayı
                     </p>
                   </div>
-                  <p className="text-[11px] text-slate-600 leading-relaxed">{onizleme.riza_metni}</p>
+                  <p className="text-yardimci text-slate-600 leading-relaxed">{onizleme.riza_metni}</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -325,7 +325,7 @@ export default function AracDevralDialog({
               /* ---- KOD GİRİŞİ ---- */
               <form onSubmit={(e) => { e.preventDefault(); onizlemeAl(); }} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="devir-kodu" className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                  <label htmlFor="devir-kodu" className="text-yardimci font-bold uppercase tracking-wide text-slate-500">
                     Aracı devreden kişiden aldığınız devir kodu
                   </label>
                   <input
@@ -336,9 +336,9 @@ export default function AracDevralDialog({
                     placeholder="ÖRN: DV-4G8W-K2GS"
                     maxLength={13}
                     autoComplete="off"
-                    className="w-full py-4 px-5 bg-slate-50 border-2 border-gray-200 focus:border-indigo-500 rounded-xl text-center font-mono font-black text-lg tracking-widest uppercase text-slate-900 outline-none transition-colors placeholder:text-slate-300 placeholder:tracking-normal placeholder:text-sm placeholder:font-bold"
+                    className="w-full py-4 px-5 bg-slate-50 border-2 border-gray-200 focus:border-indigo-500 rounded-xl text-center font-mono font-semibold text-lg tracking-widest uppercase text-slate-900 outline-none transition-colors placeholder:text-slate-300 placeholder:tracking-normal placeholder:text-sm placeholder:font-bold"
                   />
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-yardimci text-slate-500">
                     Kod 48 saat geçerlidir ve yalnızca bir kez kullanılabilir.
                   </p>
                 </div>
@@ -373,10 +373,10 @@ export default function AracDevralDialog({
               <div className="space-y-3">
                 <div className="bg-slate-100/80 p-4 sm:p-5 rounded-xl flex items-center justify-center">
                   <div className="inline-flex items-center bg-white border-2 border-slate-900 rounded-lg overflow-hidden shadow-sm">
-                    <div className="bg-[#003399] text-white px-3 py-2 flex items-center justify-center font-mono font-black text-xs">
+                    <div className="bg-[#003399] text-white px-3 py-2 flex items-center justify-center font-mono font-semibold text-xs">
                       TR
                     </div>
-                    <div className="px-5 py-2 font-mono font-black text-lg sm:text-xl text-slate-900 uppercase tracking-widest select-all">
+                    <div className="px-5 py-2 font-mono font-semibold text-lg sm:text-xl text-slate-900 uppercase tracking-widest select-all">
                       {plaka}
                     </div>
                   </div>
@@ -399,7 +399,7 @@ export default function AracDevralDialog({
                     `devir_talep_et` yetkisi veritabanında da geri alındı;
                     çalışmayan bir düğme bırakmamak için arayüzden de
                     kalktı. */}
-                <p className="text-[11px] text-slate-500 leading-relaxed text-center pt-1">
+                <p className="text-yardimci text-slate-500 leading-relaxed text-center pt-1">
                   Devir kodunu, aracı devreden kişi OTO.CV garajından üretip size verir.
                   Sicil yalnızca onun onayıyla geçer.
                 </p>

@@ -43,7 +43,7 @@ export default function SiteError({ error, reset }) {
         </span>
 
         <div className="space-y-2">
-          <h1 className="text-lg font-black text-slate-900 tracking-tight">Bu sayfa açılamadı</h1>
+          <h1 className="text-lg font-semibold text-slate-900 tracking-tight">Bu sayfa açılamadı</h1>
           <p className="text-xs text-slate-500 font-medium leading-relaxed">
             Beklenmedik bir sorun oluştu. Verileriniz etkilenmedi — araç
             kayıtlarınız ve sicil geçmişiniz yerinde duruyor.

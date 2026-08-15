@@ -99,7 +99,7 @@ export default function FaturaOnizleme({ yol, onBuyut }) {
     // faturasını yüklediğini biliyor, hiç görünmemesi "kayboldu" demek.
     return (
       <div className="space-y-1.5 pt-1">
-        <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">
+        <span className="text-etiket font-bold text-slate-400 tracking-wider block uppercase">
           Servis Faturası / Evrak
         </span>
         <p className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
@@ -112,7 +112,7 @@ export default function FaturaOnizleme({ yol, onBuyut }) {
 
   return (
     <div className="space-y-1.5 pt-1">
-      <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">
+      <span className="text-etiket font-bold text-slate-400 tracking-wider block uppercase">
         Servis Faturası / Evrak
       </span>
       <button

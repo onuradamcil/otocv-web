@@ -201,10 +201,10 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
               <Icon name="arac" size="lg" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-black text-base tracking-tight text-slate-900 truncate">
+              <h3 className="font-semibold text-base tracking-tight text-slate-900 truncate">
                 Aracı Devret
               </h3>
-              <p className="text-[11px] text-slate-500 font-medium truncate">
+              <p className="text-yardimci text-slate-500 font-medium truncate">
                 {[vehicle.brand, vehicle.model].filter(Boolean).join(' ')} · {plaka}
               </p>
             </div>
@@ -249,13 +249,13 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
               /* ---- KOD VAR: göster, paylaş, iptal ---- */
               <div className="space-y-4">
                 <div className="bg-emerald-50/70 border border-emerald-200/90 rounded-2xl p-5 text-center space-y-3">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
+                  <p className="text-yardimci font-bold uppercase tracking-wider text-emerald-800">
                     Devir Kodu
                   </p>
-                  <p className="text-2xl sm:text-3xl font-black font-mono tracking-widest text-slate-900 select-all break-all">
+                  <p className="text-2xl sm:text-3xl font-semibold font-mono tracking-widest text-slate-900 select-all break-all">
                     {kod.kod}
                   </p>
-                  <p className="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-emerald-700">
+                  <p className="flex items-center justify-center gap-1.5 text-yardimci font-semibold text-emerald-700">
                     <Icon name="takvim" size="xs" />
                     {kalanSureMetni(kod.kalan_saniye)} geçerli
                   </p>
@@ -281,8 +281,8 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                 </div>
 
                 <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-3.5 space-y-1.5">
-                  <p className="text-[11px] font-bold text-slate-700">Alıcı ne yapacak?</p>
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                  <p className="text-yardimci font-bold text-slate-700">Alıcı ne yapacak?</p>
+                  <p className="text-yardimci text-slate-600 leading-relaxed">
                     OTO.CV&apos;de <strong>Araç Devir</strong> sayfasında bu aracın plakasını yazıp
                     &quot;Devir kodum var&quot; seçeneğinden bu kodu girmesi yeterli. Kodu girdiğinde
                     devralacağı sicili önce görecek, sonra onaylayacak.
@@ -304,12 +304,12 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                 <div className="bg-slate-50/80 border border-slate-200 rounded-2xl p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <Icon name="kalkan" size="sm" className="text-slate-500" />
-                    <p className="text-[11px] font-black uppercase tracking-wider text-slate-700">
+                    <p className="text-yardimci font-semibold uppercase tracking-wider text-slate-700">
                       Devirde ne aktarılıyor
                     </p>
                   </div>
                   {/* Rıza metni TAM görünüyor: gizlemek devrin dayanağını zayıflatır. */}
-                  <p className="text-[11px] text-slate-600 leading-relaxed">{RIZA_METNI}</p>
+                  <p className="text-yardimci text-slate-600 leading-relaxed">{RIZA_METNI}</p>
                 </div>
 
                 <label className="flex items-start gap-2.5 cursor-pointer select-none">
@@ -324,7 +324,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   </span>
                 </label>
                 {gonderildi && !onayVerildi && (
-                  <p className="text-[11px] font-bold text-rose-600 -mt-2">
+                  <p className="text-yardimci font-bold text-rose-600 -mt-2">
                     Devam etmek için onay kutusunu işaretlemeniz gerekiyor.
                   </p>
                 )}
@@ -350,7 +350,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
               {talepler.length === 0 ? (
                 <div className="py-8 text-center space-y-2">
                   <p className="text-xs font-bold text-slate-700">Bekleyen talep yok</p>
-                  <p className="text-[11px] text-slate-500 leading-relaxed max-w-xs mx-auto">
+                  <p className="text-yardimci text-slate-500 leading-relaxed max-w-xs mx-auto">
                     Aracı satın alan kişi OTO.CV&apos;den devir talebi gönderirse burada görünür.
                     Ya da yukarıdaki sekmeden kod üretip doğrudan iletebilirsiniz.
                   </p>
@@ -359,7 +359,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                 <>
                   <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 flex items-start gap-2">
                     <Icon name="uyari" size="sm" className="text-amber-600 shrink-0 mt-0.5" />
-                    <p className="text-[11px] text-slate-700 leading-relaxed">
+                    <p className="text-yardimci text-slate-700 leading-relaxed">
                       <strong>Tanımadığınız birini onaylamayın.</strong> Onaylamadığınız sürece
                       araç sizde kalır. Onayladığınızda sicil ve belgeler karşı tarafa geçer ve
                       bu işlem geri alınamaz.
@@ -369,10 +369,10 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   {talepler.map((t) => (
                     <div key={t.id} className="border border-slate-200 rounded-xl p-4 space-y-3">
                       <div className="flex items-baseline justify-between gap-2">
-                        <p className="text-xs font-black text-slate-900 truncate">
+                        <p className="text-xs font-semibold text-slate-900 truncate">
                           {t.isteyen || 'İsim belirtilmemiş'}
                         </p>
-                        <span className="text-[10px] font-semibold text-slate-400 shrink-0 tabular-nums">
+                        <span className="text-etiket font-semibold text-slate-400 shrink-0 tabular-nums">
                           {new Date(t.olustu).toLocaleDateString('tr-TR', {
                             day: '2-digit', month: '2-digit', year: 'numeric',
                             hour: '2-digit', minute: '2-digit',
@@ -380,7 +380,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                         </span>
                       </div>
                       {t.mesaj && (
-                        <p className="text-[11px] text-slate-600 leading-relaxed bg-slate-50 border border-slate-200/80 rounded-lg p-2.5">
+                        <p className="text-yardimci text-slate-600 leading-relaxed bg-slate-50 border border-slate-200/80 rounded-lg p-2.5">
                           {t.mesaj}
                         </p>
                       )}

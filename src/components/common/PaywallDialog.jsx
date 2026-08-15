@@ -132,7 +132,7 @@ export default function PaywallDialog({
         {DEMO_MOD && (
           <div className="bg-amber-400 text-slate-950 px-5 py-2 flex items-center justify-center gap-2 shrink-0">
             <Icon name="uyari" size="xs" strokeWidth={2.5} />
-            <span className="text-[11px] font-black uppercase tracking-wider">
+            <span className="text-yardimci font-semibold uppercase tracking-wider">
               Demo — gerçek ödeme alınmıyor
             </span>
           </div>
@@ -149,10 +149,10 @@ export default function PaywallDialog({
           </button>
 
           <div className="space-y-1 pr-10">
-            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600">
+            <p className="text-etiket font-semibold uppercase tracking-widest text-indigo-600">
               Ücretli işlem
             </p>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
+            <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
               {baslik || urun.ad}
             </h3>
             <p className="text-sm text-slate-500 font-normal leading-relaxed">
@@ -176,21 +176,21 @@ export default function PaywallDialog({
 
           <div className="flex items-end justify-between border-t border-slate-100 pt-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+              <p className="text-etiket font-bold uppercase tracking-wide text-slate-400">
                 Tek seferlik
               </p>
-              <p className="text-3xl font-black text-slate-900 tabular-nums leading-none mt-0.5">
+              <p className="text-3xl font-semibold text-slate-900 tabular-nums leading-none mt-0.5">
                 {fiyatYaz(urun.fiyat)}
               </p>
               {urun.sureGun && (
-                <p className="text-[11px] text-slate-500 font-medium mt-1">
+                <p className="text-yardimci text-slate-500 font-medium mt-1">
                   {urun.sureGun} gün geçerli
                 </p>
               )}
             </div>
             {/* Abonelik DEĞİL olduğu açıkça yazıyor: tekrar eden ödeme
                 beklentisi oluşmasın. */}
-            <p className="text-[11px] text-slate-400 font-medium text-right max-w-[45%] leading-relaxed">
+            <p className="text-yardimci text-slate-400 font-medium text-right max-w-[45%] leading-relaxed">
               Abonelik değil, tekrar eden ödeme yok
             </p>
           </div>
@@ -225,7 +225,7 @@ export default function PaywallDialog({
           </div>
 
           {DEMO_MOD && (
-            <p className="text-[11px] text-slate-400 leading-relaxed text-center">
+            <p className="text-yardimci text-slate-400 leading-relaxed text-center">
               Ödeme altyapısı henüz bağlı değil. Bu adım işlemi ücretsiz
               tamamlar; kartınızdan hiçbir tutar çekilmez.
             </p>

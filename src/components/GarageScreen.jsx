@@ -267,14 +267,14 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
                   üç aracına filo demek, ileride iki farklı şeyin aynı adı
                   taşıması demekti. */}
               <p className="text-xs sm:text-sm font-bold tracking-tight truncate">
-                Süre Uyarısı: <span className="underline underline-offset-2 font-black">{criticalVehicles.length} aracınızın</span> sigorta, kasko veya muayene süresi kritik seviyede!
+                Süre Uyarısı: <span className="underline underline-offset-2 font-semibold">{criticalVehicles.length} aracınızın</span> sigorta, kasko veya muayene süresi kritik seviyede!
               </p>
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
               <button 
                 onClick={() => toast.bilgi('Sigorta teklifleri yakında bu ekranda listelenecek.')}
-                className="bg-white hover:bg-red-50 text-red-600 text-xs font-black px-4 py-2 rounded-xl transition-all active:scale-95 shadow-sm cursor-pointer"
+                className="bg-white hover:bg-red-50 text-red-600 metin-yardimci font-semibold px-4 py-2 rounded-xl transition-all active:scale-95 shadow-sm cursor-pointer"
               >
                 Hemen Teklif Al
               </button>
@@ -328,23 +328,23 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
               Artık tıklanınca liste süzülüyor. */}
           <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100">
             <div className="flex items-center gap-2 sm:gap-3" role="group" aria-label="Araç süzgeci">
-              <Sayac
+              <SuzgecCipi
                 deger={vehicles.length}
-                etiket="Kayıtlı araç"
+                etiket="Tümü"
                 secili={suzgec === 'tumu'}
                 onSec={() => setSuzgec('tumu')}
               />
-              <Sayac
+              <SuzgecCipi
                 deger={satistaSayisi}
                 etiket="Vitrinde"
-                renk="text-emerald-600"
+                renk="bg-emerald-50 text-emerald-700"
                 secili={suzgec === 'satista'}
                 onSec={() => setSuzgec(suzgec === 'satista' ? 'tumu' : 'satista')}
               />
-              <Sayac
+              <SuzgecCipi
                 deger={criticalVehicles.length}
                 etiket="Süresi kritik"
-                renk="text-rose-600"
+                renk="bg-rose-50 text-rose-700"
                 secili={suzgec === 'kritik'}
                 onSec={() => setSuzgec(suzgec === 'kritik' ? 'tumu' : 'kritik')}
               />
@@ -359,7 +359,11 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
           </div>
 
           <div className="px-5 py-4">
-            <h2 className="etiket text-slate-400 mb-3">
+            {/* `.etiket text-slate-500` idi: 10px/900 ve beyaz üzerinde 2.56:1
+                  kontrast — WCAG AA eşiği 4.5:1. Bir BÖLÜM BAŞLIĞI etiket
+                  boyutunda ve okunamayacak kadar soluktu; üstelik altındaki
+                  kartların başlığından (12px) küçüktü, yani hiyerarşi tersti. */}
+            <h2 className="baslik-kart text-slate-700 mb-3">
               Ne yapmak istiyorsunuz?
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -373,7 +377,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
         <div className="flex items-center gap-2 pt-1 flex-wrap">
           <h2 className="baslik-bolum text-slate-900">Araçlarım</h2>
           {!loading && vehicles.length > 0 && (
-            <span className="metin-yardimci text-slate-400 font-mono tabular-nums">
+            <span className="metin-yardimci text-slate-500 font-mono tabular-nums">
               {gorunenAraclar.length}
             </span>
           )}
@@ -385,7 +389,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
             <button
               type="button"
               onClick={() => setSuzgec('tumu')}
-              className="inline-flex items-center gap-1.5 min-h-[28px] px-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-black hover:bg-indigo-100 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+              className="inline-flex items-center gap-1.5 min-h-[28px] px-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 metin-yardimci font-semibold hover:bg-indigo-100 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
             >
               {SUZGEC_ADI[suzgec]}
               <Icon name="kapat" size="xs" />
@@ -403,7 +407,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
         ) : error ? (
           <div
             role="alert"
-            className="py-10 px-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-bold flex items-center justify-center gap-2"
+            className="py-10 px-4 bg-red-50 border border-red-200 rounded-xl text-red-600 metin-yardimci font-semibold flex items-center justify-center gap-2"
           >
             <Icon name="uyari" size="md" />
             <span>Veritabanı bağlantı hatası: {error}</span>
@@ -506,7 +510,21 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
 //
 // Sıfır olan sayaç TIKLANMIYOR: boş bir listeye götüren düğme, kullanıcıya
 // bir şey vaat edip vermemek olurdu.
-function Sayac({ deger, etiket, renk = 'text-slate-900', secili = false, onSec }) {
+// SÜZGEÇ ÇİPİ — eskiden `Sayac` adında bir "istatistik" bloğuydu.
+//
+// ⚠ İŞLEV DEĞİL, BİÇİM YANLIŞTI. Bu ögeler en baştan beri tıklanabilir
+// süzgeçti (`aria-pressed`, seçili durumu, liste süzme). Ama görsel dilleri
+// gösterge paneli istatistiğiydi: dev bir rakam, altında küçük etiket.
+// Kullanıcı süzgeç olduğunu anlamıyor, bağlamsız bir sayı görüyordu —
+// "bu ne dedirtiyor" tepkisinin sebebi buydu.
+//
+// İkinci kusur: rakam `.sayi-vurgu` ile 24px/900 idi, yani SAYFA BAŞLIĞINDAN
+// (20px) büyük. Ekran "bu sayfadaki en önemli şey 10 sayısı" diyordu.
+//
+// Artık tanınabilir bir süzgeç çipi: önce etiket, sonra sayı rozeti. Seçili
+// olan dolu, diğerleri çerçeveli. Sayı hâlâ görünüyor ama hiyerarşinin
+// tepesini işgal etmiyor.
+function SuzgecCipi({ deger, etiket, renk = 'bg-slate-100 text-slate-700', secili = false, onSec }) {
   const bos = deger === 0;
 
   return (
@@ -515,18 +533,21 @@ function Sayac({ deger, etiket, renk = 'text-slate-900', secili = false, onSec }
       onClick={onSec}
       disabled={bos && !secili}
       aria-pressed={secili}
-      className={`text-left px-3 py-2 rounded-xl border transition-colors min-w-0 ${
+      className={`inline-flex items-center gap-2 pl-3 pr-2 min-h-[36px] rounded-full border transition-colors
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 ${
         bos && !secili
-          ? 'border-transparent cursor-default'
+          ? 'border-slate-200 bg-white text-slate-400 cursor-default'
           : secili
-            ? 'border-indigo-300 bg-indigo-50/70 cursor-pointer'
-            : 'border-transparent hover:bg-slate-50 hover:border-slate-200 cursor-pointer'
-      } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600`}
+            ? 'border-indigo-600 bg-indigo-600 text-white cursor-pointer'
+            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 cursor-pointer'
+      }`}
     >
-      <span className={`sayi-vurgu block font-mono ${bos ? 'text-slate-300' : renk}`}>
+      <span className="metin-yardimci font-medium whitespace-nowrap">{etiket}</span>
+      <span className={`etiket font-mono tabular-nums px-1.5 py-0.5 rounded-full ${
+        secili ? 'bg-white/20 text-white' : bos ? 'bg-slate-100 text-slate-400' : renk
+      }`}>
         {deger}
       </span>
-      <span className="block text-[10px] font-bold text-slate-500 mt-1 truncate">{etiket}</span>
     </button>
   );
 }
@@ -559,12 +580,12 @@ function MerkezEylem({ eylem, onAc }) {
         >
           <Icon name={eylem.ikon} size="md" />
         </span>
-        <span className={`text-xs font-black tracking-tight ${kapali ? 'text-slate-400' : 'text-slate-900'}`}>
+        <span className={`baslik-kart ${kapali ? 'text-slate-500' : 'text-slate-900'}`}>
           {eylem.baslik}
         </span>
       </span>
 
-      <span className={`block text-[11px] font-semibold leading-relaxed ${kapali ? 'text-slate-400' : 'text-slate-500'}`}>
+      <span className={`block metin-yardimci leading-relaxed ${kapali ? 'text-slate-500' : 'text-slate-500'}`}>
         {kapali ? eylem.kapali : eylem.ozet}
       </span>
     </button>
@@ -662,23 +683,23 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
               className="w-full h-full object-contain"
             />
           ) : (
-            <span className="text-[10px] font-black text-slate-400 text-center leading-tight">
+            <span className="etiket text-slate-500 text-center leading-tight">
               GÖRSEL<br />YOK
             </span>
           )}
         </div>
 
         <div className="order-3 sm:order-none basis-full sm:basis-auto sm:flex-1 min-w-0 flex flex-col items-start space-y-1.5">
-          <div className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono font-black text-xs h-7 overflow-hidden select-none shadow-sm shrink-0">
-            <div className="bg-[#003399] text-white text-[9px] font-sans font-bold flex flex-col items-center justify-center px-1.5 h-full leading-none shrink-0">
+          <div className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono h-7 overflow-hidden select-none shadow-sm shrink-0">
+            <div className="bg-[#003399] text-white etiket font-sans flex flex-col items-center justify-center px-1.5 h-full leading-none shrink-0">
               <span>TR</span>
             </div>
-            <div className="px-3 text-slate-900 tracking-wider uppercase h-full flex items-center bg-white font-mono text-sm font-black shrink-0">
+            <div className="px-3 text-slate-900 tracking-wider uppercase h-full flex items-center bg-white font-mono text-sm font-semibold shrink-0">
               {plate.replace(/\s+/g, '').replace(/^(\d{2})([A-Z]{1,3})(\d{2,4})$/, '$1 $2 $3')}
             </div>
           </div>
           
-          <h3 className="baslik-bolum text-slate-900 truncate w-full">
+          <h3 className="baslik-kart text-slate-900 truncate w-full">
             {vehicle.brand} {vehicle.model}
           </h3>
           {/* `truncate`: km altı haneli olunca satır iki satıra sarıyor ve o
@@ -691,7 +712,7 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
           {/* Vitrin durumu ince bir çip. TUTAR GÖSTERİLMİYOR: araca ait
               herhangi bir fiyat, platformu satış sitesi konumuna sokuyor. */}
           {vehicle.is_listed && (
-            <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200/80 text-emerald-800 px-2 py-1 rounded-lg text-[10px] font-black">
+            <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200/80 text-emerald-800 px-2 py-1 rounded-lg etiket">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
               Vitrinde
             </span>
@@ -805,7 +826,7 @@ function PoliceCipi({ etiket, durum, onAc }) {
       onClick={onAc}
       className={`border px-2 py-1.5 rounded-xl flex flex-col justify-center items-start gap-0.5 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 shadow-2xs text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 ${durum.bgClass}`}
     >
-      <span className="text-[9px] font-black uppercase tracking-wider opacity-60">{etiket}</span>
+      <span className="etiket opacity-70">{etiket}</span>
       {/* `truncate` KALDIRILDI: tablette ölçüldü, "Süresi Doldu" 70px'lik
           kutuda 72px istiyordu ve "Süresi Do..." diye kesiliyordu. Kesmek
           bilgi kaybettiriyor; sarmak kaybettirmiyor. Üç çip aynı ızgara
@@ -813,7 +834,7 @@ function PoliceCipi({ etiket, durum, onAc }) {
           yükseltiyor, yani hiza bozulmuyor. */}
       <span className="flex items-start gap-1.5 w-full min-w-0">
         <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1 ${durum.dotClass}`} />
-        <span className="text-[11px] font-black leading-tight">{durum.text}</span>
+        <span className="metin-yardimci font-semibold leading-tight">{durum.text}</span>
       </span>
     </button>
   );
@@ -831,8 +852,8 @@ function MenuOgesi({ ikon, etiket, ipucu, onSec }) {
         <Icon name={ikon} size="sm" />
       </span>
       <span className="min-w-0">
-        <span className="block text-xs font-black text-slate-800">{etiket}</span>
-        <span className="block text-[10px] text-slate-500 font-semibold">{ipucu}</span>
+        <span className="block metin-govde font-semibold text-slate-800">{etiket}</span>
+        <span className="block metin-yardimci text-slate-500">{ipucu}</span>
       </span>
     </button>
   );

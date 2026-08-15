@@ -188,7 +188,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
             <div className="w-12 h-12 mx-auto rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
               <Icon name="onay" size="md" />
             </div>
-            <h3 className="text-xl font-black text-slate-900 tracking-tight">Başvurunuz alındı</h3>
+            <h3 className="text-xl font-semibold text-slate-900 tracking-tight">Başvurunuz alındı</h3>
             <p className="text-sm text-slate-500 font-normal leading-relaxed">
               {gonderildi.yol === 'otomatik'
                 ? 'Yedi günlük bekleme süresi başladı. Süre dolduğunda bu ekrandan ödemeyi yapıp sicili garajınıza alabilirsiniz.'
@@ -206,7 +206,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
         ) : talep && talep.durum === 'bekliyor' ? (
           /* ---------- BEKLEYEN BAŞVURU ---------- */
           <div className="space-y-4 pt-1">
-            <h3 className="text-xl font-black text-slate-900 tracking-tight text-center">
+            <h3 className="text-xl font-semibold text-slate-900 tracking-tight text-center">
               {talep.yol === 'otomatik' ? 'Bekleme süreniz sürüyor' : 'Başvurunuz inceleniyor'}
             </h3>
 
@@ -237,10 +237,10 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
               ) : (
                 <>
                   <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center">
-                    <p className="text-3xl font-black text-slate-900 tabular-nums leading-none">
+                    <p className="text-3xl font-semibold text-slate-900 tabular-nums leading-none">
                       {kalanGun(talep.tamamlanabilir_at)}
                     </p>
-                    <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wide mt-1">
+                    <p className="text-yardimci text-slate-500 font-bold uppercase tracking-wide mt-1">
                       gün kaldı
                     </p>
                   </div>
@@ -279,7 +279,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
               <div className="w-12 h-12 mx-auto rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
                 <Icon name="kalkan" size="md" />
               </div>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
+              <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
                 Bu aracın sicili sistemde kayıtlı
               </h3>
               <p className="text-sm text-slate-500 font-normal leading-relaxed">
@@ -291,7 +291,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
             {/* Sayılar GERÇEK: veritabanından sayılıyor, tahmin değil. */}
             {onizleme && (
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5">
-                <p className="text-sm font-black text-slate-900">
+                <p className="text-sm font-semibold text-slate-900">
                   {onizleme.yil} {onizleme.marka} {onizleme.model}
                 </p>
                 <div className="grid grid-cols-3 gap-2 text-center">
@@ -301,8 +301,8 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                     ['Sicil puanı', onizleme.sicil_puani],
                   ].map(([etiket, deger]) => (
                     <div key={etiket} className="bg-white border border-slate-200 rounded-lg py-2">
-                      <div className="text-lg font-black text-slate-900 tabular-nums">{deger}</div>
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{etiket}</div>
+                      <div className="text-lg font-semibold text-slate-900 tabular-nums">{deger}</div>
+                      <div className="text-etiket text-slate-500 font-bold uppercase tracking-wide">{etiket}</div>
                     </div>
                   ))}
                 </div>
@@ -312,7 +312,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
             {/* YOL SEÇİMİ. Farkı gizlemiyoruz: hızlı yolda belgelerin
                 gelmeyeceği seçim anında yazıyor, sonradan sürpriz olmuyor. */}
             <div className="space-y-2.5">
-              <p className="text-xs font-black text-slate-700">Nasıl devralmak istersiniz?</p>
+              <p className="text-xs font-semibold text-slate-700">Nasıl devralmak istersiniz?</p>
 
               {[
                 {
@@ -341,11 +341,11 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                   }`}
                 >
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-sm font-black text-slate-900">{s.baslik}</span>
-                    <span className="text-[11px] text-slate-500 font-bold">{s.ozet}</span>
+                    <span className="text-sm font-semibold text-slate-900">{s.baslik}</span>
+                    <span className="text-yardimci text-slate-500 font-bold">{s.ozet}</span>
                   </div>
-                  <p className="text-[11px] text-emerald-700 font-medium mt-1.5">+ {s.artilar}</p>
-                  <p className="text-[11px] text-slate-500 font-medium">− {s.eksiler}</p>
+                  <p className="text-yardimci text-emerald-700 font-medium mt-1.5">+ {s.artilar}</p>
+                  <p className="text-yardimci text-slate-500 font-medium">− {s.eksiler}</p>
                 </button>
               ))}
             </div>
@@ -360,7 +360,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                 />
                 {/* Beyan metni TAM görünüyor: hukuki dayanağı bu ve gizlenirse
                     dayanak zayıflar. Metin veritabanında aynen saklanıyor. */}
-                <span className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                <span className="text-yardimci text-slate-600 font-medium leading-relaxed">
                   {BEYAN_METNI}
                 </span>
               </label>
@@ -378,7 +378,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                   onChange={dosyaSec}
                   className="block w-full text-xs text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 file:cursor-pointer cursor-pointer"
                 />
-                <p className="text-[11px] text-slate-400 leading-relaxed">
+                <p className="text-yardimci text-slate-400 leading-relaxed">
                   JPG, PNG, WEBP, HEIC ya da PDF · en fazla 10 MB. Belgeniz özel
                   alanda saklanır, yalnızca inceleme için görüntülenir.
                 </p>
@@ -407,7 +407,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
               </button>
             </div>
 
-            <p className="text-[11px] text-slate-400 leading-relaxed text-center">
+            <p className="text-yardimci text-slate-400 leading-relaxed text-center">
               Başvuru ücretsizdir. Ödeme, devralma anında alınır.
             </p>
           </div>

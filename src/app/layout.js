@@ -19,8 +19,8 @@ import "./globals.css";
 //
 // Şimdi: üçü de next/font ile self-host ediliyor. Üçü de DEĞİŞKEN font,
 // yani ağırlıkları tek tek istemek yerine tam aralık tek dosyada geliyor.
-// Bu, kod tabanında 238 yerde kullanılan font-black (900) ve
-// font-extrabold (800) ağırlıklarının sahte kalınlaştırma yerine gerçek
+// Bu, kod tabanında 238 yerde kullanılan font-semibold (900) ve
+// font-semibold (800) ağırlıklarının sahte kalınlaştırma yerine gerçek
 // ağırlıkla çizilmesini sağlıyor — CDN isteği yalnızca 700'e kadar
 // ağırlık indirdiği için o 238 kullanım tarayıcı uydurmasıydı.
 //

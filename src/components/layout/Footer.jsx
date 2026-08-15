@@ -19,7 +19,7 @@ function Sutun({ baslik, children }) {
           başlık hiyerarşisinde h1 -> h3 atlaması oluşuyordu (denetimde
           dashboard, mesajlar, sorgu geçmişi ve devir sayfalarında ölçüldü).
           Ekran okuyucu kullanıcısı için başlık ağacı bozuk demek. */}
-      <h2 className="text-[10px] font-black text-slate-900 tracking-wider uppercase">{baslik}</h2>
+      <h2 className="etiket text-slate-700">{baslik}</h2>
       <ul className="space-y-1">{children}</ul>
     </div>
   );
@@ -30,7 +30,7 @@ function HazirLink({ href, children }) {
     <li>
       <Link
         href={href}
-        className="flex items-center min-h-[36px] text-[11px] font-semibold text-slate-600 hover:text-indigo-600 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+        className="flex items-center min-h-[36px] metin-yardimci text-slate-600 hover:text-indigo-600 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
       >
         {children}
       </Link>
@@ -42,7 +42,7 @@ function YakindaOge({ children }) {
   return (
     <li>
       <span
-        className="flex items-center min-h-[36px] text-[11px] font-semibold text-slate-400 cursor-not-allowed select-none"
+        className="flex items-center min-h-[36px] metin-yardimci text-slate-500 cursor-not-allowed select-none"
         title="Yakında"
       >
         {children}
@@ -96,7 +96,7 @@ export default function Footer() {
 
       <div className="border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span className="text-[10px] font-semibold text-slate-400">
+          <span className="metin-yardimci text-slate-500">
             © {yil} Oto.CV · Tüm hakları saklıdır
           </span>
           {/* "Yasal metinler hazırlanıyor" yazıyordu ve o zaman doğruydu:
@@ -109,7 +109,7 @@ export default function Footer() {
               testleri üç sayfada birden kırıldı. */}
           <Link
             href="/kvkk"
-            className="inline-flex items-center min-h-[36px] text-[10px] font-medium text-slate-400 hover:text-slate-600 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+            className="inline-flex items-center min-h-[36px] metin-yardimci text-slate-500 hover:text-slate-700 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
           >
             Verileriniz nasıl işleniyor?
           </Link>

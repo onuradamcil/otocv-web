@@ -23,7 +23,7 @@ export default function Error({ error, reset }) {
     <div className="min-h-screen bg-[#FFFDFB] text-[#0F172A] font-sans antialiased flex flex-col">
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center">
-          <Link href="/" className={`text-base font-black tracking-tight text-slate-900 rounded ${ODAK}`}>
+          <Link href="/" className={`text-base font-semibold tracking-tight text-slate-900 rounded ${ODAK}`}>
             OTO.CV
           </Link>
         </div>
@@ -31,12 +31,12 @@ export default function Error({ error, reset }) {
 
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="bg-white border border-gray-200 rounded-2xl p-8 md:p-10 max-w-md w-full text-center space-y-5 shadow-sm">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 border border-rose-100 rounded-full text-rose-600 text-[10px] font-black tracking-wider uppercase">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 border border-rose-100 rounded-full text-rose-600 text-etiket font-semibold tracking-wider uppercase">
             Beklenmeyen Hata
           </span>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Bir şeyler ters gitti</h1>
+            <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Bir şeyler ters gitti</h1>
             <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed">
               Sayfa yüklenirken bir sorun oluştu. Tekrar denemek çoğu zaman yeterli oluyor.
               Sorun sürerse bir süre sonra tekrar deneyin.

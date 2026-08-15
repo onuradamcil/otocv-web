@@ -220,7 +220,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
             <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.67 2.67 0 1113.5 17.25l-5.83-5.83m5.83 3.75l-4.17-4.17m4.17 4.17L9.42 11.17M13.5 17.25l-4.17-4.17M11.42 15.17l-4.17-4.17M11.42 15.17L5.58 9.33A2.67 2.67 0 119.33 5.58l5.83 5.83M5.58 9.33l4.17 4.17M5.58 9.33L7.67 11.42M9.33 5.58l4.17 4.17M9.33 5.58L11.42 7.67" />
             </svg>
-            <h3 className="font-black text-base tracking-wide">Servis & Bakım Kaydı İşle</h3>
+            <h3 className="font-semibold text-base tracking-wide">Servis & Bakım Kaydı İşle</h3>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors p-1">
             <Icon name="kapat" size="lg" strokeWidth={2.5} />
@@ -229,11 +229,11 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
 
         {/* 🚀 ROZET ALANI: DÜZ YAZIDAN KURUMSAL KABARTMA GOFRAJ PLAKAYA GEÇİŞ */}
         <div className="bg-slate-50 border-b border-gray-100 px-6 py-3.5 flex items-center gap-4">
-          <div className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono font-black text-xs h-7 overflow-hidden shadow-sm shrink-0">
-            <div className="bg-[#003399] text-white text-[9px] font-sans font-bold flex flex-col items-center justify-center px-1.5 h-full leading-none shrink-0">
+          <div className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono font-semibold text-xs h-7 overflow-hidden shadow-sm shrink-0">
+            <div className="bg-[#003399] text-white text-etiket font-sans font-bold flex flex-col items-center justify-center px-1.5 h-full leading-none shrink-0">
               <span>TR</span>
             </div>
-            <div className="px-3 text-slate-900 tracking-wider uppercase h-full flex items-center bg-white font-mono text-sm font-black shrink-0">
+            <div className="px-3 text-slate-900 tracking-wider uppercase h-full flex items-center bg-white font-mono text-sm font-semibold shrink-0">
               {activePlate.replace(/\s+/g, '').replace(/^(\d{2})([A-Z]{1,3})(\d{2,4})$/, '$1 $2 $3')}
             </div>
           </div>
@@ -247,14 +247,14 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
           
           {/* SEGMENT SEÇİCİ */}
           <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-slate-500 tracking-wide block uppercase">İŞLEM TÜRÜ VE KATEGORİZASYON *</label>
+            <label className="text-yardimci font-bold text-slate-500 tracking-wide block uppercase">İŞLEM TÜRÜ VE KATEGORİZASYON *</label>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 p-1.5 bg-slate-50 border border-gray-200 rounded-xl">
               {['Periyodik Bakım', 'Mekanik Bakım', 'Tamir / Onarım', 'Sarf Malzeme', 'Dış İşlem'].map((type) => {
                 const isSel = serviceType === type;
                 return (
                   <button
                     key={type} type="button" onClick={() => setServiceType(type)}
-                    className={`py-2 px-1 rounded-lg text-[10px] sm:text-[11px] font-bold tracking-tight text-center transition-all ${
+                    className={`py-2 px-1 rounded-lg text-etiket sm:text-yardimci font-bold tracking-tight text-center transition-all ${
                       isSel ? 'bg-[#4F46E5] text-white shadow-sm' : 'bg-white text-slate-600 border border-gray-200/60 hover:text-slate-900'
                     }`}
                   >
@@ -268,7 +268,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
           {/* İŞLEM TARİHİ VE USTA ALANLARI */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 tracking-wide block uppercase">İşlem Tarihi *</label>
+              <label className="text-yardimci font-bold text-slate-500 tracking-wide block uppercase">İşlem Tarihi *</label>
               <input 
                 type="text" placeholder="GG/AA/YYYY" value={serviceDate}
                 className={`w-full px-3 py-2.5 bg-white border rounded-xl text-sm font-semibold font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all ${
@@ -277,16 +277,16 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
                 onChange={(e) => handleDateChange(e.target.value)}
               />
               {dateError && (
-                <p role="alert" className="text-[10px] text-red-600 font-bold tracking-wide mt-1 flex items-center gap-1">
+                <p role="alert" className="text-etiket text-red-600 font-bold tracking-wide mt-1 flex items-center gap-1">
                   <Icon name="uyari" size="xs" />
                   {dateError}
                 </p>
               )}
-              {!dateError && submitAttempted && !serviceDate && <p className="text-[10px] text-red-500 font-bold mt-1">Takvim tarihi zorunludur.</p>}
+              {!dateError && submitAttempted && !serviceDate && <p className="text-etiket text-red-500 font-bold mt-1">Takvim tarihi zorunludur.</p>}
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 tracking-wide block uppercase">Kurum / Usta *</label>
+              <label className="text-yardimci font-bold text-slate-500 tracking-wide block uppercase">Kurum / Usta *</label>
               <input 
                 type="text" placeholder="Örn: Yetkili Servis (Borusan)" value={shopName}
                 className={`w-full px-3 py-2.5 bg-white border rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all ${
@@ -294,14 +294,14 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
                 }`}
                 onChange={(e) => setShopName(e.target.value)}
               />
-              {submitAttempted && !shopName.trim() && <p className="text-[10px] text-red-500 font-bold mt-1">Servis / Atölye ismi zorunludur.</p>}
+              {submitAttempted && !shopName.trim() && <p className="text-etiket text-red-500 font-bold mt-1">Servis / Atölye ismi zorunludur.</p>}
             </div>
           </div>
 
           {/* KM VE MALİYET ALANLARI */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 tracking-wide block uppercase">Servis KM *</label>
+              <label className="text-yardimci font-bold text-slate-500 tracking-wide block uppercase">Servis KM *</label>
               <input 
                 type="text" placeholder="Örn: 42.000" value={km}
                 className={`w-full px-3 py-2.5 bg-white border rounded-xl text-sm font-semibold font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all ${
@@ -309,11 +309,11 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
                 }`}
                 onChange={(e) => formatNumberInput(e.target.value, setKm)}
               />
-              {submitAttempted && !km && <p className="text-[10px] text-red-500 font-bold mt-1">Servis kilometresi zorunludur.</p>}
+              {submitAttempted && !km && <p className="text-etiket text-red-500 font-bold mt-1">Servis kilometresi zorunludur.</p>}
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 tracking-wide block uppercase">Tutar (TL) *</label>
+              <label className="text-yardimci font-bold text-slate-500 tracking-wide block uppercase">Tutar (TL) *</label>
               <input 
                 type="text" placeholder="Örn: 8.500" value={cost}
                 className={`w-full px-3 py-2.5 bg-white border rounded-xl text-sm font-semibold font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all ${
@@ -321,14 +321,14 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
                 }`}
                 onChange={(e) => formatNumberInput(e.target.value, setCost)}
               />
-              {submitAttempted && !cost && <p className="text-[10px] text-red-500 font-bold mt-1">Maliyet faturası zorunludur.</p>}
+              {submitAttempted && !cost && <p className="text-etiket text-red-500 font-bold mt-1">Maliyet faturası zorunludur.</p>}
             </div>
           </div>
 
           {/* KOŞULLU GELECEK KM ALANI */}
           {serviceType === 'Periyodik Bakım' && (
             <div className="space-y-1.5 transform transition-all duration-500 ease-out origin-top animate-scaleUp">
-              <label className="text-[11px] font-bold text-indigo-600 tracking-wide block uppercase">BİR SONRAKI YAĞ DEĞİŞİM KİLOMETRESİ (KM)</label>
+              <label className="text-yardimci font-bold text-indigo-600 tracking-wide block uppercase">BİR SONRAKI YAĞ DEĞİŞİM KİLOMETRESİ (KM)</label>
               <input 
                 type="text" placeholder="Örn: 135.000 (Opsiyonel / Akıllı Alarm)" value={nextServiceKm} maxLength={11}
                 className="w-full px-3 py-2.5 bg-white border border-gray-300 focus:border-indigo-600 rounded-xl font-semibold text-sm font-mono tracking-wide focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all shadow-inner text-slate-800"
@@ -339,7 +339,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
 
           {/* CLOUD DROPZONE */}
           <div className="space-y-1.5 pt-1">
-            <label className="text-[11px] font-bold text-slate-500 tracking-wide block uppercase">Servis Makbuzu / Faturası</label>
+            <label className="text-yardimci font-bold text-slate-500 tracking-wide block uppercase">Servis Makbuzu / Faturası</label>
             <input 
               type="file" id="dialog-invoice" accept="image/*,application/pdf" className="hidden"
               onChange={(e) => setInvoiceFile(e.target.files[0])}
@@ -368,7 +368,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
 
           {/* 🚀 PLAN ENTEGRASYONU: YAPILAN İŞLEM ÖZETİ (ZORUNLU ALAN & 60 KARAKTER SINIRI) */}
           <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-slate-500 tracking-wide block uppercase">Yapılan İşlem Özeti *</label>
+            <label className="text-yardimci font-bold text-slate-500 tracking-wide block uppercase">Yapılan İşlem Özeti *</label>
             <textarea 
               placeholder="Örn: Ön fren balataları yenilendi ve hidrolik sıvıları tamamlandı."
               value={summary} rows={3}
@@ -379,7 +379,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
               onChange={(e) => setSummary(e.target.value)}
             />
             {submitAttempted && !summary.trim() && (
-              <p className="text-[10px] text-red-500 font-bold mt-1">Yapılan işlem özeti zorunludur (Maks. 60 karakter).</p>
+              <p className="text-etiket text-red-500 font-bold mt-1">Yapılan işlem özeti zorunludur (Maks. 60 karakter).</p>
             )}
           </div>
 
@@ -397,7 +397,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
           {/* REAKTİF MÜHÜRLENDİ REÇETESİ BUTONU */}
           <button
             type="button" onClick={handleSave} disabled={isSaving || dateError || isSuccess}
-            className={`w-40 py-3 rounded-xl font-black text-xs shadow-md transition-all duration-300 flex items-center justify-center gap-2 ${
+            className={`w-40 py-3 rounded-xl font-semibold text-xs shadow-md transition-all duration-300 flex items-center justify-center gap-2 ${
               isSuccess
                 ? 'bg-emerald-600 text-white scale-102 shadow-emerald-600/20' 
                 : isSaving || dateError

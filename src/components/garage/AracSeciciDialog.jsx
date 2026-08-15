@@ -147,10 +147,10 @@ export default function AracSeciciDialog({
             <Icon name={ikon} size="lg" />
           </div>
           <div className="min-w-0 flex-1">
-            <h2 id="arac-secici-baslik" className="text-sm font-black text-slate-900 tracking-tight">
+            <h2 id="arac-secici-baslik" className="text-sm font-semibold text-slate-900 tracking-tight">
               {baslik}
             </h2>
-            <p className="text-[11px] text-slate-500 font-semibold mt-0.5 leading-relaxed">{aciklama}</p>
+            <p className="text-yardimci text-slate-500 font-semibold mt-0.5 leading-relaxed">{aciklama}</p>
           </div>
           <button
             type="button"
@@ -196,12 +196,12 @@ export default function AracSeciciDialog({
                       : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 active:scale-[0.99] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600'
                   }`}
                 >
-                  <span className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono font-black h-6 overflow-hidden shrink-0">
+                  <span className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono font-semibold h-6 overflow-hidden shrink-0">
                     <span className="bg-[#003399] text-white text-[8px] font-sans font-bold px-1 h-full flex items-center">TR</span>
                     {/* Kartlardaki biçimin aynısı: "41IHH434" değil
                         "41 IHH 434". Aynı plakayı iki ekranda iki farklı
                         biçimde görmek, kullanıcıya farklı araç hissi verir. */}
-                    <span className="px-2 text-slate-900 text-[11px] tracking-wider uppercase h-full flex items-center whitespace-nowrap">
+                    <span className="px-2 text-slate-900 text-yardimci tracking-wider uppercase h-full flex items-center whitespace-nowrap">
                       {(v.plate_number || '')
                         .replace(/\s+/g, '')
                         .replace(/^(\d{2})([A-Z]{1,3})(\d{2,4})$/, '$1 $2 $3')}
@@ -209,16 +209,16 @@ export default function AracSeciciDialog({
                   </span>
 
                   <span className="min-w-0 flex-1">
-                    <span className="block text-xs font-black text-slate-900 truncate">
+                    <span className="block text-xs font-semibold text-slate-900 truncate">
                       {v.brand} {v.model}
                     </span>
-                    <span className="block text-[10px] text-slate-500 font-bold font-mono">
+                    <span className="block text-etiket text-slate-500 font-bold font-mono">
                       {v.year} • {v.km ? Number(v.km).toLocaleString('tr-TR') : '0'} km
                     </span>
                   </span>
 
                   {sebep ? (
-                    <span className="text-[10px] font-black text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0">
+                    <span className="text-etiket font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0">
                       {sebep}
                     </span>
                   ) : (
