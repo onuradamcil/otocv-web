@@ -166,3 +166,26 @@ export const fetchMarketplaceListings = async (filters = {}) => {
     return { success: false, error: error.message, data: [] };
   }
 };
+/**
+ * Vitrin görüntülenmesini kaydeder.
+ *
+ * "Kaç KEZ" değil "kaç FARKLI KİŞİ": sunucu oturum açmışsa `auth.uid()`,
+ * ziyaretçide ise tarayıcıdaki kalıcı kimlikle tekilleştiriyor. Araç sahibi
+ * kendi aracını saydırmıyor.
+ *
+ * ⚠ SESSİZ ÇALIŞIYOR. Bu bir yan etki; kullanıcının yaptığı bir iş değil.
+ * Başarısız olması ekranda hata göstermeyi hak etmiyor ve sayfayı hiçbir
+ * şekilde bloke etmemeli.
+ */
+export const recordListingView = async (pin) => {
+  try {
+    if (!pin) return;
+    const { izleyiciKimligi } = await import('../utils/izleyiciKimligi');
+    await supabase.rpc('vitrin_goruntulendi', {
+      p_pin: pin,
+      p_anon_kimlik: izleyiciKimligi(),
+    });
+  } catch {
+    /* yan etki: sessizce vazgeçiliyor */
+  }
+};

@@ -21,6 +21,7 @@ import { pinNormalize } from '@/utils/pinUretici';
 import VehicleDetailsScreen from '@/components/VehicleDetailsScreen';
 import GlobalStepLoader from '@/components/common/GlobalStepLoader';
 import SahipsizSicilEkrani from '@/components/common/SahipsizSicilEkrani';
+import { recordListingView } from '@/services/marketplaceService';
 
 export default function VehicleDetailsPage() {
   const router = useRouter();
@@ -136,6 +137,24 @@ export default function VehicleDetailsPage() {
     loadVehicle();
     return () => { cancelled = true; };
   }, [pin, tetik]);
+
+  // GÖRÜNTÜLENME KAYDI — yalnızca ziyaretçi görünümünde.
+  //
+  // ⚠ BU HOOK ERKEN `return`'LERDEN ÖNCE DURMAK ZORUNDA.
+  // İlk denemede son `return`'ün hemen üstüne konmuştu; oradaki konum
+  // yükleme/hata durumlarındaki erken `return`'lerin ARDINDA kalıyor ve
+  // hook koşullu hâle geliyordu. React "önceki render'dan farklı sayıda
+  // hook" diye patlıyor, hata sınırı devreye giriyor ve sayfa "Bu sayfa
+  // açılamadı" ekranına düşüyordu — yedi test bunu yakaladı.
+  //
+  // Koşul artık hook'un GÖVDESİNDE: hook her render'da çalışıyor, işi
+  // yapıp yapmamaya içeride karar veriyor.
+  useEffect(() => {
+    if (isOwner || !vehicle?.pin_code) return;
+    // Sahip kendi kartını günde beş kez açıyor; sunucu da ayrıca
+    // denetliyor, buradaki kontrol yalnızca gereksiz çağrıyı önlüyor.
+    recordListingView(vehicle.pin_code);
+  }, [isOwner, vehicle?.pin_code]);
 
   if (status === 'loading') {
     // Tek çark yerine iskelet: gelen içeriğin şeklini taşır.

@@ -26,10 +26,37 @@
 #
 # 2. AŞAMA (sonraki adım): yerel Supabase (`supabase start`) koşum içinde
 #    ayağa kaldırılır ve testler ona yazar. Böylece CI canlı veritabanına
-#    hiç dokunmaz. Ön koşulu: `supabase/migrations/` içinde tabloları
-#    SIFIRDAN oluşturan bir temel migration olması. Şu an yalnızca ALTER
-#    içeren 5 migration var; tabloların ilk oluşturulma kaydı yok, çünkü
-#    panelden oluşturulmuşlar. `supabase db pull` bunu üretir.
+#    hiç dokunmaz.
+#
+#    ÖN KOŞUL — ÖLÇÜLDÜ (2026-08-15): `supabase/migrations/` altında artık
+#    28 dosya var ve 13 tablo migration'la oluşturuluyor. Ama BEŞ TABLO hâlâ
+#    kapsanmıyor, üstelik en eski ve en merkezi olanlar:
+#
+#        profiles · vehicles · listings · maintenance_records · notifications
+#
+#    Bunlar Supabase panelinden elle oluşturulmuş, yani `supabase start` ile
+#    açılan boş bir veritabanında YOKLAR. Onlara dayanan her migration
+#    (favoriler, devir, mesajlaşma, görüntülenme...) sırayla patlar.
+#
+#    Temel migration'ın kapsaması gereken hacim, canlıdan sayıldı:
+#        82 kolon · 16 kısıt · 23 indeks · 16 RLS politikası · 7 tetikleyici
+#
+#    Bunu elle yeniden yazmak hataya çok açık; doğru yol `supabase db pull`.
+#    Komut, projeye bağlanmak için VERİTABANI ŞİFRESİ istiyor — o bir sır ve
+#    ürün sahibinin vermesi gerekiyor. Şifre verildiğinde tek komutla
+#    üretiliyor:
+#
+#        npx supabase link --project-ref zjfxwvmcouuyrebltmwz
+#        npx supabase db pull    # -> supabase/migrations/<zaman>_remote_schema.sql
+#
+#    Üretilen dosya mevcut migration'ların EN BAŞINA (en küçük zaman damgası)
+#    konmalı, yoksa sıra yine bozulur.
+#
+#    ⚠ BU ADIM TAMAMLANANA KADAR testler CANLI veritabanına yazmaya devam
+#    ediyor. Her tam koşum devir kodu, konuşma, bildirim ve satın alma kaydı
+#    üretiyor; bunlar elle temizleniyor. Ayrıca 2 günlük devir süresinin
+#    dolması da otomatik test edilemiyor, çünkü tarihi geriye almak
+#    `service_role` gerektiriyor (07-devir.spec.js içindeki nota bakın).
 #
 # NEDEN CI CANLI VERİTABANINA YAZMIYOR: form testi gerçek bir bakım kaydı
 # oluşturuyor ve trust_score'u +5 yapıyor. Her push'ta bunun olması, canlı
