@@ -206,7 +206,7 @@ export default function OzetEkrani() {
 
       {/* SAYAÇ ŞERİDİ — hepsi gerçek veriden, hiçbiri varsayılan değil. */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <SayiKarti sayi={kritikler.length} etiket="İlgi bekleyen belge" ikon="uyari" vurgu={kritikler.length > 0} />
+        <SayiKarti sayi={kritikler.length} etiket="Acil bakılmalı" ikon="uyari" vurgu={kritikler.length > 0} />
         <SayiKarti sayi={aracSayisi} etiket="Kayıtlı araç" ikon="arac" />
         <SayiKarti sayi={bakim.toplam} etiket="Bakım kaydı" ikon="anahtar" />
         <SayiKarti sayi={vitrin.adet} etiket="Vitrinde" ikon="goz" />
@@ -214,7 +214,7 @@ export default function OzetEkrani() {
 
       {/* 1 · İLGİ BEKLEYENLER — panelin asıl sebebi */}
       <Bolum
-        baslik="İlgi bekleyen belgeler"
+        baslik="Acil bakılması gerekenler"
         aciklama={kritikler.length > 0
           ? 'Süresi dolmuş ya da 30 günden az kalmış belgeler.'
           : 'Süresi dolmuş ya da yaklaşan belge yok.'}
@@ -258,7 +258,7 @@ export default function OzetEkrani() {
           aciliyet yok, sıradaki ne olduğu önemli. */}
       {guvenli.length > 0 && (
         <Bolum
-          baslik="Sıradaki belgeler"
+          baslik="Yaklaşan tarihler"
           aciklama="Tarihi en yakın olanlar."
           sag={
             <button

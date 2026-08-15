@@ -87,7 +87,7 @@ test.describe('Bana Özel Özet', () => {
     // Kritik = süresi dolmuş ya da 30 günden az kalmış. Panel "Aktif" bir
     // belgeyi kritik listesine koyuyorsa kullanıcıyı boşuna telaşlandırır;
     // tersi daha kötü — dolmuş belgeyi saklar.
-    const bolum = page.locator('section', { hasText: 'İlgi bekleyen belgeler' }).first();
+    const bolum = page.locator('section', { hasText: 'Acil bakılması gerekenler' }).first();
     await expect(bolum).toBeVisible();
 
     const metin = (await bolum.textContent()) || '';
@@ -134,7 +134,7 @@ test.describe('Bana Özel Özet', () => {
   test('TARİHİ GİRİLMEMİŞ belge uyari listesine girmiyor', async ({ page }) => {
     // "Girilmedi" bir uyarı değil, eksik veri. Uyarı listesine girerse
     // kullanıcı olmayan bir sorunu kovalar.
-    const bolum = page.locator('section', { hasText: 'İlgi bekleyen belgeler' }).first();
+    const bolum = page.locator('section', { hasText: 'Acil bakılması gerekenler' }).first();
     const metin = (await bolum.textContent()) || '';
     expect(metin, 'tarihi girilmemiş belge uyarı listesinde').not.toContain('Girilmedi');
   });
