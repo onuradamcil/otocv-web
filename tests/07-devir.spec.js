@@ -701,6 +701,24 @@ test.describe('Gelen talepler ve bildirim hedefi', () => {
 // da üretiyor. İkisi birden çalışsaydı kullanıcı iki kez ücretlendirilmiş
 // görünürdü. Diyalog bu yüzden `kaydiCagiranUretir` ile açılıyor.
 // =========================================================================
+// =========================================================================
+// SÜRE DOLUMU — ELLE DOĞRULANDI, OTOMATİK TESTİ YOK
+//
+// 2 günlük ödeme süresinin dolması gerçek zamanda beklenemez. Doğrulama
+// `odeme_son_tarih` service_role ile geriye alınarak yapıldı ve ölçüldü:
+//
+//   ödeme denemesi   -> basarili=false, hata='suresi_doldu'
+//   istek durumu     -> 'suresi_doldu'
+//   devir kodu       -> iptal edildi
+//   kod tekrar kullanilabilir mi -> HAYIR
+//   araç             -> sahibinde kaldı
+//   iki tarafın listelerinden de düştü
+//
+// ⚠ BU DENETİM CI'DA KOŞMUYOR: tarihi geriye almak `service_role` gerektiriyor,
+// testler ise anon anahtarla çalışıyor. CI yerel Supabase'e geçtiğinde
+// otomatikleştirilebilir — o zamana kadar süre mantığında yapılan bir
+// değişiklik elle doğrulanmalı.
+// =========================================================================
 test.describe('Devir ücreti demo ödemesi', () => {
 
   test('arayüzdeki tutar sunucudakiyle aynı', async () => {
