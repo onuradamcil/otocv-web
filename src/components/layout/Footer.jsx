@@ -61,7 +61,10 @@ export default function Footer() {
 
           <div className="space-y-3">
             <span className="text-base font-display font-bold tracking-tight text-slate-900 block">OTO.CV</span>
-            <p className="text-[11px] text-slate-500 font-medium leading-relaxed max-w-[240px]">
+            {/* Keyfi 11px yerine ölçekteki `.metin-yardimci` (12px). Bu bir
+                cümle, etiket değil; alt bilgi her sayfada olduğu için ölçek
+                dışı kalması tipografiyi her ekranda deliyordu. */}
+            <p className="metin-yardimci text-slate-500 font-medium leading-relaxed max-w-[240px]">
               Aracınızın bakım geçmişini dijital sicil olarak tutun, sigorta ve muayene
               tarihlerini kaçırmayın, karnenizi tek bağlantıyla paylaşın.
             </p>

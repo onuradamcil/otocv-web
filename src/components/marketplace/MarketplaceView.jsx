@@ -498,7 +498,13 @@ export default function MarketplaceView({
                       <h4 className={`text-xs font-bold text-slate-900 transition-colors ${k.yazi}`}>
                         {k.ad}
                       </h4>
-                      <p className="text-[10px] text-slate-500 font-normal leading-tight mt-0.5">
+                      {/* `.metin-yardimci` (12px) — keyfi bir piksel değeri
+                          DEĞİL. Burada 10px vardı; bunlar ETİKET değil CÜMLE
+                          ve projedeki ölçekte 10px (`.etiket`) yalnızca büyük
+                          harfli kısa etiketler için. Arada 11px denendi ama o
+                          da ölçeğin dışında kalıyordu: keyfi değerler zaten
+                          tipografi ölçeğinin çözmek için var olduğu sorun. */}
+                      <p className="metin-yardimci text-slate-500 font-normal leading-snug mt-0.5">
                         {k.ozet}
                       </p>
                     </div>

@@ -174,8 +174,12 @@ export default function Header() {
     ? tamAd.split(' ').filter(Boolean).slice(0, 2).map((p) => p.charAt(0).toLocaleUpperCase('tr-TR')).join('')
     : (user?.email?.charAt(0)?.toLocaleUpperCase('tr-TR') || '?');
 
+  // ⚠ SIRALAMA: `/dashboard` EN ÜSTTEYDİ ama içeriği bir "yapım aşamasında"
+  // yer tutucusu. Menünün ilk maddesi, kullanıcının en çok tıkladığı yerdir;
+  // oraya boş bir ekran koymak ürünün çalışmadığı izlenimi veriyordu.
+  // Gerçekten çalışan ve en sık kullanılan ekran (garaj) başa alındı; özet
+  // hazır olana kadar aşağıda ve "yakında" etiketiyle duruyor.
   const HESAP_MENU = [
-    { href: '/dashboard', label: 'Bana Özel Özet' },
     { href: '/garage', label: 'Tescilli Taşıtlarım (Garaj)' },
     { href: '/my-listings', label: 'Vitrindeki Araçlarım' },
     { href: '/favorilerim', label: 'Favorilerim' },
@@ -183,6 +187,7 @@ export default function Header() {
     { href: '/query-history', label: 'Sorgulama Geçmişim' },
     { href: '/packages', label: 'Ücretler & Ödemeler' },
     { href: '/account', label: 'Hesabım' },
+    { href: '/dashboard', label: 'Bana Özel Özet', yakinda: true },
   ];
 
   return (
@@ -199,7 +204,11 @@ export default function Header() {
               OTO.CV
             </Link>
 
-            <nav aria-label="Ana menü" className="hidden md:flex items-center gap-6 text-xs font-bold text-slate-500">
+            {/* `py-2`: menü bağlantıları 16px yüksekliğindeydi — WCAG 2.2'nin
+                24px'lik hedef asgarisinin altında. Dikey dolgu, görünümü
+                değiştirmeden isabet alanını büyütüyor; `items-center` hizayı
+                koruyor. */}
+            <nav aria-label="Ana menü" className="hidden md:flex items-center gap-6 text-xs font-bold text-slate-500 [&_a]:py-2 [&_span]:py-2">
               {/* "Pazaryeri Vitrini" KALDIRILDI: logonun gittiği yere
                   gidiyordu (ikisi de `/`). Menüde ikinci bir anasayfa
                   bağlantısı yer kaplıyor ama hiçbir yere GÖTÜRMÜYOR —
@@ -348,6 +357,11 @@ export default function Header() {
                             {/* Rozet YALNIZCA sayı sıfırdan büyükse basılıyor.
                                 "0" göstermek okunmamış mesaj varmış izlenimi
                                 veriyor ve rozetin anlamını öldürüyor. */}
+                            {m.yakinda && (
+                              <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400 border border-slate-200 rounded px-1.5 py-0.5">
+                                Yakında
+                              </span>
+                            )}
                             {m.rozet > 0 && (
                               <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-600 text-white text-[10px] font-black grid place-items-center">
                                 {m.rozet > 99 ? '99+' : m.rozet}

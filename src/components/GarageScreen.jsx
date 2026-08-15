@@ -634,8 +634,15 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
   return (
     <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-[0_4px_20px_rgba(15,23,42,0.03)] hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition-all duration-300 flex flex-col gap-4 group hover:border-slate-300">
 
-      {/* KATMAN 1 — KİMLİK */}
-      <div className="flex gap-4 items-start">
+      {/* KATMAN 1 — KİMLİK
+          `flex-wrap` + `basis-full`: MOBİLDE ÖLÇÜLDÜ, bilgi sütununa yalnızca
+          121px kalıyordu (küçük resim 76px + skor rozeti + boşluklar geri
+          kalanı yiyordu). Sonuç: araç adı 170px isterken kesiliyor, hatta
+          KİLOMETRE kesiliyordu — sicil ürününde kilometre kritik veri.
+          Artık dar ekranda küçük resim ve skor üstte, kimlik bilgisi altta
+          tam genişlikte. `sm` ve üstünde eski tek satırlık düzen aynen
+          duruyor (masaüstünde taşma zaten yoktu). */}
+      <div className="flex flex-wrap gap-4 items-start">
         {/* THUMBNAIL — SIĞDIR, KIRPMA.
             Eskiden `object-cover` idi: görsel kutuyu dolduruyor ama aracın
             kenarları kırpılıyordu. Bir araç görselinde kırpılan şey genellikle
@@ -661,7 +668,7 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
           )}
         </div>
 
-        <div className="flex-1 min-w-0 flex flex-col items-start space-y-1.5">
+        <div className="order-3 sm:order-none basis-full sm:basis-auto sm:flex-1 min-w-0 flex flex-col items-start space-y-1.5">
           <div className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono font-black text-xs h-7 overflow-hidden select-none shadow-sm shrink-0">
             <div className="bg-[#003399] text-white text-[9px] font-sans font-bold flex flex-col items-center justify-center px-1.5 h-full leading-none shrink-0">
               <span>TR</span>
@@ -693,7 +700,7 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
 
         {/* Skor rozeti: eskiden `text-xs sm:text-sm` idi — aynı bilgi ekran
             genişliğine göre boyut değiştiriyordu, oysa önemi değişmiyor. */}
-        <div className="bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl text-right shrink-0 select-none">
+        <div className="ml-auto sm:ml-0 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl text-right shrink-0 select-none">
           <span className="metin-yardimci text-indigo-700 block font-mono">
             Skor: %{score}
           </span>
@@ -799,9 +806,14 @@ function PoliceCipi({ etiket, durum, onAc }) {
       className={`border px-2 py-1.5 rounded-xl flex flex-col justify-center items-start gap-0.5 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 shadow-2xs text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 ${durum.bgClass}`}
     >
       <span className="text-[9px] font-black uppercase tracking-wider opacity-60">{etiket}</span>
-      <span className="flex items-center gap-1.5 w-full min-w-0">
-        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${durum.dotClass}`} />
-        <span className="text-[11px] font-black truncate leading-none">{durum.text}</span>
+      {/* `truncate` KALDIRILDI: tablette ölçüldü, "Süresi Doldu" 70px'lik
+          kutuda 72px istiyordu ve "Süresi Do..." diye kesiliyordu. Kesmek
+          bilgi kaybettiriyor; sarmak kaybettirmiyor. Üç çip aynı ızgara
+          satırında olduğu için ikinci satıra taşan biri diğerlerini de
+          yükseltiyor, yani hiza bozulmuyor. */}
+      <span className="flex items-start gap-1.5 w-full min-w-0">
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1 ${durum.dotClass}`} />
+        <span className="text-[11px] font-black leading-tight">{durum.text}</span>
       </span>
     </button>
   );
