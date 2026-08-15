@@ -254,6 +254,22 @@ export const CIZIMLER = {
     </>
   ),
 
+  // DEVİR — sicilin bir sahipten diğerine geçmesi.
+  //
+  // NİYE EKLENDİ: garaj ekranında "Aracı devret" kartı `anahtar` ikonunu
+  // kullanıyordu, ama bu kayıtta `anahtar` bir İNGİLİZ ANAHTARI ve yukarıdaki
+  // yorumunda açıkça "servis/bakım" diye tanımlı. Yani devir kartı bakım
+  // ikonu taşıyordu, bakım kartı da takvim (takvim "randevu" demek, yapılmış
+  // bir servisi kaydetmek değil). İki kart da yanlış ikondaydı.
+  //
+  // Metafor: karşılıklı iki ok. Küçük boyutta "el değiştirme" en okunur
+  // böyle çıkıyor; anahtar teslimi çizmek 24px'te tanınmaz oluyor.
+  devir: (
+    <>
+      <path d="M4 8.6h13.2l-3.1-3.1M20 15.4H6.8l3.1 3.1" />
+    </>
+  ),
+
   // PIN — 6 haneli sicil sorgulama kodu alanı. Rakam basmaz; okunabilirlik
   // için 4 nokta ile soyutlanır.
   pinKod: (

@@ -200,7 +200,9 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
   const EYLEMLER = [
     {
       tur: 'ilan',
-      ikon: 'ilan',
+      // `ilan` (pano) ikonuydu: hem zayıf bir metafor hem de tanımlayıcı
+      // adı bu üründe yasaklı kelime. Vitrine çıkarmak = GÖRÜNÜR olmak.
+      ikon: 'goz',
       baslik: 'Vitrine çıkar',
       ozet: 'Aracınızı pazaryeri vitrininde gösterin; bilgiler ve sicil karta otomatik gelsin.',
       kapali: vehicles.length === 0 ? 'Önce araç kaydedin' : (satilabilirSayisi === 0 ? 'Tüm araçlarınız vitrinde' : null),
@@ -213,7 +215,10 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
     },
     {
       tur: 'devir',
-      ikon: 'anahtar',
+      // `anahtar` bu kayıtta İNGİLİZ ANAHTARI ve yorumunda "servis/bakım"
+      // diye tanımlı — devir kartı bakım ikonu taşıyordu. Kayda eklenen
+      // `devir` (karşılıklı oklar) ikonuna geçti.
+      ikon: 'devir',
       baslik: 'Aracı devret',
       ozet: 'Yeni sahibine sicili aktarın. Bakım geçmişi araçla birlikte gidiyor.',
       kapali: vehicles.length === 0 ? 'Önce araç kaydedin' : null,
@@ -226,7 +231,9 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
     },
     {
       tur: 'bakim',
-      ikon: 'takvim',
+      // `takvim` idi: takvim RANDEVU demek, yapılmış bir servisi kaydetmek
+      // değil. Kayıttaki `anahtar` zaten "servis/bakım" için tanımlı.
+      ikon: 'anahtar',
       baslik: 'Bakım işle',
       ozet: 'Servis kaydı ekleyin; belgelendikçe aracın sicil puanı yükseliyor.',
       kapali: vehicles.length === 0 ? 'Önce araç kaydedin' : null,
@@ -256,11 +263,21 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
               : 'max-h-0 opacity-0 mb-0 py-0 pointer-events-none'
           }`}
         >
-          <div className="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white px-5 py-3.5 rounded-2xl shadow-lg shadow-red-600/20 border border-red-500/30 flex items-center justify-between gap-4 select-none">
+          {/* ⚠ SES SEVİYESİ DÜŞÜRÜLDÜ.
+              Bant tam genişlikte kırmızı gradyan + gölge idi ve sayfanın EN
+              yüksek sesli ögesiydi — sayfa başlığından bile baskın. Oysa
+              taşıdığı şey bir uyarı, sayfanın konusu değil.
+
+              Uyarı rengi duruyor ama dolgu yerine ince çerçeve + açık zemin:
+              göze çarpıyor, bağırmıyor. Aciliyet renkle anlatılıyor, alanla
+              değil. */}
+          <div className="bg-rose-50 border border-rose-200 text-rose-900 px-5 py-3.5 rounded-2xl flex items-center justify-between gap-4 select-none">
             <div className="flex items-center gap-3 min-w-0">
               <span className="relative flex h-3 w-3 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                {/* Nokta beyazdı — koyu kırmızı zeminde görünüyordu, açık
+                    zemine geçince kayboldu. Uyarı rengine alındı. */}
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
               </span>
               {/* "Filo Uyarısı" değil: "filo" kelimesi kurumsal ürüne
                   ayrıldı (bkz. TODO — üyelik tipi). Bireysel kullanıcının
@@ -274,7 +291,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
             <div className="flex items-center gap-3 shrink-0">
               <button 
                 onClick={() => toast.bilgi('Sigorta teklifleri yakında bu ekranda listelenecek.')}
-                className="bg-white hover:bg-red-50 text-red-600 metin-yardimci font-semibold px-4 py-2 rounded-xl transition-all active:scale-95 shadow-sm cursor-pointer"
+                className="bg-rose-600 hover:bg-rose-700 text-white metin-yardimci font-semibold px-4 py-2 rounded-xl transition-colors active:scale-95 cursor-pointer shrink-0"
               >
                 Hemen Teklif Al
               </button>
@@ -285,7 +302,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
                 onClick={() => setIsBannerDismissed(true)}
                 title="Uyarıyı Kapat"
                 aria-label="Uyarıyı kapat"
-                className="text-white/80 hover:text-white p-1.5 hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+                className="text-rose-500 hover:text-rose-800 p-1.5 hover:bg-rose-100 rounded-xl transition-colors cursor-pointer shrink-0"
               >
                 <Icon name="kapat" size="md" strokeWidth={2.5} />
               </button>
@@ -321,51 +338,27 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
           aria-label="Araç Merkezi"
           className="bg-white border border-slate-200 rounded-3xl shadow-[0_4px_20px_rgba(15,23,42,0.03)] overflow-hidden select-none"
         >
-          {/* SAYAÇLAR ARTIK SÜZGEÇ.
-              Eskiden yalnızca sayı basıyorlardı: "1 süresi kritik" yazıyor
-              ama hangi araç olduğunu bulmak için otuz kartı tek tek gezmek
-              gerekiyordu. Sayı bir sorunun cevabı değil, sorunun kendisiydi.
-              Artık tıklanınca liste süzülüyor. */}
-          <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100">
-            <div className="flex items-center gap-2 sm:gap-3" role="group" aria-label="Araç süzgeci">
-              <SuzgecCipi
-                deger={vehicles.length}
-                etiket="Tümü"
-                secili={suzgec === 'tumu'}
-                onSec={() => setSuzgec('tumu')}
-              />
-              <SuzgecCipi
-                deger={satistaSayisi}
-                etiket="Vitrinde"
-                renk="bg-emerald-50 text-emerald-700"
-                secili={suzgec === 'satista'}
-                onSec={() => setSuzgec(suzgec === 'satista' ? 'tumu' : 'satista')}
-              />
-              <SuzgecCipi
-                deger={criticalVehicles.length}
-                etiket="Süresi kritik"
-                renk="bg-rose-50 text-rose-700"
-                secili={suzgec === 'kritik'}
-                onSec={() => setSuzgec(suzgec === 'kritik' ? 'tumu' : 'kritik')}
-              />
-            </div>
+          {/* ⚠ SÜZGEÇ ÇİPLERİ BURADAN TAŞINDI — "Araçlarım" başlığının yanına.
+              Çipler AŞAĞIDAKİ araç ızgarasını süzüyor ama burada, "Ne yapmak
+              istiyorsunuz?" bloğunun ÜSTÜNDE duruyorlardı. Yani denetim ile
+              denetlediği şeyin arasına koca bir bölüm giriyordu; kullanıcı
+              çiplerin neyi etkilediğini göremiyordu.
 
-            <button onClick={onNavigateToAdd} className={dugme('birincil', { ek: 'w-full sm:w-auto shrink-0' })}>
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              Yeni Araç Kaydet
+              Taşımak bir tekrarı da bitirdi: "Araçlarım 10" ile "Tümü 10"
+              aynı sayıyı iki kez söylüyordu. */}
+          <div className="px-5 py-4 flex items-center justify-between gap-4 border-b border-slate-100">
+            <h2 className="baslik-kart text-slate-700">
+              Ne yapmak istiyorsunuz?
+            </h2>
+
+            <button onClick={onNavigateToAdd} className={dugme('birincil', { ek: 'shrink-0' })}>
+              <Icon name="arti" size="sm" strokeWidth={2.5} />
+              <span className="hidden sm:inline">Yeni Araç Kaydet</span>
+              <span className="sm:hidden">Araç Kaydet</span>
             </button>
           </div>
 
           <div className="px-5 py-4">
-            {/* `.etiket text-slate-500` idi: 10px/900 ve beyaz üzerinde 2.56:1
-                  kontrast — WCAG AA eşiği 4.5:1. Bir BÖLÜM BAŞLIĞI etiket
-                  boyutunda ve okunamayacak kadar soluktu; üstelik altındaki
-                  kartların başlığından (12px) küçüktü, yani hiyerarşi tersti. */}
-            <h2 className="baslik-kart text-slate-700 mb-3">
-              Ne yapmak istiyorsunuz?
-            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {EYLEMLER.map((e) => (
                 <MerkezEylem key={e.tur} eylem={e} onAc={() => setSeciciTuru(e.tur)} />
@@ -374,13 +367,34 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
           </div>
         </section>
 
-        <div className="flex items-center gap-2 pt-1 flex-wrap">
-          <h2 className="baslik-bolum text-slate-900">Araçlarım</h2>
-          {!loading && vehicles.length > 0 && (
-            <span className="metin-yardimci text-slate-500 font-mono tabular-nums">
-              {gorunenAraclar.length}
-            </span>
-          )}
+        {/* SÜZGEÇ ARTIK LİSTENİN YANINDA. Denetim, denetlediği şeyle aynı
+            satırda; hangi çipin neyi süzdüğü bakılır bakılmaz anlaşılıyor.
+            Ayrı bir "10" sayacı yok — "Tümü 10" çipi zaten onu söylüyor. */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
+          <h2 className="baslik-bolum text-slate-900 shrink-0">Araçlarım</h2>
+
+          <div className="flex items-center gap-2 flex-wrap" role="group" aria-label="Araç süzgeci">
+            <SuzgecCipi
+              deger={vehicles.length}
+              etiket="Tümü"
+              secili={suzgec === 'tumu'}
+              onSec={() => setSuzgec('tumu')}
+            />
+            <SuzgecCipi
+              deger={satistaSayisi}
+              etiket="Vitrinde"
+              renk="bg-emerald-50 text-emerald-700"
+              secili={suzgec === 'satista'}
+              onSec={() => setSuzgec(suzgec === 'satista' ? 'tumu' : 'satista')}
+            />
+            <SuzgecCipi
+              deger={criticalVehicles.length}
+              etiket="Süresi kritik"
+              renk="bg-rose-50 text-rose-700"
+              secili={suzgec === 'kritik'}
+              onSec={() => setSuzgec(suzgec === 'kritik' ? 'tumu' : 'kritik')}
+            />
+          </div>
 
           {/* Etkin süzgeç çip olarak görünüyor ve temizlenebiliyor. Süzgecin
               görünmez olması, kullanıcının "araçlarım kayboldu" sanmasının
@@ -434,7 +448,13 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
+          /* `items-start` KALDIRILDI. Onunla kartlar içeriği kadar yükseliyordu;
+             "VİTRİNDE" çipi olan kart diğerlerinden uzun kalıyor ve satır
+             hizası bozuluyordu. Varsayılan `stretch` ile aynı satırdaki
+             kartlar eşit yükseklikte; eylem düğmeleri de aynı hizaya oturuyor.
+             ⚠ Burası bir üçlü ifadenin içi, JSX değil. Süslü parantezli JSX
+             yorumu burada geçersiz; düz JS yorumu kullanılıyor. */
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {gorunenAraclar.map((vehicle, index) => (
               <VehicleCard
                 key={vehicle.id || vehicle.plate_number || `car-${index}`}
@@ -543,8 +563,12 @@ function SuzgecCipi({ deger, etiket, renk = 'bg-slate-100 text-slate-700', secil
       }`}
     >
       <span className="metin-yardimci font-medium whitespace-nowrap">{etiket}</span>
-      <span className={`etiket font-mono tabular-nums px-1.5 py-0.5 rounded-full ${
-        secili ? 'bg-white/20 text-white' : bos ? 'bg-slate-100 text-slate-400' : renk
+      {/* Sayı rozeti etiketten BİR KADEME İLERİDE: 13px, yarı kalın, tabular.
+          Çip artık sayfa başlığıyla yarışmadığı (bölüm başlığının yanında)
+          için sayı hiyerarşiyi bozmadan öne çıkabiliyor. `tabular-nums`
+          şart: 9 -> 10 olunca çipin genişliği zıplamasın. */}
+      <span className={`metin-yardimci font-semibold font-mono tabular-nums min-w-[22px] text-center px-1.5 py-0.5 rounded-full ${
+        secili ? 'bg-white/25 text-white' : bos ? 'bg-slate-100 text-slate-400' : renk
       }`}>
         {deger}
       </span>
@@ -573,12 +597,18 @@ function MerkezEylem({ eylem, onAc }) {
       }`}
     >
       <span className="flex items-center gap-2.5 mb-2">
+        {/* 32px kutuda 16px ikondu: 15px başlık ve 13px açıklamanın yanında
+            cılız kalıyordu. 48px kutu / 24px ikon, kartın ağırlığına denk.
+            İki tonlu: renkli zemin + renkli çizgi; hover'da dolu hale
+            geçiyor, yani durum değişimi renkle değil DOLULUKLA anlatılıyor. */}
         <span
-          className={`w-8 h-8 rounded-xl grid place-items-center shrink-0 transition-colors ${
-            kapali ? 'bg-slate-100 text-slate-400' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'
+          className={`w-12 h-12 rounded-2xl grid place-items-center shrink-0 transition-colors ${
+            kapali
+              ? 'bg-slate-100 text-slate-400'
+              : 'bg-indigo-50 text-indigo-600 ring-1 ring-inset ring-indigo-100 group-hover:bg-indigo-600 group-hover:text-white group-hover:ring-indigo-600'
           }`}
         >
-          <Icon name={eylem.ikon} size="md" />
+          <Icon name={eylem.ikon} size="xl" strokeWidth={1.8} />
         </span>
         <span className={`baslik-kart ${kapali ? 'text-slate-500' : 'text-slate-900'}`}>
           {eylem.baslik}
