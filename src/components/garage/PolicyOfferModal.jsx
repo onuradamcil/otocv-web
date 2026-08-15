@@ -10,6 +10,7 @@ import React from 'react';
 import { generateGoogleCalendarUrl, parseVehicleDate } from '../../utils/dateHelper';
 import { useToast } from '../../context/ToastContext';
 import Icon from '../common/icons';
+import TrPlaka from '../common/TrPlaka';
 
 export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType, statusInfo }) {
   const toast = useToast();
@@ -76,9 +77,7 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
         <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl space-y-2.5">
           <div className="flex justify-between items-center text-xs font-bold text-slate-800">
             <span>{vehicle.brand} {vehicle.model} ({vehicle.year})</span>
-            <span className="font-mono text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
-              {vehicle.plate_number}
-            </span>
+            <TrPlaka plaka={vehicle.plate_number} boyut="sm" />
           </div>
 
           <div className="w-full h-px bg-slate-200/60" />

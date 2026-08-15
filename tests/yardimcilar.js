@@ -47,6 +47,41 @@ async function ornekPin() {
   return pinBul(ORNEK_PLAKA);
 }
 
+// =========================================================================
+// PLAKA SIZINTI DENETİMİ İKİ BİÇİMİ BİRDEN ARAMALI
+//
+// Plaka veritabanında BOŞLUKSUZ duruyor ('41IHH434') ama arayüz onu
+// `plakaBicimle` ile boşluklu basıyor ('41 IHH 434'). Sızıntı denetimleri
+// yalnızca veritabanı biçimini arasaydı, ekrana basılmış bir plakayı
+// GÖREMEZDİ ve test sessizce geçerdi — yani koruma değil, koruma görüntüsü
+// olurdu.
+//
+// Bu yüzden denetimler her iki biçimi de arıyor.
+// =========================================================================
+
+/**
+ * Bir plakanın arayüzde görünebileceği tüm biçimleri döndürür.
+ *
+ * ⚠ BOŞ PLAKADA HATA FIRLATIYOR, BOŞ DİZİ DÖNMÜYOR. Boş dizi dönseydi
+ * çağıran taraftaki `for (const bicim of ...)` döngüsü sıfır kez koşar ve
+ * sızıntı denetimi HİÇ ÇALIŞMADAN geçerdi. Atlanan test, koşmayan testtir;
+ * üstelik burada atlanan şey bir güvenlik denetimi.
+ *
+ * @param {string} plaka
+ * @returns {string[]}
+ */
+function plakaBicimleri(plaka) {
+  const ham = String(plaka || '').replace(/\s+/g, '').toUpperCase();
+  if (!ham) {
+    throw new Error(
+      'plakaBicimleri boş plaka aldı — sızıntı denetimi sessizce atlanacaktı. ' +
+      'Çağıran taraf plakayı gerçekten okuyabiliyor mu, ona bakın.'
+    );
+  }
+  const bosluklu = ham.replace(/^(\d{2})([A-Z]{1,3})(\d{2,4})$/, '$1 $2 $3');
+  return bosluklu === ham ? [ham] : [ham, bosluklu];
+}
+
 function ortam(ad) {
   const d = process.env[ad];
   if (!d) {
@@ -294,4 +329,5 @@ module.exports = {
   TEST_ISARETI,
   ornekPin,
   ORNEK_PLAKA,
+  plakaBicimleri,
 };

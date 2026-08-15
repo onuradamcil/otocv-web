@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { fetchMarketplaceListings } from '../../services/marketplaceService';
 import Icon from '../common/icons';
 import GlobalStepLoader from '../common/GlobalStepLoader';
+import TrPlaka from '../common/TrPlaka';
 
 export default function MyListingsScreen({ user, onNavigateToGarage }) {
   const [listings, setListings] = useState([]);
@@ -117,7 +118,15 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
 
                   {/* İLAN BAŞLIK VE LOKASYON */}
                   <div>
-                    <span className="text-etiket font-bold text-slate-500 font-mono uppercase">{item.year} • {item.vehicle_plate || item.plate_number}</span>
+                    {/* Plaka ÖNCEDEN HAM basılıyordu ('41IHH434'): bu ekran
+                        biçimleyici kullanmıyordu ve plaka veritabanında
+                        boşluksuz duruyor. */}
+                    <div className="flex items-center gap-2 mb-1">
+                      <TrPlaka plaka={item.vehicle_plate || item.plate_number} boyut="sm" />
+                      {item.year && (
+                        <span className="text-etiket font-semibold text-slate-500 tabular-nums">{item.year}</span>
+                      )}
+                    </div>
                     <h4 className="text-sm font-semibold text-slate-900 truncate">{item.brand} {item.model}</h4>
                     <p className="text-xs text-slate-500 font-medium truncate mt-0.5">{item.title}</p>
                   </div>

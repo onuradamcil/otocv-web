@@ -30,6 +30,7 @@ import AracSeciciDialog from './garage/AracSeciciDialog';
 import { dugme, ikonDugmesi } from './common/dugme';
 import Icon from './common/icons';
 import GlobalStepLoader from './common/GlobalStepLoader';
+import TrPlaka from './common/TrPlaka';
 
 export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMaintenance, onNavigateToAdd, onManageListings, onOpenVitrin }) {
   const toast = useToast();
@@ -720,14 +721,7 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
         </div>
 
         <div className="order-3 sm:order-none basis-full sm:basis-auto sm:flex-1 min-w-0 flex flex-col items-start space-y-1.5">
-          <div className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono h-7 overflow-hidden select-none shadow-sm shrink-0">
-            <div className="bg-[#003399] text-white etiket font-sans flex flex-col items-center justify-center px-1.5 h-full leading-none shrink-0">
-              <span>TR</span>
-            </div>
-            <div className="px-3 text-slate-900 tracking-wider uppercase h-full flex items-center bg-white font-mono text-sm font-semibold shrink-0">
-              {plate.replace(/\s+/g, '').replace(/^(\d{2})([A-Z]{1,3})(\d{2,4})$/, '$1 $2 $3')}
-            </div>
-          </div>
+          <TrPlaka plaka={plate} boyut="md" />
           
           <h3 className="baslik-kart text-slate-900 truncate w-full">
             {vehicle.brand} {vehicle.model}

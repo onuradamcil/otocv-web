@@ -32,6 +32,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Icon from '../common/icons';
+import TrPlaka from '../common/TrPlaka';
 
 export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, gonderiliyor }) {
   const [adim, setAdim] = useState(araclar.length > 0 ? 'araclar' : 'onay');
@@ -136,12 +137,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
                 <ul className="space-y-1.5">
                   {araclar.map((a) => (
                     <li key={a.plate_number} className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-200 bg-slate-50/60">
-                      <span className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono font-semibold h-6 overflow-hidden shrink-0">
-                        <span className="bg-[#003399] text-white text-[8px] font-sans font-bold px-1 h-full flex items-center">TR</span>
-                        <span className="px-2 text-slate-900 text-yardimci tracking-wider uppercase h-full flex items-center whitespace-nowrap">
-                          {(a.plate_number || '').replace(/\s+/g, '').replace(/^(\d{2})([A-Z]{1,3})(\d{2,4})$/, '$1 $2 $3')}
-                        </span>
-                      </span>
+                      <TrPlaka plaka={a.plate_number} boyut="sm" />
                       <span className="text-xs font-bold text-slate-700 truncate">{a.brand} {a.model}</span>
                     </li>
                   ))}

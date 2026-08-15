@@ -25,6 +25,7 @@ import { harcanmamisHak, kilitHatasi } from '../../../services/odemeService';
 import AracDevralDialog from './AracDevralDialog';
 import SahipsizGeriYukleDialog from './SahipsizGeriYukleDialog';
 import PaywallDialog from '../../common/PaywallDialog';
+import TrPlaka from '../../common/TrPlaka';
 
 // -------------------------------------------------------------------------
 // MÜKERRER PLAKA MODALININ ÜÇ ANLATIMI
@@ -1261,14 +1262,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
             </div>
 
             <div className="bg-slate-100/80 p-4 sm:p-5 rounded-xl flex items-center justify-center">
-              <div className="inline-flex items-center bg-white border-2 border-slate-900 rounded-lg overflow-hidden shadow-xs h-11 sm:h-12">
-                <div className="bg-[#003399] text-white px-3 h-full flex items-center justify-center font-mono font-semibold text-xs sm:text-sm select-none border-r border-slate-900">
-                  TR
-                </div>
-                <div className="px-5 font-mono font-semibold text-lg sm:text-xl text-slate-900 uppercase tracking-widest select-all">
-                  {duplicatePlateNumber}
-                </div>
-              </div>
+              <TrPlaka plaka={duplicatePlateNumber} boyut="lg" />
             </div>
 
             <div className="bg-rose-50/70 border border-rose-100 p-3.5 rounded-xl flex items-start gap-3">

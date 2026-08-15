@@ -199,8 +199,14 @@ test.describe('KVKK: plaka ziyaretçiye gösterilmiyor', () => {
     await belgeSekmesiniAc(page);
 
     const metin = await hamMetin(page);
-    const { ORNEK_PLAKA } = require('./yardimcilar');
-    expect(metin, 'plaka kişisel veri; ziyaretçiye gösterilmemeli').not.toContain(ORNEK_PLAKA);
+    const { ORNEK_PLAKA, plakaBicimleri } = require('./yardimcilar');
+    // ⚠ İKİ BİÇİM BİRDEN: veritabanı plakayı boşluksuz tutuyor ('41IHH434'),
+    // arayüz boşluklu basıyor ('41 IHH 434'). Yalnızca veritabanı biçimini
+    // aramak, ekrana basılmış bir plakayı GÖRMEZDİ.
+    for (const bicim of plakaBicimleri(ORNEK_PLAKA)) {
+      expect(metin, `plaka kişisel veri; ziyaretçiye "${bicim}" biçiminde gösterilmemeli`)
+        .not.toContain(bicim);
+    }
     expect(metin).toContain('KVKK kapsamında paylaşılmaz');
   });
 });

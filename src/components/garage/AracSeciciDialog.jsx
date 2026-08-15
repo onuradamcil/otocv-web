@@ -33,6 +33,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Icon from '../common/icons';
+import TrPlaka from '../common/TrPlaka';
 
 const ARAMA_ESIGI = 6;
 
@@ -196,17 +197,10 @@ export default function AracSeciciDialog({
                       : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 active:scale-[0.99] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600'
                   }`}
                 >
-                  <span className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono font-semibold h-6 overflow-hidden shrink-0">
-                    <span className="bg-[#003399] text-white text-[8px] font-sans font-bold px-1 h-full flex items-center">TR</span>
-                    {/* Kartlardaki biçimin aynısı: "41IHH434" değil
-                        "41 IHH 434". Aynı plakayı iki ekranda iki farklı
-                        biçimde görmek, kullanıcıya farklı araç hissi verir. */}
-                    <span className="px-2 text-slate-900 text-yardimci tracking-wider uppercase h-full flex items-center whitespace-nowrap">
-                      {(v.plate_number || '')
-                        .replace(/\s+/g, '')
-                        .replace(/^(\d{2})([A-Z]{1,3})(\d{2,4})$/, '$1 $2 $3')}
-                    </span>
-                  </span>
+                  {/* Bu yorumun yazdığı kural artık tek yerde uygulanıyor:
+                      "Aynı plakayı iki ekranda iki farklı biçimde görmek,
+                      kullanıcıya farklı araç hissi verir." -> TrPlaka */}
+                  <TrPlaka plaka={v.plate_number} boyut="sm" />
 
                   <span className="min-w-0 flex-1">
                     <span className="block text-xs font-semibold text-slate-900 truncate">

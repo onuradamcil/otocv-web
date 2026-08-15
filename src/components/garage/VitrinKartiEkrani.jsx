@@ -67,6 +67,7 @@ import PaywallDialog from '../common/PaywallDialog';
 import GlobalStepLoader from '../common/GlobalStepLoader';
 import Icon from '../common/icons';
 import { dugme } from '../common/dugme';
+import TrPlaka from '../common/TrPlaka';
 
 export default function VitrinKartiEkrani({ pin }) {
   const toast = useToast();
@@ -243,12 +244,7 @@ export default function VitrinKartiEkrani({ pin }) {
         {/* ARAÇ ÖZETİ — DÜZENLENMİYOR, GÖSTERİLİYOR */}
         <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
           <div className="flex items-start gap-4">
-            <span className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono font-semibold h-7 overflow-hidden shrink-0">
-              <span className="bg-[#003399] text-white text-etiket font-sans font-bold px-1.5 h-full flex items-center">TR</span>
-              <span className="px-2.5 text-slate-900 text-sm tracking-wider uppercase h-full flex items-center whitespace-nowrap">
-                {(arac.plate_number || '').replace(/\s+/g, '').replace(/^(\d{2})([A-Z]{1,3})(\d{2,4})$/, '$1 $2 $3')}
-              </span>
-            </span>
+            <TrPlaka plaka={arac.plate_number} boyut="md" />
             <div className="min-w-0 flex-1">
               <h2 className="baslik-bolum text-slate-900 truncate">
                 {arac.title || `${arac.brand} ${arac.model}`}

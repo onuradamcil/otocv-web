@@ -55,6 +55,7 @@ const {
   supabaseIstemcisi,
   ornekPin,
   ORNEK_PLAKA,
+  plakaBicimleri,
 } = require('./yardimcilar');
 
 // Testin kendi oluşturduğu kayıtların işareti. Yıkıcı denemeler yalnızca
@@ -467,8 +468,13 @@ test.describe('Güvenlik · PIN joker karakterle zorlanamaz', () => {
       for (const { plate_number, pin_code } of araclar || []) {
         expect(govde, `joker girdi "${girdi}" ${plate_number} aracının PIN'ini sızdırdı`)
           .not.toContain(pin_code);
-        expect(govde, `joker girdi "${girdi}" ${plate_number} plakasını sızdırdı`)
-          .not.toContain(plate_number);
+        // ⚠ İKİ BİÇİM BİRDEN: arayüz plakayı boşluklu basıyor
+        // ('41 IHH 434'), veritabanı boşluksuz tutuyor ('41IHH434').
+        // Yalnızca veritabanı biçimini aramak sızıntıyı görmezdi.
+        for (const bicim of plakaBicimleri(plate_number)) {
+          expect(govde, `joker girdi "${girdi}" ${plate_number} plakasını "${bicim}" biçiminde sızdırdı`)
+            .not.toContain(bicim);
+        }
       }
     });
   }
@@ -598,7 +604,10 @@ test.describe('Güvenlik · arayüz RLS’ten sonra çalışmaya devam ediyor', 
     // Plaka ziyaretçide görünmemeli. Bu kontrol `textContent` ile yapılıyor:
     // `innerText` CSS text-transform uyguluyor ve karşılaştırmayı bozuyor.
     const govde = await page.locator('body').textContent();
-    expect(govde, 'plaka ziyaretçi arayüzünde görünüyor').not.toContain(ORNEK_PLAKA);
+    // İki biçim birden: arayüz plakayı boşluklu basıyor.
+    for (const bicim of plakaBicimleri(ORNEK_PLAKA)) {
+      expect(govde, `plaka ziyaretçi arayüzünde "${bicim}" biçiminde görünüyor`).not.toContain(bicim);
+    }
   });
 });
 

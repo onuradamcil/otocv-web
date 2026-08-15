@@ -29,6 +29,7 @@
 
 import React, { useState } from 'react';
 import Icon from '../../common/icons';
+import TrPlaka from '../../common/TrPlaka';
 import {
   devirKoduNormalize,
   devirOnizleme,
@@ -262,9 +263,12 @@ export default function AracDevralDialog({
                       {[onizleme.marka, onizleme.model].filter(Boolean).join(' ')}
                       {onizleme.yil ? ` · ${onizleme.yil}` : ''}
                     </p>
-                    <span className="font-mono font-semibold text-xs text-slate-700 shrink-0">
-                      {onizleme.plaka}
-                    </span>
+                    {/* ÖNCEDEN HAM BASILIYORDU: `onizleme.plaka` RPC'den
+                        veritabanındaki hâliyle geliyor ve orada plakalar
+                        BOŞLUKSUZ duruyor ('41IHH434'). Aynı diyalogun yol
+                        seçimi dalı ise tam plaka görseli basıyordu; tek
+                        pencerede iki farklı dil vardı. */}
+                    <TrPlaka plaka={onizleme.plaka} boyut="sm" />
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-center">
                     {[
@@ -372,14 +376,7 @@ export default function AracDevralDialog({
               /* ---- YOL SEÇİMİ ---- */
               <div className="space-y-3">
                 <div className="bg-slate-100/80 p-4 sm:p-5 rounded-xl flex items-center justify-center">
-                  <div className="inline-flex items-center bg-white border-2 border-slate-900 rounded-lg overflow-hidden shadow-sm">
-                    <div className="bg-[#003399] text-white px-3 py-2 flex items-center justify-center font-mono font-semibold text-xs">
-                      TR
-                    </div>
-                    <div className="px-5 py-2 font-mono font-semibold text-lg sm:text-xl text-slate-900 uppercase tracking-widest select-all">
-                      {plaka}
-                    </div>
-                  </div>
+                  <TrPlaka plaka={plaka} boyut="lg" />
                 </div>
 
                 <button

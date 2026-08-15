@@ -27,6 +27,7 @@
 import React, { useEffect, useState } from 'react';
 import Icon from '../common/icons';
 import { useToast } from '../../context/ToastContext';
+import { plakaBicimle } from '../../utils/plaka';
 import {
   RIZA_METNI,
   devirDurumu,
@@ -204,8 +205,12 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
               <h3 className="font-semibold text-base tracking-tight text-slate-900 truncate">
                 Aracı Devret
               </h3>
+              {/* Burada ROZET DEĞİL biçimli metin var: bu bir cümle içi
+                  alt başlık ve tek satırda kesiliyor (`truncate`). Rozet
+                  satırı iki katına çıkarırdı. Plaka yine de biçimleniyor —
+                  önceden ham basılıyordu ('41IHH434'). */}
               <p className="text-yardimci text-slate-500 font-medium truncate">
-                {[vehicle.brand, vehicle.model].filter(Boolean).join(' ')} · {plaka}
+                {[vehicle.brand, vehicle.model].filter(Boolean).join(' ')} · {plakaBicimle(plaka)}
               </p>
             </div>
           </div>

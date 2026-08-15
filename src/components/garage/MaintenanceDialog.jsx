@@ -12,6 +12,7 @@ import { supabase } from '../../lib/supabase';
 import { useToast } from '../../context/ToastContext';
 import Icon from '../common/icons';
 import { toIsoDate } from '../../utils/dateHelper';
+import TrPlaka from '../common/TrPlaka';
 
 export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClose, onRecordAdded }) {
   const toast = useToast();
@@ -229,14 +230,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
 
         {/* 🚀 ROZET ALANI: DÜZ YAZIDAN KURUMSAL KABARTMA GOFRAJ PLAKAYA GEÇİŞ */}
         <div className="bg-slate-50 border-b border-gray-100 px-6 py-3.5 flex items-center gap-4">
-          <div className="inline-flex items-center border-[1.5px] border-slate-800 rounded-md bg-white font-mono font-semibold text-xs h-7 overflow-hidden shadow-sm shrink-0">
-            <div className="bg-[#003399] text-white text-etiket font-sans font-bold flex flex-col items-center justify-center px-1.5 h-full leading-none shrink-0">
-              <span>TR</span>
-            </div>
-            <div className="px-3 text-slate-900 tracking-wider uppercase h-full flex items-center bg-white font-mono text-sm font-semibold shrink-0">
-              {activePlate.replace(/\s+/g, '').replace(/^(\d{2})([A-Z]{1,3})(\d{2,4})$/, '$1 $2 $3')}
-            </div>
-          </div>
+          <TrPlaka plaka={activePlate} boyut="md" />
           {activeCarName && (
             <span className="text-xs font-bold text-slate-500 tracking-tight">{activeCarName}</span>
           )}

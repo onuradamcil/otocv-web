@@ -34,13 +34,10 @@ import SahipsizGeriYukleDialog from '@/components/marketplace/create-listing/Sah
 import BekleyenDevirlerim from '@/components/garage/BekleyenDevirlerim';
 import GelenDevirTalepleri from '@/components/garage/GelenDevirTalepleri';
 import { plakaDurumu, devirOnizleme, devirKoduNormalize } from '@/services/devirService';
+import TrPlaka from '@/components/common/TrPlaka';
 
-/** Plakayı okunur biçime sokar: 34ABC123 -> 34 ABC 123 */
-function plakaBicimle(plaka) {
-  return (plaka || '')
-    .replace(/\s+/g, '')
-    .replace(/^(\d{2})([A-Z]{1,3})(\d{2,4})$/, '$1 $2 $3');
-}
+// Yerel `plakaBicimle` KALDIRILDI: aynı işlevin dört kopyası vardı.
+// Tek kaynak artık `src/utils/plaka.js`, görsel kaynak `TrPlaka`.
 
 export default function DevirPage() {
   const router = useRouter();
@@ -322,14 +319,7 @@ export default function DevirPage() {
                       onClick={() => setDevredilecek(a)}
                       className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition-all text-left cursor-pointer"
                     >
-                      <div className="inline-flex items-center bg-white border-2 border-slate-900 rounded overflow-hidden shrink-0 h-7">
-                        <div className="bg-[#003399] text-white px-1.5 h-full flex items-center font-mono font-semibold text-etiket border-r border-slate-900">
-                          TR
-                        </div>
-                        <div className="px-2 font-mono font-semibold text-yardimci text-slate-900 uppercase tracking-wider">
-                          {plakaBicimle(a.plate_number)}
-                        </div>
-                      </div>
+                      <TrPlaka plaka={a.plate_number} boyut="md" />
                       <span className="text-xs font-bold text-slate-700 truncate min-w-0">
                         {a.brand} {a.model}
                       </span>
