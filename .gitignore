@@ -48,3 +48,8 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Supabase CLI yerel bag dosyalari. Sifre ICERMIYOR (dogrulandi) ama
+# makineye ozgu: proje referansi, pooler adresi ve surum bilgileri.
+# Depoda durmalari kimseye yaramaz, karisiklik cikarir.
+supabase/.temp/
