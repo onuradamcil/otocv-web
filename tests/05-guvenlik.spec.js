@@ -56,6 +56,7 @@ const {
   ornekPin,
   ORNEK_PLAKA,
   plakaBicimleri,
+  aliciIstemcisi,
 } = require('./yardimcilar');
 
 // Testin kendi oluşturduğu kayıtların işareti. Yıkıcı denemeler yalnızca
@@ -784,5 +785,106 @@ test.describe('Hiz siniri normal kullanimi bozmuyor', () => {
     const { data, error } = await sb.rpc('plaka_kayitli_mi', { p_plaka: ORNEK_PLAKA });
     expect(error, 'oturumlu kullanici plaka kontrolu yapamiyor — sihirbaz kirilir').toBeFalsy();
     expect(data).toBe(true);
+  });
+});
+
+
+// =========================================================================
+// ARAÇ GÖRSELLERİ — KİMSE KİMSENİNKİNE DOKUNAMIYOR
+//
+// -------------------------------------------------------------------------
+// NİYE BU BLOK VAR
+// -------------------------------------------------------------------------
+// `vehicle-images` kovasında iki politika PUBLIC'e açıktı:
+//
+//     "Allow Delete Images"              DELETE  rol PUBLIC
+//     "Herkes araç resmi yükleyebilsin"  INSERT  rol PUBLIC
+//
+// Yani anon anahtarını (istemci paketinin içinde) eline geçiren herkes
+// üründeki TÜM araç görsellerini silebiliyordu. Canlı veritabanının yedeği
+// yok — geri alınamaz bir kayıptı.
+//
+// Sahiplik `vehicles` üzerinden denetlenemedi, çünkü fotoğraflar araç kaydı
+// OLUŞMADAN yükleniyor ve silme taslak iptalinde çağrılıyor. Çözüm yol
+// düzenini <user_id>/<plaka>/ yapmak oldu.
+//
+// -------------------------------------------------------------------------
+// ⚠ `remove()` HATA DÖNDÜRMÜYOR
+// -------------------------------------------------------------------------
+// Supabase depolama silmesi RLS engellediğinde HATA VERMİYOR, sessizce
+// hiçbir şey silmiyor. Bu yüzden testler hata mesajına DEĞİL, dosyanın
+// hâlâ durup durmadığına bakıyor. Hata mesajına bakan bir test burada
+// yanlış sebeple geçerdi.
+//
+// ⚠ Bu blok kovaya YAZIYOR — kendi çöpünü `afterAll`da siliyor.
+// =========================================================================
+
+test.describe('Araç görselleri · sahiplik', () => {
+  const KOVA = 'vehicle-images';
+  let sahipId = null;
+  let denemeYolu = null;
+
+  test.afterAll(async () => {
+    if (!denemeYolu) return;
+    const sb = await supabaseIstemcisi();
+    await sb.storage.from(KOVA).remove([denemeYolu]);
+  });
+
+  test('sahip kendi klasörüne yükleyebiliyor', async () => {
+    const sb = await supabaseIstemcisi();
+    const { data: { user } } = await sb.auth.getUser();
+    sahipId = user.id;
+    denemeYolu = `${sahipId}/taslak/otocv-test-${Date.now()}.txt`;
+
+    const { error } = await sb.storage
+      .from(KOVA).upload(denemeYolu, new Blob(['test']), { contentType: 'text/plain' });
+    expect(error, 'araç sahibi kendi klasörüne yükleyemiyor — kayıt akışı kırık').toBeFalsy();
+  });
+
+  test('BAŞKASI o klasöre yükleyemiyor', async () => {
+    test.skip(!sahipId, 'kurulum yapılamadı');
+    const alici = await aliciIstemcisi();
+    const { error } = await alici.storage
+      .from(KOVA).upload(`${sahipId}/taslak/izinsiz-${Date.now()}.txt`,
+        new Blob(['x']), { contentType: 'text/plain' });
+    expect(error, 'başka kullanıcı, sahibin klasörüne dosya yükleyebiliyor').toBeTruthy();
+  });
+
+  test('BAŞKASI ve ANON silemiyor — dosya yerinde kalıyor', async () => {
+    test.skip(!denemeYolu, 'kurulum yapılamadı');
+    const sb = await supabaseIstemcisi();
+    const alici = await aliciIstemcisi();
+    const anon = anonIstemcisi();
+
+    const duruyorMu = async () => {
+      const { data } = await sb.storage.from(KOVA).list(`${sahipId}/taslak`);
+      return (data || []).some((f) => denemeYolu.endsWith(f.name));
+    };
+
+    expect(await duruyorMu(), 'deneme dosyası kurulamadı').toBe(true);
+
+    // ⚠ Hata mesajına BAKILMIYOR: remove() engellendiğinde hata vermiyor.
+    await alici.storage.from(KOVA).remove([denemeYolu]);
+    expect(await duruyorMu(), 'BAŞKA KULLANICI sahibin görselini sildi').toBe(true);
+
+    await anon.storage.from(KOVA).remove([denemeYolu]);
+    expect(await duruyorMu(), 'ANON sahibin görselini sildi').toBe(true);
+  });
+
+  test('sahip kendi dosyasını silebiliyor', async () => {
+    test.skip(!denemeYolu, 'kurulum yapılamadı');
+    const sb = await supabaseIstemcisi();
+    await sb.storage.from(KOVA).remove([denemeYolu]);
+
+    const { data } = await sb.storage.from(KOVA).list(`${sahipId}/taslak`);
+    const duruyor = (data || []).some((f) => denemeYolu.endsWith(f.name));
+    expect(duruyor, 'sahip kendi görselini silemiyor — taslak temizliği kırık').toBe(false);
+    denemeYolu = null;
+  });
+
+  test('ANON okuma AÇIK kalmalı — vitrin buna bağlı', async () => {
+    const anon = anonIstemcisi();
+    const { error } = await anon.storage.from(KOVA).list('', { limit: 1 });
+    expect(error, 'araç görselleri okunamıyor — vitrin görselsiz kalır').toBeFalsy();
   });
 });

@@ -58,6 +58,23 @@ const MUKERRER_METIN = {
   },
 };
 
+// =========================================================================
+// ARAÇ GÖRSELİ KLASÖRÜ — <user_id>/<plaka>
+//
+// Depolama politikası sahipliği yalnızca klasörün İLK parçasından
+// denetleyebiliyor. O parça kullanıcı kimliği olduğu sürece kimse
+// kimsenin dosyasına dokunamıyor; plaka ikinci parçada, yalnızca
+// düzen için duruyor.
+//
+// Plaka yoksa (taslak) 'taslak' kullanılıyor — yine kullanıcının kendi
+// klasörünün altında, yani taslak temizliği de çalışıyor.
+// =========================================================================
+function aracGorseliKlasoru(kullaniciId, plaka) {
+  if (!kullaniciId) return null;
+  const temiz = String(plaka || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
+  return `${kullaniciId}/${temiz && temiz !== 'drafts' ? temiz : 'taslak'}`;
+}
+
 export default function CreateListingWizard({ onBack, onSuccess, user }) {
   const router = useRouter();
   const toast = useToast();
@@ -174,8 +191,11 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       return;
     }
 
-    const folderName = plateToClean.replace(/[^a-zA-Z0-9]/g, '_');
-    if (!folderName || folderName === 'drafts') return;
+    // ⚠ YOL ARTIK <user_id>/<plaka>/ — gerekçesi `aracGorseliKlasoru`da.
+    // Kendi klasörümüzün dışına çıkılmıyor; politika da zaten izin vermiyor.
+    if (!user?.id) return;
+    const folderName = aracGorseliKlasoru(user.id, plateToClean);
+    if (!folderName) return;
 
     try {
       const { data: fileList, error: listError } = await supabase.storage
@@ -210,8 +230,35 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     if (!photosToUpload || photosToUpload.length === 0) return [];
 
     const uploadedUrls = [];
+
+    // ⚠ YOL ARTIK <user_id>/<plaka>/ — ESKİDEN SADECE <plaka>/ İDİ.
+    //
+    // Eski düzende klasör adı plakadan türetiliyordu ve depolama politikası
+    // sahipliği DENETLEYEMİYORDU. Sebep tek değil, üç taneydi:
+    //
+    //  1. Fotoğraflar araç kaydı OLUŞMADAN yükleniyor (Adım 1 -> 2 geçişi;
+    //     araç ancak yayında yaratılıyor). Yani "bu plakanın sahibi mi"
+    //     sorusunun cevabı o an YOK.
+    //  2. Silme, taslak iptalinde çağrılıyor — orada da araç yok.
+    //  3. Klasör adı ÜÇ farklı biçimde birikmiş; canlıda ölçüldü:
+    //        34SDF4567     (boşluksuz)
+    //        41_IHH_434    (alt çizgili)
+    //        34 FB 1907    (boşluklu)
+    //     Plakayla karşılaştıran bir politika bu dosyalarda başarısız olurdu.
+    //
+    // Aynı sorun FATURA kovasında da yaşandı ve orada klasör kullanıcı
+    // kimliğine taşınarak çözüldü (aşağıda, "FATURA YÜKLEME" notu). Kullanıcı
+    // kimliği biçimlendirmeye bağlı değil ve yükleme anında zaten biliniyor.
+    //
+    // Sonuç: politika artık tek satırla denetleyebiliyor —
+    //   (storage.foldername(name))[1] = auth.uid()
+    // yani kimse kimsenin görselini silemiyor.
+    if (!user?.id) {
+      console.error('🔴 Oturum yok, görsel yüklenemez.');
+      return [];
+    }
     const activePlate = (formData.plate || formData.plate_number || 'drafts').trim();
-    const folderName = activePlate.replace(/[^a-zA-Z0-9]/g, '_') || 'drafts';
+    const folderName = aracGorseliKlasoru(user.id, activePlate);
 
     for (let i = 0; i < photosToUpload.length; i++) {
       const photoItem = photosToUpload[i];
