@@ -1945,7 +1945,7 @@ useEffect(() => {
             <p className="text-[11px] font-bold text-rose-600 pt-0.5 animate-fadeIn">
               {cleanDescText.length === 0
                 ? 'Bu alan zorunludur'
-                : 'İlan açıklaması en az 20 karakter olmalıdır.'}
+                : 'Vitrin açıklaması en az 20 karakter olmalıdır.'}
             </p>
           )}
 

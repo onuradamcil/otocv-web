@@ -360,7 +360,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-normal leading-tight">
-                Bireysel hesabınız kapsamında bu ay ücretsiz yayınlayabileceğiniz standart ilan limiti.
+                Bireysel hesabınız kapsamında bu ay ücretsiz yayınlayabileceğiniz standart vitrin limiti.
               </p>
             </div>
           </div>
@@ -978,7 +978,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   </div>
 
                   <p className="text-[13px] text-slate-500 mt-3">
-                    Seçtiğiniz araç kombinasyonu ilanınıza otomatik bağlanacaktır.
+                    Seçtiğiniz araç kombinasyonu vitrin kartınıza otomatik bağlanacaktır.
                   </p>
                 </div>
               )}
@@ -998,7 +998,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
               onClick={onNext}
               className="bg-rose-500 hover:bg-rose-600 disabled:bg-rose-50 disabled:text-rose-300 text-white font-extrabold text-xs px-8 py-3 rounded transition-all shadow-2xs disabled:cursor-not-allowed cursor-pointer self-end sm:self-auto active:scale-98"
             >
-              Devam Et: İlan Detayları ›
+              Devam Et: Vitrin Bilgileri ›
             </button>
           </div>
 

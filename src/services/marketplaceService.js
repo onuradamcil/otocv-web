@@ -72,7 +72,7 @@ export const publishVehicleListing = async (vehicle, listingPayload) => {
     if (result.error) throw result.error;
     return { success: true, data: result.data?.[0] };
   } catch (error) {
-    console.error('❌ [Marketplace Service] İlan yayınlama hatası:', error.message);
+    console.error('❌ [Marketplace Service] Vitrin kartı yayınlama hatası:', error.message);
     return { success: false, error: error.message };
   }
 };
@@ -162,7 +162,7 @@ export const fetchMarketplaceListings = async (filters = {}) => {
     // eşleme yapmak iki kopya demekti.
     return { success: true, data: Array.isArray(data) ? data : [] };
   } catch (error) {
-    console.error('❌ [Marketplace Service] İlanları çekme hatası:', error.message);
+    console.error('❌ [Marketplace Service] Vitrin kartlarını çekme hatası:', error.message);
     return { success: false, error: error.message, data: [] };
   }
 };

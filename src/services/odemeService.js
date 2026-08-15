@@ -35,7 +35,7 @@ import { supabase } from '../lib/supabase';
  */
 const KILIT_METNI = {
   EK_ARAC_GEREKLI: 'İlk aracınız ücretsiz. Yeni araç eklemek için Ek Araç Kaydı gerekiyor.',
-  VITRIN_GEREKLI: 'İlanı öne çıkarmak için Vitrin Dopingi gerekiyor.',
+  VITRIN_GEREKLI: 'Aracı öne çıkarmak için Vitrin Dopingi gerekiyor.',
 };
 
 /**

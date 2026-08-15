@@ -32,7 +32,7 @@ const BOLUMLER = [
     satirlar: [
       { ad: 'Siz', deger: 'Kendi araçlarınızın tamamı, yüklediğiniz fatura belgeleri ve profil bilgileriniz.' },
       { ad: 'Karne bağlantısını alan kişi', deger: 'Aracın bakım geçmişi ve sicil puanı. PLAKA GÖRÜNMEZ ve fatura görselleri açılmaz — yalnızca bir kaydın belgeli olup olmadığı yazar.' },
-      { ad: 'Diğer kullanıcılar', deger: 'Yalnızca pazaryerinde yayımladığınız ilanlar. Araç kayıtlarınızın geri kalanı görünmez.' },
+      { ad: 'Diğer kullanıcılar', deger: 'Yalnızca pazaryeri vitrininde yayımladığınız araç kartları. Araç kayıtlarınızın geri kalanı görünmez.' },
       { ad: 'Biz', deger: 'Teknik destek ve kötüye kullanım incelemesi için gerekli olduğunda.' },
     ],
   },
@@ -46,7 +46,7 @@ const BOLUMLER = [
     baslik: 'Hesabınızı kapattığınızda',
     satirlar: [
       'KVKK m.7 üç yol sayıyor: silme, yok etme veya anonim hale getirme. Hesap kapatmada anonimleştirme uygulanıyor.',
-      { ad: 'Silinen', deger: 'Profil bilgileriniz (ad, soyad, telefon), bildirimleriniz ve yayındaki ilanlarınız.' },
+      { ad: 'Silinen', deger: 'Profil bilgileriniz (ad, soyad, telefon), bildirimleriniz ve yayındaki vitrin kartlarınız.' },
       { ad: 'Anonimleşen', deger: 'Sahiplik geçmişi. "Bu aracın iki sahibi olmuş" bilgisi kalır, kim olduğunuz silinir.' },
       { ad: 'Kalan', deger: 'Araç kaydı ve servis geçmişi. Bunlar araca ait verilerdir; aracın sicili sahibinden bağımsız yaşar.' },
       { ad: 'Belgeler araçla kalır', deger: 'Yüklediğiniz servis belgeleri araç sicilinin parçasıdır; aracın el değiştirmesi veya hesabınızı kapatmanız hâlinde araç kaydıyla birlikte kalır. Belgelerinizin silinmesini ayrıca talep edebilirsiniz.' },

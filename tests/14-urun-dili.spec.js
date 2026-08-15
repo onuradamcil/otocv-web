@@ -24,7 +24,7 @@
 // HİÇBİR YAZMA YOK — CI'DA KOŞUYOR
 // =========================================================================
 
-const { test, expect, girisYap, hamMetin } = require('./yardimcilar');
+const { test, expect, girisYap, hamMetin, ornekPin } = require('./yardimcilar');
 
 // Araç tutarı olabilecek kalıplar. "₺450.000" ya da "450.000 TL".
 const TUTAR_KALIBI = /(₺\s?\d{1,3}(\.\d{3})+)|(\d{1,3}(\.\d{3})+\s?TL\b)/;
@@ -46,13 +46,47 @@ test.describe('Ürün dili', () => {
     ).toBeNull();
   });
 
+  // =========================================================================
+  // YASAKLI KELİME TARAMASI — İKİ KUSURU VARDI, İKİSİ DE DÜZELTİLDİ
+  // -------------------------------------------------------------------------
   // Yasaklı kelimeler ekranlara sızmaya devam ediyordu: her turda birkaçı
   // daha bulundu ("Tescil / İlan No", "Satıcıya Mesaj Gönder", karne
   // kartındaki "Pazaryeri Satış Operasyonları"). Tek tek aramak yerine
-  // ekranları tarayan bir test daha güvenilir.
-  const YASAKLI = ['İlan', 'Satıcı', 'Satış', 'satıcı'];
+  // ekranları tarayan bir test daha güvenilir. Ama tarama iki yerden
+  // sızdırıyordu:
+  //
+  // 1. KAPSAM: yalnızca ÜÇ rota ziyaret ediliyordu (/, /devir, /verify).
+  //    Uygulamada 25 rota var. Kapsanmayanlar arasında HUKUKİ SAYFALAR da
+  //    vardı ve orada tam bir "İlanlar" bölümü duruyordu:
+  //      "İlan içeriğinden ilan sahibi sorumludur..."
+  //      "Vitrin dopingi ilanın görünürlüğünü artırır; satış garantisi vermez."
+  //    Üstelik o sayfa sitemap'te ve indekslenmeye açık. Bir uyuşmazlıkta
+  //    karşı tarafın göstereceği ilk belge ürünün KENDİ sözleşmesi olurdu.
+  //
+  // 2. BÜYÜK/KÜÇÜK HARF: liste yalnızca 'İlan', 'Satıcı', 'Satış' ve
+  //    'satıcı' arıyordu. Küçük harfli 'ilan' ve 'satış' listede YOKTU;
+  //    "standart ilan limiti" ya da "ilan vermek için" gibi metinler o rota
+  //    kapsansa bile görünmeden geçerdi.
+  //
+  // ⚠ TÜRKÇE 'i' AYRIMI TARAMAYI KURTARIYOR: 'ilan' NOKTALI i ile aranıyor.
+  // "kullanılan", "yapılan", "karşılaştırılan" gibi çok geçen kelimeler
+  // NOKTASIZ ı taşıdığı için ("ılan") eşleşmiyorlar. Bu yüzden düz metin
+  // araması burada güvenli.
+  // =========================================================================
+  const YASAKLI = [
+    'İlan', 'ilan', 'İLAN',
+    'Satış', 'satış', 'SATIŞ',
+    'Satıcı', 'satıcı', 'SATICI',
+  ];
 
-  for (const yol of ['/', '/devir', '/verify']) {
+  // Oturum GEREKTİRMEYEN rotalar. Hukuki sayfalar bilhassa burada:
+  // indekslenen metinde ürün dili ihlali en pahalı olan yer orası.
+  const HERKESE_ACIK = [
+    '/', '/verify', '/devir', '/login', '/register',
+    '/gizlilik', '/kullanim-sartlari', '/kvkk', '/packages',
+  ];
+
+  for (const yol of HERKESE_ACIK) {
     test(`${yol} — satış sitesi dili yok`, async ({ page }) => {
       await page.goto(yol);
       await page.waitForLoadState('networkidle');
@@ -80,6 +114,46 @@ test.describe('Ürün dili', () => {
   test.describe('Oturum açıkken', () => {
     test.beforeEach(async ({ page }) => {
       await girisYap(page);
+    });
+
+    // Oturum arkasındaki rotalar. Eskiden HİÇBİRİ yasaklı kelime taramasına
+    // girmiyordu; oysa ürün dilinin en çok kaydığı yer tam da burası —
+    // araç kayıt sihirbazı, vitrin listesi ve karne ekranı.
+    const OTURUMLU = [
+      '/garage', '/my-listings', '/favorilerim', '/mesajlar',
+      '/account', '/query-history', '/dashboard', '/add-vehicle/step1',
+    ];
+
+    for (const yol of OTURUMLU) {
+      test(`${yol} — satış sitesi dili yok`, async ({ page }) => {
+        await page.goto(yol);
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(1800);
+
+        const metin = await hamMetin(page);
+        for (const kelime of YASAKLI) {
+          expect(metin, `${yol} sayfasında "${kelime}" geçiyor`).not.toContain(kelime);
+        }
+      });
+    }
+
+    // PIN'e bağlı sayfalar. Karne ekranı bilhassa önemli: sekme adı
+    // "İlan Paylaşım Reklam Kartı" idi ve rehberi kullanıcıya açıkça
+    // "ilan portallarına yükleyin" diyordu — hiçbir test oraya uğramıyordu.
+    test('PIN sayfalarında satış sitesi dili yok', async ({ page }) => {
+      const pin = await ornekPin();
+      test.skip(!pin, 'örnek PIN yok');
+
+      for (const yol of [`/karne/${pin}`, `/details/${pin}`, `/verify/${pin}`]) {
+        await page.goto(yol);
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(1800);
+
+        const metin = await hamMetin(page);
+        for (const kelime of YASAKLI) {
+          expect(metin, `${yol} sayfasında "${kelime}" geçiyor`).not.toContain(kelime);
+        }
+      }
     });
 
     test('garajda araç tutarı yok', async ({ page }) => {

@@ -5,7 +5,7 @@
 // =========================================================================
 
 export const metadata = {
-  title: 'Aktif İlanlarım',
+  title: 'Vitrindeki Araçlarım',
   description: 'Vitrine çıkardığınız araçlarınızı buradan yönetin.',
   robots: { index: false, follow: false },
 };

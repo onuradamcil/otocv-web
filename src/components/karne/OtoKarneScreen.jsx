@@ -181,7 +181,7 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
         <div className="flex justify-center select-none print:hidden">
           <div className="bg-gray-200/60 border border-gray-200 p-1 rounded-2xl flex w-full max-w-[440px]">
             <button onClick={() => setActiveTab(0)} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 0 ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
-              İlan Paylaşım Reklam Kartı
+              Paylaşım Kartı
             </button>
             <button onClick={() => setActiveTab(1)} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 1 ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
               Detaylı Resmi Sicil Belgesi
@@ -220,7 +220,7 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
                 <span className="text-indigo-600 font-extrabold text-[10px] tracking-widest block uppercase">DÖKÜMANTASYON KULLANIM REHBERİ</span>
                 <div className="space-y-4">
                   <GuideRow num="1" title="Görseli İndirin" desc="Üst paneldeki eylem butonunu kullanarak tescilli dikey reklam kartını doğrudan galerinize PNG formatında kaydedin." />
-                  <GuideRow num="2" title="İlanınıza Ekleyin" desc="İlan portallarında kayıt oluştururken, indirdiğiniz bu dikey veri görselini araç fotoğraflarının arasına konumlandırın." />
+                  <GuideRow num="2" title="Paylaşırken Ekleyin" desc="Aracınızı paylaştığınız yerlerde, indirdiğiniz bu dikey veri görselini araç fotoğraflarının arasına konumlandırın." />
                   <GuideRow num="3" title="Şeffaf Doğrulama Sağlayın" desc="Alıcı adayları kart üzerindeki PIN kodu vasıtasıyla araç geçmişine eksiksiz va ücretsiz erişim sağlasın." />
                 </div>
               </div>

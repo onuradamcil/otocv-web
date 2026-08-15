@@ -37,7 +37,7 @@ const BOLUMLER = [
   {
     baslik: 'Devirde ne aktarılıyor',
     satirlar: [
-      'Araç devrinde bakım kayıtları ve fatura belgeleri araçla birlikte yeni sahibine geçer. Bu, devir öncesinde satıcıya açıkça onaylatılır ve onaylanan metin kayıt altına alınır.',
+      'Araç devrinde bakım kayıtları ve fatura belgeleri araçla birlikte yeni sahibine geçer. Bu, devir öncesinde aracı devreden kişiye açıkça onaylatılır ve onaylanan metin kayıt altına alınır.',
       'Sahibi hesabını kapatmış bir aracın sicili devralınırken iki yol vardır. Belge doğrulaması yapılmayan hızlı yolda bakım kayıtları aktarılır ancak önceki sahibin kişisel bilgilerini taşıyabilecek fatura görselleri KAPALI kalır.',
     ],
   },

@@ -38,7 +38,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
         setListings(res.data || []);
       }
     } catch (err) {
-      console.error("İlanlar yüklenirken hata:", err);
+      console.error("Vitrin kartları yüklenirken hata:", err);
     } finally {
       setLoading(false);
     }

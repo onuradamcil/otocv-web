@@ -288,7 +288,7 @@ export default function AracDevralDialog({
                     neyin devredildiği iki taraf için de aynı cümleyle yazılı
                     olsun.
 
-                    ⚠ BAŞLIK "Satıcının onayı" İDİ. İki ayrı kusur vardı:
+                    ⚠ BAŞLIK "Araç sahibinin onayı" İDİ. İki ayrı kusur vardı:
                     "satıcı" bu üründe yasaklı kelime, ve dil testi bu
                     diyaloğa hiç ulaşmıyor çünkü ancak geçerli kod girilince
                     açılıyor. */}

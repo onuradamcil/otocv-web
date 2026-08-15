@@ -454,7 +454,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                   
                   <div className="space-y-1.5 text-xs divide-y divide-slate-200/70">
                     <div className="flex justify-between py-1 pt-0.5">
-                      <span className="text-slate-900 font-medium">Tescil / İlan No</span>
+                      <span className="text-slate-900 font-medium">Tescil / Sicil No</span>
                       <span className="font-mono font-semibold text-indigo-600 select-all">CV-TASLAK</span>
                     </div>
                     
@@ -637,7 +637,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                   </div>
                 ) : (
                   <div className="bg-slate-50/50 border border-slate-100 rounded-md p-4 h-[120px] flex items-center justify-center text-xs text-slate-500 italic">
-                    Bu araç için henüz detaylı bir satıcı açıklaması eklenmemiştir.
+                    Bu araç için henüz detaylı bir araç sahibi açıklaması eklenmemiştir.
                   </div>
                 )}
               </div>

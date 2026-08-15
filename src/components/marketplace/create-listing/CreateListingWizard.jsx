@@ -40,13 +40,13 @@ const MUKERRER_METIN = {
     baslik: 'Bu Araç Zaten Kayıtlı!',
     aciklama: 'Girdiğiniz plaka OTO-CV veritabanında aktif tescillidir. Bir araç dijital garaja yalnızca bir kez kaydedilebilir.',
     vurgu: 'Bu araç zaten sizin garajınızda',
-    detay: 'Aynı araç iki kez kaydedilemez. Bakım kaydı eklemek ya da ilan vermek için garajınızdaki karta gidin.',
+    detay: 'Aynı araç iki kez kaydedilemez. Bakım kaydı eklemek ya da vitrine çıkarmak için garajınızdaki karta gidin.',
   },
   baskasinda: {
     baslik: 'Bu Araç Zaten Kayıtlı!',
     aciklama: 'Girdiğiniz plaka OTO-CV veritabanında aktif tescillidir. Bir araç dijital garaja yalnızca bir kez kaydedilebilir.',
     vurgu: 'Bu aracı satın aldıysanız devralabilirsiniz',
-    detay: 'Satıcı garajından bir devir kodu üretip size verir; kodu girdiğinizde araç ve tüm sicili size geçer. Satıcıya ulaşamıyorsanız devir talebi gönderebilirsiniz.',
+    detay: 'Aracı devreden kişi garajından bir devir kodu üretip size verir; kodu girdiğinizde araç ve tüm sicili size geçer. Devreden kişiye ulaşamıyorsanız devir talebi gönderebilirsiniz.',
   },
   // SAHİPSİZ: kayıtlı sahibi hesabını kapatmış. Devir kodu ya da devir
   // talebi işe yaramaz — onaylayacak satıcı yok. Yol ruhsatla başvuru.

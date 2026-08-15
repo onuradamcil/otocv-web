@@ -41,10 +41,10 @@ const BOLUMLER = [
     ],
   },
   {
-    baslik: 'İlanlar',
+    baslik: 'Vitrin',
     satirlar: [
-      'İlan içeriğinden ilan sahibi sorumludur. Yanıltıcı bilgi içeren ilanlar kaldırılabilir.',
-      'Vitrin dopingi ilanın görünürlüğünü artırır; satış garantisi vermez.',
+      'Vitrin kartındaki bilgilerden araç sahibi sorumludur. Yanıltıcı bilgi içeren vitrin kartları kaldırılabilir.',
+      'Vitrin dopingi kartın görünürlüğünü artırır; herhangi bir sonuç garantisi vermez.',
     ],
   },
   {
