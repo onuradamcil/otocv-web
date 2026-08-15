@@ -355,7 +355,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                 <h4 className="text-xs font-extrabold text-slate-900 tracking-tight">
                   Bireysel Yayınlama Kotası
                 </h4>
-                <span className="bg-emerald-50 text-emerald-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200/80">
+                <span className="bg-emerald-50 text-emerald-700 text-[11px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200/80">
                   {userPackage?.tierName || 'Standart Paket'}
                 </span>
               </div>
@@ -394,7 +394,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
           </div>
           
           <div className="flex items-start gap-2 text-xs text-slate-600 pb-1">
-            <span className="w-4 h-4 rounded-full border border-rose-500 text-rose-500 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+            <span className="w-5 h-5 rounded-full border border-rose-600 text-rose-700 font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">
               i
             </span>
             <p className="leading-snug">
@@ -421,8 +421,8 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574v9.176c0 1.222.98 2.222 2.222 2.222h15.056c1.222 0 2.222-1 2.222-2.222V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
                   </svg>
-                  <span className="text-xs font-bold text-rose-600">Fotoğraf Ekle</span>
-                  <span className="text-[10px] text-slate-400 font-semibold mt-0.5">veya Sürükle Bırak</span>
+                  <span className="text-xs font-bold text-rose-700">Fotoğraf Ekle</span>
+                  <span className="text-[13px] text-slate-600 font-semibold mt-0.5">veya Sürükle Bırak</span>
                 </label>
 
                 <div className="border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center text-center opacity-80 hover:opacity-100 transition-opacity cursor-not-allowed bg-slate-50/40 min-h-[125px]">
@@ -430,8 +430,8 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.25 9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                   </svg>
-                  <span className="text-xs font-bold text-rose-600">Telefondan Ekle</span>
-                  <span className="text-[10px] text-slate-400 font-semibold mt-0.5">Bildirim ile</span>
+                  <span className="text-xs font-bold text-rose-700">Telefondan Ekle</span>
+                  <span className="text-[13px] text-slate-700 font-semibold mt-0.5">Bildirim ile</span>
                 </div>
 
                 <div className="border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center text-center opacity-80 hover:opacity-100 transition-opacity cursor-not-allowed bg-slate-50/40 min-h-[125px]">
@@ -439,8 +439,8 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 14.25h1.5v1.5h-1.5v-1.5zM16.5 14.25h1.5v1.5h-1.5v-1.5zM13.5 17.25h1.5v1.5h-1.5v-1.5zM18 17.25h1.5v1.5H18v-1.5z" />
                   </svg>
-                  <span className="text-xs font-bold text-rose-600">Telefondan Ekle</span>
-                  <span className="text-[10px] text-slate-400 font-semibold mt-0.5">QR Kod ile</span>
+                  <span className="text-xs font-bold text-rose-700">Telefondan Ekle</span>
+                  <span className="text-[13px] text-slate-700 font-semibold mt-0.5">QR Kod ile</span>
                 </div>
               </div>
 
@@ -454,7 +454,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     <div key={idx} className="relative w-28 h-28 bg-slate-100 rounded-lg border border-slate-200 overflow-hidden group shadow-2xs">
                       <img src={photoUrl} alt={`Foto ${idx}`} className="w-full h-full object-cover" />
                       {idx === 0 && (
-                        <span className="absolute top-1 left-1 bg-rose-600 text-white font-bold text-[9px] px-1.5 py-0.5 rounded uppercase font-mono shadow-2xs">
+                        <span className="absolute top-1 left-1 bg-rose-600 text-white font-bold text-[11px] px-1.5 py-0.5 rounded uppercase font-mono shadow-2xs">
                           Kapak
                         </span>
                       )}
@@ -472,7 +472,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   {isUploading && (
                     <div className="w-28 h-28 bg-slate-100 border border-slate-200 rounded-lg flex flex-col items-center justify-center p-2 text-center animate-pulse">
                       <div className="w-6 h-6 border-2 border-rose-600 border-t-transparent rounded-full animate-spin mb-1" />
-                      <span className="text-[10px] font-bold text-rose-600">Yükleniyor...</span>
+                      <span className="text-[11px] font-bold text-rose-600">Yükleniyor...</span>
                     </div>
                   )}
                 </div>
@@ -495,7 +495,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                 Tescil & Poliçe Bilgileri
               </h3>
             </div>
-            <span className="text-[10px] font-extrabold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100 uppercase tracking-wider">
+            <span className="text-[11px] font-extrabold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100 uppercase tracking-wider">
               GARAJIM ENTEGRELİ
             </span>
           </div>
@@ -572,7 +572,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     />
                   </div>
                   {touchedFields.mileage && !isKmValid && (
-                    <p className="text-[10px] font-bold text-rose-600">Kilometre verisi zorunludur.</p>
+                    <p className="text-[13px] font-bold text-rose-600">Kilometre verisi zorunludur.</p>
                   )}
                 </div>
 
@@ -580,7 +580,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
 
               {/* SİGORTA, KASKO VE MUAYENE BİTİŞ TARİHLERİ */}
               <div className="space-y-2 pt-1 border-t border-slate-100">
-                <span className="text-[10px] font-extrabold text-indigo-600 tracking-wider uppercase block pt-2">
+                <span className="text-[11px] font-extrabold text-indigo-600 tracking-wider uppercase block pt-2">
                   POLİÇE VE MUAYENE GEÇERLİLİK DÖNEMLERİ
                 </span>
                 
@@ -588,7 +588,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   
                   {/* TRAFİK SİGORTASI */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-600 uppercase">
+                    <label className="text-[11px] font-bold text-slate-600 uppercase">
                       Trafik Sigortası <span className="text-rose-600">*</span>
                     </label>
                     <div className={`border rounded-xl bg-white flex items-center h-10 px-3 transition-all ${
@@ -604,14 +604,14 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                       />
                     </div>
                     {touchedFields.traffic && !isTrafficDateValid && (
-                      <p className="text-[9px] font-bold text-rose-600">Geçerli tarih giriniz.</p>
+                      <p className="text-[13px] font-bold text-rose-600">Geçerli tarih giriniz.</p>
                     )}
                   </div>
 
                   {/* KASKO POLİÇESİ */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-600 uppercase">
-                      Kasko Poliçesi <span className="text-slate-400 font-normal font-mono">(Opsiyonel)</span>
+                    <label className="text-[11px] font-bold text-slate-600 uppercase">
+                      Kasko Poliçesi <span className="text-slate-500 font-normal font-mono">(Opsiyonel)</span>
                     </label>
                     <div className={`border rounded-xl bg-white flex items-center h-10 px-3 transition-all ${
                       touchedFields.kasko && !isKaskoDateValid ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
@@ -629,7 +629,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
 
                   {/* TÜVTÜRK MUAYENE */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-600 uppercase">
+                    <label className="text-[11px] font-bold text-slate-600 uppercase">
                       TÜVTÜRK Muayene <span className="text-rose-600">*</span>
                     </label>
                     <div className={`border rounded-xl bg-white flex items-center h-10 px-3 transition-all ${
@@ -645,7 +645,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                       />
                     </div>
                     {touchedFields.inspection && !isInspectionDateValid && (
-                      <p className="text-[9px] font-bold text-rose-600">Geçerli tarih giriniz.</p>
+                      <p className="text-[13px] font-bold text-rose-600">Geçerli tarih giriniz.</p>
                     )}
                   </div>
 
@@ -661,10 +661,10 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                 <div className="flex items-center gap-2">
                   <span className="text-sm"></span>
                   <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wide">
-                    Ruhsat Fotoğrafı <span className="text-slate-400 font-normal font-mono text-[10px] lowercase">(opsiyonel - %95+ güven rozeti)</span>
+                    Ruhsat Fotoğrafı <span className="text-slate-500 font-normal font-mono text-[13px] lowercase">(opsiyonel - %95+ güven rozeti)</span>
                   </span>
                 </div>
-                <span className="text-[9px] font-extrabold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md border border-indigo-100 uppercase tracking-wider">
+                <span className="text-[11px] font-extrabold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md border border-indigo-100 uppercase tracking-wider">
                   <Icon name="parlama" size="xs" className="inline-block mr-1 -mt-px" />
                   AI ONAYLI ROZET
                 </span>
@@ -691,7 +691,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     </div>
                     <div>
                       <span className="text-xs font-bold text-indigo-600 block leading-tight">Ruhsat Ön Yüzünü Yüklemek İçin Tıklayın</span>
-                      <span className="text-[10px] text-slate-400 font-medium font-mono">PNG, JPG veya PDF (Maksimum 10MB)</span>
+                      <span className="text-[13px] text-slate-500 font-medium font-mono">PNG, JPG veya PDF (Maksimum 10MB)</span>
                     </div>
                   </div>
                 )}
@@ -742,7 +742,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
               {/* Sütun 1: Kategori */}
               <div className="w-44 border-r border-slate-100 pr-1 shrink-0 space-y-1 overflow-y-auto max-h-[310px]">
                 <div className="text-[11px] font-bold text-slate-600 tracking-normal mb-2 pb-1.5 border-b border-slate-100 sticky top-0 bg-white z-10 flex items-center gap-1.5">
-                  <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-600 text-[10px] font-extrabold flex items-center justify-center shrink-0">1</span>
+                  <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-extrabold flex items-center justify-center shrink-0">1</span>
                   <span>Kategori</span>
                 </div>
                 {CATEGORIES.map(cat => {
@@ -777,7 +777,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
               {selectedCategory && (
                 <div className="w-44 border-r border-slate-100 pr-1 shrink-0 space-y-1 overflow-y-auto max-h-[310px] animate-fadeIn">
                   <div className="text-[11px] font-bold text-slate-600 tracking-normal mb-2 pb-1.5 border-b border-slate-100 sticky top-0 bg-white z-10 flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-600 text-[10px] font-extrabold flex items-center justify-center shrink-0">2</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-extrabold flex items-center justify-center shrink-0">2</span>
                     <span>Model Yılı</span>
                   </div>
                   {YEARS.map(yr => {
@@ -812,7 +812,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
               {selectedYear && (
                 <div className="w-44 border-r border-slate-100 pr-1 shrink-0 space-y-1 overflow-y-auto max-h-[310px] animate-fadeIn">
                   <div className="text-[11px] font-bold text-slate-600 tracking-normal mb-2 pb-1.5 border-b border-slate-100 sticky top-0 bg-white z-10 flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-600 text-[10px] font-extrabold flex items-center justify-center shrink-0">3</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-extrabold flex items-center justify-center shrink-0">3</span>
                     <span>Yakıt Tipi</span>
                   </div>
                   {FUELS.map(fuel => {
@@ -846,7 +846,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
               {selectedFuel && (
                 <div className="w-44 border-r border-slate-100 pr-1 shrink-0 space-y-1 overflow-y-auto max-h-[310px] animate-fadeIn">
                   <div className="text-[11px] font-bold text-slate-600 tracking-normal mb-2 pb-1.5 border-b border-slate-100 sticky top-0 bg-white z-10 flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-600 text-[10px] font-extrabold flex items-center justify-center shrink-0">4</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-extrabold flex items-center justify-center shrink-0">4</span>
                     <span>Marka</span>
                   </div>
                   {brands.map(b => {
@@ -873,7 +873,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
               {selectedBrand && (
                 <div className="w-44 border-r border-slate-100 pr-1 shrink-0 space-y-1 overflow-y-auto max-h-[310px] animate-fadeIn">
                   <div className="text-[11px] font-bold text-slate-600 tracking-normal mb-2 pb-1.5 border-b border-slate-100 sticky top-0 bg-white z-10 flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-600 text-[10px] font-extrabold flex items-center justify-center shrink-0">5</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-extrabold flex items-center justify-center shrink-0">5</span>
                     <span>Seri</span>
                   </div>
                   {seriesList.map(s => {
@@ -900,7 +900,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
               {selectedSeries && (
                 <div className="w-44 border-r border-slate-100 pr-1 shrink-0 space-y-1 overflow-y-auto max-h-[310px] animate-fadeIn">
                   <div className="text-[11px] font-bold text-slate-600 tracking-normal mb-2 pb-1.5 border-b border-slate-100 sticky top-0 bg-white z-10 flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-600 text-[10px] font-extrabold flex items-center justify-center shrink-0">6</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-extrabold flex items-center justify-center shrink-0">6</span>
                     <span>Model</span>
                   </div>
                   {modelsList.map(m => {
@@ -927,7 +927,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
               {selectedModel && (
                 <div className="w-44 border-r border-slate-100 pr-1 shrink-0 space-y-1 overflow-y-auto max-h-[310px] animate-fadeIn">
                   <div className="text-[11px] font-bold text-slate-600 tracking-normal mb-2 pb-1.5 border-b border-slate-100 sticky top-0 bg-white z-10 flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-600 text-[10px] font-extrabold flex items-center justify-center shrink-0">7</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-extrabold flex items-center justify-center shrink-0">7</span>
                     <span>Paket / Donanım</span>
                   </div>
                   {packagesList.map(p => {
@@ -954,7 +954,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
               {selectedPackage && (
                 <div className="w-64 bg-slate-50 border border-slate-200 rounded-md p-3 shrink-0 flex flex-col justify-between animate-fadeIn">
                   <div className="space-y-2">
-                    <span className="text-[10px] font-bold text-slate-400 font-mono block uppercase">EŞLEŞEN ARAÇ KÜNYESİ</span>
+                    <span className="text-[11px] font-bold text-slate-500 font-mono block uppercase">EŞLEŞEN ARAÇ KÜNYESİ</span>
                     
                     <div 
                       onClick={() => updateFormData({ isFinalConfirmed: true })}
@@ -965,11 +965,11 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                       <div className="flex items-start gap-2">
                         <input type="radio" checked={isFinalConfirmed} onChange={() => updateFormData({ isFinalConfirmed: true })} className="mt-0.5" />
                         <div>
-                          <span className="text-[10px] font-bold text-rose-600 block">{selectedYear}</span>
+                          <span className="text-[11px] font-bold text-rose-600 block">{selectedYear}</span>
                           <h4 className="text-xs font-extrabold text-slate-900 leading-snug mt-0.5">
                             {selectedSeries?.name} {selectedModel?.name} {selectedPackage?.name}
                           </h4>
-                          <p className="text-[10px] text-slate-500 font-medium mt-1">
+                          <p className="text-[13px] text-slate-500 font-medium mt-1">
                             {selectedFuel}, Otomatik
                           </p>
                         </div>
@@ -977,7 +977,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     </div>
                   </div>
 
-                  <p className="text-[10px] text-slate-400 mt-3">
+                  <p className="text-[13px] text-slate-500 mt-3">
                     Seçtiğiniz araç kombinasyonu ilanınıza otomatik bağlanacaktır.
                   </p>
                 </div>

@@ -28,9 +28,6 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
   
   const cardRef = useRef(null);
 
-  // Plaka kodunun güvenli tespiti
-  const plateNumber = vehicle?.plate_number || vehicle?.plate || '';
-
   // =========================================================================
   // 2. BLOK: BAKIM SİCİLİ — PIN İLE, sicil_getir() ÜZERİNDEN
   //
@@ -60,27 +57,36 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
   // =========================================================================
   // 3. BLOK: CANLI BULUT VERİ HARİTALAMA VE FORMAT SÜRÜCÜLERİ
   // =========================================================================
-  const resolveField = (key) => {
-    if (!vehicle) return null;
-    const fieldMapping = {
-      trust_score: vehicle.trust_score ?? vehicle.trustScore ?? 0,
-      plate_number: vehicle.plate_number ?? vehicle.plateValue ?? '34 ABC 123',
-      
-      // 🚀 SİBER ENTEGRASYON: Statik uydurma placeholder imha edildi! Doğrudan canlı bulut PIN_CODE alanı bağlandı.
-      pin_code: vehicle.pin_code || vehicle.pinCode || 'CV-PENDING',
-      
-      vin: vehicle.vin ?? 'WBA0M3T2MGM******',
-      // Veri yokken 'Hasarsız' varsayılmaz — beyan edilmemiş bilgi,
-      // hasarsızlık beyanı değildir.
-      tramer_status: vehicle.tramer_status ?? vehicle.tramerStatus ?? 'Bilmiyorum',
-      brand: vehicle.brand ?? 'Belirsiz',
-      model: vehicle.model ?? 'Belirsiz',
-      year: vehicle.year ?? 2026
-    };
-    return fieldMapping[key] ?? vehicle[key] ?? null;
-  };
-
-  const pinCode = resolveField('pin_code');
+  // =========================================================================
+  // ⚠ `resolveField` KALDIRILDI — İÇİNDE UYDURMA YEDEKLER VARDI
+  // -------------------------------------------------------------------------
+  // Fonksiyon yedi alan eşliyordu ama SADECE `pin_code` için çağrılıyordu;
+  // geri kalan altısı ölü koddu. Ölü olmaları tek iyi haberdi, çünkü
+  // içerikleri şunlardı:
+  //
+  //     plate_number : '34 ABC 123'          <- uydurma plaka
+  //     vin          : 'WBA0M3T2MGM******'   <- uydurma şasi numarası
+  //     brand/model  : 'Belirsiz'
+  //     year         : 2026                  <- uydurma yıl
+  //
+  // `vin` en tehlikelisiydi: `vehicles` tablosunda VIN SÜTUNU YOK (canlıda
+  // doğrulandı). Yani `vehicle.vin` her zaman undefined ve `resolveField('vin')`
+  // yazan ilk kişi, her araçta uydurma bir şasi numarası basacaktı. Bu tam
+  // olarak `OfficialReportView`ın daha önce temizlediği tuzak; o dosya
+  // gerekçesini de yazmış:
+  //
+  //     "Bu üç kolon veritabanında YOK. Yani yedek değer bir 'yedek' değildi;
+  //      her araçta, her zaman basılan uydurma bir maskeydi."
+  //
+  // Diğer yedekler de gereksizdi: canlıda 11 aracın 11'inde pin_code, brand,
+  // model, year ve trust_score dolu. Yani yedekler ne çalışıyordu ne de
+  // gerekiyordu — yalnızca ileride uydurma veri basma riski taşıyorlardı.
+  //
+  // `pin_code` doğrudan okunuyor. 'CV-PENDING' yedeği duruyor ama bu bir
+  // uydurma DEĞER değil, "henüz yok" diyen bir etiket; ayrıca PIN tescil
+  // anında `pinUret()` ile üretildiği için ulaşılamaz.
+  // =========================================================================
+  const pinCode = vehicle?.pin_code || vehicle?.pinCode || 'CV-PENDING';
   const kmValue = vehicle?.km ?? 0;
   const formattedKm = kmValue.toLocaleString('tr-TR');
 

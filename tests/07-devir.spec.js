@@ -83,6 +83,7 @@ const {
   ORNEK_PLAKA,
   girisYapAlici,
   hamMetin,
+  plakaBicimleri,
 } = require('./yardimcilar');
 
 // Devir testleri bu araç üzerinde çalışıyor. ORNEK_PLAKA kullanılmıyor:
@@ -311,7 +312,17 @@ test.describe('Araç devri', () => {
     expect(bildirim, 'devir bildirimi düşmedi').toBeTruthy();
     // Bildirime tıklamak her zaman /garage'a gidiyor ve araç orada olmayacak;
     // bu yüzden plaka METNİN İÇİNDE olmak zorunda.
-    expect(bildirim.message, 'bildirim metninde plaka yok').toContain(DEVIR_PLAKA);
+    //
+    // ⚠ HANGİ BİÇİMDE olduğu denetlenmiyor, VAR OLDUĞU denetleniyor. Bildirim
+    // metni artık plakayı okunur biçimde basıyor ("74 SDF 2343"); veritabanı
+    // ise boşluksuz tutuyor ("74SDF2343"). Testi tek biçime bağlamak, sonraki
+    // bir biçim değişikliğinde gerçek bir kusur değilken kırılmasına yol açar
+    // — nitekim bu satır tam olarak öyle kırıldı.
+    const bicimler = plakaBicimleri(DEVIR_PLAKA);
+    expect(
+      bicimler.some((b) => bildirim.message.includes(b)),
+      `bildirim metninde plaka yok (aranan biçimler: ${bicimler.join(' / ')}) — metin: "${bildirim.message}"`
+    ).toBe(true);
     expect(bildirim.type).toBe('warning');
   });
 
@@ -392,12 +403,78 @@ test.describe('Araç devri', () => {
       expect(o.error || (o.data && o.data.length === 0), `${tablo} oturumluya açık`).toBeTruthy();
     }
 
-    // İç fonksiyonlar: yalnızca diğer definer fonksiyonlar çağırabilir.
-    for (const fn of ['_devri_uygula', '_bildirim_yaz', '_devir_deneme_asildi_mi',
-                      'pin_uret', 'istemci_ip', 'sicil_hiz_siniri_asildi_mi']) {
-      const r = await rpc(sb, fn, {});
-      expect(r?.hata_mesaji, `${fn} oturumlu kullanıcıya açık`).toBeTruthy();
+    // =====================================================================
+    // ⚠ BU DENETİM ÖNCEDEN YANLIŞ SEBEPLE GEÇİYORDU
+    // ---------------------------------------------------------------------
+    // Eski hâli fonksiyonları BOŞ parametreyle çağırıyordu:
+    //
+    //     const r = await rpc(sb, fn, {});
+    //     expect(r?.hata_mesaji).toBeTruthy();
+    //
+    // PostgREST boş parametreyle eşleşen imzayı bulamayıp hata döndürüyor,
+    // test de bunu "kapalı" sayıyordu. Yani YETKİ hiç sınanmıyordu; ölçülen
+    // şey imza uyuşmazlığıydı. Fonksiyon herkese açık olsaydı bile test
+    // yeşil kalırdı.
+    //
+    // Gizlediği şey gerçekti: `_bildirim_yaz` anon dahil HERKESE açıktı ve
+    // geçerli parametrelerle çağrıldığında sorunsuz yazıyordu. Fonksiyon
+    // security definer ve `user_id`, başlık, gövde ile `hedef_yol` (tıklama
+    // hedefi) parametrelerini çağırandan alıyor — yani uygulama içi bir
+    // oltalama kanalıydı.
+    //
+    // Artık her fonksiyon GEÇERLİ imzayla çağrılıyor ve iki şey birden
+    // denetleniyor:
+    //   1. hata YETKİ hatası mı (imza hatası değil),
+    //   2. yan etki gerçekleşmedi mi (yazan fonksiyonlar için).
+    // =====================================================================
+    const { data: { user: benim } } = await sb.auth.getUser();
+
+    const IC_FONKSIYONLAR = [
+      { ad: 'pin_uret',                   parametre: {} },
+      { ad: 'istemci_ip',                 parametre: {} },
+      { ad: '_devir_deneme_asildi_mi',    parametre: { p_uid: benim.id } },
+      { ad: 'sicil_hiz_siniri_asildi_mi', parametre: { p_ip: '203.0.113.1' } },
+      { ad: '_bildirim_yaz',              parametre: {
+          p_user_id: benim.id,
+          p_baslik: 'OTOCV-KILIT-DENEMESI',
+          p_mesaj: 'bu satır yazılmamalı',
+          p_tur: 'danger',
+          p_hedef_yol: '/oltalama',
+        } },
+      // ⚠ `_devri_uygula` GERÇEK bir devir yapardı. Kendine devir dalı
+      // veritabanında zaten reddediliyor, yani yetki bir şekilde açık olsa
+      // bile araç el değiştirmiyor — testin başarısızlık bedeli veri kaybı
+      // olmamalı (bu dosyanın kuralı).
+      { ad: '_devri_uygula', parametre: {
+          p_plaka: DEVIR_PLAKA, p_yeni_sahip: benim.id,
+          p_onay: { deneme: true }, p_sahipsizden: false,
+        } },
+    ];
+
+    for (const { ad, parametre } of IC_FONKSIYONLAR) {
+      for (const [rol, istemci] of [['anon', anon], ['oturumlu', sb]]) {
+        const { error } = await istemci.rpc(ad, parametre);
+
+        expect(error, `${ad} ${rol} rolüne AÇIK — hiç hata dönmedi`).toBeTruthy();
+
+        // Asıl denetim: hata YETKİ hatası olmalı. "function not found" gibi
+        // bir imza hatası kapalı olduğu anlamına GELMEZ.
+        expect(
+          `${error.message} ${error.code || ''}`,
+          `${ad} ${rol} rolünde yetki dışı bir sebeple hata verdi ` +
+          `("${error.message}") — kilit doğrulanamadı`
+        ).toMatch(/permission denied|42501/i);
+      }
     }
+
+    // Yan etki denetimi: `_bildirim_yaz` yazan tek fonksiyon. Hata dönmüş
+    // olması yetmez, SATIR OLUŞMAMIŞ olmalı.
+    const { data: sizanSatir } = await sb
+      .from('notifications').select('id').eq('title', 'OTOCV-KILIT-DENEMESI');
+    expect(
+      sizanSatir?.length ?? 0,
+      '_bildirim_yaz hata döndürdü ama bildirim yine de yazıldı'
+    ).toBe(0);
   });
 
   // -----------------------------------------------------------------------

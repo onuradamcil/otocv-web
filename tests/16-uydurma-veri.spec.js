@@ -213,3 +213,108 @@ test.describe('Vitrin çıkışsız yolu', () => {
     await expect(page.locator('input[type="number"]'), 'km gibi sayısal alan düzenlenebiliyor').toHaveCount(0);
   });
 });
+
+
+// =========================================================================
+// KAYNAK TARAMASI — ULAŞILAMAYAN UYDURMA YEDEKLER
+//
+// -------------------------------------------------------------------------
+// NİYE ÇALIŞMA ANI DENETİMİ YETMİYOR
+// -------------------------------------------------------------------------
+// Yukarıdaki testler sayfayı açıp ekranda uydurma değer arıyor. Ama bir
+// yedek ancak GERÇEK VERİ EKSİKKEN devreye giriyor; canlıda 11 aracın
+// 11'inde plaka, marka, model, yıl ve puan dolu olduğu için o dallara
+// hiç girilmiyor. Yani ekran temiz görünüyor, uydurma değer kodda duruyor
+// ve ilk eksik veride sessizce basılıyor.
+//
+// Bu gerçekten yaşandı. Üç ayrı yerde bulundu:
+//
+//   OtoKarneScreen  : plate '34 ABC 123', vin 'WBA0M3T2MGM******', year 2026
+//   GarageScreen    : plate '34 ABC 123'   <- rozeti besliyordu
+//   MaintenanceDialog: plate '34 ABC 123'  <- VERİTABANINA YAZILIYORDU
+//
+// Sonuncusu en ağırıydı: aynı değişken bakım kaydının `vehicle_plate`
+// alanıydı, yani plaka çözülemediğinde kayıt olmayan bir araca yazılacaktı.
+//
+// `vin` ise hiç var olmayan bir sütundan okunuyordu — yedek "istisna"
+// değil, TEK durumdu. `OfficialReportView` aynı tuzağı daha önce temizleyip
+// gerekçesini yazmıştı; iki dosya o temizlikten kaçmıştı.
+//
+// -------------------------------------------------------------------------
+// BU DENETİM NE YAPIYOR
+// -------------------------------------------------------------------------
+// Kaynağı okuyup uydurma sabitleri arıyor. Ulaşılabilir olup olmadıklarına
+// bakmıyor — ulaşılamayan uydurma veri de bir tuzak, çünkü onu ulaşılabilir
+// yapmak tek satırlık bir değişiklik.
+//
+// Yorum satırları ve `placeholder` özniteliği DIŞARIDA: yorumlar bu
+// temizliğin gerekçesini yazıyor, placeholder ise veri değil, kullanıcıya
+// biçim gösteren bir ipucu.
+//
+// ⚠ VERİTABANINA DOKUNMUYOR, CI'DA KOŞAR.
+// =========================================================================
+
+const fs = require('fs');
+const path = require('path');
+
+// Bu projede gerçekten ortaya çıkmış uydurma sabitler. Liste "her sahte
+// değeri bulur" iddiasında değil; geri gelmelerini engelliyor.
+const YASAKLI_SABITLER = [
+  { desen: '34 ABC 123',         ne: 'uydurma plaka' },
+  { desen: 'WBA0M3T2MGM',        ne: 'uydurma şasi numarası' },
+  { desen: 'N20B20A',            ne: 'uydurma motor numarası' },
+  { desen: 'AA012345',           ne: 'uydurma ruhsat seri no' },
+  { desen: '532) 123 45 67',     ne: 'uydurma cep telefonu' },
+  { desen: 'Tescilli Araç Sahibi', ne: 'uydurma araç sahibi adı' },
+  { desen: 'Mart 2026',          ne: 'sabit üyelik tarihi' },
+];
+
+/** src altındaki tüm kaynak dosyaları. */
+function kaynakDosyalari(kok) {
+  const cikti = [];
+  for (const ad of fs.readdirSync(kok)) {
+    const tam = path.join(kok, ad);
+    const stat = fs.statSync(tam);
+    if (stat.isDirectory()) cikti.push(...kaynakDosyalari(tam));
+    else if (/\.(js|jsx)$/.test(ad)) cikti.push(tam);
+  }
+  return cikti;
+}
+
+/**
+ * Yorum satırlarını ve `placeholder` özniteliklerini çıkarır.
+ * Amaç, gerçekten ÇALIŞAN kodu denetlemek.
+ */
+function calisanKod(icerik) {
+  return icerik
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')                  // blok yorumlar
+    .replace(/\/\/[^\n]*/g, ' ')                        // satir yorumlari
+    .replace(/placeholder\s*=\s*"[^"]*"/g, ' ')         // girdi ipucu (cift tirnak)
+    .replace(/placeholder\s*=\s*'[^']*'/g, ' ');        // girdi ipucu (tek tirnak)
+}
+
+test.describe('Uydurma veri · kaynak taramasi', () => {
+  test('kaynakta ulaşılamayan uydurma yedek yok', () => {
+    const kok = path.join(__dirname, '..', 'src');
+    const dosyalar = kaynakDosyalari(kok);
+    expect(dosyalar.length, 'src altında kaynak dosya bulunamadı').toBeGreaterThan(50);
+
+    const bulgular = [];
+    for (const dosya of dosyalar) {
+      const kod = calisanKod(fs.readFileSync(dosya, 'utf8'));
+      for (const { desen, ne } of YASAKLI_SABITLER) {
+        if (kod.includes(desen)) {
+          bulgular.push(`${path.relative(kok, dosya)} -> "${desen}" (${ne})`);
+        }
+      }
+    }
+
+    expect(
+      bulgular,
+      'Kaynakta uydurma yedek değer var. Eksik veride bu değer gerçek sanılıp '
+      + 'basılır; birinde veritabanına da yazılıyordu. Yedek uydurmak yerine '
+      + 'değeri boş bırakın ve gösterimi atlayın. Bulunanlar: '
+      + bulgular.join(' | ')
+    ).toEqual([]);
+  });
+});

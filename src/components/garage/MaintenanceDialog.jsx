@@ -35,8 +35,19 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
 
   if (!isOpen) return null;
 
-  // Güvenli Kimlik Tespiti
-  const activePlate = vehicle?.plate_number || vehicle?.plate || plateNumber || '34 ABC 123';
+  // ⚠ '34 ABC 123' YEDEĞİ KALDIRILDI — UYDURMA PLAKAYDI.
+  //
+  // Eski hâli `... || plateNumber || '34 ABC 123'` idi. İki ayrı zarar
+  // veriyordu:
+  //   1. Rozette gerçek sanılan sahte bir plaka görünürdü.
+  //   2. `activePlate` aynı zamanda kaydın `vehicle_plate` alanı (aşağıda,
+  //      insert satırında). Yani plaka çözülemediğinde bakım kaydı OLMAYAN
+  //      bir araca yazılmaya çalışılırdı.
+  //
+  // Plaka çözülemiyorsa yapılacak doğru şey uydurmak değil, kaydı hiç
+  // açmamak: plakasız bir bakım kaydının gideceği yer yok.
+  const activePlate = vehicle?.plate_number || vehicle?.plate || plateNumber || '';
+  if (!activePlate) return null;
   const activeBrand = vehicle?.brand || '';
   const activeModel = vehicle?.model || '';
   const activeCarName = activeBrand ? `${activeBrand} ${activeModel}`.trim() : '';

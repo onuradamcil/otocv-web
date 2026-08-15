@@ -641,7 +641,11 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
   // ayri sayi. Simdi olu kod; yine de 0 birakiliyor ki bir gun deger gelmezse
   // uydurma bir sayi degil, acikca dusuk bir puan gorunsun.
   const score = vehicle.trust_score ?? 0;
-  const plate = vehicle.plate_number ?? '34 ABC 123';
+  // Aynı gerekçe plakada da geçerliydi ama uygulanmamıştı: yedek '34 ABC 123'
+  // idi, yani plakası çözülemeyen araçta gerçek sanılan sahte bir plaka
+  // görünürdü. Boş bırakılıyor; `TrPlaka` boş plakada hiçbir şey basmıyor —
+  // uydurma bir plaka göstermektense rozeti hiç göstermemek doğru.
+  const plate = vehicle.plate_number ?? '';
   const rawImageUrl = vehicle.image_url || vehicle.image;
 
   let thumbnailTarget = null;

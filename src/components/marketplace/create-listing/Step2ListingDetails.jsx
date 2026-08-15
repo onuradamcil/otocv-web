@@ -648,7 +648,7 @@ useEffect(() => {
             </div>
 
             <div className="space-y-0.5 overflow-hidden">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 font-mono">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 font-mono">
                 Eşleşen Araç
               </span>
               <h3 className="text-sm font-black text-slate-900 truncate">
@@ -683,7 +683,7 @@ useEffect(() => {
                 <span className="text-rose-600 font-bold">*</span>
                 <span>Vitrin & Araç Başlığı</span>
               </label>
-              <span className="text-[11px] font-mono text-slate-400 font-semibold">
+              <span className="text-[11px] font-mono text-slate-500 font-semibold">
                 {remainingTitleChars} karakter kaldı
               </span>
             </div>
@@ -782,7 +782,7 @@ useEffect(() => {
                       <span>{selectedColor?.name || selectedColor}</span>
                     </>
                   ) : (
-                    <span className="text-slate-400 font-normal">Renk Seçiniz</span>
+                    <span className="text-slate-500 font-normal">Renk Seçiniz</span>
                   )}
                 </div>
                 <span className="text-xs text-slate-400">▼</span>
@@ -895,7 +895,7 @@ useEffect(() => {
               </svg>
               <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-1.5">
                 <span>Araç Detayları</span>
-                <span className="text-xs font-semibold text-slate-400 font-sans font-normal">(Opsiyonel)</span>
+                <span className="text-xs font-semibold text-slate-500 font-sans font-normal">(Opsiyonel)</span>
               </h3>
             </div>
           </div>
@@ -1022,7 +1022,7 @@ useEffect(() => {
                   </div>
                   <div className="max-h-52 overflow-y-auto divide-y divide-slate-50 scrollbar-thin">
                     {filteredCities.length === 0 ? (
-                      <div className="p-3 text-center text-xs font-medium text-slate-400">İl bulunamadı</div>
+                      <div className="p-3 text-center text-xs font-medium text-slate-500">İl bulunamadı</div>
                     ) : (
                       filteredCities.map(cityName => (
                         <div
@@ -1091,7 +1091,7 @@ useEffect(() => {
                   </div>
                   <div className="max-h-52 overflow-y-auto divide-y divide-slate-50 scrollbar-thin">
                     {filteredDistricts.length === 0 ? (
-                      <div className="p-3 text-center text-xs font-medium text-slate-400">İlçe bulunamadı</div>
+                      <div className="p-3 text-center text-xs font-medium text-slate-500">İlçe bulunamadı</div>
                     ) : (
                       filteredDistricts.map(distName => (
                         <div
@@ -1136,7 +1136,7 @@ useEffect(() => {
                 </svg>
                 <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-1.5">
                   <span>Boya, Değişen ve Tramer Bilgisi</span>
-                  <span className="text-xs font-semibold text-slate-400 font-sans font-normal">(Opsiyonel)</span>
+                  <span className="text-xs font-semibold text-slate-500 font-sans font-normal">(Opsiyonel)</span>
                 </h3>
               </div>
             </div>
@@ -1488,7 +1488,7 @@ useEffect(() => {
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-slate-400 font-mono pt-2 border-t border-slate-100 leading-tight">
+                  <p className="text-[11px] text-slate-500 font-mono pt-2 border-t border-slate-100 leading-tight">
                     * Eksiksiz ekspertiz bilgisi araç karnesinin şeffaflık puanını artırır.
                   </p>
                 </div>
@@ -1514,7 +1514,7 @@ useEffect(() => {
               <div>
                 <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-1.5">
                   <span>Araç Donanım Özellikleri</span>
-                  <span className="text-xs font-semibold text-slate-400 font-sans font-normal">(Opsiyonel)</span>
+                  <span className="text-xs font-semibold text-slate-500 font-sans font-normal">(Opsiyonel)</span>
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">Donanım kategorilerine tıklayarak detayları inceleyin ve seçim yapın.</p>
               </div>
@@ -1677,7 +1677,7 @@ useEffect(() => {
               </h3>
             </div>
             
-            <span className="text-xs font-mono font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/60">
+            <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/60">
               {getCleanText(description).length} / 10000
             </span>
           </div>

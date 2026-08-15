@@ -9,6 +9,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { parseVehicleDate } from '../utils/dateHelper';
+import { plakaBicimle } from '../utils/plaka';
 import { bildirimDuyur } from '../lib/canliOlay';
 
 const NotificationContext = createContext();
@@ -69,8 +70,34 @@ export function NotificationProvider({ children }) {
         .select('title')
         .eq('user_id', currentUserId);
 
+      // =====================================================================
+      // ⚠ TEKİLLEŞTİRME ANAHTARI BAŞLIĞIN AYNISI DEĞİL — BOŞLUKLAR ATILIYOR
+      // ---------------------------------------------------------------------
+      // Bildirim başlıkları plaka içeriyor ve plaka artık BİÇİMLİ basılıyor
+      // ("41 IHH 434"). Eskiden ham basılıyordu ("41IHH434") ve canlıda 216
+      // satır o hâliyle duruyor.
+      //
+      // Anahtar başlığın birebir kendisi olsaydı, biçim değişikliği eski
+      // satırlarla eşleşmez ve VAR OLAN HER BİLDİRİMİN KOPYASI yeniden
+      // üretilirdi — kullanıcı aynı uyarıyı iki kez görürdü. Boşlukları
+      // atmak iki biçimi aynı anahtara indiriyor:
+      //
+      //     "[Son 15 Gün] 41IHH434 Trafik Sigortası Yaklaştı"
+      //     "[Son 15 Gün] 41 IHH 434 Trafik Sigortası Yaklaştı"
+      //         ikisi de -> "[Son15Gün]41IHH434TrafikSigortasıYaklaştı"
+      //
+      // Böylece eski satırlara DOKUNMADAN kopya üretmeden geçiliyor; yeni
+      // bildirimler biçimli, eskiler olduğu gibi kalıyor ve zamanla
+      // yerlerini yenilerine bırakıyor.
+      //
+      // Farklı bildirimlerin çakışma riski yok: başlıkları aşama ("[Son 15
+      // Gün]") ve poliçe türü sözcükleriyle ayrışıyor, boşluk atınca da
+      // ayrışmaya devam ediyor.
+      // =====================================================================
+      const baslikAnahtari = (baslik) => String(baslik || '').replace(/\s+/g, '');
+
       const existingTitles = new Set(
-        existingNotifs?.map(n => String(n.title).trim()) || []
+        existingNotifs?.map(n => baslikAnahtari(n.title)) || []
       );
 
       const today = new Date();
@@ -104,38 +131,38 @@ export function NotificationProvider({ children }) {
           if (daysLeft <= 0) {
             stageKey = `[Süresi Doldu]`;
             notifPayload = {
-              title: `${stageKey} ${car.plate_number} ${item.typeName} Süresi Doldu!`,
-              message: `${car.brand} ${car.model} (${car.plate_number}) aracınızın ${item.typeName.toLowerCase()} süresi dolmuştur. Aracınız teminatsız durumdadır.`,
+              title: `${stageKey} ${plakaBicimle(car.plate_number)} ${item.typeName} Süresi Doldu!`,
+              message: `${car.brand} ${car.model} (${plakaBicimle(car.plate_number)}) aracınızın ${item.typeName.toLowerCase()} süresi dolmuştur. Aracınız teminatsız durumdadır.`,
               type: 'danger'
             };
           } else if (daysLeft <= 7) {
             stageKey = `[Son 7 Gün]`;
             notifPayload = {
-              title: `${stageKey} ${car.plate_number} ${item.typeName} Bitiyor!`,
-              message: `${car.brand} ${car.model} (${car.plate_number}) aracınızın ${item.typeName.toLowerCase()} bitimine son ${daysLeft} gün kaldı. Teklifinizi hemen alın.`,
+              title: `${stageKey} ${plakaBicimle(car.plate_number)} ${item.typeName} Bitiyor!`,
+              message: `${car.brand} ${car.model} (${plakaBicimle(car.plate_number)}) aracınızın ${item.typeName.toLowerCase()} bitimine son ${daysLeft} gün kaldı. Teklifinizi hemen alın.`,
               type: 'danger'
             };
           } else if (daysLeft <= 15) {
             stageKey = `[Son 15 Gün]`;
             notifPayload = {
-              title: `${stageKey} ${car.plate_number} ${item.typeName} Yaklaştı`,
-              message: `${car.brand} ${car.model} (${car.plate_number}) aracınızın ${item.typeName.toLowerCase()} bitimine ${daysLeft} gün kaldı. Fiyatları karşılaştırın.`,
+              title: `${stageKey} ${plakaBicimle(car.plate_number)} ${item.typeName} Yaklaştı`,
+              message: `${car.brand} ${car.model} (${plakaBicimle(car.plate_number)}) aracınızın ${item.typeName.toLowerCase()} bitimine ${daysLeft} gün kaldı. Fiyatları karşılaştırın.`,
               type: 'warning'
             };
           } else if (daysLeft <= 30) {
             stageKey = `[Son 30 Gün]`;
             notifPayload = {
-              title: `${stageKey} ${car.plate_number} ${item.typeName} 1 Ay Kaldı`,
-              message: `${car.brand} ${car.model} (${car.plate_number}) aracınızın ${item.typeName.toLowerCase()} süresi 1 ay sonra doluyor.`,
+              title: `${stageKey} ${plakaBicimle(car.plate_number)} ${item.typeName} 1 Ay Kaldı`,
+              message: `${car.brand} ${car.model} (${plakaBicimle(car.plate_number)}) aracınızın ${item.typeName.toLowerCase()} süresi 1 ay sonra doluyor.`,
               type: 'warning'
             };
           }
 
           if (notifPayload) {
-            const cleanTitle = String(notifPayload.title).trim();
+            const anahtar = baslikAnahtari(notifPayload.title);
 
-            if (!existingTitles.has(cleanTitle)) {
-              existingTitles.add(cleanTitle);
+            if (!existingTitles.has(anahtar)) {
+              existingTitles.add(anahtar);
 
               const { error: insertErr } = await supabase
                 .from('notifications')
