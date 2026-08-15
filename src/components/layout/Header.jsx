@@ -180,6 +180,7 @@ export default function Header() {
   // Gerçekten çalışan ve en sık kullanılan ekran (garaj) başa alındı; özet
   // hazır olana kadar aşağıda ve "yakında" etiketiyle duruyor.
   const HESAP_MENU = [
+    { href: '/dashboard', label: 'Bana Özel Özet' },
     { href: '/garage', label: 'Tescilli Taşıtlarım (Garaj)' },
     { href: '/my-listings', label: 'Vitrindeki Araçlarım' },
     { href: '/favorilerim', label: 'Favorilerim' },
@@ -187,7 +188,6 @@ export default function Header() {
     { href: '/query-history', label: 'Sorgulama Geçmişim' },
     { href: '/packages', label: 'Ücretler & Ödemeler' },
     { href: '/account', label: 'Hesabım' },
-    { href: '/dashboard', label: 'Bana Özel Özet', yakinda: true },
   ];
 
   return (

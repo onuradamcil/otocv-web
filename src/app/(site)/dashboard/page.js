@@ -1,17 +1,16 @@
 // =========================================================================
-// OTO-CV YER TUTUCU ROUTE'U ((shell)/dashboard/page.js)
+// BANA ÖZEL ÖZET ROTASI ((site)/dashboard)
+//
+// Eskiden `ComingSoon` yer tutucusuydu. Vaadi — "araçlarınızın durumunu,
+// yaklaşan tarihleri ve bakım özetini tek ekranda toplayan panel" — artık
+// gerçek veriyle karşılanıyor; mantık `OzetEkrani` içinde.
 // =========================================================================
 
 'use client';
 
 import React from 'react';
-import ComingSoon from '@/components/common/ComingSoon';
+import OzetEkrani from '@/components/OzetEkrani';
 
 export default function Page() {
-  return (
-    <ComingSoon
-      title="Bana Özel Özet"
-      description="Araçlarınızın durumunu, yaklaşan tarihleri ve bakım özetini tek ekranda toplayan panel hazırlanıyor."
-    />
-  );
+  return <OzetEkrani />;
 }
