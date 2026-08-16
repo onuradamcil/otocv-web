@@ -77,25 +77,41 @@ export const ORNEK_ORTAKLAR = [
     kapsam: ['trafik', 'kasko'],
     yonlendirmeUrl: 'https://example.com/ornek-sigorta',
     aktif: true,
-    not: 'Trafik ve kasko yenilemede anlaşmalı',
+    not: 'Online poliçe düzenleme, 7/24 hasar ihbar hattı',
   },
   {
     kod: 'ornek_b',
     ad: 'Örnek Global Sigorta',
-    kapsam: ['kasko'],
+    kapsam: ['trafik', 'kasko'],
     yonlendirmeUrl: 'https://example.com/ornek-global',
     aktif: true,
-    not: 'Genişletilmiş kasko paketleri',
+    not: 'Genişletilmiş kasko paketleri, yol yardım dahil',
   },
   {
     kod: 'ornek_c',
+    ad: 'Örnek Anadolu Karşılaştırma',
+    kapsam: ['trafik', 'kasko'],
+    yonlendirmeUrl: 'https://example.com/ornek-karsilastirma',
+    aktif: true,
+    not: 'Birden fazla şirketin poliçesini tek ekranda karşılaştırır',
+  },
+  {
+    kod: 'ornek_d',
     ad: 'Örnek Muayene Ağı',
     kapsam: ['muayene'],
     yonlendirmeUrl: 'https://example.com/ornek-muayene',
     aktif: true,
-    not: 'Randevu ve hatırlatma',
+    not: 'Randevu oluşturma ve hatırlatma',
   },
 ];
+
+/** Kapsam kodlarının ekranda gösterilen kısa adları. */
+export const KAPSAM_ADI = {
+  trafik: 'Trafik',
+  kasko: 'Kasko',
+  muayene: 'Muayene',
+  bakim: 'Bakım',
+};
 
 /**
  * Bir belge türü için sözleşmesi yürürlükte olan ortaklar.

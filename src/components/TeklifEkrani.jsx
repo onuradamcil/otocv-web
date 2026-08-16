@@ -46,6 +46,7 @@ import { formatTrDate, generateGoogleCalendarUrl } from '../utils/dateHelper';
 import {
   aktifOrtaklar, teklifTalebiOlustur, talepVarMi, KAYNAKLAR, TURLER,
 } from '../services/teklifService';
+import { KAPSAM_ADI } from '../data/teklifOrtaklari';
 
 /** Ekranda aynı anda gösterilen en fazla belge. */
 const EN_FAZLA = 6;
@@ -143,7 +144,9 @@ function BelgeKarti({ kayit, kaynak, demo }) {
 
       {/* --- TEKLİF DURUMU --- */}
       <div className="border-t border-slate-100 pt-4 space-y-2">
-        <h3 className="etiket text-slate-500">TEKLİF DURUMU</h3>
+        <h3 className="etiket text-slate-500">
+          {ortaklar.length > 0 ? 'BU ARAÇ İÇİN ÇALIŞTIĞIMIZ FİRMALAR' : 'TEKLİF DURUMU'}
+        </h3>
 
         {ortaklar.length > 0 ? (
           // ORTAK VARKEN ÇALIŞAN DAL.
@@ -156,26 +159,59 @@ function BelgeKarti({ kayit, kaynak, demo }) {
           // ⚠ TUTAR BASILMIYOR. Ne prim, ne "şu kadardan başlayan". Ortak
           // gelse bile tutar göstermek ürünü satış sitesi konumuna sokuyor;
           // yönlendirme modeli seçilmesinin sebeplerinden biri de bu.
-          <ul className="space-y-2">
-            {ortaklar.map((o) => (
-              <li key={o.kod}>
-                <a
-                  href={o.yonlendirmeUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-between gap-3 min-h-[52px] px-4 py-2 rounded-xl
-                    border border-indigo-200 bg-indigo-50 text-indigo-800 hover:bg-indigo-100
-                    transition-colors"
-                >
-                  <span className="min-w-0">
-                    <span className="baslik-kart text-indigo-900 block">{o.ad}</span>
-                    {o.not && <span className="metin-yardimci text-indigo-700 block">{o.not}</span>}
-                  </span>
-                  <Icon name="kure" size="sm" />
-                </a>
-              </li>
-            ))}
-          </ul>
+          <div className="space-y-3">
+            <ul className="space-y-2">
+              {ortaklar.map((o) => (
+                <li key={o.kod}>
+                  <a
+                    href={o.yonlendirmeUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-4 rounded-xl
+                      border border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40
+                      transition-colors group"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-2 flex-wrap">
+                        <span className="baslik-kart text-slate-900">{o.ad}</span>
+                        {/* Kapsam çipleri: firmanın HANGİ belgede çalıştığını
+                            söylüyor. Bir sıralama ya da üstünlük iddiası
+                            DEĞİL — öyle bir iddia için karşılaştırma verisi
+                            gerekir ve bizde yok. */}
+                        {o.kapsam.map((k) => (
+                          <span key={k} className="etiket px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+                            {KAPSAM_ADI[k] || k}
+                          </span>
+                        ))}
+                      </span>
+                      {o.not && <span className="metin-yardimci text-slate-600 block mt-1">{o.not}</span>}
+                    </span>
+
+                    <span className="inline-flex items-center gap-1.5 shrink-0 metin-yardimci font-semibold
+                      text-indigo-700 group-hover:text-indigo-800">
+                      Teklif al
+                      <Icon name="kure" size="sm" />
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+
+            {/* ⚠ ROL BEYANI — EKRANDA DURMASI ŞART.
+                Ürünün işi yönlendirme: kullanıcıya kendi aracına uygun
+                firmaları göstermek. Sigorta aracılığı (acentelik/brokerlik)
+                Türkiye'de SEDDK lisansına tabi ve bu ürün o işi yapmıyor.
+                Kullanıcının nerede kiminle işlem yaptığını bilmesi hem
+                dürüstlük hem de bu ayrımın korunması için gerekli.
+
+                ⚠ "satış" KELİMESİ KULLANILMIYOR — yasaklı. "Acente değildir"
+                zaten daha kesin bir ifade. */}
+            <p className="metin-yardimci text-slate-500">
+              Oto.CV bir sigorta acentesi değildir. Teklif ve poliçe işlemleri
+              firmanın kendi sitesinde tamamlanır; bilgileriniz otomatik
+              aktarılmaz.
+            </p>
+          </div>
         ) : talepli ? (
           <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
             <Icon name="onay" size="lg" className="text-emerald-700 shrink-0" />

@@ -431,6 +431,33 @@ test.describe('Teklif ekranı · demo görünümü', () => {
     expect(eslesme?.[0] ?? null, `demo ekranında tutar var: ${eslesme?.[0]}`).toBeNull();
   });
 
+  test('YÖNLENDİRİCİ ROLÜ ekranda açıkça yazıyor', async ({ page }) => {
+    // ⚠ BU SATIR ÜRÜNÜN HUKUKİ KONUMU.
+    //
+    // Sigorta aracılığı (acentelik/brokerlik) Türkiye'de SEDDK lisansına
+    // tabi. Bu ürün o işi yapmıyor: kullanıcıya kendi aracına uygun
+    // firmaları gösteriyor ve yönlendiriyor. Ekran firma listesi
+    // gösterirken bu ayrımı söylemezse, kullanıcı poliçeyi Oto.CV'den
+    // aldığını sanabilir.
+    //
+    // Ortak listesi göründüğü HER durumda bu beyan da görünmeli.
+    const metin = await hamMetin(page);
+    expect(metin, 'firma listesi var ama yönlendirici rolü yazmıyor')
+      .toContain('sigorta acentesi değildir');
+    expect(metin, 'kullanıcı verisinin aktarılmadığı söylenmiyor')
+      .toContain('otomatik aktarılmaz');
+  });
+
+  test('SIRALAMA ya da ÜSTÜNLÜK iddiası yok', async ({ page }) => {
+    // Firma listesi göstermek ile "en uygunu bu" demek farklı şeyler.
+    // İkincisi karşılaştırma verisi gerektirir; bizde yok ve zaten
+    // yönlendirici rolünün dışına çıkar.
+    const metin = (await hamMetin(page)).toLocaleLowerCase('tr-TR');
+    for (const iddia of ['en uygun', 'en ucuz', 'en iyi', 'önerilen firma', 'tavsiye edilen']) {
+      expect(metin, `demo ekranında dayanaksız üstünlük iddiası: "${iddia}"`).not.toContain(iddia);
+    }
+  });
+
   test('GERÇEK bir sigorta markası kullanılmıyor', async ({ page }) => {
     // Demo firmalarına gerçek bir şirket adı vermek, o şirketle var olmayan
     // bir ticari ilişki iddia etmek olurdu.
