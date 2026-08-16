@@ -103,6 +103,14 @@ export const ORNEK_ORTAKLAR = [
     aktif: true,
     not: 'Randevu oluşturma ve hatırlatma',
   },
+  {
+    kod: 'ornek_e',
+    ad: 'Örnek Servis Ağı',
+    kapsam: ['bakim'],
+    yonlendirmeUrl: 'https://example.com/ornek-servis',
+    aktif: true,
+    not: 'Periyodik bakım randevusu, faturalı işlem',
+  },
 ];
 
 /** Kapsam kodlarının ekranda gösterilen kısa adları. */

@@ -465,11 +465,16 @@ export default function MarketplaceView({
                     alt: 'text-slate-900 border-slate-900',
                   },
                   {
-                    ad: 'Bakım Takvimi', ozet: 'Periyodik servis ve usta faturaları.',
+                    // ⚠ EYLEM "Randevu Al" İDİ VE RANDEVU ALINAMIYORDU.
+                    // Kart `/maintenance-planner`a gidiyordu, orası da
+                    // `ComingSoon` yer tutucusuydu. Sigorta kartındaki
+                    // ölü kapının aynısı. Rota gerçek ekran oldu; eylem
+                    // adı da ekranın gerçekten yaptığı işe çekildi.
+                    ad: 'Bakım Takvimi', ozet: 'Servis geçmişinizi görün, kayıt ekledikçe sicil puanı yükselsin.',
                     // Eskiden burada da `anahtar` vardı ve devir kartıyla
                     // aynı ikonu paylaşıyordu. Takvim işi takvim ikonu,
                     // anahtar ise devrin kendisi.
-                    eylem: 'Randevu Al', ikon: 'takvim', tik: onNavigateToMaintenance,
+                    eylem: 'Bakımları Gör', ikon: 'takvim', tik: onNavigateToMaintenance,
                     kabart: 'bg-slate-500', yazi: 'group-hover:text-slate-700',
                     alt: 'text-slate-700 border-slate-700',
                   },

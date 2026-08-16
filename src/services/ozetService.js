@@ -53,7 +53,7 @@ export async function ozetGetir() {
 
     const { data: araclar, error: aracHata } = await supabase
       .from('vehicles')
-      .select('plate_number, brand, model, year, trust_score, pin_code, '
+      .select('plate_number, brand, model, year, km, trust_score, pin_code, '
         + 'traffic_insurance_end_date, kasko_end_date, inspection_end_date, '
         + 'listings(id, status, views_count, favorite_count)')
       .eq('user_id', user.id);
@@ -68,7 +68,11 @@ export async function ozetGetir() {
     if (plakalar.length > 0) {
       const { data, error } = await supabase
         .from('maintenance_records')
-        .select('vehicle_plate, service_date')
+        // `km_at_service`, `next_service_km` ve `shop_name` bakım ekranı için.
+        // Panel bunları kullanmıyor ama İKİNCİ BİR SORGU YAZMAMAK için
+        // buradan geliyorlar: iki ayrı yerden okunan aynı veri, zamanla iki
+        // farklı doğruya ayrışıyor.
+        .select('vehicle_plate, service_date, km_at_service, next_service_km, shop_name')
         .in('vehicle_plate', plakalar);
       if (error) throw error;
       kayitlar = data || [];
@@ -130,6 +134,60 @@ export function ozetHesapla(araclar, kayitlar) {
     .filter(Boolean)
     .sort();
 
+  // --- 2b · ARAÇ BAZINDA BAKIM DURUMU ------------------------------------
+  //
+  // ⚠ BAKIM ARALIĞI UYDURULMUYOR.
+  // "Her 15.000 km'de bakım gerekir" demek kolay olurdu ama bu üreticiye,
+  // motora ve kullanıma göre değişiyor; bilmediğimiz bir şeyi kural gibi
+  // sunmak, temizlediğimiz uydurma veri sınıfının aynısı olurdu.
+  //
+  // Onun yerine YALNIZCA bilinen üç şey söyleniyor:
+  //   · araca ait hiç kayıt var mı
+  //   · son bakımın üstünden ne kadar geçti (service_date gerçek)
+  //   · kullanıcı sonraki bakım km'sini KENDİ beyan ettiyse ne kadar kaldı
+  //
+  // `next_service_km` kullanıcının kendi girdiği değer — bizim tahminimiz
+  // değil. Canlıda 13 kaydın yalnızca 2'sinde dolu; o yüzden yokluğu
+  // normal karşılanıyor ve bölüm çizilmiyor.
+  const bakimDetay = araclar.map((arac) => {
+    const aracKayitlari = kayitlar
+      .filter((k) => k.vehicle_plate === arac.plate_number && k.service_date)
+      .sort((a, b) => new Date(b.service_date) - new Date(a.service_date));
+
+    const son = aracKayitlari[0] || null;
+
+    // Son bakımdan bu yana geçen ay. Gün farkını 30'a bölmek yerine takvim
+    // ayı sayılıyor — "18 ay önce" ile "547 gün önce" aynı şey değil.
+    let gecenAy = null;
+    if (son) {
+      const t = new Date(son.service_date);
+      const bugun = new Date();
+      gecenAy = (bugun.getFullYear() - t.getFullYear()) * 12
+        + (bugun.getMonth() - t.getMonth());
+      if (bugun.getDate() < t.getDate()) gecenAy -= 1;
+      if (gecenAy < 0) gecenAy = 0;
+    }
+
+    // Sonraki bakıma kalan km — yalnızca İKİ değer de varsa.
+    const suAnkiKm = typeof arac.km === 'number' ? arac.km : null;
+    const hedefKm = son && typeof son.next_service_km === 'number' ? son.next_service_km : null;
+    const kalanKm = (hedefKm !== null && suAnkiKm !== null) ? hedefKm - suAnkiKm : null;
+
+    return {
+      plaka: arac.plate_number,
+      pin: arac.pin_code,
+      arac: [arac.brand, arac.model].filter(Boolean).join(' '),
+      km: suAnkiKm,
+      kayitSayisi: aracKayitlari.length,
+      sonTarih: son ? son.service_date : null,
+      sonServis: son ? son.shop_name : null,
+      sonKm: son && typeof son.km_at_service === 'number' ? son.km_at_service : null,
+      gecenAy,
+      hedefKm,
+      kalanKm,
+    };
+  });
+
   // --- 3 · VİTRİN DURUMU --------------------------------------------------
   // `listings` iç içe geldiği için dizi ya da tekil nesne olabiliyor —
   // GarageScreen'de de aynı koruma var, orada canlıda ikisi de görüldü.
@@ -166,6 +224,8 @@ export function ozetHesapla(araclar, kayitlar) {
       kayitliArac: kayitliPlakalar.size,
       kayitsizArac: araclar.length - kayitliPlakalar.size,
       sonTarih: tarihliKayitlar.length ? tarihliKayitlar[tarihliKayitlar.length - 1] : null,
+      // Araç bazında ayrıntı — bakım ekranı bunu kullanıyor.
+      detay: bakimDetay,
     },
     vitrin: { adet: vitrindeki, goruntulenme, favori },
     // Puan yoksa `null` — panel o kartı hiç göstermiyor.
