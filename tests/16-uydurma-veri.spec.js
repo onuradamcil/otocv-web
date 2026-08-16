@@ -511,3 +511,74 @@ test.describe('Sihirbaz · seçenek ve karşılaştırma eşleşmesi', () => {
     }
   });
 });
+
+// =========================================================================
+// KAPORTA BEYANI — BEYAN EDİLMEYEN PARÇA "ORİJİNAL" DEĞİLDİR
+//
+// -------------------------------------------------------------------------
+// BU PAKETİN EN AĞIR BULGUSU
+// -------------------------------------------------------------------------
+// Araç detay ekranı ve sihirbazın son onay ekranı, kaporta parçalarının
+// durumunu `damageReport[part.id] || 'ORIGINAL'` diye okuyordu. Kaporta
+// paneline hiç dokunmamış bir araçta `damage_report` boş ({}) geliyor ve
+// sonuç şuydu:
+//
+//   13 parçanın 13'ü YEŞİL boyanıyor ve alıcıya "Orijinal (13)" yazıyordu.
+//
+// Yani araç sahibinin HİÇ YAPMADIĞI bir "kaportası tamamen orijinaldir"
+// beyanı, alıcıya onun ağzından ve OLUMLU bir iddia olarak sunuluyordu.
+// Tramer alanında aynı hata bilerek çözülmüştü ('Hasarsız' -> 'Bilmiyorum');
+// kaporta atlanmıştı.
+//
+// ⚠ ASİMETRİ: sihirbazın GİRİŞ ekranı aynı veri için `|| 'UNSPECIFIED'`
+// kullanıyordu. Araç sahibi kendi ekranında GRİ, alıcı aynı araçta YEŞİL
+// görüyordu.
+//
+// ⚠ VERİTABANINA DOKUNMUYOR, CI'DA KOŞAR.
+// =========================================================================
+
+test.describe('Uydurma veri · kaporta beyani', () => {
+  const KAPORTA_DOSYALARI = [
+    'src/components/VehicleDetailsScreen.jsx',
+    'src/components/marketplace/create-listing/Step4PreviewAndPublish.jsx',
+  ];
+
+  test('beyan edilmeyen parça ORIGINAL varsayılmıyor', () => {
+    const bulgular = [];
+    for (const göreli of KAPORTA_DOSYALARI) {
+      const kod = calisanKod(fs.readFileSync(path.join(__dirname, '..', göreli), 'utf8'));
+
+      // `damageReport[...] || 'ORIGINAL'` kalıbı — parça durumunu okurken
+      // olumlu bir beyanı varsayılan yapan tek kalıp bu.
+      const sayi = (kod.match(/damageReport\[[^\]]+\]\s*\|\|\s*'ORIGINAL'/g) || []).length;
+      if (sayi > 0) {
+        bulgular.push(`${göreli} -> ${sayi} yerde beyan edilmeyen parça "Orijinal" sayılıyor`);
+      }
+
+      // Bilinmeyen durumun ORIGINAL kovasına atılması da aynı hata.
+      if (/else\s+grouped\.ORIGINAL\.push/.test(kod)) {
+        bulgular.push(`${göreli} -> bilinmeyen durum ORIGINAL kovasına atılıyor`);
+      }
+    }
+
+    expect(
+      bulgular,
+      'Kaporta beyanı olmayan parça "Orijinal" gösteriliyor. Bu, araç sahibinin '
+      + 'yapmadığı OLUMLU bir beyanı alıcıya onun ağzından sunmak demek:\n  '
+      + bulgular.join('\n  ')
+    ).toEqual([]);
+  });
+
+  test('BELİRTİLMEMİŞ parçalar listede GÖSTERİLİYOR', () => {
+    // Varsayılanı düzeltmek tek başına yetmiyor: `UNSPECIFIED` kovası
+    // doluyor ama ekranda karşılığı yoksa parçalar sessizce kayboluyor.
+    // Alıcının NEYİN beyan edilmediğini görmesi gerekiyor.
+    for (const göreli of KAPORTA_DOSYALARI) {
+      const kod = calisanKod(fs.readFileSync(path.join(__dirname, '..', göreli), 'utf8'));
+      expect(
+        kod.includes('groupedParts.UNSPECIFIED'),
+        `${göreli} beyan edilmemiş parçaları hiç listelemiyor — sessizce kayboluyorlar`
+      ).toBe(true);
+    }
+  });
+});
