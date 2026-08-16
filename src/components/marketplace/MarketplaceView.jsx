@@ -391,13 +391,24 @@ export default function MarketplaceView({
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
+                    {/* ⚠ ÇİPLER `handleFilterChange('brand', m)` YAZIYORDU VE
+                        HİÇBİR ŞEY SÜZMÜYORDU. `filters.brand` diye bir alan
+                        `filteredListings` içinde HİÇ okunmuyor; gerçek süzgeç
+                        `selectedBrand` durumunu kullanıyor (masaüstü kenar
+                        çubuğu onu yazıyor).
+
+                        Sonuç: dar ekranda kullanıcı markaya basıyor, çip
+                        yanıyor ama liste hiç değişmiyor. Görsel geri bildirim
+                        doğru olduğu için hata "site bozuk" gibi değil, "bu
+                        markada araç yok" gibi görünüyordu — yani sessizce
+                        yanlış bir sonuç. */}
                     {uniqueBrands.map((m) => (
                       <button
                         key={m}
                         type="button"
-                        onClick={() => handleFilterChange('brand', m)}
+                        onClick={() => setSelectedBrand(m)}
                         className={`min-h-[34px] px-3 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
-                          filters.brand === m
+                          selectedBrand === m
                             ? 'bg-indigo-50 text-indigo-700 border-indigo-300'
                             : 'bg-white text-slate-600 border-slate-200'
                         }`}

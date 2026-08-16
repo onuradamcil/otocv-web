@@ -593,8 +593,19 @@ useEffect(() => {
     const locDistrict = district && district !== 'İlçe Seçiniz' ? district : '';
     
     // Ekspertiz ve Tramer Analizi (Nötr ve Şeffaf Dil)
+    // ⚠ `isFullyOriginal` ARTIK TRAMER BEYANINI EZMİYOR.
+    //
+    // Koşul `tramerStatus === 'Tramer Yok' || isFullyOriginal` idi. "Tamamı
+    // orijinal" kutusu KAPORTA ile ilgili — parçaların boyasız olduğunu
+    // söylüyor. Tramer ise SİGORTA hasar kaydı; bir araç kaportası tertemiz
+    // olduğu hâlde tramer kaydı taşıyabilir (cam, mekanik, çekme).
+    //
+    // Eski koşulda kullanıcı "TRAMER VAR" seçip kaporta kutusunu da
+    // işaretlediğinde, otomatik açıklama onun beyanının TERSİNİ yazıyordu:
+    // "hasar kaydı bulunmadığı beyan edilmiştir". Alıcıya sunulan metin,
+    // araç sahibinin yaptığı beyanla çelişiyordu.
     let tramerText = '';
-    if (tramerStatus === 'Tramer Yok' || isFullyOriginal) {
+    if (tramerStatus === 'Tramer Yok') {
       tramerText = 'Aracın sistem kayıtlarında ve geçmişinde Tramer/hasar kaydı bulunmadığı beyan edilmiştir.';
     } else if (tramerStatus === 'Tramer Var') {
       tramerText = tramerAmount 
@@ -607,7 +618,12 @@ useEffect(() => {
     // Seçilen Donanımları Metne Dökme
     const featuresListHtml = selectedFeatures.length > 0
       ? `<li><b>Öne Çıkan Donanım Özellikleri:</b> ${selectedFeatures.join(', ')}</li>`
-      : '<li>Aracın tüm fabrikasyon donanım özellikleri aktif durumdadır.</li>';
+      // ⚠ DONANIM SEÇİLMEDİĞİNDE HİÇBİR ŞEY YAZILMIYOR.
+      // Burada "Aracın tüm fabrikasyon donanım özellikleri aktif durumdadır."
+      // yazıyordu. Kullanıcı donanım listesine hiç dokunmadığında bu cümle
+      // otomatik olarak açıklamaya giriyordu — yani hiç sorulmamış bir soru,
+      // araç sahibinin ağzından OLUMLU bir beyana çevriliyordu.
+      : '';
 
     // GARANTİ SATIRI — ÜÇ DURUM, İKİ DEĞİL.
     //

@@ -191,7 +191,7 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center bg-[#F1EDE4]/20 p-6 rounded-xl border border-[#E5DECE]/50">
             <div className="md:col-span-8 space-y-4">
               <div>
-                <span className="text-[10px] font-bold text-[#4F46E5] tracking-wider uppercase">{vehicle?.year || 2026} ÜRETİM YILI</span>
+                <span className="text-[10px] font-bold text-[#4F46E5] tracking-wider uppercase">{vehicle?.year ? `${vehicle.year} ÜRETİM YILI` : 'ÜRETİM YILI BEYAN EDİLMEMİŞ'}</span>
                 <h3 className="text-xl font-bold text-[#1E1B4B] tracking-tight mt-0.5">{brand} {model}</h3>
                 <p className="text-xs text-slate-400 font-medium mt-0.5">{packageStr}</p>
               </div>
@@ -360,7 +360,7 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
               Bu belge söz konusu kurumların kayıtları yerine geçmez.
             </p>
             <p className="m-0">
-              Belge üzerindeki PIN kodu veya karekod ile kayıtların güncel hâli her zaman
+              Belge üzerindeki PIN kodu ile kayıtların güncel hâli her zaman
               <span className="font-semibold text-indigo-600"> https://oto.cv</span> adresinden
               görüntülenebilir. Baskı ile sistem kaydı arasında fark olması durumunda
               sistem kaydı esas alınır.
@@ -373,14 +373,21 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
             <span className="text-[9px] font-bold text-slate-400 tracking-wider uppercase">SİSTEM DOĞRULAMA KODU (PIN)</span>
             <p className="text-sm font-bold text-[#1E1B4B] tracking-widest font-mono">{pinCode}</p>
             <p className="text-[9px] text-slate-400 leading-normal font-medium max-w-[480px]">
-              Alıcı adayları belge üzerindeki karekodu taratarak ya da PIN kodunu oto.cv adresinde sorgulayarak bu sicilin güncel hâlini görebilir. Sicil, araç sahibinin girdiği bakım kayıtlarını ve beyanlarını içerir.
+              Alıcı adayları bu PIN kodunu oto.cv adresinde sorgulayarak sicilin güncel hâlini görebilir. Sicil, araç sahibinin girdiği bakım kayıtlarını ve beyanlarını içerir.
             </p>
           </div>
-          <div className="bg-white p-1.5 border border-[#E5DECE] rounded-lg shrink-0 flex items-center justify-center">
-            <svg className="w-14 h-12 text-[#1E1B4B]" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M2 2h6v6H2V2zm2 2v2h2V4H4zm8-2h6v6h-6V2zm2 2v2h2V4h-2zM2 14h6v6H2v-6zm2 2v2h2v-2H4zm10-2h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2zm0 4h2v2h-2v-2zm-2 2h2v2h-2v-2zm-4-2h2v2h-2v-2zm2-4h2v2h-2v-2zm-2 2h2v2h-2v-2zM10 2h2v2h-2V2zm0 4h2v2h-2V6zM8 10h2v2H8v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2zm4 0h2v2h-2v-2z" />
-            </svg>
-          </div>
+          {/* ⚠ SAHTE KAREKOD KALDIRILDI.
+              Burada bir karekod GÖRÜNTÜSÜ vardı: sabit yazılmış, hiçbir veri
+              kodlamayan dekoratif bir SVG. Belgenin iki ayrı yerinde de
+              "karekodu taratarak" yazıyordu.
+
+              Yani alıcı adayı belgeyi tarıyor, hiçbir şey olmuyor ve bunu
+              kendi telefonunun sorunu sanıyor. Çalışmayan bir doğrulama
+              aracı, hiç olmamasından kötüdür — güven veriyormuş gibi
+              görünüp vermiyor.
+
+              Gerçek karekod üretilirse (PIN'i kodlayan) buraya geri gelir;
+              o zamana kadar PIN kodu tek ve çalışan yol. */}
         </div>
       </div>
     </div>

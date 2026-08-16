@@ -10,6 +10,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../context/ToastContext';
+import { useRouter } from 'next/navigation';
 import Icon from '../../common/icons';
 
 // =========================================================================
@@ -26,6 +27,7 @@ const arrowTabStyle = {
 
 export default function Step1VehicleAndPhotos({ formData, updateFormData, userPackage, onNext }) {
   const toast = useToast();
+  const router = useRouter();
   // =========================================================================
   // 1. BLOK: PROPS & MERKEZİ FORM HAFIZA BAĞLANTILARI
   // =========================================================================
@@ -375,7 +377,11 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
 
             <button
               type="button"
-              onClick={() => toast.bilgi('Üyelik paketleri yakında açılacak.')}
+              // ⚠ TOAST YERİNE GERÇEK ROTA. Düğme "Üyelik paketleri yakında
+              // açılacak" diyordu — oysa `/packages` GERÇEK ve çalışan bir
+              // ekran. Yani ürün, var olan kendi ödeme sayfasını kullanıcıdan
+              // saklıyordu.
+              onClick={() => router.push('/packages')}
               className="bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-950 font-black text-xs px-3 py-1.5 rounded-lg transition-all shadow-2xs border border-amber-500/40 flex items-center gap-1 cursor-pointer"
             >
               <span>Paketi Yükselt</span>
@@ -430,8 +436,13 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.25 9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                   </svg>
-                  <span className="text-xs font-bold text-rose-700">Telefondan Ekle</span>
-                  <span className="text-[13px] text-slate-700 font-semibold mt-0.5">Bildirim ile</span>
+                  {/* ⚠ BU KART HİÇBİR ŞEY YAPMIYOR ve bunu söylemiyordu.
+                      "Telefondan Ekle · Bildirim ile" yazıyor, tıklanabilir
+                      bir kart gibi duruyordu; arkasında hiçbir işlev yok.
+                      Kullanıcı tıklıyor, hiçbir şey olmuyor ve bunu kendi
+                      hatası sanıyor. Etiket artık durumu söylüyor. */}
+                  <span className="text-xs font-bold text-slate-500">Telefondan Ekle</span>
+                  <span className="etiket text-slate-500 border border-slate-300 rounded px-1.5 py-0.5 mt-1">Yakında</span>
                 </div>
 
                 <div className="border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center text-center opacity-80 hover:opacity-100 transition-opacity cursor-not-allowed bg-slate-50/40 min-h-[125px]">
@@ -439,8 +450,9 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 14.25h1.5v1.5h-1.5v-1.5zM16.5 14.25h1.5v1.5h-1.5v-1.5zM13.5 17.25h1.5v1.5h-1.5v-1.5zM18 17.25h1.5v1.5H18v-1.5z" />
                   </svg>
-                  <span className="text-xs font-bold text-rose-700">Telefondan Ekle</span>
-                  <span className="text-[13px] text-slate-700 font-semibold mt-0.5">QR Kod ile</span>
+                  {/* Yukarıdakiyle aynı: işlevi olmayan ikinci ölü kart. */}
+                  <span className="text-xs font-bold text-slate-500">Telefondan Ekle</span>
+                  <span className="etiket text-slate-500 border border-slate-300 rounded px-1.5 py-0.5 mt-1">Yakında</span>
                 </div>
               </div>
 
@@ -661,7 +673,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                 <div className="flex items-center gap-2">
                   <span className="text-sm"></span>
                   <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wide">
-                    Ruhsat Fotoğrafı <span className="text-slate-500 font-normal font-mono text-[13px] lowercase">(opsiyonel - %95+ güven rozeti)</span>
+                    Ruhsat Fotoğrafı <span className="text-slate-500 font-normal font-mono text-[13px] lowercase">(opsiyonel)</span>
                   </span>
                 </div>
                 <span className="text-[11px] font-extrabold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md border border-indigo-100 uppercase tracking-wider">

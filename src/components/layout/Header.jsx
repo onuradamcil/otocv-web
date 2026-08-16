@@ -185,7 +185,12 @@ export default function Header() {
     { href: '/my-listings', label: 'Vitrindeki Araçlarım' },
     { href: '/favorilerim', label: 'Favorilerim' },
     { href: '/mesajlar', label: 'Mesajlarım', rozet: okunmamis },
-    { href: '/query-history', label: 'Sorgulama Geçmişim' },
+    // ⚠ HENÜZ GERÇEK EKRAN DEĞİL. Rota `ComingSoon` basıyor ama menüde
+    // diğer yedi GERÇEK ekranla birebir aynı biçimde duruyordu: kullanıcı
+    // çalışan bir ekrana gittiğini sanıp "yapım aşamasında" görüyordu.
+    // `yakinda` rozeti bu menüde ZATEN destekleniyordu, yalnızca bu
+    // maddeye atanmamıştı.
+    { href: '/query-history', label: 'Sorgulama Geçmişim', yakinda: true },
     { href: '/packages', label: 'Ücretler & Ödemeler' },
     { href: '/account', label: 'Hesabım' },
   ];

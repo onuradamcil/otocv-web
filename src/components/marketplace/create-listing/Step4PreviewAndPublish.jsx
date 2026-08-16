@@ -523,15 +523,32 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                       <span className="font-mono text-slate-800 font-semibold text-yardimci uppercase bg-slate-200/60 px-1.5 py-0.5 rounded">TR (Gizlenmiş)</span>
                     </div>
 
-                    <div className="flex justify-between py-1">
-                      <span className="text-slate-900 font-medium">Sahiplik</span>
-                      <span className="text-slate-800 font-normal">{formData.isFirstOwner || 'İlk Sahibi Değilim'}</span>
-                    </div>
+                    {/* ⚠ `|| 'İlk Sahibi Değilim'` KALDIRILDI. Alan zorunlu
+                        değil; cevaplamayan kullanıcının aracına OLUMSUZ bir
+                        mülkiyet beyanı yazmak, onun adına beyanda bulunmaktı.
+                        Seçilmemişse satır hiç çizilmiyor. */}
+                    {formData.isFirstOwner && (
+                      <div className="flex justify-between py-1">
+                        <span className="text-slate-900 font-medium">Sahiplik</span>
+                        <span className="text-slate-800 font-normal">{formData.isFirstOwner}</span>
+                      </div>
+                    )}
+                    {/* ⚠ ÜÇ DURUM VAR, İKİ DEĞİL.
+                        Eskiden `tramerVarMi(...) ? tutar : 'Tramer Yok'` idi:
+                        "Bilmiyorum" diyen kullanıcının aracı YEŞİL renkte
+                        "Tramer Yok" gösteriliyordu. Tescil öncesi son onay
+                        ekranında, alıcıya gidecek beyanın tam tersi.
+                        `tramer_status` alanında aynı ders daha önce alınmıştı:
+                        boş beyan 'Hasarsız' değil 'Bilmiyorum'dur. */}
                     <div className="flex justify-between py-1">
                       <span className="text-slate-900 font-medium">Tramer Kaydı</span>
-                      <span className="text-emerald-600 font-medium">
-                        {tramerVarMi(formData) ? `${formData.tramerAmount || 0} TL` : 'Tramer Yok'}
-                      </span>
+                      {tramerVarMi(formData) ? (
+                        <span className="text-amber-700 font-medium">Tramer kaydı var</span>
+                      ) : formData.tramerStatus === 'Tramer Yok' ? (
+                        <span className="text-emerald-600 font-medium">Tramer Yok</span>
+                      ) : (
+                        <span className="text-slate-500 font-medium">Beyan edilmedi</span>
+                      )}
                     </div>
                     {/* "Garanti / Takas" idi. Takas alanı kaldırıldı (satış
                         kavramı, hiç kaydedilmiyordu). Garanti ise `|| 'Yok'`

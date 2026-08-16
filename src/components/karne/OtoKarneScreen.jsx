@@ -185,7 +185,7 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
               Paylaşım Kartı
             </button>
             <button onClick={() => setActiveTab(1)} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 1 ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
-              Detaylı Resmi Sicil Belgesi
+              Detaylı Sicil Belgesi
             </button>
           </div>
         </div>

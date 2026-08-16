@@ -515,7 +515,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
               <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                 <span className="text-xs font-mono font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-md border border-emerald-200 inline-flex items-center gap-1.5">
                   <Icon name="onay" size="sm" />
-                  OTO.CV Onaylı Garaj Kaydı
+                  Oto.CV Garaj Kaydı
                 </span>
               </div>
             </div>
@@ -1105,14 +1105,14 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
               <div className="space-y-0.5">
                 <h3 className="text-sm font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                   <span className="w-1.5 h-4 bg-emerald-600 rounded-full" />
-                  <span>Bakım Geçmişi Sicili (OTO.CV Onaylı)</span>
+                  <span>Bakım Geçmişi Sicili</span>
                 </h3>
                 <p className="text-xs text-slate-500 font-medium pl-3.5">
                   Usta faturaları, periyodik değişimler ve servis işlemlerinin zaman damgalı dökümü.
                 </p>
               </div>
               <span className="text-yardimci font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-md shrink-0">
-                {maintenanceRecords.length} Onaylı İşlem
+                {maintenanceRecords.length} Kayıtlı İşlem
               </span>
             </div>
 
