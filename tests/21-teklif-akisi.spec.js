@@ -191,6 +191,21 @@ test.describe('Teklif ekranı · uydurma veri yok', () => {
     expect(durum, 'ekran teklif durumu hakkında hiçbir şey söylemiyor').toBe(true);
   });
 
+  test('DEMO görünümü normal ekrana SIZMIYOR', async ({ page }) => {
+    // ⚠ BU TESTİN ASIL İŞİ. Örnek firmalar ekranın dolu hâlini görmek için
+    // eklendi; gerçek kullanıcıya gösterilirlerse ürün olmayan bir anlaşmayı
+    // varmış gibi göstermiş olur — yani demo, temizlediğimiz uydurma veri
+    // sınıfına geri döner.
+    //
+    // Bu blok `?demo=1` OLMADAN geziniyor (beforeEach düz `/insurance-offer`
+    // açıyor), dolayısıyla hiçbir örnek firma görünmemeli.
+    const metin = await hamMetin(page);
+    expect(metin, 'demo firmaları normal ekranda görünüyor').not.toContain('Örnek Sigorta');
+    expect(metin, 'demo firmaları normal ekranda görünüyor').not.toContain('Örnek Global');
+    expect(metin, 'demo firmaları normal ekranda görünüyor').not.toContain('Örnek Muayene');
+    expect(metin, 'demo şeridi normal ekranda görünüyor').not.toContain('ÖRNEK GÖRÜNÜM');
+  });
+
   test('MOBİLDE taşma ve kesik metin yok', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
@@ -365,5 +380,62 @@ test.describe('Poliçe bildirimi · hedefe gidiyor', () => {
         .toContain('/insurance-offer');
       expect(n.hedef_yol, `bildirimde plaka taşınmıyor: ${n.hedef_yol}`).toContain('plaka=');
     }
+  });
+});
+
+// =========================================================================
+// DEMO GÖRÜNÜMÜ — DOLU EKRAN, AMA ASLA GERÇEK SANILMASIN
+//
+// Anlaşmalı ortak gelmeden ekranın dolu hâli görülebilsin diye `?demo=1`
+// örnek firmaları açıyor. Bu paket iki şeyi birlikte zorunlu tutuyor:
+// demonun ÇALIŞMASI ve demonun KENDİNİ AÇIKÇA SÖYLEMESİ.
+//
+// Uyarı şeridi olmayan bir demo, ekran görüntüsü alındığı anda gerçek
+// sanılır — bu üründe "TÜVTÜRK ONAYLI" rozeti tam olarak böyle bir şeydi.
+// =========================================================================
+test.describe('Teklif ekranı · demo görünümü', () => {
+  test.beforeEach(async ({ page }) => {
+    await girisYap(page);
+    await page.goto('/insurance-offer?demo=1');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+  });
+
+  test('ÖRNEK ortaklar görünüyor', async ({ page }) => {
+    const metin = await hamMetin(page);
+    const bulundu = metin.includes('Örnek Sigorta')
+      || metin.includes('Örnek Global')
+      || metin.includes('Örnek Muayene');
+    expect(bulundu, 'demo açıkken örnek ortak görünmüyor — demo çalışmıyor').toBe(true);
+  });
+
+  test('UYARI ŞERİDİ zorunlu ve kapatılamaz', async ({ page }) => {
+    const metin = await hamMetin(page);
+    expect(metin, 'demo açıkken uyarı şeridi yok — ekran gerçek sanılabilir')
+      .toContain('ÖRNEK GÖRÜNÜM');
+    expect(metin, 'şerit demo olduğunu açıkça söylemiyor').toContain('gerçek değil');
+
+    // Şeridi kapatan bir düğme OLMAMALI: kapatılan uyarı, ekran görüntüsü
+    // alınırken kapatılır ve demo gerçek sanılır.
+    const serit = page.getByRole('status').first();
+    await expect(serit).toBeVisible();
+    expect(await serit.getByRole('button').count(), 'demo şeridi kapatılabiliyor').toBe(0);
+  });
+
+  test('DEMO DA OLSA prim/tutar basılmıyor', async ({ page }) => {
+    // Ortak gelse bile tutar göstermiyoruz: ürünle ilgili tutar görünen
+    // platform satış sitesi konumuna geçiyor. Demo bu kuralın istisnası
+    // değil — demoda gösterilen şey ileride gerçekte gösterilecek olan.
+    const metin = await hamMetin(page);
+    const eslesme = metin.match(/(₺\s?\d[\d.,]*)|(\d[\d.,]*\s?(TL|₺))/);
+    expect(eslesme?.[0] ?? null, `demo ekranında tutar var: ${eslesme?.[0]}`).toBeNull();
+  });
+
+  test('GERÇEK bir sigorta markası kullanılmıyor', async ({ page }) => {
+    // Demo firmalarına gerçek bir şirket adı vermek, o şirketle var olmayan
+    // bir ticari ilişki iddia etmek olurdu.
+    const metin = await hamMetin(page);
+    const gorunen = SIGORTA_MARKALARI.filter((m) => metin.includes(m));
+    expect(gorunen, `demoda gerçek sigorta markası kullanılmış: ${gorunen.join(', ')}`).toEqual([]);
   });
 });

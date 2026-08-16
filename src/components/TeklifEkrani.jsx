@@ -57,7 +57,7 @@ const EN_FAZLA = 6;
  * araca verilen "Talebiniz alındı" geri bildirimi diğer kartlarda da
  * görünürdü.
  */
-function BelgeKarti({ kayit, kaynak }) {
+function BelgeKarti({ kayit, kaynak, demo }) {
   const [talepli, setTalepli] = useState(false);
   const [gonderiliyor, setGonderiliyor] = useState(false);
   const [hata, setHata] = useState('');
@@ -71,7 +71,7 @@ function BelgeKarti({ kayit, kaynak }) {
     return () => { iptal = true; };
   }, [kayit.plaka, kayit.tur]);
 
-  const ortaklar = aktifOrtaklar(kayit.tur);
+  const ortaklar = aktifOrtaklar(kayit.tur, demo);
   const muayene = kayit.tur === 'muayene';
 
   const takvimUrl = generateGoogleCalendarUrl(
@@ -146,9 +146,16 @@ function BelgeKarti({ kayit, kaynak }) {
         <h3 className="etiket text-slate-500">TEKLİF DURUMU</h3>
 
         {ortaklar.length > 0 ? (
-          // ⚠ ORTAK GELDİĞİNDE ÇALIŞAN DAL. Bugün `TEKLIF_ORTAKLARI` boş
-          // olduğu için buraya HİÇ girilmiyor. Firma adı yalnızca katalogdan
-          // geliyor; bu dosyada sabit yazılı hiçbir firma yok.
+          // ORTAK VARKEN ÇALIŞAN DAL.
+          //
+          // ⚠ Firma adı YALNIZCA katalogdan geliyor; bu dosyada sabit yazılı
+          // hiçbir firma adı yok. Gerçek ortak `TEKLIF_ORTAKLARI`ye, örnek
+          // ortak `ORNEK_ORTAKLAR`a yazılıyor — ekran ikisini ayırt etmiyor,
+          // çünkü ayırt etmesi gereken şey KATALOG, ekran değil.
+          //
+          // ⚠ TUTAR BASILMIYOR. Ne prim, ne "şu kadardan başlayan". Ortak
+          // gelse bile tutar göstermek ürünü satış sitesi konumuna sokuyor;
+          // yönlendirme modeli seçilmesinin sebeplerinden biri de bu.
           <ul className="space-y-2">
             {ortaklar.map((o) => (
               <li key={o.kod}>
@@ -156,11 +163,14 @@ function BelgeKarti({ kayit, kaynak }) {
                   href={o.yonlendirmeUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center justify-between gap-3 min-h-[44px] px-4 rounded-xl
+                  className="flex items-center justify-between gap-3 min-h-[52px] px-4 py-2 rounded-xl
                     border border-indigo-200 bg-indigo-50 text-indigo-800 hover:bg-indigo-100
-                    metin-yardimci font-semibold transition-colors"
+                    transition-colors"
                 >
-                  <span>{o.ad}</span>
+                  <span className="min-w-0">
+                    <span className="baslik-kart text-indigo-900 block">{o.ad}</span>
+                    {o.not && <span className="metin-yardimci text-indigo-700 block">{o.not}</span>}
+                  </span>
                   <Icon name="kure" size="sm" />
                 </a>
               </li>
@@ -219,6 +229,21 @@ export default function TeklifEkrani() {
   const istenenPlaka = (sorgu.get('plaka') || '').toUpperCase();
   const gelenTur = sorgu.get('tur');
   const istenenTur = TURLER.includes(gelenTur) ? gelenTur : null;
+
+  // -------------------------------------------------------------------------
+  // DEMO GÖRÜNÜMÜ — `?demo=1`
+  //
+  // Anlaşmalı ortak gelmeden ekranın DOLU hâli görülebilsin diye. İki kural
+  // birlikte çalışıyor ve ikisi de zorunlu:
+  //   1. Yalnızca adres çubuğunda `demo=1` varken açılıyor. Varsayılan
+  //      davranış değişmiyor; gerçek kullanıcı bunu kazayla göremiyor.
+  //   2. Açıkken ekranın en üstünde KALICI bir uyarı şeridi duruyor ve
+  //      firma adları "Örnek" ile başlıyor.
+  //
+  // ⚠ Şeridi kapatılabilir yapmadım. Kapatılabilen bir demo uyarısı, ekran
+  // görüntüsü alınırken kapatılır ve gerçek sanılır.
+  // -------------------------------------------------------------------------
+  const demo = sorgu.get('demo') === '1';
 
   useEffect(() => {
     let iptal = false;
@@ -333,6 +358,23 @@ export default function TeklifEkrani() {
   return (
     <Cerceve>
       <div className="space-y-5">
+        {demo && (
+          <div
+            role="status"
+            className="flex items-start gap-3 p-4 rounded-xl border border-amber-300 bg-amber-50"
+          >
+            <Icon name="uyari" size="lg" className="text-amber-700 shrink-0" />
+            <div className="min-w-0">
+              <p className="baslik-kart text-amber-900">ÖRNEK GÖRÜNÜM</p>
+              <p className="metin-yardimci text-amber-800">
+                Aşağıdaki sigorta firmaları gerçek değil, ekranın anlaşmalı ortak
+                bağlandığındaki hâlini göstermek için konulmuş örneklerdir.
+                Bağlantılar gerçek bir firmaya gitmez.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div>
           <h1 className="baslik-sayfa text-slate-900">Sigorta ve Muayene Yenileme</h1>
           <p className="metin-govde text-slate-600 mt-1">
@@ -367,7 +409,7 @@ export default function TeklifEkrani() {
         ) : (
           <div className="space-y-4">
             {gosterilecek.map((k) => (
-              <BelgeKarti key={`${k.plaka}-${k.tur}`} kayit={k} kaynak={kaynak} />
+              <BelgeKarti key={`${k.plaka}-${k.tur}`} kayit={k} kaynak={kaynak} demo={demo} />
             ))}
           </div>
         )}

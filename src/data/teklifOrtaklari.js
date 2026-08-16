@@ -43,6 +43,60 @@
 /** @type {TeklifOrtagi[]} */
 export const TEKLIF_ORTAKLARI = [];
 
+// =========================================================================
+// ÖRNEK ORTAKLAR — YALNIZCA DEMO GÖRÜNÜMÜ
+//
+// -------------------------------------------------------------------------
+// NİYE VAR
+// -------------------------------------------------------------------------
+// Ortak bağlanmadan önce ekranın DOLU hâlini görebilmek gerekiyor: düzen
+// çalışıyor mu, kart sıralaması okunur mu, sunumda nasıl duruyor? Boş
+// ekrana bakarak bunlara karar verilemiyor.
+//
+// -------------------------------------------------------------------------
+// ⚠ ADLAR NİYE "ÖRNEK" İLE BAŞLIYOR — GERÇEK MARKA KULLANILMIYOR
+// -------------------------------------------------------------------------
+// Buraya gerçek bir sigorta şirketinin adını yazmak, o şirketle var olmayan
+// bir ticari ilişki iddia etmek olurdu. Kullanıcı açısından yanıltıcı,
+// şirket açısından izinsiz marka kullanımı.
+//
+// Ayrıca demo yalnızca `?demo=1` ile açılıyor ve ekranda kalıcı bir
+// "ÖRNEK GÖRÜNÜM" şeridi çıkıyor. Yani demo, kazayla gerçek kullanıcıya
+// gösterilemiyor.
+//
+// ⚠ PRİM/TUTAR YOK. Demo bile olsa tutar basmıyoruz: hem uydurma olurdu
+// hem de ürünle ilgili tutar gösteren platform satış sitesi konumuna
+// geçiyor.
+// =========================================================================
+
+/** @type {TeklifOrtagi[]} */
+export const ORNEK_ORTAKLAR = [
+  {
+    kod: 'ornek_a',
+    ad: 'Örnek Sigorta A.Ş.',
+    kapsam: ['trafik', 'kasko'],
+    yonlendirmeUrl: 'https://example.com/ornek-sigorta',
+    aktif: true,
+    not: 'Trafik ve kasko yenilemede anlaşmalı',
+  },
+  {
+    kod: 'ornek_b',
+    ad: 'Örnek Global Sigorta',
+    kapsam: ['kasko'],
+    yonlendirmeUrl: 'https://example.com/ornek-global',
+    aktif: true,
+    not: 'Genişletilmiş kasko paketleri',
+  },
+  {
+    kod: 'ornek_c',
+    ad: 'Örnek Muayene Ağı',
+    kapsam: ['muayene'],
+    yonlendirmeUrl: 'https://example.com/ornek-muayene',
+    aktif: true,
+    not: 'Randevu ve hatırlatma',
+  },
+];
+
 /**
  * Bir belge türü için sözleşmesi yürürlükte olan ortaklar.
  *
@@ -51,8 +105,10 @@ export const TEKLIF_ORTAKLARI = [];
  * göstermeye devam ederdi.
  *
  * @param {string} tur
+ * @param {boolean} [demo] Örnek ortaklar gösterilsin mi? Yalnızca `?demo=1`.
  * @returns {TeklifOrtagi[]}
  */
-export function aktifOrtaklar(tur) {
-  return TEKLIF_ORTAKLARI.filter((o) => o.aktif && o.kapsam.includes(tur));
+export function aktifOrtaklar(tur, demo = false) {
+  const kaynak = demo ? ORNEK_ORTAKLAR : TEKLIF_ORTAKLARI;
+  return kaynak.filter((o) => o.aktif && o.kapsam.includes(tur));
 }
