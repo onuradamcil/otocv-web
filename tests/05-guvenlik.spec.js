@@ -969,4 +969,44 @@ test.describe('Güvenlik · plaka görsel adresinde sızmıyor', () => {
       'plakadan bağımsız klasör kimliği üreteci kullanılmıyor'
     ).toBe(true);
   });
+  test('ANON kovayi LISTELEYEMIYOR', async () => {
+    // ⚠ BU DELIK SOMURULDU. `vehicle-images` kovasinda SELECT politikasi
+    // `to public` idi ve yalnizca `bucket_id`yi denetliyordu. Anon anahtarla
+    // tek bir list cagrisi 16 klasor adi dokuyordu ve klasor adlari PLAKAYDI:
+    //   01 ABC 01 · 01_DNM_0012 · 06 ONR 06 · 06_ONR_997 · ...
+    //
+    // Gorselleri plakasiz yola tasimak tek basina yetmiyor: kovada eski
+    // plaka adli klasorler duruyor ve listeleme acik kalirsa onlar da
+    // dokuluyor.
+    const anon = anonIstemcisi();
+    const { data, error } = await anon.storage.from('vehicle-images').list('', { limit: 100 });
+
+    const kapali = !!error || (data || []).length === 0;
+    expect(
+      kapali,
+      `anon kovayi listeleyebiliyor - plakalar dokuluyor: ${JSON.stringify((data || []).slice(0, 5).map((d) => d.name))}`
+    ).toBe(true);
+  });
+
+  test('GENEL gorsel adresi CALISMAYA devam ediyor', async () => {
+    // Listelemeyi kapatirken genel okumayi da kapatmak, vitrindeki ve
+    // karnedeki tum gorselleri kirardi. Kova PUBLIC oldugu icin
+    // `/object/public/...` RLS'ten gecmiyor - ama bu bir varsayim degil,
+    // olculmesi gereken bir sey.
+    const sb = await supabaseIstemcisi();
+    const { data: araclar } = await sb
+      .from('vehicles').select('image_url').not('image_url', 'is', null).limit(3);
+
+    const adresler = (araclar || [])
+      .flatMap((a) => String(a.image_url || '').split(','))
+      .map((u) => u.trim())
+      .filter((u) => u.startsWith('http') && u.includes('/vehicle-images/'));
+
+    test.skip(adresler.length === 0, 'gorsel adresi olan arac yok');
+
+    for (const adres of adresler.slice(0, 5)) {
+      const yanit = await fetch(adres, { method: 'HEAD' });
+      expect(yanit.ok, `gorsel acilmiyor (HTTP ${yanit.status}): ${adres.split('/').pop()}`).toBe(true);
+    }
+  });
 });
