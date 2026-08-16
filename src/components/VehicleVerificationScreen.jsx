@@ -269,7 +269,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                     7:1'den 3.87:1'e DÜŞMÜŞTÜ. Koyu zeminde yön terstir:
                     metin açılır. Ölçüm olmasa bu gerileme görülmezdi. */}
                 <p className="text-yardimci text-slate-300 font-medium leading-relaxed">
-                  Bu sicil, araç sahibinin Oto.CV'ye girdiği bakım kayıtlarından ve beyanlarından oluşur. Fatura yüklenmiş kayıtlar “Belgeli” olarak işaretlenir; beyanlar bağımsız olarak doğrulanmaz.
+                  Bu sicil, araç sahibinin Oto.CV&apos;ye girdiği bakım kayıtlarından ve beyanlarından oluşur. Fatura yüklenmiş kayıtlar “Belgeli” olarak işaretlenir; beyanlar bağımsız olarak doğrulanmaz.
                 </p>
               </div>
             </div>
