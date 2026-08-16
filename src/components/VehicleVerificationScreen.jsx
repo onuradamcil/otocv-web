@@ -118,7 +118,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
         </span>
         <h1 className="text-3xl font-semibold text-slate-900 tracking-tight">Oto-Karne Doğrula</h1>
         <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed">
-          Araç sahibi tarafından paylaşılan benzersiz PIN kodunu girerek ya da tescilli QR barkodunu okutarak bağımsız, doğrulanmış geçmiş raporuna anında ulaşın.
+          Araç sahibinin paylaştığı PIN kodunu girerek, o aracın bakım geçmişine ve beyanlarına anında ulaşın.
         </p>
       </div>
 
@@ -263,18 +263,18 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286z" /></svg>
               </div>
               <div className="space-y-1">
-                <h4 className="text-sm font-semibold tracking-wide text-slate-100">Değiştirilemez Blokzincir Sicili</h4>
+                <h4 className="text-sm font-semibold tracking-wide text-slate-100">Araç Sahibinin Tuttuğu Sicil</h4>
                 {/* ⚠ KOYU ZEMİN: bu kart `bg-[#0B1329]` üzerinde. Toplu slate-400 ->
                     slate-500 taramasında burası da koyulaştırılmış ve kontrast
                     7:1'den 3.87:1'e DÜŞMÜŞTÜ. Koyu zeminde yön terstir:
                     metin açılır. Ölçüm olmasa bu gerileme görülmezdi. */}
                 <p className="text-yardimci text-slate-300 font-medium leading-relaxed">
-                  OTO.CV aracılığıyla oluşturulan tescil belgeleri, noter onaylı beyanlar ve ekspertiz kayıtları kriptografik imzalarla korunur, geriye dönük asla değiştirilemez.
+                  Bu sicil, araç sahibinin Oto.CV'ye girdiği bakım kayıtlarından ve beyanlarından oluşur. Fatura yüklenmiş kayıtlar “Belgeli” olarak işaretlenir; beyanlar bağımsız olarak doğrulanmaz.
                 </p>
               </div>
             </div>
             <div className="w-full h-px bg-white/5" />
-            <span className="text-etiket font-mono font-bold tracking-widest text-indigo-400 block text-center bg-white/5 py-1.5 rounded-lg border border-white/5">%100 DOĞRULANMIŞ VERİ ALTYAPISI</span>
+            <span className="text-etiket font-mono font-bold tracking-widest text-indigo-400 block text-center bg-white/5 py-1.5 rounded-lg border border-white/5">KAYNAĞI İŞARETLİ VERİ</span>
           </div>
 
           <div className="bg-white border border-gray-200/80 p-6 rounded-3xl space-y-4 shadow-sm">
@@ -285,15 +285,15 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
             <ul className="space-y-3.5 text-yardimci md:text-xs font-semibold text-slate-600">
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full shrink-0 mt-1.5" />
-                <div><span className="text-slate-900 font-semibold">Kilometre Sahtekarlığı Engeli:</span> Periyodik servis faturaları ile km uyumu doğrulanır.</div>
+                <div><span className="text-slate-900 font-semibold">Kilometre Tutarlılığı:</span> Girilen servis kayıtlarının kilometreleri sırayla gösterilir; geriye giden bir kayıt varsa görünür olur.</div>
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full shrink-0 mt-1.5" />
-                <div><span className="text-slate-900 font-semibold">Hasar (Tramer) Şeffaflığı:</span> Sigorta ve kasko poliçe süreleri ve tescilli hasar durumu gösterilir.</div>
+                <div><span className="text-slate-900 font-semibold">Hasar (Tramer) Beyanı:</span> Sigorta ve kasko poliçe süreleri ile araç sahibinin tramer beyanı gösterilir.</div>
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full shrink-0 mt-1.5" />
-                <div><span className="text-slate-900 font-semibold">Blokzincir Güvenliği:</span> Araç sahibinin kendi rızasıyla sisteme aktardığı tescilli resmi evraklar listelenir.</div>
+                <div><span className="text-slate-900 font-semibold">Yüklenen Belgeler:</span> Araç sahibinin kendi rızasıyla sisteme yüklediği servis belgeleri listelenir.</div>
               </li>
             </ul>
           </div>

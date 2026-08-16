@@ -941,7 +941,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   <div className="space-y-0.5 divide-y divide-slate-100">
                     <div className="flex justify-between items-center py-2.5 px-4 bg-slate-50/50">
                       <span className="text-yardimci font-semibold text-slate-900 uppercase tracking-wider">GENEL BAKIŞ</span>
-                      <span className="text-yardimci font-semibold text-emerald-600 font-mono">%100 Tescilli</span>
+                      <span className="text-yardimci font-bold text-slate-500 font-mono">Araç sahibi beyanı</span>
                     </div>
 
                     {[

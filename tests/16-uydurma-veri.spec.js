@@ -288,6 +288,29 @@ const YASAKLI_SABITLER = [
   { desen: 'e-devlet ruhsat mülkiyeti', ne: 'olmayan entegrasyon iddiası' },
 
   // -----------------------------------------------------------------------
+  // OLMAYAN ALTYAPI İDDİALARI
+  //
+  // `/verify` ekranı şunları yazıyordu: "Değiştirilemez Blokzincir Sicili",
+  // "noter onaylı beyanlar ve ekspertiz kayıtları kriptografik imzalarla
+  // korunur", "%100 DOĞRULANMIŞ VERİ ALTYAPISI", "Blokzincir Güvenliği".
+  //
+  // Depo tarandı: blockchain yok, hash zinciri yok, imzalama yok,
+  // append-only tetikleyici yok. Bakım kayıtları normal UPDATE/DELETE
+  // edilebilir satırlar. package.json'da böyle bir bağımlılık da yok.
+  //
+  // ⚠ ÜRÜN KENDİ KENDİSİYLE ÇELİŞİYORDU: aynı veri için resmi belge
+  // "bağımsız olarak doğrulanmamıştır", kullanım şartları "Sistem
+  // beyanınızı doğrulamaz" derken doğrulama ekranı "%100 doğrulanmış"
+  // diyordu. Bu, uydurma verinin en pahalı türü: kullanıcı bir güvence
+  // satın aldığını sanıyor.
+  { desen: 'Blokzincir',         ne: 'olmayan blokzincir altyapısı iddiası' },
+  { desen: 'blokzincir',         ne: 'olmayan blokzincir altyapısı iddiası' },
+  { desen: 'kriptografik imza',  ne: 'olmayan imzalama altyapısı iddiası' },
+  { desen: 'noter onaylı',       ne: 'olmayan noter onayı iddiası' },
+  { desen: '%100 DOĞRULANMIŞ',   ne: 'dayanağı olmayan doğrulama iddiası' },
+  { desen: '%100 Tescilli',      ne: 'tescil hiçbir yerde sorgulanmıyor' },
+
+  // -----------------------------------------------------------------------
   // SİHİRBAZ: KULLANICININ ADINA YAPILAN BEYANLAR
   //
   // Yukarıdaki sabitler uydurma DEĞER basıyordu; bu grup daha sinsiydi —
