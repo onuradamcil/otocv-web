@@ -37,6 +37,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Icon from './common/icons';
 import TrPlaka from './common/TrPlaka';
+import TeklifKarti from './common/TeklifKarti';
 import GlobalStepLoader from './common/GlobalStepLoader';
 import { ozetGetir } from '../services/ozetService';
 import { formatTrDate } from '../utils/dateHelper';
@@ -235,6 +236,18 @@ export default function OzetEkrani() {
             <p className="metin-govde text-emerald-900">
               Tüm belgeleriniz güvenli aralıkta. Yaklaşan bir tarih olduğunda burada görünecek.
             </p>
+          </div>
+        )}
+
+        {/* ⚠ UYARIDAN SONRA, UYARININ ÜSTÜNDE DEĞİL.
+            Kart yalnızca gerçekten kritik belge VARKEN çiziliyor: sorunu
+            olmayan kullanıcıya yenileme kapısı göstermek, ihtiyacı olmayan
+            birine hizmet önermek olurdu. Ayraç kritik satırlarla arasına
+            mesafe koyuyor — kart listenin bir parçası değil, ondan sonra
+            gelen adım. */}
+        {kritikler.length > 0 && (
+          <div className="border-t border-slate-100 pt-3">
+            <TeklifKarti kaynak="panel" />
           </div>
         )}
 

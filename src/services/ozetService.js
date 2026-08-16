@@ -28,11 +28,17 @@
 import { supabase } from '../lib/supabase';
 import { calculatePolicyStatus } from '../utils/dateHelper';
 
-/** Panelde gösterilen üç belge türü. Sıra ekranda da bu sırayla çiziliyor. */
+/**
+ * Panelde gösterilen üç belge türü. Sıra ekranda da bu sırayla çiziliyor.
+ *
+ * `tur` teklif akışının kullandığı kalıcı kod. Ekran adı ("Kasko Poliçesi")
+ * değişebilir; `tur` veritabanına yazıldığı için değişemez. İkisi ayrı
+ * tutuluyor ki bir başlık düzenlemesi kayıtlı talepleri bozmasın.
+ */
 const BELGELER = [
-  { alan: 'traffic_insurance_end_date', ad: 'Trafik Sigortası' },
-  { alan: 'kasko_end_date', ad: 'Kasko Poliçesi' },
-  { alan: 'inspection_end_date', ad: 'TÜVTÜRK Muayenesi' },
+  { alan: 'traffic_insurance_end_date', ad: 'Trafik Sigortası', tur: 'trafik' },
+  { alan: 'kasko_end_date', ad: 'Kasko Poliçesi', tur: 'kasko' },
+  { alan: 'inspection_end_date', ad: 'TÜVTÜRK Muayenesi', tur: 'muayene' },
 ];
 
 /**
@@ -105,6 +111,8 @@ export function ozetHesapla(araclar, kayitlar) {
         pin: arac.pin_code,
         arac: [arac.brand, arac.model].filter(Boolean).join(' '),
         belge: belge.ad,
+        // Teklif akışının kullandığı kalıcı kod — ekran adından ayrı.
+        tur: belge.tur,
         tarih: arac[belge.alan],
         durum,
       });

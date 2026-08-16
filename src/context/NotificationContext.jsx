@@ -10,6 +10,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { supabase } from '../lib/supabase';
 import { parseVehicleDate } from '../utils/dateHelper';
 import { plakaBicimle } from '../utils/plaka';
+import { teklifYolu } from '../services/teklifService';
 import { bildirimDuyur } from '../lib/canliOlay';
 
 const NotificationContext = createContext();
@@ -111,10 +112,15 @@ export function NotificationProvider({ children }) {
         // Bildirimden araca gitme ozelligi bir sema degisikligi gerektiriyor;
         // o zamana kadar alan hic yazilmiyor.
 
+        // `tur` ARAÇ KİMLİĞİNİN YERİNİ TUTMUYOR — ayrı bir iş yapıyor.
+        // Yukarıdaki not `vehicle_id`nin niye boş kaldığını anlatıyor (tip
+        // uyuşmazlığı, şema değişikliği gerekir). `hedef_yol` ise metin bir
+        // alan ve plakayı sorgu parametresinde taşıyabiliyor; şema
+        // değişikliği gerekmiyor.
         const policyCheckList = [
-          { typeName: 'Trafik Sigortası', dateStr: car.traffic_insurance_end_date },
-          { typeName: 'Kasko Poliçesi', dateStr: car.kasko_end_date },
-          { typeName: 'TÜVTÜRK Muayenesi', dateStr: car.inspection_end_date }
+          { typeName: 'Trafik Sigortası', dateStr: car.traffic_insurance_end_date, tur: 'trafik' },
+          { typeName: 'Kasko Poliçesi', dateStr: car.kasko_end_date, tur: 'kasko' },
+          { typeName: 'TÜVTÜRK Muayenesi', dateStr: car.inspection_end_date, tur: 'muayene' }
         ];
 
         for (const item of policyCheckList) {
@@ -139,14 +145,17 @@ export function NotificationProvider({ children }) {
             stageKey = `[Son 7 Gün]`;
             notifPayload = {
               title: `${stageKey} ${plakaBicimle(car.plate_number)} ${item.typeName} Bitiyor!`,
-              message: `${car.brand} ${car.model} (${plakaBicimle(car.plate_number)}) aracınızın ${item.typeName.toLowerCase()} bitimine son ${daysLeft} gün kaldı. Teklifinizi hemen alın.`,
+              message: `${car.brand} ${car.model} (${plakaBicimle(car.plate_number)}) aracınızın ${item.typeName.toLowerCase()} bitimine son ${daysLeft} gün kaldı. Yenileme adımları için dokunun.`,
               type: 'danger'
             };
           } else if (daysLeft <= 15) {
             stageKey = `[Son 15 Gün]`;
             notifPayload = {
               title: `${stageKey} ${plakaBicimle(car.plate_number)} ${item.typeName} Yaklaştı`,
-              message: `${car.brand} ${car.model} (${plakaBicimle(car.plate_number)}) aracınızın ${item.typeName.toLowerCase()} bitimine ${daysLeft} gün kaldı. Fiyatları karşılaştırın.`,
+              // "Fiyatları karşılaştırın" idi. İki sorun: karşılaştırılacak
+              // bir şey yok ve "fiyat" bu üründe yasaklı kelime — ürünle
+              // ilgili fiyat görünen platform satış sitesi konumuna geçiyor.
+              message: `${car.brand} ${car.model} (${plakaBicimle(car.plate_number)}) aracınızın ${item.typeName.toLowerCase()} bitimine ${daysLeft} gün kaldı. Yenileme adımları için dokunun.`,
               type: 'warning'
             };
           } else if (daysLeft <= 30) {
@@ -164,6 +173,17 @@ export function NotificationProvider({ children }) {
             if (!existingTitles.has(anahtar)) {
               existingTitles.add(anahtar);
 
+              // ⚠ `hedef_yol` HİÇ YAZILMIYORDU.
+              //
+              // Header bildirime tıklandığında `hedef_yol || '/garage'`
+              // yapıyor. Alan boş kaldığı için poliçe bildirimlerinin
+              // TAMAMI garaja düşüyordu: kullanıcı "kaskonuz 7 gün sonra
+              // doluyor" bildirimine dokunuyor ve on bir araçlık bir liste
+              // görüyordu — hangi araç, hangi belge, yeniden aramak
+              // zorundaydı.
+              //
+              // Alan zaten şemada vardı ve devir/mesaj bildirimleri
+              // kullanıyordu; yalnızca bu insert'te unutulmuştu.
               const { error: insertErr } = await supabase
                 .from('notifications')
                 .insert({
@@ -171,6 +191,7 @@ export function NotificationProvider({ children }) {
                   title: notifPayload.title,
                   message: notifPayload.message,
                   type: notifPayload.type,
+                  hedef_yol: teklifYolu(car.plate_number, item.tur, 'bildirim'),
                   is_read: false
                 });
 

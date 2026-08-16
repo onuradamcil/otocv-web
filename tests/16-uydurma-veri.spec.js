@@ -286,6 +286,29 @@ const YASAKLI_SABITLER = [
   // HİÇBİRİ Sedan değil, 4'ü Dizel, 3'ü Manuel.
   { desen: 'TÜVTÜRK ONAYLI',     ne: 'dayanağı olmayan doğrulama iddiası' },
   { desen: 'e-devlet ruhsat mülkiyeti', ne: 'olmayan entegrasyon iddiası' },
+
+  // -----------------------------------------------------------------------
+  // SİHİRBAZ: KULLANICININ ADINA YAPILAN BEYANLAR
+  //
+  // Yukarıdaki sabitler uydurma DEĞER basıyordu; bu grup daha sinsiydi —
+  // kullanıcının verdiği cevabın TERSİNİ basıyordu. Üçü de canlı koddaydı:
+  //
+  //   `warranty === 'Evet'`      seçenekler ['Var','Yok'] -> koşul HİÇ tutmuyor,
+  //                              "Var" seçen kullanıcının aracına
+  //                              "Garanti süresi dolmuştur" yazılıyordu
+  //   `isFirstOwner === 'Evet'`  seçenekler ['İlk Sahibiyim', ...] -> aynı tuzak,
+  //                              ön izleme daima "İlk Sahibi Değilim" diyordu
+  //   `spareKey || 'Var'`        sihirbazda yedek anahtar alanı HİÇ YOK —
+  //                              hiç sorulmadan "yedek anahtarı var" beyanı
+  //
+  // Ortak kalıp: karşılaştırılan sabit ile seçenek listesi ayrı yerlerde
+  // durup birbirinden habersiz kaydı. Bu yüzden desenler `=== 'Evet'`
+  // biçiminde değil, ALAN ADIYLA birlikte aranıyor.
+  { desen: "warranty === 'Evet'",     ne: 'seçenek listesiyle eşleşmeyen garanti karşılaştırması' },
+  { desen: "isFirstOwner === 'Evet'", ne: 'seçenek listesiyle eşleşmeyen sahiplik karşılaştırması' },
+  { desen: 'spareKey',                ne: 'sihirbazda alanı olmayan yedek anahtar beyanı' },
+  { desen: "warranty || 'Bayi Çıkışlı'", ne: 'uydurma garanti varsayılanı' },
+  { desen: "warranty || 'Yok'",       ne: 'cevaplamayan kullanıcıyı "garantisi yok" sayan varsayılan' },
 ];
 
 // ⚠ 'Bayi Çıkışlı' ve 'İlk Sahibi Değilim' BU LİSTEDE DEĞİL — bilerek.
@@ -386,5 +409,105 @@ test.describe('Tramer beyani', () => {
     ).not.toContain('Hasar Kaydı Yok');
 
     expect(metin, 'üçüncü durum için nötr metin basılmıyor').toContain('Beyan Edilmemiş');
+  });
+});
+
+// =========================================================================
+// SEÇENEK LİSTESİ ↔ KARŞILAŞTIRMA SABİTİ EŞLEŞMESİ
+//
+// -------------------------------------------------------------------------
+// NİYE BU DENETİM VAR — BUGÜN ÜÇ KEZ AYNI HATA BULUNDU
+// -------------------------------------------------------------------------
+// Sihirbazda seçenek listeleri bir dosyada, o seçeneklerle yapılan
+// karşılaştırmalar başka yerde duruyor. İkisi birbirinden habersiz kaydığı
+// için ÜÇ ayrı yerde sessiz yanlış beyan üretiyordu:
+//
+//   `warranty === 'Evet'`       liste ['Var','Yok']            -> koşul HİÇ tutmuyor
+//   `isFirstOwner === 'Evet'`   liste ['İlk Sahibiyim', ...]   -> aynı tuzak
+//   ARAC_DURUMU_KODU anahtarı   liste ['İkinci El','Sıfır']    -> kayarsa alan kaydedilmez
+//
+// Hepsinin sonucu aynı: kullanıcı bir şey seçiyor, ürün TERSİNİ yazıyor ya
+// da hiç yazmıyor. Üstelik hiçbiri hata vermiyor — sessizce yanlış çalışıyor.
+//
+// Bu denetim iki dosyayı okuyup sabitleri karşılaştırıyor. Bir etiket
+// değiştirilip diğer yer unutulursa test kırmızı yanıyor.
+//
+// ⚠ VERİTABANINA DOKUNMUYOR, CI'DA KOŞAR.
+// =========================================================================
+
+test.describe('Sihirbaz · seçenek ve karşılaştırma eşleşmesi', () => {
+  const OKU = (dosya) => calisanKod(
+    fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'marketplace', 'create-listing', dosya), 'utf8')
+  );
+
+  /** `const AD = ['a', 'b'];` içindeki tırnaklı değerleri çıkarır. */
+  function secenekListesi(kod, ad) {
+    // ⚠ `new RegExp` ile kurulmuş desen KULLANILMIYOR. Şablon dizgisi içinde
+    // `\s` yazmak JS'te kaçış dizisi sayılıyor ve düz `s` harfine dönüşüyor;
+    // sonuç "const VEHICLE_STATUSES" yerine "consts+VEHICLE_STATUSES" arayan
+    // bozuk bir desen oluyor. Köşeli parantezleri elle bulmak hem daha kısa
+    // hem de kaçış hatasına kapalı.
+    const bas = kod.indexOf(`const ${ad}`);
+    if (bas === -1) return null;
+    const ac = kod.indexOf('[', bas);
+    const kapa = kod.indexOf(']', ac);
+    if (ac === -1 || kapa === -1) return null;
+    return [...kod.slice(ac + 1, kapa).matchAll(/'([^']*)'/g)].map((x) => x[1]);
+  }
+
+  test('ARAÇ DURUMU eşlemesi seçenek listesiyle birebir', () => {
+    const adimKodu = OKU('Step2ListingDetails.jsx');
+    const sihirbazKodu = OKU('CreateListingWizard.jsx');
+
+    const secenekler = secenekListesi(adimKodu, 'VEHICLE_STATUSES');
+    expect(secenekler, 'VEHICLE_STATUSES bulunamadı — liste adı değişmiş olabilir').toBeTruthy();
+
+    const harita = sihirbazKodu.match(/const\s+ARAC_DURUMU_KODU\s*=\s*\{([^}]*)\}/);
+    expect(harita, 'ARAC_DURUMU_KODU bulunamadı — araç durumu artık kaydedilmiyor olabilir').toBeTruthy();
+
+    const anahtarlar = [...harita[1].matchAll(/'([^']+)'\s*:/g)].map((x) => x[1]);
+
+    // İki yönlü: eksik anahtar alanı kaydedilmez yapar, fazla anahtar ise
+    // artık var olmayan bir seçeneği eşlemeye çalışıyor demektir.
+    expect(
+      [...anahtarlar].sort(),
+      `ARAC_DURUMU_KODU anahtarları seçenek listesinden kaymış.\n`
+      + `  seçenekler: ${JSON.stringify(secenekler)}\n`
+      + `  eşleme    : ${JSON.stringify(anahtarlar)}`
+    ).toEqual([...secenekler].sort());
+  });
+
+  test('ucluBayrak KARŞILAŞTIRMALARI seçenek listeleriyle eşleşiyor', () => {
+    const adimKodu = OKU('Step2ListingDetails.jsx');
+    const sihirbazKodu = OKU('CreateListingWizard.jsx');
+
+    // Hangi form alanı hangi seçenek listesinden besleniyor.
+    const LISTE_ADI = {
+      warranty: 'WARRANTY_OPTIONS',
+      isFirstOwner: 'FIRST_OWNER_OPTIONS',
+    };
+
+    const cagrilar = [...sihirbazKodu.matchAll(
+      /ucluBayrak\(\s*formData\.(\w+)\s*,\s*'([^']*)'\s*,\s*'([^']*)'\s*\)/g
+    )];
+    expect(cagrilar.length, 'ucluBayrak çağrısı bulunamadı — alanlar kaydedilmiyor olabilir')
+      .toBeGreaterThan(0);
+
+    for (const [, alan, evet, hayir] of cagrilar) {
+      const listeAdi = LISTE_ADI[alan];
+      expect(listeAdi, `"${alan}" için seçenek listesi tanımlı değil — denetim eksik kalıyor`).toBeTruthy();
+
+      const secenekler = secenekListesi(adimKodu, listeAdi);
+      expect(secenekler, `${listeAdi} bulunamadı`).toBeTruthy();
+
+      for (const deger of [evet, hayir]) {
+        expect(
+          secenekler,
+          `ucluBayrak(formData.${alan}, ...) "${deger}" ile karşılaştırıyor ama `
+          + `${listeAdi} böyle bir seçenek içermiyor: ${JSON.stringify(secenekler)}. `
+          + `Bu karşılaştırma HİÇBİR ZAMAN tutmaz ve alan yanlış kaydedilir.`
+        ).toContain(deger);
+      }
+    }
   });
 });

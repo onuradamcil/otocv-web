@@ -27,6 +27,53 @@ import SahipsizGeriYukleDialog from './SahipsizGeriYukleDialog';
 import PaywallDialog from '../../common/PaywallDialog';
 import TrPlaka from '../../common/TrPlaka';
 
+/**
+ * Üç durumlu seçim alanını `boolean | null`a çevirir.
+ *
+ * ⚠ `=== evetDegeri` yazıp gerisini `false` saymak YANLIŞ olurdu: alan
+ * zorunlu değil, yani "cevaplamadı" ile "hayır" farklı şeyler. Cevaplamayanı
+ * "hayır" kaydetmek, kullanıcının adına yapılmamış bir beyanı veritabanına
+ * işlemek demek — bu üründe `tramer_status` boşken 'Hasarsız' yazıldığında
+ * tam olarak bu olmuştu ve karne aracı "Temiz" diye basmıştı.
+ *
+ * Beklenmedik bir değer gelirse de `null` dönüyor: sessizce `false` saymak,
+ * seçenek metni değiştiğinde tüm araçları "hayır" yapardı.
+ *
+ * @param {string} deger
+ * @param {string} evetDegeri
+ * @param {string} hayirDegeri
+ * @returns {boolean|null}
+ */
+const ucluBayrak = (deger, evetDegeri, hayirDegeri) => {
+  if (deger === evetDegeri) return true;
+  if (deger === hayirDegeri) return false;
+  return null;
+};
+
+/**
+ * Sihirbazdaki "Araç Durumu" seçeneğini veritabanı koduna çevirir.
+ *
+ * ⚠ ANAHTARLAR `VEHICLE_STATUSES` İLE BİREBİR AYNI OLMAK ZORUNDA
+ * (Step2ListingDetails.jsx). Ekran etiketi değişip burası unutulursa
+ * eşleme sessizce `null` döner ve alan yine kaydedilmez — yani bugün
+ * düzeltilen hatanın aynısı geri gelir.
+ *
+ * Bu tam olarak üç kez yaşandı: `warranty === 'Evet'` (liste `['Var','Yok']`),
+ * `isFirstOwner === 'Evet'` (liste `['İlk Sahibiyim', ...]`) ve önizlemedeki
+ * uydurma varsayılanlar. Üçünde de karşılaştırılan sabit, seçenek
+ * listesinden habersiz kaymıştı.
+ *
+ * Kayma `tests/16-uydurma-veri.spec.js` içindeki eşleme denetimiyle
+ * yakalanıyor — o test bu iki listeyi karşılaştırıyor.
+ *
+ * ⚠ 'Sıfır' NOKTASIZ ı İLE. Türkçe'de 'i' ve 'ı' ayrı harfler; yanlış
+ * harfle yazılan anahtar hiçbir zaman eşleşmez.
+ */
+const ARAC_DURUMU_KODU = {
+  'İkinci El': 'ikinci_el',
+  'Sıfır': 'sifir',
+};
+
 // -------------------------------------------------------------------------
 // MÜKERRER PLAKA MODALININ ÜÇ ANLATIMI
 //
@@ -156,7 +203,8 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     color: null,
     vehicleStatus: '',
     warranty: '',
-    swap: '',
+    // `swap` (takas) kaldırıldı: satış kavramı, hiç kaydedilmiyordu ve
+    // zorunlu görünüp zorunlu değildi. Bkz. Step2ListingDetails.
     city: '',
     district: '',
     tramerStatus: '',
@@ -725,6 +773,30 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         // 100.000 TL'lik hasar 100 TL olurdu. tramerTutari rakam dışı her
         // karakteri attığı için doğru tam sayıyı üretiyor.
         tramer_amount: tramerTutari(formData),
+        // GARANTİ VE İLK SAHİPLİK — ARTIK GERÇEKTEN KAYDEDİLİYOR.
+        //
+        // Bu iki soru sihirbazda aylardır soruluyordu ve cevapları HİÇBİR
+        // YERE yazılmıyordu: `formData` içinde kalıp kayıt sonunda uçuyordu.
+        //
+        // ⚠ ÜÇÜNCÜ DURUM KORUNUYOR. `=== 'Var'` yazıp gerisini `false`
+        // saymak, cevaplamayan kullanıcının aracını "garantisi yok" diye
+        // kaydetmek olurdu. Alanlar zorunlu değil; boş bırakılmışsa
+        // `null` gidiyor ve ekranlar o satırı hiç çizmiyor.
+        //
+        // Değerler `WARRANTY_OPTIONS` / `FIRST_OWNER_OPTIONS` ile birebir
+        // eşleşiyor (Step2ListingDetails). Metinler değişirse burası da
+        // değişmeli — bu yüzden karşılaştırmalar tek yerde toplandı.
+        has_warranty: ucluBayrak(formData.warranty, 'Var', 'Yok'),
+        is_first_owner: ucluBayrak(formData.isFirstOwner, 'İlk Sahibiyim', 'İlk Sahibi Değilim'),
+        // ARAÇ DURUMU — ZORUNLU SORULUYOR, ARTIK KAYDEDİLİYOR DA.
+        //
+        // Bu alan sihirbazda gerçekten zorunlu: `isStep2Valid` doldurulmadan
+        // geçmiyor. Buna rağmen payload'a hiç girmiyordu — kullanıcı
+        // doldurmak ZORUNDA olduğu bir soruyu boşuna cevaplıyordu.
+        //
+        // Ekran etiketi değil KOD yazılıyor ('İkinci El' -> 'ikinci_el'):
+        // bir başlık düzenlemesi kayıtlı veriyi bozmasın.
+        vehicle_condition: ARAC_DURUMU_KODU[formData.vehicleStatus] || null,
         // trust_score GÖNDERİLMİYOR.
         //
         // Burada `formData.otocv_score || 92` vardı ve `otocv_score` hiçbir

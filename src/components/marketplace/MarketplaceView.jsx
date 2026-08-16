@@ -454,8 +454,13 @@ export default function MarketplaceView({
                     alt: 'text-rose-600 border-rose-600',
                   },
                   {
-                    ad: 'Sigorta & Kasko', ozet: 'Canlı poliçe tekliflerini karşılaştırın.',
-                    eylem: 'Teklif Al', ikon: 'kalkan', tik: onNavigateToInsurance,
+                    // ⚠ "Canlı poliçe tekliflerini karşılaştırın" İDİ.
+                    // Canlı teklif yok, anlaşmalı sigorta ortağı da yok:
+                    // kart bugün tutulamayan bir vaat veriyordu. Kart
+                    // KALDIRILMADI — hedef onu doldurmak; ama vaat, ekranın
+                    // bugün yapabildiğine çekildi.
+                    ad: 'Sigorta & Kasko', ozet: 'Poliçe tarihlerinizi takip edin, yenilemeyi kaçırmayın.',
+                    eylem: 'Süreleri Gör', ikon: 'kalkan', tik: onNavigateToInsurance,
                     kabart: 'bg-slate-800', yazi: 'group-hover:text-slate-900',
                     alt: 'text-slate-900 border-slate-900',
                   },

@@ -533,10 +533,17 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                         {tramerVarMi(formData) ? `${formData.tramerAmount || 0} TL` : 'Tramer Yok'}
                       </span>
                     </div>
-                    <div className="flex justify-between py-1">
-                      <span className="text-slate-900 font-medium">Garanti / Takas</span>
-                      <span className="text-slate-800 font-normal">{formData.warranty || 'Yok'} / {formData.swap || 'Hayır'}</span>
-                    </div>
+                    {/* "Garanti / Takas" idi. Takas alanı kaldırıldı (satış
+                        kavramı, hiç kaydedilmiyordu). Garanti ise `|| 'Yok'`
+                        ile dolduruluyordu: seçim yapmamış kullanıcının aracı
+                        "garantisi yok" diye gösteriliyordu — onun adına
+                        yapılmamış bir beyan. Seçilmemişse satır çizilmiyor. */}
+                    {formData.warranty && (
+                      <div className="flex justify-between py-1">
+                        <span className="text-slate-900 font-medium">Garanti</span>
+                        <span className="text-slate-800 font-normal">{formData.warranty}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -778,13 +785,20 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                         isMono: true, 
                         textClass: 'text-slate-600 font-semibold' 
                       },
-                      { label: 'Sahiplik Durumu', value: formData.isFirstOwner === 'Evet' ? 'İlk Sahibi' : 'İlk Sahibi Değilim' },
+                      // ⚠ `isFirstOwner === 'Evet'` KARŞILAŞTIRMASI HİÇ TUTMUYORDU.
+                      // Alanın seçenekleri 'İlk Sahibiyim' / 'İlk Sahibi Değilim';
+                      // 'Evet' diye bir değer hiç üretilmiyor. Sonuç: kullanıcı
+                      // "İlk Sahibiyim" seçse bile önizleme "İlk Sahibi Değilim"
+                      // yazıyordu — beyanın tam tersi.
+                      // Değer zaten okunur metin; olduğu gibi geçiyor, boşsa
+                      // aşağıdaki `|| 'Belirtilmemiş'` devreye giriyor.
+                      { label: 'Sahiplik Durumu', value: formData.isFirstOwner },
                       { 
                         label: 'Tramer Hasar Kaydı', 
                         value: tramerVarMi(formData) ? `${formData.tramerAmount} TL` : 'Tramer Yok', 
                         textClass: tramerVarMi(formData) ? 'text-amber-700' : 'text-emerald-700 font-bold' 
                       },
-                      { label: 'Takas Durumu', value: formData.swap },
+                      // "Takas Durumu" satırı kaldırıldı — alan da kaldırıldı.
                     ].map((item, index) => (
                       <div key={item.label} className={`flex justify-between items-baseline py-2.5 px-5 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>
                         <span className="text-xs font-medium text-slate-600 w-2/5">{item.label}</span>
@@ -826,8 +840,19 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                           value: kaskoStatus.text, 
                           textClass: kaskoStatus.class 
                         },
-                        { label: 'Yedek Anahtar', value: formData.spareKey || 'Var' },
-                        { label: 'Garanti / İthalat Durumu', value: formData.warranty || 'Bayi Çıkışlı' },
+                        // ⚠ İKİ UYDURMA VARSAYILAN KALDIRILDI.
+                        //
+                        // "Yedek Anahtar" satırı `formData.spareKey || 'Var'`
+                        // yazıyordu — oysa sihirbazda yedek anahtar diye BİR
+                        // ALAN YOK. Yani her araç için, hiç sorulmadan
+                        // "yedek anahtarı var" beyanı basılıyordu. Satır
+                        // tamamen kaldırıldı: sorulmayan şey beyan edilmez.
+                        //
+                        // Garanti ise `|| 'Bayi Çıkışlı'` ile dolduruluyordu;
+                        // "Bayi Çıkışlı" bir garanti durumu bile değil, ayrı
+                        // bir kavram. Boşsa aşağıdaki `|| 'Belirtilmemiş'`
+                        // devreye giriyor.
+                        { label: 'Garanti Durumu', value: formData.warranty },
                       ].map((item, index) => (
                         <div key={item.label} className={`flex justify-between items-baseline py-2.5 px-5 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>
                           <span className="text-xs font-medium text-slate-600 w-2/5">{item.label}</span>

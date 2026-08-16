@@ -21,10 +21,11 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import { calculatePolicyStatus } from '../utils/dateHelper';
+import { teklifYolu } from '../services/teklifService';
 import PolicyOfferModal from './garage/PolicyOfferModal';
-import { useToast } from '../context/ToastContext';
 import AracDevretDialog from './garage/AracDevretDialog';
 import AracSeciciDialog from './garage/AracSeciciDialog';
 import { dugme, ikonDugmesi } from './common/dugme';
@@ -33,7 +34,10 @@ import GlobalStepLoader from './common/GlobalStepLoader';
 import TrPlaka from './common/TrPlaka';
 
 export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMaintenance, onNavigateToAdd, onManageListings, onOpenVitrin }) {
-  const toast = useToast();
+  // `useToast` buradan kalktı: tek kullanıcısı, tıklandığında "yakında"
+  // diyen ölü teklif düğmesiydi. Düğme gerçek ekrana bağlanınca bildirime
+  // gerek kalmadı.
+  const router = useRouter();
   // =========================================================================
   // 1. BLOK: REAKTİF DURUM VE VERİTABANI HAFIZASI
   // =========================================================================
@@ -245,9 +249,36 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
         calistir: onOpenMaintenance,
       },
     },
+    {
+      // -----------------------------------------------------------------
+      // DÖRDÜNCÜ KAPI — SÜRELER
+      //
+      // Üst şeritteki "Hemen Teklif Al" düğmesi yalnızca kritik araç
+      // VARKEN görünüyor. Yani ürün, süresi henüz dolmamış kullanıcıya bu
+      // kapıyı hiç göstermiyordu; oysa yenilemeyi planlamak için doğru an
+      // tam olarak süre dolmadan önce.
+      //
+      // ⚠ SESİ KASITLI OLARAK ALÇAK. Diğer üç kartla aynı kalıpta, aynı
+      // boyutta. Uyarı şeridi kırmızı ve tekil; bu kart onunla yarışmıyor,
+      // sakin bir yerde duruyor.
+      tur: 'teklif',
+      ikon: 'kalkan',
+      baslik: 'Süreleri yönet',
+      ozet: 'Poliçe ve muayene tarihlerinizi tek listede görün, hatırlatma kurun.',
+      kapali: vehicles.length === 0 ? 'Önce araç kaydedin' : null,
+      // ⚠ `secici` YOK, `git` VAR. Diğer üç eylem "hangi araç?" diye
+      // soruyor çünkü tek araca işlem yapıyorlar. Bu kart bir liste
+      // gösteriyor; araç sormak, cevabı zaten ekranda olan bir soruyu
+      // sormak olurdu.
+      git: () => router.push(teklifYolu(null, null, 'garaj_serit')),
+      secici: null,
+    },
   ];
 
-  const acikEylem = EYLEMLER.find((e) => e.tur === seciciTuru);
+  // ⚠ `secici` DENETİMİ ŞART. Artık her eylemin araç seçicisi yok — "Süreleri
+  // yönet" doğrudan rotaya gidiyor. Denetim olmasaydı `acikEylem.secici.baslik`
+  // okuması çalışma anında patlardı; derleme temiz geçerdi.
+  const acikEylem = EYLEMLER.find((e) => e.tur === seciciTuru && e.secici);
 
   // =========================================================================
   // 4. BLOK: ARAYÜZ RENDER KATMANI
@@ -290,8 +321,17 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              <button 
-                onClick={() => toast.bilgi('Sigorta teklifleri yakında bu ekranda listelenecek.')}
+              {/* ⚠ BU DÜĞME BİR YERE GİTMİYORDU.
+                  Uyarıyı okuyan kullanıcıya "hemen teklif al" diyor ve
+                  tıklayınca yalnızca "yakında" bildirimi basıyordu: ürünün
+                  en yüksek niyetli anında kullanıcıyı boşluğa çıkarıyordu.
+                  Artık gerçek ekrana gidiyor.
+
+                  Plaka GÖNDERİLMİYOR — bant "N aracınızın" diyor, yani
+                  çoğul. Tek araca çakmak, kullanıcının bantta okuduğu
+                  sayıyla vardığı ekranı çelişkiye düşürürdü. */}
+              <button
+                onClick={() => router.push(teklifYolu(null, null, 'garaj_serit'))}
                 className="bg-rose-600 hover:bg-rose-700 text-white metin-yardimci font-semibold px-4 py-2 rounded-xl transition-colors active:scale-95 cursor-pointer shrink-0"
               >
                 Hemen Teklif Al
@@ -360,9 +400,16 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
           </div>
 
           <div className="px-5 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Izgara üçlüden dörtlüye çıktı. `sm`de ikişerli duruyor:
+                dört kartı 640px'de yan yana dizmek her birini okunmaz
+                genişliğe sıkıştırıyordu. */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {EYLEMLER.map((e) => (
-                <MerkezEylem key={e.tur} eylem={e} onAc={() => setSeciciTuru(e.tur)} />
+                <MerkezEylem
+                  key={e.tur}
+                  eylem={e}
+                  onAc={() => (e.git ? e.git() : setSeciciTuru(e.tur))}
+                />
               ))}
             </div>
           </div>

@@ -73,7 +73,8 @@ const VEHICLE_TYPES = ['Bireysel', 'Ticari', 'Kurumsal'];
 const PLATE_NATIONALITIES = ['(TR) Türkiye', 'Mavi Plaka (MA/MZ)', 'Yabancı Plakalı'];
 const WARRANTY_OPTIONS = ['Var', 'Yok'];
 const FIRST_OWNER_OPTIONS = ['İlk Sahibi Değilim', 'İlk Sahibiyim'];
-const SWAP_OPTIONS = ['Evet', 'Hayır'];
+// `SWAP_OPTIONS` kaldırıldı — takas alanıyla birlikte. Zaten kullanılmıyordu:
+// alan seçenekleri kendi içinde `['Evet', 'Hayır']` diye tekrar yazıyordu.
 
 // --- PANEL 4 SABİTLERİ (EKSPERTİZ & HASAR KAYDI) ---
 const TRAMER_OPTIONS = ['Bilmiyorum', 'Tramer Yok', 'Tramer Var', 'Ağır Hasarlı'];
@@ -161,7 +162,6 @@ const Step2ListingDetails = forwardRef(({ formData, updateFormData, onNext, onBa
   const [plateNationality, setPlateNationality] = useState(formData.plateNationality || '');
   const [warranty, setWarranty] = useState(formData.warranty || '');
   const [isFirstOwner, setIsFirstOwner] = useState(formData.isFirstOwner || '');
-  const [swap, setSwap] = useState(formData.swap || '');
 
   // 📌 PANEL 3 STATE'LERİ & REF'LERİ: ARAÇ KONUMU (ARANABİLİR İL / İLÇE DROPDOWN)
   const [city, setCity] = useState(formData.city || '');
@@ -605,9 +605,25 @@ useEffect(() => {
     }
 
     // Seçilen Donanımları Metne Dökme
-    const featuresListHtml = selectedFeatures.length > 0 
+    const featuresListHtml = selectedFeatures.length > 0
       ? `<li><b>Öne Çıkan Donanım Özellikleri:</b> ${selectedFeatures.join(', ')}</li>`
       : '<li>Aracın tüm fabrikasyon donanım özellikleri aktif durumdadır.</li>';
+
+    // GARANTİ SATIRI — ÜÇ DURUM, İKİ DEĞİL.
+    //
+    // ⚠ BURADA SESSİZ BİR YANLIŞ BEYAN VARDI. Koşul `warranty === 'Evet'`
+    // diye yazılmıştı ama seçenekler `['Var', 'Yok']`. Yani koşul HİÇBİR
+    // ZAMAN doğru olmuyordu: kullanıcı "Var" seçse bile açıklamaya
+    // "Garanti süresi dolmuştur" yazılıyordu. Kullanıcının beyanının tam
+    // TERSİ, hem de onun adına.
+    //
+    // Üçüncü durum da eksikti: alan zorunlu değil. Seçilmemişken satırı
+    // hiç yazmamak doğrusu — "bilinmiyor"u "dolmuş" diye basmak, bu üründen
+    // temizlenen uydurma veri sınıfının aynısı.
+    const garantiSatiri =
+      warranty === 'Var' ? '<li><b>Garanti Statüsü:</b> Üretici / yetkili servis garantisi devam ettiği beyan edilmiştir.</li>'
+      : warranty === 'Yok' ? '<li><b>Garanti Statüsü:</b> Garanti süresinin dolduğu beyan edilmiştir.</li>'
+      : '';
 
     // Dinamik OTO-CV Şablonu
     const formattedHtml = `
@@ -617,8 +633,7 @@ useEffect(() => {
       <br/>
       <ul>
         ${featuresListHtml}
-        <li><b>Takas / Değerlendirme Tercihi:</b> ${swap === 'Evet' ? 'Uygun segment araçlarla takas seçeneği değerlendirilebilir.' : 'Takas seçeneği kapalıdır.'}</li>
-        <li><b>Garanti Statüsü:</b> ${warranty === 'Evet' ? 'Üretici / Yetkili servis garantisi aktif durumdadır.' : 'Garanti süresi dolmuştur.'}</li>
+        ${garantiSatiri}
         <li><b>Dijital Karne Notu:</b> Aracın geçmiş bakım çizelgesi, servis faturaları ve periyodik kontrol kayıtları OTO-CV Garajım portalı üzerinden şeffafça takip edilebilir.</li>
       </ul>
     `.trim();
@@ -855,29 +870,24 @@ useEffect(() => {
               </select>
             </div>
 
-            {/* 6. TAKAS OLUR MU? */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                <span className="text-rose-600 font-bold">*</span>
-                <span>Takas Olur mu?</span>
-              </label>
-              <div className="grid grid-cols-2 gap-2 h-[42px]">
-                {['Evet', 'Hayır'].map(option => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => { setSwap(option); handleFieldChange('swap', option); }}
-                    className={`h-full px-3 text-xs font-bold rounded-md border transition-all cursor-pointer ${
-                      swap === option
-                        ? 'bg-indigo-50 border-indigo-600 text-indigo-700'
-                        : 'bg-slate-100/80 border-slate-200/80 text-slate-600 hover:bg-slate-200/60'
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* 6. TAKAS — KALDIRILDI
+                -------------------------------------------------------------
+                Burada "Takas Olur mu?" alanı vardı ve ÜÇ AYRI SORUNU birden
+                taşıyordu:
+
+                1. TAKAS BİR SATIŞ KAVRAMI. Bu ürün araç satış sitesi değil,
+                   dijital sicil. Ürünle ilgili satış/fiyat dili platformu
+                   satış sitesi konumuna sokuyor — "ilan", "satış", "fiyat"
+                   kelimeleri bu yüzden ayıklandı; takas de aynı aileden.
+                2. HİÇBİR YERE KAYDEDİLMİYORDU. `vehicles` şemasında karşılığı
+                   yok, kayıt payload'una da girmiyordu: kullanıcı cevaplıyor,
+                   cevap uçuyordu.
+                3. ZORUNLU GÖRÜNÜYOR AMA DEĞİLDİ. Etikette kırmızı `*` vardı;
+                   oysa ne `isStep2Valid` ne `isFieldInvalid` bu alana
+                   bakıyordu. Yani yıldız yalan söylüyordu.
+
+                Ürün sahibinin kararı (16 Ağustos 2026): alan kalksın,
+                Garanti ve Sahiplik ise gerçekten kaydedilsin. */}
 
           </div>
 

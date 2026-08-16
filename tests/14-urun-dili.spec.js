@@ -122,6 +122,12 @@ test.describe('Ürün dili', () => {
     const OTURUMLU = [
       '/garage', '/my-listings', '/favorilerim', '/mesajlar',
       '/account', '/query-history', '/dashboard', '/add-vehicle/step1',
+      // ⚠ TEKLİF EKRANI BU LİSTEDE OLMAK ZORUNDA. Sigorta dili "fiyat",
+      // "teklif karşılaştırma", "en ucuz poliçe" gibi ifadelere doğal
+      // olarak kayıyor ve ileride bir ortağın tanıtım metni buraya
+      // kopyalanabilir. Ürünle ilgili tutar görünen platform satış sitesi
+      // konumuna geçiyor — bu ekran o riskin en yüksek olduğu yer.
+      '/insurance-offer',
     ];
 
     for (const yol of OTURUMLU) {
