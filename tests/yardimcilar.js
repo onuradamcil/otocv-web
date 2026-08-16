@@ -252,7 +252,12 @@ async function girisYapAlici(page) {
  * bulunamadı" diye yanlış geçer.
  */
 async function belgeSekmesiniAc(page) {
-  await page.locator('text=Detaylı Resmi Sicil Belgesi').first().click();
+  // ⚠ ETIKET DEGISTI: "Detaylı Resmi Sicil Belgesi" -> "Detaylı Sicil Belgesi".
+  // "Resmi" ibaresi kaldirildi cunku belgenin KENDISI zaten "bagimsiz
+  // olarak dogrulanmamistir" diyor; kabugun onu "resmi" diye pazarlamasi
+  // urunun kendi kendisiyle celismesiydi. Yardimci eski metni sabit
+  // yazdigi icin sekme acilamiyor ve SEKIZ karne testi birden dusuyordu.
+  await page.locator('text=Detaylı Sicil Belgesi').first().click();
   await page.waitForTimeout(1200);
   await base.expect(page.locator('text=OTO.CV SİCİL BULGULARI')).toBeVisible();
 }

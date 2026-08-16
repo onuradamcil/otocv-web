@@ -63,7 +63,7 @@ export default function PaywallDialog({
   const urun = urunGetir(urunKodu);
 
   // ⚠ HER İKİ erken çıkıştan da ÖNCE: kanca koşullu çağrılamaz.
-  const panelRef = useModalErisim(onClose);
+  const panelRef = useModalErisim(onKapat);
 
   // Bilinmeyen ürün kodunda sessizce boş modal göstermek yerine hiç açılmıyor.
   // Sessiz boşluk, "ödeme ekranı açılmadı" diye bildirilen bir hataya dönerdi.
