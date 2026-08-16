@@ -225,14 +225,14 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
           {authMode === 'login' && (
             <form onSubmit={handleAuthSubmit} className="space-y-4 animate-fadeIn">
               <div className="space-y-1">
-                <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
-                <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@otocv.com" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none transition-colors shadow-sm" />
+                <label htmlFor="alan-e-posta-adresi" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
+                <input id="alan-e-posta-adresi" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@otocv.com" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none transition-colors shadow-sm" />
               </div>
               
               <div className="space-y-1 relative">
-                <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifre</label>
+                <label htmlFor="alan-sifre" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifre</label>
                 <div className="relative">
-                  <input type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none transition-colors pr-12 shadow-sm" />
+                  <input id="alan-sifre" type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none transition-colors pr-12 shadow-sm" />
                   {/* Etiket BUTONDA: içeriği tek başına ikon olan butonun adını ekran
                       okuyucu ancak buradan öğrenir. aria-pressed açık/kapalı
                       durumunu bildirir. 44px dokunma alanı WCAG asgarisi. */}
@@ -308,8 +308,8 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
           {authMode === 'register_step1' && (
             <form onSubmit={handleRegisterStep1Submit} className="space-y-4 animate-fadeIn">
               <div className="space-y-1.5">
-                <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
-                <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@otocv.com" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none transition-colors shadow-sm" />
+                <label htmlFor="alan-e-posta-adresi" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
+                <input id="alan-e-posta-adresi" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@otocv.com" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none transition-colors shadow-sm" />
               </div>
               <button type="submit" className="w-full bg-[#0F172A] hover:bg-slate-800 text-white py-3 rounded-xl font-semibold text-xs tracking-wide shadow-sm transition-colors active:scale-[0.99] flex items-center justify-center gap-1 mt-2">
                 E-posta ile Devam Et
@@ -323,26 +323,26 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
             <form onSubmit={handleAuthSubmit} className="space-y-3.5 animate-fadeIn">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Adınız</label>
-                  <input type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Örn: Ahmet" className="w-full py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#0F172A] transition-colors" />
+                  <label htmlFor="alan-adiniz" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Adınız</label>
+                  <input id="alan-adiniz" type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Örn: Ahmet" className="w-full py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#0F172A] transition-colors" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Soyadınız</label>
-                  <input type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Örn: Yılmaz" className="w-full py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#0F172A] transition-colors" />
+                  <label htmlFor="alan-soyadiniz" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Soyadınız</label>
+                  <input id="alan-soyadiniz" type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Örn: Yılmaz" className="w-full py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#0F172A] transition-colors" />
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Cep Telefonu (Sıfırsız)</label>
-                <input 
+                <label htmlFor="alan-cep-telefonu-sifirsiz" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Cep Telefonu (Sıfırsız)</label>
+                <input id="alan-cep-telefonu-sifirsiz" 
                   type="tel" required maxLength={10} value={phone} onChange={handlePhoneChange} 
                   placeholder="5XX XXX XX XX" 
                   className="w-full py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#0F172A] transition-colors font-mono tracking-widest text-slate-800" 
                 />
               </div>
               <div className="space-y-1 relative">
-                <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifre Belirle</label>
+                <label htmlFor="alan-sifre-belirle" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifre Belirle</label>
                 <div className="relative">
-                  <input type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#0F172A] pr-12 transition-colors" />
+                  <input id="alan-sifre-belirle" type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#0F172A] pr-12 transition-colors" />
                   {/* Etiket BUTONDA: içeriği tek başına ikon olan butonun adını ekran
                       okuyucu ancak buradan öğrenir. aria-pressed açık/kapalı
                       durumunu bildirir. 44px dokunma alanı WCAG asgarisi. */}
@@ -367,8 +367,8 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
           {authMode === 'forgot_password' && (
             <form onSubmit={handlePasswordReset} className="space-y-4 animate-fadeIn">
               <div className="space-y-1.5">
-                <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
-                <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Kayıtlı e-posta adresinizi girin..." className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none transition-colors shadow-sm" />
+                <label htmlFor="alan-e-posta-adresi" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
+                <input id="alan-e-posta-adresi" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Kayıtlı e-posta adresinizi girin..." className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none transition-colors shadow-sm" />
               </div>
               <button type="submit" disabled={loading} className="w-full bg-[#0F172A] hover:bg-slate-800 text-white py-3 rounded-xl font-semibold text-xs tracking-wide shadow-sm transition-colors active:scale-[0.99] mt-2 flex justify-center items-center gap-1.5">
                 {loading ? 'Gönderiliyor...' : 'Bağlantı Gönder'}

@@ -84,9 +84,9 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
 
           <form onSubmit={handleUpdatePassword} className="space-y-4">
             <div className="space-y-1 relative">
-              <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Yeni Şifre</label>
+              <label htmlFor="alan-yeni-sifre" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Yeni Şifre</label>
               <div className="relative">
-                <input type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none shadow-sm" />
+                <input id="alan-yeni-sifre" type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none shadow-sm" />
                 {/* Etiket ikonda değil BUTONDA: içeriği tek başına ikon olan
                     butonun adını ekran okuyucu ancak buradan öğrenir. */}
                 <button
@@ -102,8 +102,8 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
             </div>
 
             <div className="space-y-1">
-              <label className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifreyi Tekrarla</label>
-              <input type={showPassword ? 'text' : 'password'} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none shadow-sm" />
+              <label htmlFor="alan-sifreyi-tekrarla" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifreyi Tekrarla</label>
+              <input id="alan-sifreyi-tekrarla" type={showPassword ? 'text' : 'password'} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none shadow-sm" />
             </div>
 
             <button type="submit" disabled={loading} className="w-full bg-[#0F172A] hover:bg-slate-800 text-white py-3 rounded-xl font-semibold text-xs tracking-wide shadow-sm transition-colors mt-2">

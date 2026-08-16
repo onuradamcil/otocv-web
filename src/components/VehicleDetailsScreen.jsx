@@ -7,6 +7,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import useModalErisim from '../hooks/useModalErisim';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
 import Icon from './common/icons';
@@ -181,6 +182,13 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
   
   const [expandedTileIndex, setExpandedTileIndex] = useState(0);
   const [invoiceModalUrl, setInvoiceModalUrl] = useState(null);
+  // Tam ekran galeri ve fatura ön izleme birer MODAL ama modal davranışı
+  // taşımıyorlardı: Esc kapatmıyor, Tab arkadaki sayfada geziniyor, ekran
+  // okuyucu pencerenin açıldığını duyurmuyordu. İkisi de aynı kancadan
+  // geçiyor; kanca yalnızca ilgili modal AÇIKKEN etkinleşiyor.
+  const galeriRef = useModalErisim(() => setIsFullscreen(false), { acik: !!isFullscreen });
+  const faturaRef = useModalErisim(() => setInvoiceModalUrl(null), { acik: !!invoiceModalUrl });
+
 
   const navRef = useRef(null);
 
@@ -1433,7 +1441,8 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
 
       {/* 🚀 LIGHTBOX GALERİ MODALI */}
       {isFullscreen && imageList.length > 0 && (
-        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 select-none animate-fadeIn">
+        <div ref={galeriRef} role="dialog" aria-modal="true" aria-label="Galeri görüntüleyici"
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 select-none animate-fadeIn">
           <button type="button" onClick={() => setIsFullscreen(false)} className="absolute top-6 right-6 z-50 bg-white/10 hover:bg-white/20 text-white px-4 py-2 min-h-[44px] rounded-full font-bold text-xs cursor-pointer inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
             <Icon name="kapat" size="md" />
             Kapat
@@ -1451,7 +1460,8 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
 
       {/* 📑 FATURA GÖRSELİ ÖN İZLEME MODALI */}
       {invoiceModalUrl && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 select-none animate-fadeIn">
+        <div ref={faturaRef} role="dialog" aria-modal="true" aria-label="Fatura ön izleme"
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 select-none animate-fadeIn">
           <button type="button" onClick={() => setInvoiceModalUrl(null)} className="absolute top-6 right-6 z-50 bg-white/20 hover:bg-white/30 text-white px-4 py-2 min-h-[44px] rounded-full font-bold text-xs cursor-pointer inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
             <Icon name="kapat" size="md" />
             Kapat

@@ -128,6 +128,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
           <button 
             type="button"
             onClick={() => setVerifyTab('pin')}
+                aria-pressed={verifyTab === 'pin'}
             className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
               verifyTab === 'pin' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
             }`}
@@ -138,6 +139,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
           <button 
             type="button"
             onClick={() => setVerifyTab('qr')}
+                aria-pressed={verifyTab === 'qr'}
             className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
               verifyTab === 'qr' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
             }`}

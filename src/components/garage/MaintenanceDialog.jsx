@@ -8,6 +8,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import useModalErisim from '../../hooks/useModalErisim';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../../context/ToastContext';
 import Icon from '../common/icons';
@@ -32,6 +33,8 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
   const [dateError, setDateError] = useState('');
   const [submitAttempted, setSubmitAttempted] = useState(false); // 🚀 Akıllı hata boyama tetikleyicisi
   const [isSuccess, setIsSuccess] = useState(false); // 🚀 Başarı efekti tetikleyicisi
+
+  const panelRef = useModalErisim(onClose, { acik: !!isOpen });
 
   if (!isOpen) return null;
 
@@ -236,7 +239,12 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0F172A]/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn select-none">
+    <div className="fixed inset-0 z-50 bg-[#0F172A]/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn select-none"
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Servis ve bakım kaydı penceresi"
+    >
       <div className="bg-white border border-gray-100 rounded-3xl w-full max-w-[560px] shadow-2xl overflow-hidden animate-scaleIn flex flex-col max-h-[90vh]">
         
         {/* HEADR BAR PANELİ */}
@@ -247,7 +255,11 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
             </svg>
             <h3 className="font-semibold text-base tracking-wide">Servis & Bakım Kaydı İşle</h3>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors p-1">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Pencereyi kapat"
+            className="w-11 h-11 grid place-items-center text-gray-400 hover:text-white transition-colors rounded-full shrink-0">
             <Icon name="kapat" size="lg" strokeWidth={2.5} />
           </button>
         </div>

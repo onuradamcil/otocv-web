@@ -1009,4 +1009,57 @@ test.describe('Güvenlik · plaka görsel adresinde sızmıyor', () => {
       expect(yanit.ok, `gorsel acilmiyor (HTTP ${yanit.status}): ${adres.split('/').pop()}`).toBe(true);
     }
   });
+  test('BELGE KISITI bayragi istemciden degistirilemiyor', async () => {
+    // ⚠ `vehicles` uzerindeki politika `ALL using (auth.uid() = user_id)`:
+    // sahip HER SUTUNU guncelleyebiliyor. `belge_erisimi_kisitli` de bir
+    // sutun ve fatura okuma politikasi ona bakiyor.
+    //
+    // Bayrak, sahipsiz havuzdan arac devralindiginda `true` yapiliyor:
+    // bakim kayitlari yeni sahibe geciyor ama FATURA GORSELLERI gecmiyor,
+    // onlar onceki sahibin yukledigi belgeler. Devralan kisi tek satirlik
+    // bir istemci cagrisiyla kisiti kaldirip o belgeleri acabiliyordu.
+    const sb = await supabaseIstemcisi();
+    const { data: { user } } = await sb.auth.getUser();
+    const { data: araclar } = await sb
+      .from('vehicles').select('plate_number, belge_erisimi_kisitli').eq('user_id', user.id).limit(1);
+
+    test.skip(!araclar?.length, 'test hesabinda arac yok');
+    const arac = araclar[0];
+
+    const { error } = await sb
+      .from('vehicles')
+      .update({ belge_erisimi_kisitli: !arac.belge_erisimi_kisitli })
+      .eq('plate_number', arac.plate_number);
+
+    expect(error, 'belge kisiti bayragi istemciden degistirilebiliyor').toBeTruthy();
+    expect(
+      (error?.message || '').includes('BELGE_KISITI_ISTEMCIDEN_DEGISTIRILEMEZ'),
+      `beklenen tetikleyici hatasi degil: ${error?.message}`
+    ).toBe(true);
+
+    // Bayragin dokunulmadigini dogrula.
+    const { data: sonra } = await sb
+      .from('vehicles').select('belge_erisimi_kisitli').eq('plate_number', arac.plate_number).single();
+    expect(sonra?.belge_erisimi_kisitli, 'bayrak yine de degismis').toBe(arac.belge_erisimi_kisitli);
+  });
+
+  test('NORMAL arac guncellemesi calismaya devam ediyor', async () => {
+    // Tetikleyici fazla genis yazilsaydi (ornegin her UPDATE'i reddetseydi)
+    // arac duzenleme ekrani tamamen kirilirdi. Kilidin dar oldugunu
+    // olcmeyen bir test, kilidin kendisinden daha risklidir.
+    const sb = await supabaseIstemcisi();
+    const { data: { user } } = await sb.auth.getUser();
+    const { data: araclar } = await sb
+      .from('vehicles').select('plate_number, description').eq('user_id', user.id).limit(1);
+
+    test.skip(!araclar?.length, 'test hesabinda arac yok');
+
+    // Ayni degeri geri yaziyoruz: veri degismiyor, yol denetleniyor.
+    const { error } = await sb
+      .from('vehicles')
+      .update({ description: araclar[0].description })
+      .eq('plate_number', araclar[0].plate_number);
+
+    expect(error, `normal guncelleme kirildi: ${error?.message}`).toBeFalsy();
+  });
 });

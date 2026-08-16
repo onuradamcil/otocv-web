@@ -232,7 +232,11 @@ export default function Header() {
               >
                 Araç Devir
               </Link>
-              <span className="text-slate-500 cursor-not-allowed">Kurumsal Çözümler</span>
+              {/* ⚠ TEPKİSİZ ama duruş hâlinde yanındaki GERÇEK "Araç Devir"
+                bağlantısıyla birebir aynı renkteydi. Proje aynı ögeyi
+                Footer ve MobileDrawer'da zaten işaretliyor; yalnızca
+                burası atlanmıştı. */}
+            <span className="text-slate-300 cursor-not-allowed select-none" title="Yakında">Kurumsal Çözümler</span>
             </nav>
           </div>
 

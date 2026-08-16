@@ -28,6 +28,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import useModalErisim from '../../hooks/useModalErisim';
 import { createPortal } from 'react-dom';
 import Icon from './icons';
 import { DEMO_MOD, fiyatYaz, urunGetir } from '../../data/paketler';
@@ -60,6 +61,9 @@ export default function PaywallDialog({
   const [islemde, setIslemde] = useState(false);
   const [hata, setHata] = useState('');
   const urun = urunGetir(urunKodu);
+
+  // ⚠ HER İKİ erken çıkıştan da ÖNCE: kanca koşullu çağrılamaz.
+  const panelRef = useModalErisim(onClose);
 
   // Bilinmeyen ürün kodunda sessizce boş modal göstermek yerine hiç açılmıyor.
   // Sessiz boşluk, "ödeme ekranı açılmadı" diye bildirilen bir hataya dönerdi.
@@ -120,7 +124,12 @@ export default function PaywallDialog({
   // yakalar. `body`'ye taşımak sorunu kaynağında bitiriyor ve bileşen
   // ileride başka bir bulanık/dönüşümlü kabın içinden açılırsa da güvenli.
   return createPortal(
-    <div className="fixed inset-0 z-[70] bg-black/40 flex items-center justify-center p-4 animate-fadeIn font-sans antialiased">
+    <div className="fixed inset-0 z-[70] bg-black/40 flex items-center justify-center p-4 animate-fadeIn font-sans antialiased"
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Yükseltme penceresi"
+    >
       {/* max-h + flex sütun: içerik uzunsa MODAL kendi içinde kayıyor.
           İlk hâlinde sabit yükseklikti ve içerik ekrandan uzun olduğunda
           modalın ÜSTÜ görünmez oluyordu — yani demo bandı ve başlık

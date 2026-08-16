@@ -25,6 +25,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import useModalErisim from '../../hooks/useModalErisim';
 import Icon from '../common/icons';
 import { useToast } from '../../context/ToastContext';
 import { plakaBicimle } from '../../utils/plaka';
@@ -106,6 +107,11 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
 
     return () => { iptal = true; };
   }, [plaka, tetik]);
+
+  // Esc, odak tuzagi, odagin iadesi ve kaydirma kilidi.
+  // ⚠ `acik` asagidaki erken cikisla AYNI kosul: kapaliyken kanca
+  // etkinlesirse modal gorunmedigi halde sayfa kaydirmasi kilitlenir.
+  const panelRef = useModalErisim(onClose, { acik: !!vehicle });
 
   if (!vehicle) return null;
 
@@ -192,7 +198,12 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
     }`;
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0F172A]/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+    <div className="fixed inset-0 z-50 bg-[#0F172A]/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Araç devret penceresi"
+    >
       <div className="bg-white border border-gray-100 rounded-3xl w-full max-w-[560px] shadow-2xl overflow-hidden animate-scaleIn flex flex-col max-h-[90vh]">
 
         {/* ÜST BAR */}

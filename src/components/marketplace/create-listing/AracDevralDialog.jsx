@@ -28,6 +28,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import useModalErisim from '../../../hooks/useModalErisim';
 import Icon from '../../common/icons';
 import TrPlaka from '../../common/TrPlaka';
 import {
@@ -96,9 +97,16 @@ export default function AracDevralDialog({
   };
 
   const kutu = 'bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5 relative border border-slate-100';
+  const panelRef = useModalErisim(onClose);
+
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4 animate-fadeIn font-sans antialiased">
+    <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4 animate-fadeIn font-sans antialiased"
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Araç devral penceresi"
+    >
       <div className={kutu}>
         <button
           type="button"
