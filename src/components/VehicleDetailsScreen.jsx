@@ -10,7 +10,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
 import Icon from './common/icons';
-import { tramerVarMi, tramerTutari } from '../utils/tramerHelper';
+import { tramerVarMi, tramerTutari, tramerDurumu, TRAMER_DURUM } from '../utils/tramerHelper';
 import { parseVehicleDate, formatTrDate } from '../utils/dateHelper';
 import useSicil from '../hooks/useSicil';
 import FaturaOnizleme from './common/FaturaOnizleme';
@@ -102,6 +102,57 @@ const getDynamicStatus = (dateInput, validLabel = 'Geçerli') => {
 // =========================================================================
 // 🚀 ANA BİLEŞEN: VEHICLE DETAILS SCREEN
 // =========================================================================
+// =========================================================================
+// ⚠ TRAMER ÜÇ DURUMLU — "BİLMİYORUM" YEŞİL GÖSTERİLEMEZ
+// -------------------------------------------------------------------------
+// Bu ekran `tramerVarMi()` kullanıyordu ve o yalnızca `=== VAR` bakıyor.
+// Sonuç: BİLİNMİYOR ile YOK aynı `false`'a düşüyor ve beyan VERMEMİŞ araç
+// ekranda yeşil "Hasar Kaydı Yok" + "0 TL" görünüyordu.
+//
+// `tramerHelper.js:36-37` bu senaryoyu adıyla yasaklamış:
+//   "Hiçbiri yoksa BİLİNMİYOR döner — 'hasarsız' DEĞİL. Bilgi yokken temiz
+//    beyanı vermek, hatanın ilk hâliyle aynı sonuca çıkar."
+// `OfficialReportView` bunu doğru uygulamış; bu ekran o düzeltmeden pay
+// almamış.
+//
+// ⚠ ÖLÇÜLDÜ: `vehicles.tramer_status` sütununun VARSAYILANI 'Bilmiyorum'
+// ve sihirbaz beyan yoksa kasıtlı olarak onu yazıyor. Yani beyan vermeyen
+// HER YENİ ARAÇ doğrudan bu hataya düşüyordu.
+// =========================================================================
+function tramerGorunum(vehicle) {
+  const durum = tramerDurumu(vehicle);
+
+  if (durum === TRAMER_DURUM.VAR) {
+    const tutar = tramerTutari(vehicle);
+    return {
+      etiket: 'Hasar Kaydı Var',
+      tutar: tutar > 0 ? `${tutar.toLocaleString('tr-TR')} TL` : 'Tutar belirtilmemiş',
+      cip: 'bg-amber-100 text-amber-800',
+      kutu: 'bg-amber-50 text-amber-600 border border-amber-200/80',
+      metin: 'text-amber-700',
+    };
+  }
+
+  if (durum === TRAMER_DURUM.YOK) {
+    return {
+      etiket: 'Hasar Kaydı Yok',
+      tutar: '0 TL',
+      cip: 'bg-emerald-100 text-emerald-800',
+      kutu: 'bg-emerald-50 text-emerald-600 border border-emerald-200/80',
+      metin: 'text-emerald-700 font-bold',
+    };
+  }
+
+  // BİLİNMİYOR: nötr gri. Ne yeşil (temiz beyanı) ne amber (hasar iddiası).
+  return {
+    etiket: 'Beyan Edilmemiş',
+    tutar: 'Beyan edilmemiş',
+    cip: 'bg-slate-100 text-slate-700',
+    kutu: 'bg-slate-50 text-slate-600 border border-slate-200/80',
+    metin: 'text-slate-700',
+  };
+}
+
 export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack, onViewKarne, isPublicView = false, onManageInGarage }) {
   const toast = useToast();
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -610,16 +661,8 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                     )}
 
                     <div className="flex justify-between py-1">
-                      <span className="text-slate-900 font-medium">Sahiplik</span>
-                      <span className="text-slate-800 font-normal">{vehicle.is_first_owner || vehicle.isFirstOwner ? 'İlk Sahibi' : 'İlk Sahibi Değilim'}</span>
-                    </div>
-                    <div className="flex justify-between py-1">
                       <span className="text-slate-900 font-medium">Tramer Kaydı</span>
-                      <span className="text-emerald-600 font-medium">{tramerVarMi(vehicle) ? `${vehicle.tramer_amount || 0} TL` : 'Tramer Yok'}</span>
-                    </div>
-                    <div className="flex justify-between py-1">
-                      <span className="text-slate-900 font-medium">Garanti / Takas</span>
-                      <span className="text-slate-800 font-normal">{vehicle.warranty || 'Yok'} / {vehicle.swap || 'Hayır'}</span>
+                      <span className={`font-medium ${tramerGorunum(vehicle).metin}`}>{tramerGorunum(vehicle).tutar}</span>
                     </div>
                   </div>
                 </div>
@@ -835,18 +878,18 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                     <div className="bg-white border border-slate-200 rounded-md p-4 shadow-2xs space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className={`p-1.5 rounded-md ${tramerVarMi(vehicle) ? 'bg-amber-50 text-amber-600 border border-amber-200/80' : 'bg-emerald-50 text-emerald-600 border border-emerald-200/80'}`}>
+                          <div className={`p-1.5 rounded-md ${tramerGorunum(vehicle).kutu}`}>
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
                           </div>
                           <span className="text-xs font-bold text-slate-800">Tramer Hasar Kaydı</span>
                         </div>
-                        <span className={`text-yardimci font-bold px-2.5 py-0.5 rounded-md ${tramerVarMi(vehicle) ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                          {tramerVarMi(vehicle) ? 'Hasar Kaydı Var' : 'Hasar Kaydı Yok'}
+                        <span className={`text-yardimci font-bold px-2.5 py-0.5 rounded-md ${tramerGorunum(vehicle).cip}`}>
+                          {tramerGorunum(vehicle).etiket}
                         </span>
                       </div>
                       <div className="pt-2 border-t border-slate-100 flex items-baseline justify-between">
                         <span className="text-xs text-slate-500 font-medium">Toplam Hasar Tutarı</span>
-                        <span className="text-base font-semibold font-mono text-slate-900">{tramerVarMi(vehicle) ? `${vehicle.tramer_amount || '0'} TL` : '0 TL'}</span>
+                        <span className="text-base font-semibold font-mono text-slate-900">{tramerGorunum(vehicle).tutar}</span>
                       </div>
                     </div>
                   </div>
@@ -883,11 +926,10 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                         isMono: true,
                         textClass: 'text-indigo-600 font-semibold'
                       }]),
-                      { label: 'Sahiplik Durumu', value: vehicle.is_first_owner || vehicle.isFirstOwner ? 'İlk Sahibi' : 'Tescilli Sahip' },
                       { 
                         label: 'Tramer Hasar Kaydı', 
-                        value: tramerVarMi(vehicle) ? `${vehicle.tramer_amount || 0} TL` : 'Tramer Yok', 
-                        textClass: tramerVarMi(vehicle) ? 'text-amber-700' : 'text-emerald-700 font-bold' 
+                        value: tramerGorunum(vehicle).tutar,
+                        textClass: tramerGorunum(vehicle).metin,
                       },
                     ].map((item, index) => (
                       <div key={item.label} className={`flex justify-between items-baseline py-2.5 px-5 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>
@@ -930,8 +972,6 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                           value: kaskoStatus.text, 
                           textClass: kaskoStatus.class 
                         },
-                        { label: 'Yedek Anahtar', value: vehicle.spare_key || vehicle.spareKey || 'Var' },
-                        { label: 'Garanti / İthalat Durumu', value: vehicle.warranty || 'Bayi Çıkışlı' },
                       ].map((item, index) => (
                         <div key={item.label} className={`flex justify-between items-baseline py-2.5 px-5 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>
                           <span className="text-xs font-medium text-slate-600 w-2/5">{item.label}</span>

@@ -33,9 +33,37 @@ export default function AdvertisingCard({ vehicle }) {
   // Binlik sayı formatlama (TÜVTÜRK Standart Uyumu)
   const formattedKm = kmValue.toLocaleString('tr-TR');
   const packageStr = vehicle?.package || 'Standart Paket';
-  // Bu kart karne PNG'sinin içinde ve ilan sitelerine yükleniyor. Veri
-  // yokken 'Hasarsız' basmak, alıcıya yapılmamış bir beyanı sunmak olur.
+
+  // =========================================================================
+  // ⚠ SABİT "Sedan / Benzin / Otomatik" KALDIRILDI
+  // -------------------------------------------------------------------------
+  // Üç çip literal metindi; `body_type`, `fuel_type` ve `transmission`
+  // kolonları `vehicles` tablosunda VAR ama hiç okunmuyordu. Canlıda ölçüldü:
+  // 11 aracın HİÇBİRİ Sedan değil, 4'ü Dizel, 3'ü Manuel. Yani kart her araca
+  // üç yanlış bilgi birden basıyordu.
+  //
+  // Kardeş dosya `OfficialReportView.jsx:74-94` bu hatayı zaten temizlemiş:
+  //   "UYDURMA VARSAYILANLAR KALDIRILDI... Alıcı belgede 'Benzin' görüp
+  //    dizel bir araç satın alabilirdi."
+  // Bu dosya o temizlikte atlanmış.
+  //
+  // Beyan edilmemiş alan artık ÇİP OLARAK HİÇ BASILMIYOR. Boş bir çip
+  // yer kaplar; yanlış bir çip alıcıyı yanıltır.
+  // =========================================================================
+  // Bu kart karne PNG'sinin içinde ve paylaşıma açık. Veri yokken 'Hasarsız'
+  // basmak, alıcıya yapılmamış bir beyanı sunmak olur.
   const tramerStr = vehicle?.tramer_status || 'Beyan Edilmemiş';
+
+  // ⚠ SIRA ÖNEMLİ: `tramerStr` bu diziden ÖNCE tanımlanmalı. İlk yazımda
+  // dizi yukarıya konmuş ve `tramerStr`'e ondan önce erişilmişti — TDZ
+  // hatası, karne sayfası tamamen çöküyordu. Testler yakaladı.
+  const beyanCipleri = [
+    packageStr,
+    vehicle?.body_type,
+    vehicle?.fuel_type,
+    vehicle?.transmission,
+    tramerStr,
+  ].filter((d) => typeof d === 'string' && d.trim() !== '');
 
   // =========================================================================
   // 2. BLOK: INTERFACE ARAYÜZ KATMANI (16:9 DİKEY GLOW MİZANPAJI)
@@ -62,7 +90,7 @@ export default function AdvertisingCard({ vehicle }) {
             <svg className="w-3 h-3 text-[#31D17C]" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M6.267 3.455a.75.75 0 00-.708.522L4.25 8.5h3.003a.75.75 0 01.673.418l1.24 2.479 2.148-5.727a.75.75 0 011.332-.054l2.844 5.23h2.26a.75.75 0 010 1.5h-3a.75.75 0 01-.666-.407L12.062 7.76l-2.116 5.641a.75.75 0 01-1.353.078L7.142 10.5H3.75a.75.75 0 00-.75.75v5.25c0 .414.336.75.75.75h12.5a.75.75 0 00.75-.75v-5.25a.75.75 0 00-.75-.75h-1.5a.75.75 0 01-.666-.407l-1.613-2.964-1.921 5.122a.75.75 0 01-1.346.046L7.18 9H4.802l1.173-3.91a.75.75 0 00-.708-.523h1z" clipRule="evenodd" />
             </svg>
-            <span className="text-[9px] text-white font-black tracking-wide">Doğrulandı</span>
+            <span className="text-[9px] text-white font-black tracking-wide">Sicil Kayıtlı</span>
           </div>
         </div>
 
@@ -78,7 +106,7 @@ export default function AdvertisingCard({ vehicle }) {
           <div className="absolute bottom-2 left-2 right-2 backdrop-blur-xl bg-white/[0.06] border border-white/10 rounded-xl p-2.5 flex justify-between items-center shadow-lg">
             <div className="flex flex-col min-w-0">
               <h3 className="text-sm font-black text-white truncate tracking-tight">{brand} {model}</h3>
-              <span className="text-[9px] text-[#BFC5CF] font-bold mt-0.5 tracking-wide uppercase">{formattedKm} KM • TÜVTÜRK ONAYLI</span>
+              <span className="text-[9px] text-[#BFC5CF] font-bold mt-0.5 tracking-wide uppercase">{formattedKm} KM • ARAÇ SAHİBİ BEYANI</span>
             </div>
 
             {/* Puan Çemberi */}
@@ -98,18 +126,16 @@ export default function AdvertisingCard({ vehicle }) {
           <div className="flex flex-col space-y-0.5 min-w-0">
             <span className="text-[9px] font-black text-white tracking-wider">TRAMER VE USTA FATURALARI KİLİTLİ</span>
             <p className="text-[8px] text-[#BFC5CF] leading-normal font-medium">
-              Bu aracın triger, sıvı bakımları ve e-devlet ruhsat mülkiyeti siber havuzda mühürlenmiştir.
+              Bu aracın bakım kayıtları ve fatura belgeleri OTO.CV sicilinde saklanıyor. Ayrıntısı PIN ile görülebilir.
             </p>
           </div>
         </div>
 
         {/* --- BİLGİ ÇİPLERİ MATRİSİ --- */}
         <div className="flex flex-wrap gap-1.5 z-10 my-3">
-          <InfoChip value={packageStr} />
-          <InfoChip value="Sedan" />
-          <InfoChip value="Benzin" />
-          <InfoChip value="Otomatik" />
-          <InfoChip value={tramerStr} />
+          {beyanCipleri.map((deger) => (
+            <InfoChip key={deger} value={deger} />
+          ))}
         </div>
 
         {/* --- MAĞAZA REKLAM VİTRİNİ --- */}

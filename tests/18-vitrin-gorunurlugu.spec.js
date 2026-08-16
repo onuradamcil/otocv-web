@@ -85,16 +85,46 @@ test.describe('Vitrin görünürlüğü', () => {
       'sahip kendi ilanının plakasını göremiyor'
     ).toBe(true);
 
+    // ⚠ ÖNCE SAYI DENETLENİYOR: liste boş dönerse aşağıdaki döngü SIFIR kez
+    // koşar ve sızıntı denetimi hiç çalışmadan test geçerdi. `plakaBicimleri`
+    // için yazılan dersin aynısı (yardimcilar.js).
     for (const [ad, sonuc] of [['alıcı', alici], ['ziyaretçi', anon]]) {
+      expect(
+        sonuc.kayitlar.length,
+        `${ad} vitrini göremiyor — sızıntı denetimi boş listede vakumlu geçerdi`
+      ).toBe(sahip.kayitlar.length);
+
       for (const kayit of sonuc.kayitlar) {
         expect(kayit.plate_number, `${ad} plakayı görüyor — gizlenen veri sızıyor`).toBeFalsy();
       }
     }
   });
 
+  // =========================================================================
+  // ⚠ ATLAMA KOŞULU, ÖLÇÜLEN BÜYÜKLÜKTEN AYRILDI
+  // -------------------------------------------------------------------------
+  // Eskiden atlama koşulu ZİYARETÇİNİN gördüğü kayıt sayısına bakıyordu:
+  //
+  //     const { kayitlar } = await vitrinCek(anonIstemcisi());
+  //     test.skip(kayitlar.length === 0, 'vitrinde araç yok');
+  //
+  // Ama bu paketin var oluş sebebi tam olarak "ziyaretçi vitrini göremiyor"
+  // arızası. Arıza geri gelseydi ziyaretçi 0 kayıt görür, test DÜŞMEZ
+  // SESSİZCE ATLANIRDI — üstelik "vitrinde araç yok" diyerek, oysa vitrinde
+  // araç vardı.
+  //
+  // Artık atlama SAHİBİN gördüğüne bakıyor (gerçekten ilan var mı?) ve
+  // ziyaretçinin AYNI SAYIYI görmesi ASSERT ediliyor.
+  // =========================================================================
   test('vitrin kartından açılan detay sayfası ziyaretçide çalışıyor', async ({ page }) => {
+    const sahip = await vitrinCek(await supabaseIstemcisi());
+    test.skip(sahip.kayitlar.length === 0, 'vitrinde gerçekten ilan yok');
+
     const { kayitlar } = await vitrinCek(anonIstemcisi());
-    test.skip(kayitlar.length === 0, 'vitrinde araç yok');
+    expect(
+      kayitlar.length,
+      'ziyaretçi vitrini göremiyor — bu paketin var oluş sebebi olan arıza geri gelmiş'
+    ).toBe(sahip.kayitlar.length);
 
     // Oturum AÇILMIYOR: ziyaretçi yolu deneniyor.
     const pin = kayitlar[0].pin_code;
@@ -111,8 +141,11 @@ test.describe('Vitrin görünürlüğü', () => {
   });
 
   test('vitrin listesi araç sahibinin beyan etmediği vitesi uydurmuyor', async () => {
+    const sahip = await vitrinCek(await supabaseIstemcisi());
+    test.skip(sahip.kayitlar.length === 0, 'vitrinde gerçekten ilan yok');
+
     const { kayitlar } = await vitrinCek(anonIstemcisi());
-    test.skip(kayitlar.length === 0, 'vitrinde araç yok');
+    expect(kayitlar.length, 'ziyaretçi vitrini göremiyor').toBe(sahip.kayitlar.length);
 
     // Servis katmanı `v.gear_type || 'Otomatik'` yazıyordu ve `gear_type`
     // sütunu `vehicles` tablosunda HİÇ YOK — yani vitesi belirtilmemiş her

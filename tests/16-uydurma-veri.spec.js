@@ -77,6 +77,20 @@ test.describe('Uydurma veri', () => {
       expect(metin, `araç detayında uydurma bilgi geri gelmiş: "${deger}"`).not.toContain(deger);
     }
 
+    // ⚠ OLMAYAN KOLONLARIN YEDEKLERİ.
+    // `spare_key`, `warranty`, `swap`, `is_first_owner` public şemanın
+    // HİÇBİR tablosunda yok (canlıda `information_schema` ile doğrulandı).
+    // Yani bu değerler "yedek" değil, HER ARAÇTA basılan maskelerdi:
+    //   'Yedek Anahtar: Var' · 'Garanti: Bayi Çıkışlı' · 'İlk Sahibi Değilim'
+    // Sonuncusu en zararlısıydı — sahibin hiç yapmadığı OLUMSUZ bir
+    // mülkiyet beyanı, alıcıya gerçek gibi sunuluyordu.
+    for (const maske of ['Yedek Anahtar', 'Bayi Çıkışlı', 'İlk Sahibi Değilim']) {
+      expect(
+        metin,
+        `araç detayı olmayan bir kolondan okuyup "${maske}" basıyor`
+      ).not.toContain(maske);
+    }
+
     for (const dugme of ILETISIM_DUGMELERI) {
       expect(metin, `telefon açma düğmesi geri gelmiş: "${dugme}"`).not.toContain(dugme);
     }
@@ -267,7 +281,19 @@ const YASAKLI_SABITLER = [
   { desen: '532) 123 45 67',     ne: 'uydurma cep telefonu' },
   { desen: 'Tescilli Araç Sahibi', ne: 'uydurma araç sahibi adı' },
   { desen: 'Mart 2026',          ne: 'sabit üyelik tarihi' },
+  // Karne reklam kartından: her araca basılan sabit teknik özellikler ve
+  // dayanağı olmayan doğrulama iddiaları. Canlıda ölçüldü — 11 aracın
+  // HİÇBİRİ Sedan değil, 4'ü Dizel, 3'ü Manuel.
+  { desen: 'TÜVTÜRK ONAYLI',     ne: 'dayanağı olmayan doğrulama iddiası' },
+  { desen: 'e-devlet ruhsat mülkiyeti', ne: 'olmayan entegrasyon iddiası' },
 ];
+
+// ⚠ 'Bayi Çıkışlı' ve 'İlk Sahibi Değilim' BU LİSTEDE DEĞİL — bilerek.
+// İkisi de sihirbazda MEŞRU birer seçenek etiketi (`FIRST_OWNER_OPTIONS`)
+// ve Adım 4 ön izlemesinde kullanıcının O AN girdiği formu gösteriyor.
+// Statik tarama "seçenek etiketi" ile "uydurma yedek"i ayırt edemiyor;
+// listeye eklemek yanlış alarm üretiyordu. Bunlar ziyaretçinin gördüğü
+// detay sayfasında aranıyor — aşağıdaki çalışma anı denetiminde.
 
 /** src altındaki tüm kaynak dosyaları. */
 function kaynakDosyalari(kok) {
@@ -316,5 +342,49 @@ test.describe('Uydurma veri · kaynak taramasi', () => {
       + 'değeri boş bırakın ve gösterimi atlayın. Bulunanlar: '
       + bulgular.join(' | ')
     ).toEqual([]);
+  });
+});
+
+
+// =========================================================================
+// TRAMER ÜÇ DURUMLU — "BEYAN YOK" YEŞİL GÖSTERİLEMEZ
+//
+// `tramerVarMi()` yalnızca `=== VAR` bakıyor; BİLİNMİYOR ile YOK aynı
+// `false`'a düşüyor. Araç detayı bu yüzden beyan VERMEMİŞ araca yeşil
+// "Hasar Kaydı Yok" + "0 TL" basıyordu.
+//
+// `tramerHelper.js:36-37` bunu adıyla yasaklamış:
+//   "Hiçbiri yoksa BİLİNMİYOR döner — 'hasarsız' DEĞİL. Bilgi yokken temiz
+//    beyanı vermek, hatanın ilk hâliyle aynı sonuca çıkar."
+//
+// ⚠ `vehicles.tramer_status` VARSAYILANI 'Bilmiyorum' ve sihirbaz beyan
+// yoksa kasıtlı olarak onu yazıyor — yani beyan vermeyen HER YENİ ARAÇ
+// doğrudan bu hataya düşüyordu.
+// =========================================================================
+test.describe('Tramer beyani', () => {
+  test('beyan edilmemis arac ZIYARETCIDE yesil "Hasar Kaydı Yok" gostermiyor', async ({ page }) => {
+    const sb = await supabaseIstemcisi();
+    const { data } = await sb
+      .from('vehicles')
+      .select('pin_code, tramer_status, tramer_amount')
+      .eq('tramer_status', 'Bilmiyorum')
+      .limit(1);
+
+    test.skip(!data || data.length === 0, 'tramer beyanı olmayan araç yok');
+    const arac = data[0];
+
+    // Oturum AÇILMIYOR: alıcının gördüğü ekran denetleniyor.
+    await page.goto(`/details/${encodeURIComponent(arac.pin_code)}`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+
+    const metin = await hamMetin(page);
+
+    expect(
+      metin,
+      'beyan verilmemiş araçta "Hasar Kaydı Yok" yazıyor — alıcıya yapılmamış bir temiz beyanı sunuluyor'
+    ).not.toContain('Hasar Kaydı Yok');
+
+    expect(metin, 'üçüncü durum için nötr metin basılmıyor').toContain('Beyan Edilmemiş');
   });
 });

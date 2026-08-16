@@ -69,11 +69,44 @@ test.describe('Mesajlaşma', () => {
       ['okunmamis_mesaj_sayisi', {}],
     ];
 
+    // =====================================================================
+    // ⚠ BU TEST YANLIŞ SEBEPLE GEÇİYORDU — DÜZELTİLDİ
+    // ---------------------------------------------------------------------
+    // Eski kabul koşulu dört dallıydı:
+    //
+    //   const kapali = !!error || data?.basarili === false
+    //     || (Array.isArray(data) && data.length === 0) || data === 0;
+    //
+    // Son üç dal YETKİDEN BAĞIMSIZ olarak zaten sağlanıyordu: fonksiyonların
+    // kendi içinde `auth.uid() is null` koruması var, dolayısıyla oturumsuz
+    // çağrı `{basarili:false}` ya da boş dizi/0 döndürüyor. Yani
+    // `grant execute ... to anon` verilse test AYNEN GEÇERDİ — adında geçen
+    // yetki hiç ölçülmüyordu.
+    //
+    // Artık yalnızca GERÇEK RET kabul ediliyor ve hata kodu doğrulanıyor.
+    //
+    // ⚠ POZİTİF KONTROL de var: aynı çağrı OTURUMLU istemciyle yapıldığında
+    // bu hatanın ÇIKMADIĞI denetleniyor. Bu, 07-devir'de yaşanan tuzağı
+    // kapatıyor — orada boş parametre yüzünden gelen "imza bulunamadı"
+    // hatası yetki reddi sanılmıştı.
+    // =====================================================================
+    const oturumlu = await supabaseIstemcisi();
+
     for (const [fn, arg] of cagrilar) {
-      const { data, error } = await anon.rpc(fn, arg);
-      const kapali = !!error || data?.basarili === false
-        || (Array.isArray(data) && data.length === 0) || data === 0;
-      expect(kapali, `${fn} anon'a açık`).toBeTruthy();
+      const { error } = await anon.rpc(fn, arg);
+
+      expect(error, `${fn} anon'a AÇIK — çağrı hiç reddedilmedi`).toBeTruthy();
+      expect(
+        `${error.message} ${error.code || ''}`,
+        `${fn} yetki dışı bir sebeple hata verdi ("${error.message}") — kilit doğrulanamadı`
+      ).toMatch(/permission denied|42501/i);
+
+      // Pozitif kontrol: oturumluda AYNI hata çıkmamalı. Çıkıyorsa yukarıdaki
+      // ret yetkiden değil başka bir arızadan geliyordur.
+      const { error: oturumluHata } = await oturumlu.rpc(fn, arg);
+      const yetkiHatasi = oturumluHata
+        && /permission denied|42501/i.test(`${oturumluHata.message} ${oturumluHata.code || ''}`);
+      expect(yetkiHatasi, `${fn} OTURUMLU kullanıcıya da kapalı — akış kırık`).toBeFalsy();
     }
   });
 
