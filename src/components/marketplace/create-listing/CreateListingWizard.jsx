@@ -116,10 +116,51 @@ const MUKERRER_METIN = {
 // Plaka yoksa (taslak) 'taslak' kullanılıyor — yine kullanıcının kendi
 // klasörünün altında, yani taslak temizliği de çalışıyor.
 // =========================================================================
-function aracGorseliKlasoru(kullaniciId, plaka) {
+/**
+ * Görsellerin yükleneceği klasör: `<user_id>/<klasor_kimligi>`
+ *
+ * -------------------------------------------------------------------------
+ * ⚠ İKİNCİ PARÇA ARTIK PLAKA DEĞİL — PLAKA SIZINTISIYDI
+ * -------------------------------------------------------------------------
+ * Yol eskiden `<user_id>/<plaka>` idi. `vehicle-images` kovası PUBLIC, yani
+ * üretilen adres herkese açık:
+ *
+ *   https://…/vehicle-images/<user_id>/06_ADM_097/1785…jpeg
+ *
+ * Alt çizgiler kaldırılınca plaka aynen ortaya çıkıyordu. Canlıda ölçüldü:
+ * 11 aracın 11'inde plaka adresin içindeydi ve anahtarsız bir GET isteği
+ * 200 dönüyordu.
+ *
+ * Bu, ürünün plakayı gizlemek için yaptığı HER ŞEYİ delen tek noktaydı:
+ * karnede plaka basılmıyor, RPC'ler ziyaretçiye `plate_number: null`
+ * döndürüyor, ekran "Ziyaretçiler bu sayfada plakanızı göremez" yazıyor —
+ * ama aynı cevaptaki `image_url` plakayı taşıyordu.
+ *
+ * Artık ikinci parça, taslakla birlikte saklanan rastgele bir kimlik.
+ * Depolama politikası yalnızca `foldername(name)[1] = auth.uid()`
+ * denetlediği için yükleme/silme aynen çalışmaya devam ediyor.
+ *
+ * @param {string} kullaniciId
+ * @param {string} klasorKimligi Plaka DEĞİL — `gorselKlasorKimligiUret()` çıktısı
+ */
+function aracGorseliKlasoru(kullaniciId, klasorKimligi) {
   if (!kullaniciId) return null;
-  const temiz = String(plaka || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
+  const temiz = String(klasorKimligi || '').trim().replace(/[^a-zA-Z0-9-]/g, '_');
   return `${kullaniciId}/${temiz && temiz !== 'drafts' ? temiz : 'taslak'}`;
+}
+
+/**
+ * Plakayla hiçbir ilişkisi olmayan klasör kimliği üretir.
+ *
+ * ⚠ PLAKANIN ÖZETİ (hash) KULLANILMIYOR. Türkiye'de plaka alanı sayılabilir
+ * büyüklükte; bir özet değeri kaba kuvvetle geri çözülür. Rastgele değer
+ * geri çözülemez.
+ */
+function gorselKlasorKimligiUret() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `k${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`;
 }
 
 export default function CreateListingWizard({ onBack, onSuccess, user }) {
@@ -233,16 +274,19 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   // =========================================================================
   // 🧹 SUPABASE STORAGE ÖLÜ DOSYA SÜPÜRÜCÜ MOTORU (STORAGE PURGE)
   // =========================================================================
-  const deleteStorageFolder = async (plateToClean) => {
-    if (!plateToClean) {
-      console.warn("⚠️ Silinecek plaka bulunamadı, Storage temizliği atlandı.");
+  const deleteStorageFolder = async (klasorKimligi) => {
+    if (!klasorKimligi) {
+      console.warn("⚠️ Silinecek klasör kimliği yok, Storage temizliği atlandı.");
       return;
     }
 
-    // ⚠ YOL ARTIK <user_id>/<plaka>/ — gerekçesi `aracGorseliKlasoru`da.
+    // ⚠ YOL `<user_id>/<klasor_kimligi>` — gerekçesi `aracGorseliKlasoru`da.
+    // Parametre ESKİDEN PLAKAYDI; artık plakayla ilgisi olmayan rastgele bir
+    // kimlik. Eski taslaklarda hâlâ plaka gelebiliyor ve o da çalışıyor,
+    // çünkü ikisi de aynı biçimde klasör adına çevriliyor.
     // Kendi klasörümüzün dışına çıkılmıyor; politika da zaten izin vermiyor.
     if (!user?.id) return;
-    const folderName = aracGorseliKlasoru(user.id, plateToClean);
+    const folderName = aracGorseliKlasoru(user.id, klasorKimligi);
     if (!folderName) return;
 
     try {
@@ -305,8 +349,18 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       console.error('🔴 Oturum yok, görsel yüklenemez.');
       return [];
     }
-    const activePlate = (formData.plate || formData.plate_number || 'drafts').trim();
-    const folderName = aracGorseliKlasoru(user.id, activePlate);
+    // KLASÖR KİMLİĞİ TASLAKLA BİRLİKTE SAKLANIYOR.
+    //
+    // Rastgele bir değeri her oturumda yeniden üretmek, önceki oturumdan
+    // gelen taslağın görsellerini SAHİPSİZ bırakırdı: temizlik fonksiyonu
+    // klasörü bulamaz, dosyalar kovada kalırdı. Bu yüzden kimlik bir kez
+    // üretiliyor ve `formData` içinde taslakla birlikte kaydediliyor.
+    let klasorKimligi = formData.gorselKlasoru;
+    if (!klasorKimligi) {
+      klasorKimligi = gorselKlasorKimligiUret();
+      updateFormData({ gorselKlasoru: klasorKimligi });
+    }
+    const folderName = aracGorseliKlasoru(user.id, klasorKimligi);
 
     for (let i = 0; i < photosToUpload.length; i++) {
       const photoItem = photosToUpload[i];
@@ -612,8 +666,17 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
     const targetPlate = rawFormData?.plate || rawFormData?.plate_number || formData.plate || formData.plate_number;
 
-    if (deleteStoragePhotos && targetPlate) {
-      await deleteStorageFolder(targetPlate);
+    // ⚠ ESKİ TASLAKLAR PLAKA KLASÖRÜNDE — GERİYE DÖNÜK UYUMLULUK ŞART.
+    // Klasör kimliği taslakla birlikte saklanmaya YENİ başladı. Daha önce
+    // kaydedilmiş taslaklarda bu alan yok ve görselleri hâlâ plaka adlı
+    // klasörde duruyor. Yalnızca yeni kimliğe bakmak, o taslakların
+    // görsellerini kovada sahipsiz bırakırdı.
+    const temizlenecekKlasor = rawFormData?.gorselKlasoru
+      || formData.gorselKlasoru
+      || targetPlate;
+
+    if (deleteStoragePhotos && temizlenecekKlasor) {
+      await deleteStorageFolder(temizlenecekKlasor);
     }
 
     if (user?.id) {

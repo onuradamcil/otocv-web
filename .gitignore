@@ -53,3 +53,7 @@ next-env.d.ts
 # makineye ozgu: proje referansi, pooler adresi ve surum bilgileri.
 # Depoda durmalari kimseye yaramaz, karisiklik cikarir.
 supabase/.temp/
+
+# Yikici islem oncesi alinan JSON dokumleri. Plaka ve gorsel yollari
+# icerir - kisisel veri, depoya GIRMEZ.
+yedek/

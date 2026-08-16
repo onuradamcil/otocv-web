@@ -888,3 +888,85 @@ test.describe('Araç görselleri · sahiplik', () => {
     expect(error, 'araç görselleri okunamıyor — vitrin görselsiz kalır').toBeFalsy();
   });
 });
+
+// =========================================================================
+// PLAKA, GÖRSEL ADRESİNİN İÇİNDE SIZIYORDU
+//
+// -------------------------------------------------------------------------
+// ÜRÜNÜN TÜM PLAKA GİZLEME ÇABASINI DELEN TEK NOKTA
+// -------------------------------------------------------------------------
+// Araç fotoğrafları `<plaka>/<dosya>` yoluna yükleniyordu ve `vehicle-images`
+// kovası PUBLIC. Üretilen adres şuydu:
+//
+//   https://…/vehicle-images/06_ADM_097/1786752983346_0_0qcrp.jpeg
+//
+// Alt çizgiler kaldırılınca plaka aynen ortaya çıkıyor. Canlıda ölçüldü:
+// 11 aracın 11'inde plaka adresin içindeydi, anahtarsız GET 200 dönüyordu.
+//
+// Oysa ürün plakayı gizlemek için ayrı ayrı üç şey yapıyor:
+//   · karne ve paylaşılan sayfalarda plaka basılmıyor
+//   · RPC'ler ziyaretçiye `plate_number: null` döndürüyor
+//   · ekran "Ziyaretçiler bu sayfada plakanızı göremez" yazıyor
+//
+// Üçü de aynı cevaptaki `image_url` yüzünden boşa çıkıyordu.
+//
+// ⚠ HİÇBİR YAZMA YOK.
+// =========================================================================
+test.describe('Güvenlik · plaka görsel adresinde sızmıyor', () => {
+  const sade = (s) => String(s || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+
+  test('hiçbir görsel adresi kendi plakasını TAŞIMIYOR', async () => {
+    const sb = await supabaseIstemcisi();
+    const { data: araclar } = await sb.from('vehicles').select('plate_number, image_url');
+    test.skip(!araclar?.length, 'araç yok');
+
+    const sizanlar = [];
+    for (const arac of araclar) {
+      const plaka = sade(arac.plate_number);
+      if (!plaka) continue;
+      const yollar = String(arac.image_url || '')
+        .split(',')
+        .map((u) => u.trim())
+        .filter((u) => u.includes('/vehicle-images/'))
+        .map((u) => decodeURIComponent(u.split('/vehicle-images/')[1] || ''));
+
+      for (const yol of yollar) {
+        // Dosya adı hariç TÜM klasör segmentleri denetleniyor: plakanın
+        // hangi segmentte olduğu düzenden düzene değişiyordu ve sabit bir
+        // konuma bakmak sızıntıyı görmüyordu.
+        const klasorler = yol.split('/').slice(0, -1);
+        if (klasorler.some((k) => sade(k).includes(plaka))) {
+          sizanlar.push(`${arac.plate_number} -> ${yol}`);
+          break;
+        }
+      }
+    }
+
+    expect(
+      sizanlar,
+      'Plaka görsel adresinin içinde ziyaretçiye gidiyor — ürünün tüm plaka '
+      + 'gizleme çabası bu noktadan deliniyor:\n  ' + sizanlar.join('\n  ')
+    ).toEqual([]);
+  });
+
+  test('YENİ yüklemeler plaka içermeyen klasör üretiyor', () => {
+    // Veri taşındı ama kod aynı kalırsa bir sonraki yükleme sızıntıyı geri
+    // getirir. Bu yüzden kaynak da denetleniyor.
+    const fs = require('fs');
+    const path = require('path');
+    const kod = fs.readFileSync(
+      path.join(__dirname, '..', 'src/components/marketplace/create-listing/CreateListingWizard.jsx'),
+      'utf8'
+    ).replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
+
+    expect(
+      /aracGorseliKlasoru\(\s*user\.id\s*,\s*[^)]*[Pp]late[^)]*\)/.test(kod),
+      'görsel klasörü hâlâ plakadan üretiliyor — yeni yüklemeler plakayı sızdırır'
+    ).toBe(false);
+
+    expect(
+      kod.includes('gorselKlasorKimligiUret'),
+      'plakadan bağımsız klasör kimliği üreteci kullanılmıyor'
+    ).toBe(true);
+  });
+});
