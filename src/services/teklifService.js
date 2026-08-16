@@ -81,6 +81,34 @@ export function teklifYolu(plaka, tur, kaynak) {
   return sorgu ? `/insurance-offer?${sorgu}` : '/insurance-offer';
 }
 
+/**
+ * Örnek (demo) ortaklar gösterilsin mi?
+ *
+ * -------------------------------------------------------------------------
+ * NİYE ORTAM DEĞİŞKENİ — `?demo=1` TEK BAŞINA YETMEDİ
+ * -------------------------------------------------------------------------
+ * İlk hâlinde demo yalnızca adres çubuğuna `?demo=1` yazılınca açılıyordu.
+ * Ölçüldü ve yanlış olduğu görüldü: ürünü kullanan kişi garajdaki çipten,
+ * panelden ya da bildirimden geldiğinde parametre TAŞINMIYOR ve ekranın
+ * boş hâlini görüyor. Yani demo, tam da denenmek istenen akışta hiç
+ * çalışmıyordu.
+ *
+ * Artık iki yoldan biri yeterli:
+ *   · `NEXT_PUBLIC_TEKLIF_DEMO=1`  → site genelinde açık (geliştirme/sunum)
+ *   · `?demo=1`                     → tek seferlik, bayrak kapalıyken de
+ *
+ * ⚠ GÜVENLİK AĞI DEĞİŞMEDİ: demo hangi yoldan açılırsa açılsın ekranda
+ * kapatılamaz "ÖRNEK GÖRÜNÜM" şeridi çıkıyor ve firma adları "Örnek" ile
+ * başlıyor. Bayrağı açmak, sahte bir anlaşmayı gerçek gibi göstermeye
+ * yetmiyor — testler bu değişmezi ayrıca denetliyor.
+ *
+ * @param {boolean} [sorguParametresi] Adresteki `?demo=1`
+ * @returns {boolean}
+ */
+export function demoAcikMi(sorguParametresi = false) {
+  return process.env.NEXT_PUBLIC_TEKLIF_DEMO === '1' || sorguParametresi === true;
+}
+
 /** RPC'nin döndürdüğü hata kodlarının okunur karşılıkları. */
 const HATA_METNI = {
   oturum_yok: 'Bu işlem için oturum açmanız gerekiyor.',

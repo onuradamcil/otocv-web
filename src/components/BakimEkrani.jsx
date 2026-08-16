@@ -41,7 +41,7 @@ import TrPlaka from './common/TrPlaka';
 import GlobalStepLoader from './common/GlobalStepLoader';
 import { ozetGetir } from '../services/ozetService';
 import { formatTrDate } from '../utils/dateHelper';
-import { aktifOrtaklar } from '../services/teklifService';
+import { aktifOrtaklar, demoAcikMi } from '../services/teklifService';
 import { KAPSAM_ADI } from '../data/teklifOrtaklari';
 
 /** Binlik ayraçlı km. Sayılar hizalansın diye `tabular-nums` ölçekte var. */
@@ -148,7 +148,7 @@ export default function BakimEkrani() {
   const [oturumsuz, setOturumsuz] = useState(false);
   const [hata, setHata] = useState('');
 
-  const demo = sorgu.get('demo') === '1';
+  const demo = demoAcikMi(sorgu.get('demo') === '1');
 
   useEffect(() => {
     let iptal = false;

@@ -90,10 +90,22 @@ test.describe('Bakım takvimi', () => {
     ).toBe(kayitsizSayisi);
   });
 
-  test('DEMO servis firmaları normal ekrana SIZMIYOR', async ({ page }) => {
+  test('ÖRNEK servis görünüyorsa ŞERİT de görünüyor', async ({ page }) => {
+    // ⚠ DEĞİŞMEZ, BAYRAKTAN BAĞIMSIZ. Demo site geneli bir ortam değişkenine
+    // taşındı; "sızmıyor" beklentisi artık yanlış şeyi ölçerdi. Korunması
+    // gereken şey şu: örnek firma görünüyorsa uyarı şeridi de görünmek
+    // zorunda. İkisi ayrılırsa ekran olmayan bir anlaşmayı varmış gibi
+    // gösterir.
     const metin = await hamMetin(page);
-    expect(metin, 'demo firması normal ekranda görünüyor').not.toContain('Örnek Servis');
-    expect(metin, 'demo şeridi normal ekranda görünüyor').not.toContain('ÖRNEK GÖRÜNÜM');
+    const firmaVar = metin.includes('Örnek Servis');
+    const seritVar = metin.includes('ÖRNEK GÖRÜNÜM');
+
+    if (firmaVar) {
+      expect(seritVar, 'örnek servis gösteriliyor ama uyarı şeridi yok').toBe(true);
+    }
+    if (seritVar) {
+      expect(firmaVar, 'demo şeridi var ama örnek servis yok').toBe(true);
+    }
   });
 
   test('MOBİLDE taşma ve kesik metin yok', async ({ page }) => {

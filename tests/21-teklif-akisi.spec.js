@@ -180,30 +180,53 @@ test.describe('Teklif ekranı · uydurma veri yok', () => {
     }
   });
 
-  test('ORTAK YOKKEN durum DÜRÜSTÇE söyleniyor', async ({ page }) => {
+  test('EKRAN her durumda BİR ŞEY söylüyor', async ({ page }) => {
     // Boş bir bölüm bırakmak da bir seçenekti; kullanıcı o zaman "yükleniyor
-    // mu, bozuk mu" diye düşünürdü. Ekran ne olduğunu SÖYLÜYOR.
+    // mu, bozuk mu" diye düşünürdü. Ekran hangi durumda olursa olsun ne
+    // olduğunu SÖYLÜYOR.
     const metin = await hamMetin(page);
     const durum = metin.includes('ortağımız henüz yok')
       || metin.includes('Talebiniz alındı')
       || metin.includes('Henüz aracınız yok')
-      || metin.includes('Takip edilen bir belge');
+      || metin.includes('Takip edilen bir belge')
+      || metin.includes('ÇALIŞTIĞIMIZ FİRMALAR');
     expect(durum, 'ekran teklif durumu hakkında hiçbir şey söylemiyor').toBe(true);
   });
 
-  test('DEMO görünümü normal ekrana SIZMIYOR', async ({ page }) => {
-    // ⚠ BU TESTİN ASIL İŞİ. Örnek firmalar ekranın dolu hâlini görmek için
-    // eklendi; gerçek kullanıcıya gösterilirlerse ürün olmayan bir anlaşmayı
-    // varmış gibi göstermiş olur — yani demo, temizlediğimiz uydurma veri
-    // sınıfına geri döner.
-    //
-    // Bu blok `?demo=1` OLMADAN geziniyor (beforeEach düz `/insurance-offer`
-    // açıyor), dolayısıyla hiçbir örnek firma görünmemeli.
+  // -------------------------------------------------------------------------
+  // ⚠ PAKETİN EN ÖNEMLİ DENETİMİ — DEĞİŞMEZ, BAYRAKTAN BAĞIMSIZ
+  // -------------------------------------------------------------------------
+  // İlk hâli "demo normal ekrana sızmıyor" diyordu ve `?demo=1` yokken hiçbir
+  // örnek firma görünmemesini bekliyordu. Demo site geneli bir ortam
+  // değişkenine taşınınca bu beklenti YANLIŞ ŞEYİ ölçmeye başladı: bayrak
+  // açıkken firmalar zaten görünecek.
+  //
+  // Asıl korunması gereken şey bayrağın durumu değil, şu DEĞİŞMEZ:
+  //
+  //     EKRANDA ÖRNEK BİR FİRMA GÖRÜNÜYORSA,
+  //     "ÖRNEK GÖRÜNÜM" ŞERİDİ DE GÖRÜNMEK ZORUNDA.
+  //
+  // Bu ikisi ayrılırsa ürün olmayan bir anlaşmayı varmış gibi gösterir —
+  // temizlenen uydurma veri sınıfının aynısı. Denetim demo açık da olsa
+  // kapalı da olsa geçerli.
+  test('ÖRNEK firma görünüyorsa ŞERİT de görünüyor', async ({ page }) => {
     const metin = await hamMetin(page);
-    expect(metin, 'demo firmaları normal ekranda görünüyor').not.toContain('Örnek Sigorta');
-    expect(metin, 'demo firmaları normal ekranda görünüyor').not.toContain('Örnek Global');
-    expect(metin, 'demo firmaları normal ekranda görünüyor').not.toContain('Örnek Muayene');
-    expect(metin, 'demo şeridi normal ekranda görünüyor').not.toContain('ÖRNEK GÖRÜNÜM');
+    const ornekFirmaVar = /Örnek (Sigorta|Global|Anadolu|Muayene|Servis)/.test(metin);
+    const seritVar = metin.includes('ÖRNEK GÖRÜNÜM');
+
+    if (ornekFirmaVar) {
+      expect(
+        seritVar,
+        'ÖRNEK firma gösteriliyor ama uyarı şeridi yok — ekran gerçek anlaşma sanılır'
+      ).toBe(true);
+    }
+
+    // Tersi de doğru olmalı: şerit varsa gösterilecek örnek firma da olmalı.
+    // Şeridi olup firması olmayan ekran, sebepsiz yere kendini şüpheli
+    // gösterir.
+    if (seritVar) {
+      expect(ornekFirmaVar, 'demo şeridi var ama örnek firma yok').toBe(true);
+    }
   });
 
   test('MOBİLDE taşma ve kesik metin yok', async ({ page }) => {

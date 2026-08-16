@@ -44,7 +44,7 @@ import GlobalStepLoader from './common/GlobalStepLoader';
 import { ozetGetir } from '../services/ozetService';
 import { formatTrDate, generateGoogleCalendarUrl } from '../utils/dateHelper';
 import {
-  aktifOrtaklar, teklifTalebiOlustur, talepVarMi, KAYNAKLAR, TURLER,
+  aktifOrtaklar, teklifTalebiOlustur, talepVarMi, demoAcikMi, KAYNAKLAR, TURLER,
 } from '../services/teklifService';
 import { KAPSAM_ADI } from '../data/teklifOrtaklari';
 
@@ -144,9 +144,20 @@ function BelgeKarti({ kayit, kaynak, demo }) {
 
       {/* --- TEKLİF DURUMU --- */}
       <div className="border-t border-slate-100 pt-4 space-y-2">
-        <h3 className="etiket text-slate-500">
-          {ortaklar.length > 0 ? 'BU ARAÇ İÇİN ÇALIŞTIĞIMIZ FİRMALAR' : 'TEKLİF DURUMU'}
-        </h3>
+        <div>
+          <h3 className="etiket text-slate-500">
+            {ortaklar.length > 0 ? 'BU ARAÇ İÇİN ÇALIŞTIĞIMIZ FİRMALAR' : 'TEKLİF DURUMU'}
+          </h3>
+          {/* Hangi araç, hangi belge — bölümün kendi başlığında tekrar
+              söyleniyor. Kartın tepesinde de yazıyor ama kullanıcı buraya
+              yukarıdan uzun bir kaydırmayla gelebiliyor ve "ben hangi araç
+              için bakıyordum" sorusu doğuyor. */}
+          {ortaklar.length > 0 && (
+            <p className="metin-yardimci text-slate-500 mt-0.5">
+              {kayit.arac} · {kayit.belge}
+            </p>
+          )}
+        </div>
 
         {ortaklar.length > 0 ? (
           // ORTAK VARKEN ÇALIŞAN DAL.
@@ -278,8 +289,13 @@ export default function TeklifEkrani() {
   //
   // ⚠ Şeridi kapatılabilir yapmadım. Kapatılabilen bir demo uyarısı, ekran
   // görüntüsü alınırken kapatılır ve gerçek sanılır.
+  //
+  // ⚠ PARAMETRE TEK BAŞINA YETMİYORDU. Kullanıcı garajdaki çipten, panelden
+  // ya da bildirimden geldiğinde `?demo=1` TAŞINMIYOR; yani demo tam da
+  // denenmek istenen akışta hiç çalışmıyordu. Artık ortam değişkeni de
+  // açabiliyor — bkz. `demoAcikMi`.
   // -------------------------------------------------------------------------
-  const demo = sorgu.get('demo') === '1';
+  const demo = demoAcikMi(sorgu.get('demo') === '1');
 
   useEffect(() => {
     let iptal = false;
