@@ -162,8 +162,17 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
         invoiceUrl = filePath;
       }
 
-      // 🚀 PLAN ENTEGRASYONU: summary verisi "Kategori - Özet" formatında birleştirilerek mühürlendi
-      await supabase.from('maintenance_records').insert({
+      // ⚠ INSERT'İN HATASI OKUNUYOR — OKUNMUYORDU.
+      //
+      // Çağrı `await supabase.from(...).insert({...})` şeklindeydi ve dönen
+      // değer hiçbir yere atanmıyordu. supabase-js veritabanı hatasında
+      // promise'i REDDETMİYOR; hatayı `{ error }` içinde döndürüyor. Yani
+      // RLS reddi, kısıt ihlali ya da tip hatası olduğunda kod hiç
+      // duraksamadan devam ediyor ve kullanıcıya "Mühürlendi!" diyordu.
+      //
+      // Sonuç: kullanıcı bakım kaydını girdiğini sanıyor, kayıt aslında hiç
+      // oluşmuyor. Sicil puanı da artmıyor ve kimse sebebini bilmiyor.
+      const { error: kayitHatasi } = await supabase.from('maintenance_records').insert({
         vehicle_plate: activePlate,
         shop_name: shopName.trim(),
         km_at_service: parseInt(km.replace(/\./g, ''), 10) || 0,
@@ -185,6 +194,10 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
         service_type: serviceType,
         next_service_km: nextServiceKm ? parseInt(nextServiceKm.replace(/\./g, ''), 10) : null
       });
+
+      // Hata varsa akış BURADA durur; aşağıdaki "Mühürlendi!" geri bildirimi
+      // ancak kayıt gerçekten oluştuysa görünür.
+      if (kayitHatasi) throw kayitHatasi;
 
       // =====================================================================
       // PUAN ARTIRMA KALDIRILDI — PUANI ARTIK VERITABANI HESAPLIYOR

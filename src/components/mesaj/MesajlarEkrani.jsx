@@ -34,6 +34,7 @@ import {
 import SikayetDialog from './SikayetDialog';
 import useCanliTazeleme from '../../hooks/useCanliTazeleme';
 import { aracKapakGorseli } from '../../utils/aracGorseli';
+import { supabase } from '../../lib/supabase';
 
 function saatBicimi(ts) {
   if (!ts) return '';
@@ -57,6 +58,12 @@ export default function MesajlarEkrani() {
   const [taslak, setTaslak] = useState('');
   const [gonderiliyor, setGonderiliyor] = useState(false);
   const [sikayetAcik, setSikayetAcik] = useState(false);
+  // ⚠ ANLIK TESLİMİN DOĞRU ÇALIŞMASI İÇİN ŞART.
+  // Realtime kanalı konuşmadaki HER satırı yayıyor — kendi gönderdiğimizi de.
+  // Gelen satırın bize mi ait olduğunu ancak kendi kimliğimizi bilerek
+  // söyleyebiliriz; bilinmezse kendi mesajımız karşı taraftan gelmiş gibi
+  // görünüyor.
+  const [benimKimligim, setBenimKimligim] = useState(null);
 
   const akisSonu = useRef(null);
 
@@ -106,19 +113,57 @@ export default function MesajlarEkrani() {
     }
   }, [listeyiYukle]);
 
+  useEffect(() => {
+    let iptal = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!iptal) setBenimKimligim(data?.user?.id ?? null);
+    });
+    return () => { iptal = true; };
+  }, []);
+
   // ANLIK TESLİM. Abonelik konuşma değişince kapanıp yenisi açılıyor;
   // kapatmayı unutmak her seçimde bir kanal daha bırakırdı.
   useEffect(() => {
     if (!secili) return undefined;
     const kapat = mesajlariDinle(secili, (yeni) => {
       setMesajlar((onceki) => {
+        // Aynı satır iki kez gelirse (yeniden abone olma) yok say.
         if (onceki.some((m) => m.id === yeni.id)) return onceki;
-        return [...onceki, { id: yeni.id, benim: false, govde: yeni.govde, olustu: yeni.olustu }];
+
+        // ⚠ GÖNDEREN KİMLİĞİNE BAKILIYOR — BAKILMIYORDU.
+        //
+        // Eskiden gelen her satır `benim: false` ile ekleniyordu. Realtime
+        // kanalı kendi gönderdiğimiz satırı da yaydığı için kullanıcı KENDİ
+        // mesajını ikinci kez, üstelik KARŞI TARAFTAN gelmiş gibi görüyordu.
+        //
+        // Yerindeki tekilleştirme bunu yakalayamıyordu: iyimser ekleme
+        // `yerel-0-12` gibi UYDURMA bir kimlik kullanıyor, realtime ise
+        // gerçek uuid getiriyor. İki kimlik hiçbir zaman eşleşmiyordu.
+        const benimMi = !!benimKimligim && yeni.gonderen_id === benimKimligim;
+
+        if (benimMi) {
+          // Kendi mesajımız: iyimser yer tutucuyu gerçek satırla DEĞİŞTİR,
+          // yenisini ekleme. Böylece mesaj ekranda tek kalıyor ve gerçek
+          // kimliğine kavuşuyor (sonraki tekilleştirmeler çalışsın diye).
+          const yer = onceki.findIndex(
+            (m) => m.benim && String(m.id).startsWith('yerel-') && m.govde === yeni.govde
+          );
+          if (yer > -1) {
+            const kopya = [...onceki];
+            kopya[yer] = { id: yeni.id, benim: true, govde: yeni.govde, olustu: yeni.olustu };
+            return kopya;
+          }
+        }
+
+        return [...onceki, { id: yeni.id, benim: benimMi, govde: yeni.govde, olustu: yeni.olustu }];
       });
-      okunduIsaretle(secili);
+
+      // Okundu işareti YALNIZCA karşı tarafın mesajı için. Kendi mesajımızı
+      // okundu saymak, karşı taraf hiç açmadan "okundu" göstermek olurdu.
+      if (!benimKimligim || yeni.gonderen_id !== benimKimligim) okunduIsaretle(secili);
     });
     return kapat;
-  }, [secili]);
+  }, [secili, benimKimligim]);
 
   useEffect(() => {
     akisSonu.current?.scrollIntoView({ block: 'end' });

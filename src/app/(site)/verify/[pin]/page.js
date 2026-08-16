@@ -26,20 +26,43 @@ export default function VerifyWithPinPage() {
     let cancelled = false;
 
     const lookup = async () => {
-      // Yalnızca VARLIK kontrolü. `vehicles` tablosu artık sahibine özel;
-      // genel okuma yolu sicil_getir. Fonksiyon PIN'in kanonik yazımını da
-      // döndürüyor, dolayısıyla ayrı bir sorguya gerek yok.
-      const { data: sicil, error } = await supabase.rpc('sicil_getir', { p_pin: pin });
+      // ⚠ TRY/CATCH VE ZAMAN AŞIMI ŞART — İKİSİ DE YOKTU.
+      //
+      // supabase-js veritabanı hatasını `{ error }` içinde döndürüyor ama
+      // AĞ hatasında promise'i REDDEDİYOR. Reddi yakalayan kimse yoktu:
+      // `lookup()` fırlatıyor, `setStatus('notfound')` hiç çalışmıyor ve
+      // ekran sonsuza kadar "sorgulanıyor" çarkı döndürüyordu.
+      //
+      // Kullanıcı için en kötü hata türü bu: ekran çalışıyor gibi görünüyor,
+      // hiçbir şey söylemiyor ve hiçbir zaman bitmiyor. Hata mesajı görmek
+      // sonsuz beklemekten iyidir.
+      try {
+        // Sunucu yanıt vermezse de bitir. `sicil_getir` hız sınırına
+        // takıldığında ya da bağlantı yarıda kaldığında istek asılı
+        // kalabiliyor; 15 saniye normal bir sorgu için fazlasıyla yeterli.
+        const zamanAsimi = new Promise((_, reddet) =>
+          setTimeout(() => reddet(new Error('zaman_asimi')), 15_000)
+        );
 
-      if (cancelled) return;
+        const { data: sicil, error } = await Promise.race([
+          supabase.rpc('sicil_getir', { p_pin: pin }),
+          zamanAsimi,
+        ]);
 
-      if (!error && sicil?.arac?.pin_code) {
-        // replace: geri tuşunda sorgulama ekranına düşmemesi için.
-        router.replace(`/details/${encodeURIComponent(sicil.arac.pin_code)}`);
-        return;
+        if (cancelled) return;
+
+        if (!error && sicil?.arac?.pin_code) {
+          // replace: geri tuşunda sorgulama ekranına düşmemesi için.
+          router.replace(`/details/${encodeURIComponent(sicil.arac.pin_code)}`);
+          return;
+        }
+
+        setStatus('notfound');
+      } catch (hata) {
+        if (cancelled) return;
+        console.error('PIN sorgusu tamamlanamadı:', hata?.message);
+        setStatus('notfound');
       }
-
-      setStatus('notfound');
     };
 
     lookup();
