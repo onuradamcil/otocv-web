@@ -16,7 +16,7 @@ import FaturaOnizleme from '../../common/FaturaOnizleme';
 import { CAR_PARTS, DAMAGE_STATUSES } from '../../../data/hasarKatalogu';
 import { tramerVarMi } from '../../../utils/tramerHelper';
 import { parseVehicleDate, formatTrDate } from '../../../utils/dateHelper';
-import { aracGorselleri } from '../../../utils/aracGorseli';
+import { aracGorselleri, YER_TUTUCU_GORSEL } from '../../../utils/aracGorseli';
 import { tiklanabilir } from '../../../utils/tiklanabilir';
 
 // =========================================================================
@@ -385,7 +385,16 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
               {/* SOL: GALERİ */}
               <div className="md:col-span-8 space-y-3">
                 <div className="relative w-full h-[380px] sm:h-[460px] bg-slate-100/90 border border-slate-200 rounded-md overflow-hidden flex items-center justify-center group">
-                  <img src={imageList[selectedIndex]} alt="Araç Vitrini" className="w-full h-full object-contain object-center transition-all duration-200" onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-car.jpg'; }} />
+                  {/* next/image BURADA YANLIŞ: bu ekran YAYINLANMADAN ÖNCEKİ
+                      önizleme; adresler `blob:` (dosya henüz tarayıcıda, kovada
+                      değil) ve iyileştirici `blob:`i işleyemiyor.
+
+                      Yayınlanmış bir aracı düzenlerken burada genel adres de
+                      olabiliyor, ama bu ekran araç başına bir kez ve yalnızca
+                      SAHİBİ tarafından görülüyor — kazanç ihmal edilebilir,
+                      sihirbaza dokunmanın riski değil. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={imageList[selectedIndex]} alt="Araç Vitrini" className="w-full h-full object-contain object-center transition-all duration-200" onError={(e) => { e.target.onerror = null; e.target.src = YER_TUTUCU_GORSEL; }} />
                   {imageList.length > 1 && (
                     <>
                       <button type="button" onClick={(e) => { e.stopPropagation(); setSelectedIndex((prev) => (prev - 1 + imageList.length) % imageList.length); }} className="absolute left-2.5 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-8 h-8 rounded flex items-center justify-center font-bold text-lg cursor-pointer">‹</button>
@@ -408,6 +417,8 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                         <button key={actualIdx} type="button" onClick={() => setSelectedIndex(actualIdx)}
                           aria-label={`${actualIdx + 1}. fotoğrafı göster`}
                           aria-current={selectedIndex === actualIdx ? 'true' : undefined} className={`h-16 sm:h-18 rounded overflow-hidden border bg-white relative cursor-pointer flex items-center justify-center p-0.5 ${selectedIndex === actualIdx ? 'border-indigo-600 ring-2 ring-indigo-600/30' : 'border-slate-200 opacity-85 hover:opacity-100'}`}>
+                          {/* Önizleme adresleri `blob:`; iyileştirici işleyemez. */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={url} alt="" className="w-full h-full object-contain" />
                         </button>
                       );
@@ -583,11 +594,13 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                   
                   {/* Fotoğraf Çerçevesi: object-contain ile tam sığdırma */}
                   <div className="w-18 h-12 sm:w-20 sm:h-13 rounded-lg overflow-hidden bg-slate-200/60 border border-slate-300/80 shrink-0 shadow-2xs flex items-center justify-center p-0.5 relative">
+                    {/* Önizleme adresleri `blob:`; iyileştirici işleyemez. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={imageList[0]} 
                       alt="Kapak" 
                       className="w-full h-full object-contain object-center" 
-                      onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-car.jpg'; }}
+                      onError={(e) => { e.target.onerror = null; e.target.src = YER_TUTUCU_GORSEL; }}
                     />
                   </div>
 
@@ -1234,6 +1247,8 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
           </button>
           {imageList.length > 1 && <button type="button" onClick={() => setFullscreenIndex((prev) => (prev - 1 + imageList.length) % imageList.length)} className="absolute left-6 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full font-bold cursor-pointer">‹</button>}
           <div className="max-w-5xl max-h-[85vh] flex items-center justify-center overflow-hidden">
+            {/* Önizleme adresleri `blob:`; iyileştirici işleyemez. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={imageList[fullscreenIndex]} alt="Galeri Büyütülmüş" className="max-w-full max-h-[85vh] object-contain" />
           </div>
           {imageList.length > 1 && <button type="button" onClick={() => setFullscreenIndex((prev) => (prev + 1) % imageList.length)} className="absolute right-6 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full font-bold cursor-pointer">›</button>}
@@ -1251,7 +1266,13 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
             Kapat
           </button>
           <div className="max-w-4xl max-h-[85vh] bg-white p-2 rounded-xl overflow-hidden shadow-2xl flex items-center justify-center">
-            <img src={invoiceModalUrl} alt="Fatura Evrakı" className="max-w-full max-h-[80vh] object-contain" />
+            {/* next/image BURADA YANLIŞ: fatura kovası ÖZEL, adres 300 saniye
+              ömürlü İMZALI bağlantı. Next 16'da iyileştirme önbelleği
+              varsayılan 4 SAAT — yani önbellekteki kopya imzadan uzun yaşar ve
+              kullanıcı bozuk görsel görür. Üstelik her açılışta imza
+              değiştiği için önbellek hiç isabet etmez: bedava değil, zararlı. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={invoiceModalUrl} alt="Fatura Evrakı" className="max-w-full max-h-[80vh] object-contain" />
           </div>
         </div>
       )}

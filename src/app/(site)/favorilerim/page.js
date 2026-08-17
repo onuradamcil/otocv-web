@@ -20,6 +20,7 @@ import { favoriListesi, favoriDegistir } from '@/services/favoriService';
 import GlobalStepLoader from '@/components/common/GlobalStepLoader';
 import Icon from '@/components/common/icons';
 import { dugme } from '@/components/common/dugme';
+import AracGorseli from '@/components/common/AracGorseli';
 
 export default function FavorilerimPage() {
   const router = useRouter();
@@ -101,16 +102,16 @@ export default function FavorilerimPage() {
                 className="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col p-2"
               >
                 <div className="h-36 w-full bg-slate-50 rounded-xl overflow-hidden relative grid place-items-center p-1">
-                  {foto ? (
-                    <img
+                  {/* İç sarmalayıcı kapsayıcının `p-1`ini korumak için:
+                      `fill` iç boşluğu yok sayıp kenara yayılıyor.
+                      `sizes` ızgaradan: `grid-cols-1 sm:2 lg:3 xl:4` */}
+                  <div className="relative w-full h-full">
+                    <AracGorseli
                       src={foto}
                       alt={`${f.brand || ''} ${f.model || ''}`.trim()}
-                      loading="lazy"
-                      className="w-full h-full object-contain"
+                      sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 290px"
                     />
-                  ) : (
-                    <span className="text-etiket font-semibold text-slate-500">GÖRSEL YOK</span>
-                  )}
+                  </div>
 
                   <button
                     type="button"

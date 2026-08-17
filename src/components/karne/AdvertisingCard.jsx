@@ -97,6 +97,22 @@ export default function AdvertisingCard({ vehicle }) {
         {/* --- HERO GÖRSEL VE BUZLU CAM (GLASSMORPHISM) KÜNYE --- */}
         <div className="relative rounded-2xl overflow-hidden bg-[#171A21] border border-slate-800/60 h-44 w-full shrink-0 z-10 mt-3 shadow-inner">
           {carPhoto ? (
+            /* =================================================================
+               ⚠ BURADA next/image KULLANILAMAZ — ÖLÇÜLDÜ, VARSAYILMADI.
+               =================================================================
+               Bu kart ekranda gösterilmek için değil, GÖRÜNTÜYE ÇEKİLMEK için
+               var: `OtoKarneScreen` onu `html-to-image` ile `toPng` çağırıp
+               paylaşılabilir bir PNG'ye dönüştürüyor.
+
+               `html-to-image` DOM'u okuyup her görseli veri URI'sine gömerek
+               çalışıyor. `next/image` ise `srcset` üretip `/_next/image` ara
+               yolundan servis ediyor; kütüphane hangi kaynağı gömeceğini
+               çözemiyor ve çekim ya görselsiz ya bozuk çıkıyor.
+
+               Yani buradaki `<img>` bir eksiklik değil, çekimin ÇALIŞMA
+               KOŞULU. Dönüştürülürse karne paylaşımı sessizce bozulur.
+               ================================================================= */
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img src={carPhoto} alt="Hero Car" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-600">GÖRSEL EKSİK</div>

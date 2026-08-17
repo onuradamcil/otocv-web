@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import Icon from '../common/icons';
 import { pinNormalize } from '../../utils/pinUretici';
 import GlobalStepLoader from '../common/GlobalStepLoader';
+import AracGorseli from '../common/AracGorseli';
 
 export default function MarketplaceView({ 
   onSelectVehicle, 
@@ -583,10 +584,11 @@ export default function MarketplaceView({
               ) : (
                 /* ARABAM.COM STYLE VİTRİN KARTLARI GRİDİ */
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3.5">
-                  {displayedVitrinListings.map((item) => (
+                  {displayedVitrinListings.map((item, sira) => (
                     <ArabamStyleVitrinCard
                       key={item.listing_id || item.id}
                       item={item}
+                      sira={sira}
                       onSelectVehicle={onSelectVehicle}
                       favorili={favoriler.has(item.pin_code)}
                       onFavori={favoriTikla}
@@ -608,7 +610,7 @@ export default function MarketplaceView({
 // =========================================================================
 // 🚀 ARABAM.COM PIXEL-PERFECT VİTRİN KARTI (ArabamStyleVitrinCard)
 // =========================================================================
-function ArabamStyleVitrinCard({ item, onSelectVehicle, favorili = false, onFavori }) {
+function ArabamStyleVitrinCard({ item, sira = 0, onSelectVehicle, favorili = false, onFavori }) {
   const firstPhoto = item.image_url ? item.image_url.split(',')[0].trim() : null;
 
   return (
@@ -648,17 +650,29 @@ function ArabamStyleVitrinCard({ item, onSelectVehicle, favorili = false, onFavo
             <Icon name="kalp" size="md" dolu={!!favorili} />
           </button>
         )}
-        {firstPhoto ? (
-          <img 
-            src={firstPhoto} 
-            alt={`${item.brand} ${item.model}`} 
-            className="w-full h-full object-contain" 
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-etiket font-bold text-slate-500 bg-slate-100">
-            GÖRSEL YOK
-          </div>
-        )}
+        {/* `sizes` ızgaranın GERÇEK ölçüsünden türetildi
+            (`grid-cols-2 sm:3 md:4 xl:5`, içerik alanı 9/12). Yanlış bir `sizes`
+            iyileştirmenin tüm kazancını yok eder: tarayıcı gereğinden büyük
+            kopyayı indirir ve `<img>` hâline göre hiçbir şey değişmez. */}
+        {/* ⚠ İLK İKİ KARTA `priority` — ÖLÇÜMLE GELDİ, TAHMİNLE DEĞİL.
+            Tam suite koşumunda Next şu uyarıyı bastı: bu kovadaki bir görsel
+            anasayfada "Largest Contentful Paint" olarak algılandı. Yani
+            sayfanın hızını belirleyen öge vitrin kartının fotoğrafı ve
+            tembel yükleniyordu.
+
+            Niye 2 ve niye hepsi değil: ızgara dar ekranda 2 sütun, yani ilk
+            satır iki kart. LCP mobilde ölçülüyor ve Core Web Vitals'ta
+            değerlendirilen profil o. Beş sütunun tamamına `priority` vermek
+            "her şey öncelikli" demek olurdu — Next bunu da uyarıyor ve
+            öncelik anlamını yitiriyor. */}
+        <AracGorseli
+          src={firstPhoto}
+          alt={`${item.brand || ''} ${item.model || ''}`.trim()}
+          priority={sira < 2}
+          sizes="(max-width: 639px) 50vw, (max-width: 767px) 33vw, (max-width: 1023px) 25vw, (max-width: 1279px) 18vw, 170px"
+        />
+        {/* Not: görsel yokluğunda "GÖRSEL YOK" durumu artık `AracGorseli`
+            içinde basılıyor — aynı metin, tek yerde. */}
       </div>
       
       <div className="pt-2 px-1 pb-1 flex-1 flex flex-col justify-between bg-white">

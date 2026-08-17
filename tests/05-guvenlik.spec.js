@@ -824,6 +824,33 @@ test.describe('Araç görselleri · sahiplik', () => {
   let sahipId = null;
   let denemeYolu = null;
 
+  // =======================================================================
+  // ⚠ SONDA DOSYASI GÖRSEL TÜRÜNDE OLMAK ZORUNDA — VE SEBEBİ SINAV DIŞI
+  // BİR AYRINTI DEĞİL.
+  //
+  // Eskiden sonda `.txt` + `text/plain` idi. Kovaya tür kısıtı eklendikten
+  // sonra (`image/jpeg,png,webp,heic`) o dosya RLS'e HİÇ VARMADAN
+  // reddediliyor: "mime type application/octet-stream is not supported".
+  //
+  // İlk test bu yüzden düştü ve bu iyi oldu — çünkü ASIL TEHLİKE aşağıdaki
+  // İKİNCİ testte: o test "başkası yükleyemiyor" diye HATA BEKLİYOR. Tür
+  // reddi de bir hata olduğu için test YEŞİL KALMAYA DEVAM EDERDİ, ama
+  // ölçtüğü şey artık sahiplik politikası değil, dosya türü olurdu.
+  //
+  // Yani kova politikası tamamen kaldırılsa bile o test geçmeye devam
+  // ederdi: "yanlış sebeple geçen test". Bu paketin baştan beri kaçındığı
+  // tuzak (yukarıda `remove()` için de aynı gerekçe yazılı).
+  //
+  // Bu yüzden sonda türü kovanın KABUL ETTİĞİ bir tür: reddedilirse sebebi
+  // yalnızca RLS olabilir.
+  //
+  // İçerik gerçek bir PNG değil ve olması da gerekmiyor — Supabase beyan
+  // edilen `contentType`a bakıyor, dosya içeriğini çözümlemiyor. Test edilen
+  // şey görüntü geçerliliği değil, KİMİN yazabildiği.
+  // =======================================================================
+  const SONDA_TURU = 'image/png';
+  const sondaDosyasi = () => new Blob(['otocv-sonda'], { type: SONDA_TURU });
+
   test.afterAll(async () => {
     if (!denemeYolu) return;
     const sb = await supabaseIstemcisi();
@@ -834,10 +861,10 @@ test.describe('Araç görselleri · sahiplik', () => {
     const sb = await supabaseIstemcisi();
     const { data: { user } } = await sb.auth.getUser();
     sahipId = user.id;
-    denemeYolu = `${sahipId}/taslak/otocv-test-${Date.now()}.txt`;
+    denemeYolu = `${sahipId}/taslak/otocv-test-${Date.now()}.png`;
 
     const { error } = await sb.storage
-      .from(KOVA).upload(denemeYolu, new Blob(['test']), { contentType: 'text/plain' });
+      .from(KOVA).upload(denemeYolu, sondaDosyasi(), { contentType: SONDA_TURU });
     expect(error, 'araç sahibi kendi klasörüne yükleyemiyor — kayıt akışı kırık').toBeFalsy();
   });
 
@@ -845,8 +872,8 @@ test.describe('Araç görselleri · sahiplik', () => {
     test.skip(!sahipId, 'kurulum yapılamadı');
     const alici = await aliciIstemcisi();
     const { error } = await alici.storage
-      .from(KOVA).upload(`${sahipId}/taslak/izinsiz-${Date.now()}.txt`,
-        new Blob(['x']), { contentType: 'text/plain' });
+      .from(KOVA).upload(`${sahipId}/taslak/izinsiz-${Date.now()}.png`,
+        sondaDosyasi(), { contentType: SONDA_TURU });
     expect(error, 'başka kullanıcı, sahibin klasörüne dosya yükleyebiliyor').toBeTruthy();
   });
 

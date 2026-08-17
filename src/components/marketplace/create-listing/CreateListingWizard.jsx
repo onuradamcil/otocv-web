@@ -19,6 +19,7 @@ import { useToast } from '../../../context/ToastContext';
 import Icon from '../../common/icons';
 import { tramerTutari } from '../../../utils/tramerHelper';
 import { toIsoDate } from '../../../utils/dateHelper';
+import { YER_TUTUCU_GORSEL } from '../../../utils/aracGorseli';
 import { pinUret } from '../../../utils/pinUretici';
 import { plakaDurumu } from '../../../services/devirService';
 import { harcanmamisHak, kilitHatasi } from '../../../services/odemeService';
@@ -235,7 +236,9 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     traffic_insurance_end_date: '',
     kasko_end_date: '',
     inspection_end_date: '',
-    registration_file: null,
+    // `registration_file` KALDIRILDI: Step1'deki ruhsat alanı çıktı. Alan
+    // hiçbir zaman yüklenmiyordu; ayrıntılı gerekçe Step1'de, kaldırıldığı
+    // yerde yazılı.
 
     // 2. Adım Verileri
     title: '',
@@ -421,7 +424,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         }
       } catch (err) {
         console.error('Fotoğraf yükleme hatası:', err);
-        uploadedUrls.push(typeof photoItem === 'string' ? photoItem : (photoItem?.preview || '/placeholder-car.jpg'));
+        uploadedUrls.push(typeof photoItem === 'string' ? photoItem : (photoItem?.preview || YER_TUTUCU_GORSEL));
       }
     }
 
@@ -792,7 +795,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
       const photoUrls = Array.isArray(formData.photos) 
         ? formData.photos.join(',') 
-        : (formData.photos || '/placeholder-car.jpg');
+        : (formData.photos || YER_TUTUCU_GORSEL);
 
       // 🟢 1. VEHICLES PAYLOAD (TÜM Vitrin, AÇIKLAMA VE EKSPERTİZ ALANLARI DAHİL)
       const vehiclePayload = {

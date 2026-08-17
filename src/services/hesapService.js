@@ -20,6 +20,7 @@
 // =========================================================================
 
 import { supabase } from '../lib/supabase';
+import { gorselSikistir, SIKISTIRMA } from '../utils/gorselSikistir';
 
 /**
  * Supabase auth hatalarının okunur karşılıkları.
@@ -251,19 +252,37 @@ export async function avatarUrl(yol, saniye = 3600) {
 export async function avatarYukle(userId, dosya) {
   if (!dosya) return { yol: null, hata: 'Dosya seçilmedi.' };
 
+  // Tür denetimi ORİJİNAL dosyada: kullanıcının ne seçtiğine bakılıyor.
   if (!/^image\/(jpeg|png|webp)$/.test(dosya.type)) {
     return { yol: null, hata: 'Yalnızca JPG, PNG veya WEBP yükleyebilirsiniz.' };
   }
-  if (dosya.size > 2 * 1024 * 1024) {
+
+  // =========================================================================
+  // ⚠ SIKIŞTIRMA BOYUT DENETİMİNDEN ÖNCE — BU BİR HATA DÜZELTMESİ.
+  //
+  // 2 MB sınırı yerinde duruyor (kovada da var), ama telefon fotoğrafı
+  // neredeyse her zaman 2 MB'ın ÜSTÜNDE. Yani kullanıcı profil görseli koymayı
+  // deniyor, "2 MB'den küçük olmalı" hatasını alıyor ve elinde dosyayı
+  // küçültecek hiçbir araç yok. Özellik fiilen çalışmıyordu.
+  //
+  // 512 px'e indirilen bir görsel her zaman sınırın çok altında kalıyor;
+  // en büyük gösterildiği yer 64 px olduğu için görünür kayıp yok.
+  //
+  // Denetim KALDIRILMIYOR: sıkıştırma başarısız olursa (eski tarayıcı, bozuk
+  // dosya) orijinal geri geliyor ve sınır onu yakalıyor.
+  // =========================================================================
+  const { dosya: hazir } = await gorselSikistir(dosya, SIKISTIRMA.avatar);
+
+  if (hazir.size > 2 * 1024 * 1024) {
     return { yol: null, hata: 'Görsel 2 MB’den küçük olmalı.' };
   }
 
-  const uzanti = dosya.type === 'image/png' ? 'png' : dosya.type === 'image/webp' ? 'webp' : 'jpg';
+  const uzanti = hazir.type === 'image/png' ? 'png' : hazir.type === 'image/webp' ? 'webp' : 'jpg';
   const yol = `${userId}/${Date.now()}.${uzanti}`;
 
   const { error: yuklemeHatasi } = await supabase.storage
     .from(AVATAR_KOVASI)
-    .upload(yol, dosya, { upsert: false, contentType: dosya.type });
+    .upload(yol, hazir, { upsert: false, contentType: hazir.type });
 
   if (yuklemeHatasi) {
     console.error('Avatar yüklenemedi:', yuklemeHatasi.message);

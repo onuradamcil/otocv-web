@@ -28,8 +28,18 @@
 //   · {preview} / {url} / {src} taşıyan nesneler (yükleme öncesi önizleme)
 // =========================================================================
 
-/** Görsel yokken kullanılan yer tutucu. */
-export const YER_TUTUCU_GORSEL = '/placeholder-car.jpg';
+/**
+ * Görsel yokken kullanılan yer tutucu.
+ *
+ * ⚠ ESKİ DEĞER `/placeholder-car.jpg` İDİ VE O DOSYA HİÇ YOKTU.
+ * Kodun on bir yerinde bu yola düşülüyordu (7 dosya) ama `public/` içinde
+ * böyle bir dosya bulunmuyordu — ölçüldü. Yani "kırık görsel yedeği" ikinci
+ * bir 404 üretiyor, kullanıcı da tarayıcının kırık-görsel simgesini görüyordu.
+ *
+ * Yedeğin kendisi bozuk olduğu için hiçbir ekranda işe yaramıyordu; şimdi
+ * gerçek bir dosyaya işaret ediyor.
+ */
+export const YER_TUTUCU_GORSEL = '/gorsel-yok.svg';
 
 /**
  * Ham alanı geçerli görsel adresleri dizisine çevirir.

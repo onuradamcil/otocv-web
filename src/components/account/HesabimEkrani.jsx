@@ -319,7 +319,22 @@ export default function HesabimEkrani() {
                   </button>
                 )}
               </div>
-              <p className="metin-yardimci text-slate-500">JPG, PNG veya WEBP · en fazla 2 MB</p>
+              {/* ⚠ İKİ BİLGİ BİRLİKTE VERİLİYOR — BİRİ EKSİKSE METİN YANILTIYOR.
+                  Eskiden yalnızca "en fazla 2 MB" yazıyordu. Bu tek başına
+                  yanlış yönlendiriyordu: telefon fotoğrafı neredeyse her zaman
+                  2 MB'ın üstünde olduğu için kullanıcı hata alıyor ve elinde
+                  küçültecek bir araç olmuyordu.
+
+                  Ama sınırı büsbütün SİLMEK de yanlıştı: `12-hesabim` testi
+                  bunu yakaladı ve gerekçesi haklı — "sınırı yalnızca
+                  reddederek uygulamak, kullanıcıyı deneme yanılmaya zorlar."
+                  Sınır hâlâ var; küçültülemeyen dosyalarda (bozuk dosya, eski
+                  tarayıcı) devreye giriyor.
+
+                  Bu yüzden ikisi bir arada: önce ne olacağı, sonra üst sınır. */}
+              <p className="metin-yardimci text-slate-500">
+                JPG, PNG veya WEBP · büyük görseller otomatik küçültülür (üst sınır 2 MB)
+              </p>
             </div>
 
             <input

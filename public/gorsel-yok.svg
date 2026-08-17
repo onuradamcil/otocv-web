@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-label="Görsel yok">
+  <!--
+    GÖRSEL YOK YER TUTUCUSU
+
+    Niye var: kodun on bir yerinde `/placeholder-car.jpg` yedeği çağrılıyordu
+    ama o dosya `public/` içinde HİÇ YOKTU. Yani "kırık görsel yedeği" ikinci
+    bir 404 üretiyor ve kullanıcı tarayıcının kırık-görsel simgesini görüyordu.
+
+    Niye metin yok: aynı dosya 40 px'lik listeden 460 px'lik galeriye kadar her
+    ölçüde kullanılıyor; küçük kutularda metin okunamıyor. Ekranlar "GÖRSEL YOK"
+    yazısını zaten kendi tipografileriyle basıyor, burada yalnızca biçim var.
+
+    Niye SVG: her ölçüde keskin ve 1 KB'ın altında.
+  -->
+  <rect width="160" height="120" fill="#f1f5f9"/>
+  <g fill="none" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 74h96M40 74V60l10-16h60l10 16v14"/>
+    <path d="M50 60h60"/>
+    <circle cx="54" cy="80" r="7"/>
+    <circle cx="106" cy="80" r="7"/>
+  </g>
+</svg>

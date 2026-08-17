@@ -14,6 +14,7 @@ import { useToast } from '../../context/ToastContext';
 import Icon from '../common/icons';
 import { toIsoDate } from '../../utils/dateHelper';
 import TrPlaka from '../common/TrPlaka';
+import { gorselSikistir, SIKISTIRMA } from '../../utils/gorselSikistir';
 
 export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClose, onRecordAdded }) {
   const toast = useToast();
@@ -29,6 +30,9 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
   const [nextServiceKm, setNextServiceKm] = useState(''); 
   
   const [invoiceFile, setInvoiceFile] = useState(null);
+  // Sıkıştırma gerçek zaman alıyor; kullanıcı bu sürede dosyanın alınmadığını
+  // sanıp ikinci kez seçmeye kalkmasın.
+  const [faturaHazirlaniyor, setFaturaHazirlaniyor] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [dateError, setDateError] = useState('');
   const [submitAttempted, setSubmitAttempted] = useState(false); // 🚀 Akıllı hata boyama tetikleyicisi
@@ -370,19 +374,41 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
           {/* CLOUD DROPZONE */}
           <div className="space-y-1.5 pt-1">
             <label className="text-yardimci font-bold text-slate-500 tracking-wide block uppercase">Servis Makbuzu / Faturası</label>
-            <input 
+            {/* Fatura BELGE profiliyle sıkıştırılıyor (2400 px / %88), araç
+                fotoğrafından bilinçli olarak daha cömert: burada değerli olan
+                OKUNABİLİRLİK. PDF `gorselSikistir` içinde dokunulmadan geçiyor.
+
+                ⚠ `e.target.files[0]` KULLANICI İPTAL ETTİĞİNDE `undefined`
+                döndürüyor; eskiden bu doğrudan state'e yazılıyordu. Artık
+                seçim iptal edilirse eldeki belge korunuyor. */}
+            <input
               type="file" id="dialog-invoice" accept="image/*,application/pdf" className="hidden"
-              onChange={(e) => setInvoiceFile(e.target.files[0])}
+              disabled={faturaHazirlaniyor}
+              onChange={async (e) => {
+                const secilen = e.target.files?.[0];
+                if (!secilen) return;
+                setFaturaHazirlaniyor(true);
+                try {
+                  const { dosya } = await gorselSikistir(secilen, SIKISTIRMA.belge);
+                  setInvoiceFile(dosya);
+                } finally {
+                  setFaturaHazirlaniyor(false);
+                }
+              }}
             />
-            <label 
+            <label
               htmlFor="dialog-invoice"
-              className={`w-full py-4 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all duration-200 ${
-                !invoiceFile 
-                  ? 'bg-slate-50/50 border-gray-300 text-indigo-600 hover:bg-slate-50 hover:border-indigo-400' 
+              className={`w-full py-4 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-all duration-200 ${
+                faturaHazirlaniyor ? 'cursor-wait bg-slate-50 border-slate-300 text-slate-500' : 'cursor-pointer'
+              } ${
+                !invoiceFile
+                  ? 'bg-slate-50/50 border-gray-300 text-indigo-600 hover:bg-slate-50 hover:border-indigo-400'
                   : 'bg-emerald-50/40 border-emerald-500 text-emerald-700'
               }`}
             >
-              {!invoiceFile ? (
+              {faturaHazirlaniyor ? (
+                <span className="text-xs font-bold">Belge hazırlanıyor…</span>
+              ) : !invoiceFile ? (
                 <>
                   <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
                   <span className="text-xs font-bold">Fatura Yükle (Önerilir)</span>

@@ -26,6 +26,7 @@ import { favoriKimlikleri, favoriDegistir } from '../services/favoriService';
 import { CAR_PARTS, DAMAGE_STATUSES } from '../data/hasarKatalogu';
 import { aracGorselleri } from '../utils/aracGorseli';
 import { tiklanabilir } from '../utils/tiklanabilir';
+import AracGorseli from './common/AracGorseli';
 
 // =========================================================================
 // 🎨 SABİTLER VE YARDIMCI FONKSİYONLAR
@@ -532,7 +533,19 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
               {/* SOL: GALERİ */}
               <div className="md:col-span-8 space-y-3">
                 <div className="relative w-full h-[380px] sm:h-[460px] bg-slate-100/90 border border-slate-200 rounded-md overflow-hidden flex items-center justify-center group">
-                  <img src={imageList[selectedIndex]} alt="Araç Vitrini" className="w-full h-full object-contain object-center transition-all duration-200" onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-car.jpg'; }} />
+                  {/* ⚠ `priority` YALNIZCA İLK FOTOĞRAFTA. Bu, sayfanın en
+                      büyük görseli — LCP'yi o belirliyor, o yüzden önceden
+                      yükleniyor. Ama kullanıcı galeride ilerledikçe her
+                      fotoğrafa `priority` vermek "her şey öncelikli" demek
+                      olurdu; Next bunu uyarıyla bildiriyor ve öncelik anlamını
+                      yitiriyor. Sonraki fotoğraflar tıklamayla isteniyor. */}
+                  <AracGorseli
+                    src={imageList[selectedIndex]}
+                    alt="Araç Vitrini"
+                    sizes="(max-width: 767px) 100vw, (max-width: 1279px) 66vw, 810px"
+                    priority={selectedIndex === 0}
+                    className="object-center transition-all duration-200"
+                  />
                   {imageList.length > 1 && (
                     <>
                       <button type="button" onClick={(e) => { e.stopPropagation(); setSelectedIndex((prev) => (prev - 1 + imageList.length) % imageList.length); }} className="absolute left-2.5 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-8 h-8 rounded flex items-center justify-center font-bold text-lg cursor-pointer">‹</button>
@@ -555,7 +568,11 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                         <button key={actualIdx} type="button" onClick={() => setSelectedIndex(actualIdx)}
                           aria-label={`${actualIdx + 1}. fotoğrafı göster`}
                           aria-current={selectedIndex === actualIdx ? 'true' : undefined} className={`h-16 sm:h-18 rounded overflow-hidden border bg-white relative cursor-pointer flex items-center justify-center p-0.5 ${selectedIndex === actualIdx ? 'border-indigo-600 ring-2 ring-indigo-600/30' : 'border-slate-200 opacity-85 hover:opacity-100'}`}>
-                          <img src={url} alt="" className="w-full h-full object-contain" />
+                          {/* İç sarmalayıcı düğmenin `p-0.5`ini korumak için:
+                              `fill` iç boşluğu yok sayıp kenara yayılıyor. */}
+                          <span className="relative block w-full h-full">
+                            <AracGorseli src={url} alt="" sizes="120px" bosMetin="" />
+                          </span>
                         </button>
                       );
                     })}
@@ -737,12 +754,16 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
               <div className={`w-full flex items-center justify-between px-4 sm:px-6 transition-all duration-300 overflow-hidden bg-slate-50/95 backdrop-blur-md ${isSticky ? 'h-[76px] sm:h-[80px] border-b border-slate-200/90 opacity-100' : 'h-0 opacity-0 border-transparent'}`}>
                 <div className="flex items-center gap-4 min-w-0 py-2">
                   <div className="w-18 h-12 sm:w-20 sm:h-13 rounded-lg overflow-hidden bg-slate-200/60 border border-slate-300/80 shrink-0 shadow-2xs flex items-center justify-center p-0.5 relative">
-                    <img 
-                      src={imageList[0]} 
-                      alt="Kapak" 
-                      className="w-full h-full object-contain object-center" 
-                      onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-car.jpg'; }}
-                    />
+                    {/* İç sarmalayıcı kapsayıcının `p-0.5`ini korumak için. */}
+                    <span className="relative block w-full h-full">
+                      <AracGorseli
+                        src={imageList[0]}
+                        alt="Kapak"
+                        sizes="80px"
+                        className="object-center"
+                        bosMetin=""
+                      />
+                    </span>
                   </div>
 
                   <div className="flex flex-col min-w-0 justify-center gap-1.5">
@@ -1448,8 +1469,18 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
             Kapat
           </button>
           {imageList.length > 1 && <button type="button" onClick={() => setFullscreenIndex((prev) => (prev - 1 + imageList.length) % imageList.length)} className="absolute left-6 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full font-bold cursor-pointer">‹</button>}
-          <div className="max-w-5xl max-h-[85vh] flex items-center justify-center overflow-hidden">
-            <img src={imageList[fullscreenIndex]} alt="Galeri Büyütülmüş" className="max-w-full max-h-[85vh] object-contain" />
+          {/* ⚠ KUTU ÖLÇÜLENDİ: eskiden `<img>` doğal boyutuyla geliyordu
+              (`max-w-full max-h-[85vh]`), ama `fill` konumlandırması
+              ÖLÇÜLENDİRİLMİŞ bir kapsayıcı istiyor. `w-full h-[85vh]` +
+              `object-contain` görsel olarak aynı sonucu veriyor: görsel
+              oranını koruyor, kutuya sığıyor ve ortalanıyor. */}
+          <div className="relative w-full max-w-5xl h-[85vh] flex items-center justify-center overflow-hidden">
+            <AracGorseli
+              src={imageList[fullscreenIndex]}
+              alt="Galeri Büyütülmüş"
+              sizes="(max-width: 1024px) 100vw, 1024px"
+              priority
+            />
           </div>
           {imageList.length > 1 && <button type="button" onClick={() => setFullscreenIndex((prev) => (prev + 1) % imageList.length)} className="absolute right-6 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full font-bold cursor-pointer">›</button>}
           <div className="absolute bottom-6 bg-white/10 text-white text-xs font-mono font-bold px-3 py-1.5 rounded-full">
@@ -1467,7 +1498,13 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
             Kapat
           </button>
           <div className="max-w-4xl max-h-[85vh] bg-white p-2 rounded-xl overflow-hidden shadow-2xl flex items-center justify-center">
-            <img src={invoiceModalUrl} alt="Fatura Evrakı" className="max-w-full max-h-[80vh] object-contain" />
+            {/* next/image BURADA YANLIŞ: fatura kovası ÖZEL, adres 300 saniye
+              ömürlü İMZALI bağlantı. Next 16'da iyileştirme önbelleği
+              varsayılan 4 SAAT — yani önbellekteki kopya imzadan uzun yaşar ve
+              kullanıcı bozuk görsel görür. Üstelik her açılışta imza
+              değiştiği için önbellek hiç isabet etmez: bedava değil, zararlı. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={invoiceModalUrl} alt="Fatura Evrakı" className="max-w-full max-h-[80vh] object-contain" />
           </div>
         </div>
       )}

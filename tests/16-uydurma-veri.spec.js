@@ -288,6 +288,27 @@ const YASAKLI_SABITLER = [
   { desen: 'e-devlet ruhsat mülkiyeti', ne: 'olmayan entegrasyon iddiası' },
 
   // -----------------------------------------------------------------------
+  // OLMAYAN YAPAY ZEKÂ İDDİALARI
+  //
+  // ⚠ BU LİSTEDE "AI" YOKTU VE ÖNCEKİ TARAMA TAM BU YÜZDEN KAÇIRDI.
+  //
+  // Step1'deki ruhsat kartı "AI ONAYLI ROZET" etiketi taşıyor, dosya
+  // seçilince de "Ruhsat Fotoğrafı Yüklendi! (AI Güven Rozeti Aktif)"
+  // yazıyordu. Depoda yapay zekâ diye bir şey yok: ne model, ne servis
+  // çağrısı, ne bağımlılık. Dahası dosya HİÇBİR YERE YÜKLENMİYORDU —
+  // `registration_file` yalnızca yeşil onay işaretini çizmek için
+  // tutuluyor, sihirbaz bitince atılıyordu.
+  //
+  // Yani kullanıcı resmî belgesini veriyor, sistem ona güven rozeti
+  // kazandığını söylüyor, dosya yok oluyordu. Ürün sahibinin kararıyla alan
+  // komple kaldırıldı; bu desenler geri gelmesini engelliyor.
+  { desen: 'AI ONAYLI',          ne: 'olmayan yapay zekâ onayı iddiası' },
+  { desen: 'AI Güven',           ne: 'olmayan yapay zekâ rozeti iddiası' },
+  { desen: 'AI Doğrulama',       ne: 'olmayan yapay zekâ doğrulama katmanı iddiası' },
+  { desen: 'yapay zekâ onaylı',  ne: 'olmayan yapay zekâ onayı iddiası' },
+  { desen: 'yapay zeka onaylı',  ne: 'olmayan yapay zekâ onayı iddiası' },
+
+  // -----------------------------------------------------------------------
   // OLMAYAN ALTYAPI İDDİALARI
   //
   // `/verify` ekranı şunları yazıyordu: "Değiştirilemez Blokzincir Sicili",

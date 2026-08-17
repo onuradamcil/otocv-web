@@ -1,7 +1,10 @@
 // =========================================================================
 // OTO-CV İLAN & GARAJ VERME: MASTER 1. ADIM BİLEŞENİ (Step1VehicleAndPhotos.jsx)
-// İşlev: Araç Kataloğu, Medya Galerisi, Resmi Sicil Evrakları (Plaka/KM),
-//        Sigorta/Kasko/Muayene Takvimi ve Ruhsat AI Doğrulama Katmanı.
+// İşlev: Araç Kataloğu, Medya Galerisi, Resmi Sicil Evrakları (Plaka/KM) ve
+//        Sigorta/Kasko/Muayene Takvimi.
+//
+// ⚠ "Ruhsat AI Doğrulama Katmanı" BAŞLIKTAN ÇIKARILDI: öyle bir katman hiç
+//    yoktu. Ruhsat alanı da kaldırıldı (gerekçesi kaldırıldığı yerde).
 // Mimarî: Tüm zorunlu alan validasyonları zırhlandırılmış, sıfır kayıpsız füzyon.
 // =========================================================================
 
@@ -12,6 +15,10 @@ import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../context/ToastContext';
 import { useRouter } from 'next/navigation';
 import Icon from '../../common/icons';
+import {
+  gorselleriSikistir, SIKISTIRMA,
+  GORSEL_ACCEPT, GORSEL_TURLERI_METNI, gorselTuruUygun,
+} from '../../../utils/gorselSikistir';
 
 // =========================================================================
 // SABİT KATALOG SİMÜLASYON VERİLERİ VE STİL SABİTLERİ
@@ -51,8 +58,8 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
     km = '',
     traffic_insurance_end_date = '',
     kasko_end_date = '',
-    inspection_end_date = '',
-    registration_file = null
+    inspection_end_date = ''
+    // `registration_file` KALDIRILDI: ruhsat alanı çıktı.
   } = formData || {};
 
   // Yerel UI & Odak (Touch) State'leri
@@ -143,13 +150,8 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
     return new Date(year, month - 1, day);
   };
 
-  // Ruhsat Dosyası Seçim Handlerı
-  const handlePickRuhsat = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      updateFormData({ registration_file: file });
-    }
-  };
+  // `handlePickRuhsat` KALDIRILDI: ruhsat alanı tamamen çıktı (gerekçesi
+  // arayüz katmanında, kaldırıldığı yerde yazılı).
 
   // Odak Kaybı Sensörü
   const handleBlur = (fieldName) => {
@@ -285,9 +287,47 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
   // 5. BLOK: FOTOĞRAF YÜKLEME VE DRAG & DROP SENSÖRÜ
   // =========================================================================
   
-  const processFiles = (files) => {
-    const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
-    if (!validFiles || validFiles.length === 0) return;
+  // =========================================================================
+  // ⚠ ESKİDEN BURADA 1200 ms'LİK UYDURMA BİR BEKLEME VARDI.
+  //
+  // `setTimeout(..., 1200)` hiçbir iş yapmıyordu; yalnızca "yükleniyor" çarkı
+  // döndürüp kullanıcıya bir şey olduğunu düşündürüyordu. Şimdi o sürede
+  // GERÇEK iş yapılıyor: fotoğraflar Supabase'e gitmeden önce sıkıştırılıyor.
+  //
+  // NİYE BURADA VE YÜKLEME ANINDA DEĞİL: bu ekranda üretilen `blob:` adresi
+  // hem önizlemede hem de yayınlama adımında kullanılıyor
+  // (`CreateListingWizard` adresi tekrar ikili veriye çeviriyor). Sıkıştırmayı
+  // burada yapınca kullanıcı ÖNİZLEMEDE gerçekten yüklenecek görseli görüyor —
+  // yani kalite kaybı varsa yayınlamadan önce fark ediyor. Yükleme anında
+  // sıkıştırmak bu şeffaflığı yok ederdi.
+  // =========================================================================
+  const processFiles = async (files) => {
+    const secilenler = Array.from(files);
+
+    // ⚠ SÜZGEÇ ARTIK `startsWith('image/')` DEĞİL, KOVANIN KABUL LİSTESİ.
+    //
+    // Eski denetim her `image/*` türünü geçiriyordu — GIF, BMP, TIFF, AVIF
+    // dahil. Kova bunları reddediyor ve `uploadPhotosToStorage` hatayı yutup
+    // veritabanına `blob:` adresi yazıyor: kullanıcı aracını kaydettiğini
+    // sanıyor, `image_url` kullanılamaz bir adresle doluyor. Bu, daha önce
+    // kapatılan "sessiz kayıt kaybı" hatasının aynı sınıfı.
+    //
+    // Süzgeç BURADA olmak zorunda: `accept` özniteliği yalnızca dosya seçici
+    // penceresini süzüyor, SÜRÜKLE-BIRAK onu tamamen atlıyor.
+    const validFiles = secilenler.filter(gorselTuruUygun);
+    const elenen = secilenler.length - validFiles.length;
+
+    // Elenen dosya SESSİZ KALMIYOR: kullanıcı neden eklenmediğini bilmeli,
+    // yoksa tekrar tekrar aynı dosyayı deniyor.
+    if (elenen > 0) {
+      toast.hata(
+        elenen === secilenler.length
+          ? `Bu dosya türü desteklenmiyor. ${GORSEL_TURLERI_METNI} yükleyebilirsiniz.`
+          : `${elenen} dosya desteklenmeyen türde olduğu için eklenmedi (${GORSEL_TURLERI_METNI}).`
+      );
+    }
+
+    if (validFiles.length === 0) return;
 
     if (photos.length + validFiles.length > 15) {
       toast.hata('En fazla 15 fotoğraf ekleyebilirsiniz.');
@@ -296,11 +336,20 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
 
     setIsUploading(true);
 
-    setTimeout(() => {
-      const newPhotoUrls = validFiles.map(file => URL.createObjectURL(file));
+    try {
+      const sonuclar = await gorselleriSikistir(validFiles, SIKISTIRMA.aracFotografi);
+      // Sıkıştırma başarısız olan dosya `sonuc.dosya` olarak ORİJİNALİ
+      // döndürüyor; bu yüzden burada ayrı bir yedek yola gerek yok.
+      const newPhotoUrls = sonuclar.map((sonuc) => URL.createObjectURL(sonuc.dosya));
       updateFormData({ photos: [...photos, ...newPhotoUrls] });
+    } catch (e) {
+      // Buraya düşmek beklenmiyor (`gorselSikistir` kendi içinde yakalıyor),
+      // ama düşerse kullanıcı sessizce fotoğrafsız kalmasın.
+      console.error('Fotoğraf hazırlanamadı:', e);
+      toast.hata('Fotoğraflar hazırlanamadı. Lütfen tekrar deneyin.');
+    } finally {
       setIsUploading(false);
-    }, 1200);
+    }
   };
 
   const handlePhotoUploadInput = (e) => {
@@ -422,7 +471,10 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                       : 'border-rose-300 hover:border-rose-500 bg-rose-50/20 hover:bg-rose-50/50'
                   }`}
                 >
-                  <input type="file" multiple accept="image/*" onChange={handlePhotoUploadInput} className="hidden" />
+                  {/* `accept` kovanın kabul listesiyle AYNI kaynaktan geliyor.
+                      Eskiden `image/*` idi ve kullanıcı kovanın reddettiği bir
+                      tür (GIF, BMP, TIFF) seçebiliyordu. */}
+                  <input type="file" multiple accept={GORSEL_ACCEPT} onChange={handlePhotoUploadInput} className="hidden" />
                   <svg className="w-7 h-7 text-rose-600 mb-1.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574v9.176c0 1.222.98 2.222 2.222 2.222h15.056c1.222 0 2.222-1 2.222-2.222V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
@@ -464,6 +516,10 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                 <div className="flex flex-wrap gap-3 items-center">
                   {photos.map((photoUrl, idx) => (
                     <div key={idx} className="relative w-28 h-28 bg-slate-100 rounded-lg border border-slate-200 overflow-hidden group shadow-2xs">
+                      {/* next/image BURADA YANLIŞ: `photoUrl` bir `blob:`
+                          adresi — dosya henüz tarayıcıda, kovada değil.
+                          İyileştirici `blob:`i işleyemiyor. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={photoUrl} alt={`Foto ${idx}`} className="w-full h-full object-cover" />
                       {idx === 0 && (
                         <span className="absolute top-1 left-1 bg-rose-600 text-white font-bold text-[11px] px-1.5 py-0.5 rounded uppercase font-mono shadow-2xs">
@@ -666,51 +722,34 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
 
             </div>
 
-            {/* 3. KATMAN - PANEL B: RUHSAT FOTOĞRAFI BAĞIMSIZ İÇ BEYAZ KARTI */}
-            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs space-y-3">
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm"></span>
-                  <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wide">
-                    Ruhsat Fotoğrafı <span className="text-slate-500 font-normal font-mono text-[13px] lowercase">(opsiyonel)</span>
-                  </span>
-                </div>
-                <span className="text-[11px] font-extrabold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md border border-indigo-100 uppercase tracking-wider">
-                  <Icon name="parlama" size="xs" className="inline-block mr-1 -mt-px" />
-                  AI ONAYLI ROZET
-                </span>
-              </div>
+            {/* =================================================================
+                RUHSAT PANELİ KALDIRILDI — ÜRÜN SAHİBİNİN KARARI
+                =================================================================
+                Burada "Ruhsat Fotoğrafı" yükleme kartı ve yanında "AI ONAYLI
+                ROZET" etiketi vardı. Dosya seçilince de ekran
+                "Ruhsat Fotoğrafı Yüklendi! (AI Güven Rozeti Aktif)" yazıyordu.
 
-              <label className={`w-full border-2 border-dashed rounded-xl p-4 flex items-center justify-center gap-3 cursor-pointer transition-all ${
-                registration_file 
-                  ? 'bg-emerald-50/60 border-emerald-500' 
-                  : 'bg-slate-50/60 border-indigo-200/80 hover:border-indigo-500 hover:bg-indigo-50/30'
-              }`}>
-                {registration_file ? (
-                  <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
-                    <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center">
-                      <Icon name="onay" size="xs" strokeWidth={3} />
-                    </span>
-                    <span>Ruhsat Fotoğrafı Yüklendi! (AI Güven Rozeti Aktif)</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 text-slate-700">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                      </svg>
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-indigo-600 block leading-tight">Ruhsat Ön Yüzünü Yüklemek İçin Tıklayın</span>
-                      <span className="text-[13px] text-slate-500 font-medium font-mono">PNG, JPG veya PDF (Maksimum 10MB)</span>
-                    </div>
-                  </div>
-                )}
-                <input type="file" accept="image/*,.pdf" onChange={handlePickRuhsat} className="hidden" />
-              </label>
+                Üçü de gerçek değildi:
+                  · Dosya HİÇBİR YERE YÜKLENMİYORDU. `registration_file` yalnızca
+                    sihirbaz durumunda tutuluyor ve yeşil onay işaretini çizmek
+                    için okunuyordu; projede tek bir yükleme çağrısı yoktu.
+                    Sihirbaz bitince dosya sessizce atılıyordu.
+                  · "AI" diye bir katman yoktu — ne doğrulama, ne model, ne rozet.
+                  · "Yüklendi!" ifadesi doğrudan yanlış beyandı.
 
-            </div>
+                Yani kullanıcı ruhsatını (adı, adresi, şasi numarası olan resmî
+                belgesi) veriyor, sistem ona güven rozeti kazandığını söylüyor,
+                dosya yok oluyordu.
+
+                Ürün sahibinin kararı: alan komple kaldırılacak, çünkü ruhsat
+                artık istenmiyor. Toplamadığımız bir belgeyi saklama ve koruma
+                yükümlülüğü de doğmuyor — KVKK açısından en temiz sonuç bu.
+
+                ⚠ SAHİPSİZ ARAÇ GERİ YÜKLEME AKIŞINDAKİ RUHSAT AYRI BİR ŞEY ve
+                DOKUNULMADI (`SahipsizGeriYukleDialog`). Orada ruhsat gerçekten
+                `belgeler` kovasına yükleniyor ve sahiplik iddiasının kanıtı
+                olarak elle inceleniyor; o akışın tasarımı buna dayanıyor.
+                ================================================================= */}
 
           </div>
         </div>

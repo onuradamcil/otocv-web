@@ -32,6 +32,7 @@ import { dugme, ikonDugmesi } from './common/dugme';
 import Icon from './common/icons';
 import GlobalStepLoader from './common/GlobalStepLoader';
 import TrPlaka from './common/TrPlaka';
+import AracGorseli from './common/AracGorseli';
 
 export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMaintenance, onNavigateToAdd, onManageListings, onOpenVitrin }) {
   // `useToast` buradan kalktı: tek kullanıcısı, tıklandığında "yakında"
@@ -757,18 +758,17 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
             söylemiyordu — tıklanınca yakınlaşma olmuyor, sadece hareket
             ediyordu. Vurgu artık kartın kendisinde (gölge ve kenarlık). */}
         <div className="w-[76px] h-[76px] rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden relative p-1">
-          {thumbnailTarget ? (
-            <img
+          {/* İç sarmalayıcı `p-1`i KORUMAK için: `fill` konumlandırması iç
+              boşluğu yok sayıp kutunun kenarına yayılıyor. Doğrudan bağlanırsa
+              görsel 68 px yerine 76 px olur ve kart hizası kayar. */}
+          <div className="relative w-full h-full">
+            <AracGorseli
               src={thumbnailTarget}
               alt={`${vehicle.brand} ${vehicle.model}`}
-              loading="lazy"
-              className="w-full h-full object-contain"
+              sizes="76px"
+              bosMetin="GÖRSEL YOK"
             />
-          ) : (
-            <span className="etiket text-slate-500 text-center leading-tight">
-              GÖRSEL<br />YOK
-            </span>
-          )}
+          </div>
         </div>
 
         <div className="order-3 sm:order-none basis-full sm:basis-auto sm:flex-1 min-w-0 flex flex-col items-start space-y-1.5">

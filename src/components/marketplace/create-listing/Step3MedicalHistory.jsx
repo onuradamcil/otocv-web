@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import Icon from '../../common/icons';
+import { gorselSikistir, SIKISTIRMA } from '../../../utils/gorselSikistir';
 
 // --- İKON BİLEŞENLERİ (GOOGLE STITCH VEKTÖRLERİ) ---
 const FileTextIcon = () => (
@@ -50,6 +51,25 @@ const Step3Medical = forwardRef(({
 
   const activeRecords = formData.service_records || [];
   const vehicleProductionYear = selectedYear || formData.selectedYear || null;
+
+  // ⚠ FATURA SIKIŞTIRMA `await` İÇERDİĞİ İÇİN GEREKİYOR.
+  //
+  // `handleInvoiceUpload` artık asenkron: bekleme sırasında kullanıcı başka
+  // bir kayda yazabiliyor. Kapanışta yakalanan `activeRecords` o anda eskimiş
+  // oluyor ve yazıldığında kullanıcının yeni girdisi SESSİZCE siliniyordu.
+  // Ref her zaman en güncel diziyi tutuyor.
+  //
+  // Yazma render İÇİNDE değil, render SONRASI efektte yapılıyor: render
+  // sırasında ref'e yazmak React'in eşzamanlı çalışmasında güvenli değil
+  // (lint de bunu hata olarak veriyor). Efekt her commit'ten sonra koştuğu
+  // için `await` çözüldüğünde ref güncel oluyor.
+  const activeRecordsRef = useRef(activeRecords);
+  // Bağımlılık dizisi BİLİNÇLİ OLARAK YOK: amaç her commit'ten sonra en son
+  // değeri yazmak. `[activeRecords]` yazmak da aynı sonucu verirdi ama dizi
+  // her render'da yeni referans olduğu için gereksiz bir uyarı üretiyor.
+  useEffect(() => {
+    activeRecordsRef.current = activeRecords;
+  });
 
   // =========================================================================
   // 🧹 SÜPER YARDIMCI: TAMAMEN BOŞ KAYIT KONTROLÜ SENSÖRÜ
@@ -104,15 +124,21 @@ const Step3Medical = forwardRef(({
   // =========================================================================
   // 2. BLOK: MEDYA SÜRÜCÜSÜ (CRASH KORUMALI FATURA YÜKLEYİCİ)
   // =========================================================================
-  const handleInvoiceUpload = (id, file) => {
+  // Fatura BELGE profiliyle sıkıştırılıyor (2400 px / %88) — araç fotoğrafından
+  // bilinçli olarak daha cömert. Faturada değerli olan OKUNABİLİRLİK: sicilin
+  // güven puanı bu evraka dayanıyor, okunamayan bir fatura hiç yüklenmemiş
+  // faturadan iyi değil. PDF seçilirse dosya dokunulmadan geçiyor.
+  const handleInvoiceUpload = async (id, file) => {
     if (!file) return;
-    const updated = activeRecords.map(rec => {
-      if (rec.id === id) {
-        return { ...rec, invoice_file: file };
-      }
-      return rec;
-    });
-    updateRecords(updated);
+    const { dosya } = await gorselSikistir(file, SIKISTIRMA.belge);
+    // ⚠ `activeRecords` YERİNE GÜNCEL DEĞER OKUNUYOR: `await` sırasında
+    // kullanıcı başka bir kayda dokunmuş olabiliyor ve kapanışta yakalanan
+    // eski dizi yazılırsa o değişiklik sessizce kaybolurdu.
+    updateRecords(
+      (activeRecordsRef.current || activeRecords).map((rec) =>
+        rec.id === id ? { ...rec, invoice_file: dosya } : rec
+      )
+    );
   };
 
   // =========================================================================

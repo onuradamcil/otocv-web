@@ -37,6 +37,7 @@ import useCanliTazeleme from '../../hooks/useCanliTazeleme';
 import { aracKapakGorseli } from '../../utils/aracGorseli';
 import PaywallDialog from '../common/PaywallDialog';
 import { URUNLER } from '../../data/paketler';
+import AracGorseli from '../common/AracGorseli';
 
 /** "1 gün 4 saat" gibi okunur kalan süre. Geçmişse null. */
 function kalanSure(sonTarih) {
@@ -148,16 +149,17 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
           return (
             <li key={d.istek_id} className="border border-slate-200 rounded-xl p-4 space-y-3">
               <div className="flex items-start gap-3">
-                <span className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 grid place-items-center">
+                {/* `relative` EKLENDİ: `AracGorseli` `fill` ile konumlanıyor. */}
+                <span className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 grid place-items-center relative">
                   {/* ⚠ HAM ALAN BASILAMAZ: `image_url` virgülle birleştirilmiş
                       ÇOKLU adres tutabiliyor (canlıda 6 adres / 719 karakter
                       ölçüldü) ve doğrudan `src`e verilince kırık görsel
                       çıkıyor. Kapak için ilk geçerli adres alınıyor. */}
-                  <img
+                  <AracGorseli
                     src={aracKapakGorseli(d.image_url)}
                     alt=""
-                    className="w-full h-full object-contain"
-                    onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-car.jpg'; }}
+                    sizes="48px"
+                    bosMetin=""
                   />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -236,12 +238,12 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
           kaydiCagiranUretir
           detay={
             <div className="flex items-center gap-3">
-              <span className="w-10 h-10 rounded-lg bg-white border border-slate-200 overflow-hidden shrink-0 grid place-items-center">
-                <img
+              <span className="w-10 h-10 rounded-lg bg-white border border-slate-200 overflow-hidden shrink-0 grid place-items-center relative">
+                <AracGorseli
                   src={aracKapakGorseli(paywallIstek.image_url)}
                   alt=""
-                  className="w-full h-full object-contain"
-                  onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-car.jpg'; }}
+                  sizes="40px"
+                  bosMetin=""
                 />
               </span>
               <span className="min-w-0">

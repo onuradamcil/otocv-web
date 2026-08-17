@@ -17,6 +17,7 @@ import { fetchMarketplaceListings } from '../../services/marketplaceService';
 import Icon from '../common/icons';
 import GlobalStepLoader from '../common/GlobalStepLoader';
 import TrPlaka from '../common/TrPlaka';
+import AracGorseli from '../common/AracGorseli';
 
 export default function MyListingsScreen({ user, onNavigateToGarage }) {
   const [listings, setListings] = useState([]);
@@ -99,15 +100,13 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                       zaman dosya adını okur. Yedek olarak marka/model, o da
                       yoksa boş dize (süs görsel) kullanılıyor. */}
                   <div className="h-40 w-full bg-slate-100 rounded-xl overflow-hidden relative">
-                    {firstPhoto ? (
-                      <img
-                        src={firstPhoto}
-                        alt={item.title || `${item.brand || ''} ${item.model || ''}`.trim() || ''}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-etiket font-bold text-slate-500">GÖRSEL YOK</div>
-                    )}
+                    {/* `sizes` ızgaradan: `grid-cols-1 md:2 lg:3` */}
+                    <AracGorseli
+                      src={firstPhoto}
+                      alt={item.title || `${item.brand || ''} ${item.model || ''}`.trim() || ''}
+                      uyum="cover"
+                      sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 390px"
+                    />
                     
                     {item.is_featured && (
                       <div className="absolute top-3 left-3 bg-amber-400 text-slate-950 text-etiket font-semibold px-2 py-0.5 rounded font-mono uppercase shadow-xs">

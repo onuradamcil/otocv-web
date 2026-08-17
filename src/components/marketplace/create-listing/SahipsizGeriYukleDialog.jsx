@@ -40,6 +40,7 @@ import useModalErisim from '../../../hooks/useModalErisim';
 import Icon from '../../common/icons';
 import PaywallDialog from '../../common/PaywallDialog';
 import { supabase } from '../../../lib/supabase';
+import { gorselSikistir, SIKISTIRMA } from '../../../utils/gorselSikistir';
 import {
   BEYAN_METNI,
   sahipsizOnizleme,
@@ -63,6 +64,9 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
   const [yol, setYol] = useState(null);            // null | 'otomatik' | 'belgeli'
   const [beyanOnayi, setBeyanOnayi] = useState(false);
   const [dosya, setDosya] = useState(null);
+  // Ruhsat sıkıştırılırken geçen süre gerçek; kullanıcı dosyanın alınmadığını
+  // sanmasın diye ayrı bir durum tutuluyor.
+  const [hazirlaniyor, setHazirlaniyor] = useState(false);
   const [islemde, setIslemde] = useState(false);
   const [hata, setHata] = useState('');
   const [gonderildi, setGonderildi] = useState(null); // {yol}
@@ -89,7 +93,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
     if (r.basarili) setOnizleme(r.veri);
   };
 
-  const dosyaSec = (e) => {
+  const dosyaSec = async (e) => {
     setHata('');
     const f = e.target.files?.[0];
     if (!f) { setDosya(null); return; }
@@ -101,12 +105,33 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
       setDosya(null);
       return;
     }
-    if (f.size > EN_BUYUK_BAYT) {
+
+    // ⚠ SIKIŞTIRMA BOYUT DENETİMİNDEN ÖNCE.
+    //
+    // Sıra önemli: ruhsat fotoğrafı telefonda rahatlıkla 10 MB'ı geçiyor ve
+    // eskiden kullanıcı burada duvara çarpıyordu — üstelik yapabileceği hiçbir
+    // şey yoktu, "küçültün" diyen bir araç sunmuyorduk. Küçültme önce
+    // yapılınca dosya sınırın altına iniyor ve başvuru tamamlanıyor.
+    //
+    // Denetim KALDIRILMIYOR: sıkıştırılamayan dosyalar (HEIC, PDF) hâlâ
+    // buradan geçiyor ve onlar için sınır geçerli.
+    //
+    // BELGE profili kullanılıyor (2400 px) — ruhsattaki yazı okunabilir kalmalı.
+    setHazirlaniyor(true);
+    let secilen = f;
+    try {
+      const { dosya: hazir } = await gorselSikistir(f, SIKISTIRMA.belge);
+      secilen = hazir;
+    } finally {
+      setHazirlaniyor(false);
+    }
+
+    if (secilen.size > EN_BUYUK_BAYT) {
       setHata('Dosya 10 MB’dan büyük olamaz.');
       setDosya(null);
       return;
     }
-    setDosya(f);
+    setDosya(secilen);
   };
 
   /** Ruhsatı özel kovaya yükler, yolunu döndürür. */
@@ -384,11 +409,14 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                   type="file"
                   accept={IZINLI_TURLER.join(',')}
                   onChange={dosyaSec}
-                  className="block w-full text-xs text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 file:cursor-pointer cursor-pointer"
+                  disabled={hazirlaniyor}
+                  aria-busy={hazirlaniyor || undefined}
+                  className="block w-full text-xs text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 file:cursor-pointer cursor-pointer disabled:opacity-60 disabled:cursor-wait"
                 />
-                <p className="text-yardimci text-slate-500 leading-relaxed">
-                  JPG, PNG, WEBP, HEIC ya da PDF · en fazla 10 MB. Belgeniz özel
-                  alanda saklanır, yalnızca inceleme için görüntülenir.
+                <p className="text-yardimci text-slate-500 leading-relaxed" aria-live="polite">
+                  {hazirlaniyor
+                    ? 'Belge hazırlanıyor…'
+                    : 'JPG, PNG, WEBP, HEIC ya da PDF · en fazla 10 MB. Belgeniz özel alanda saklanır, yalnızca inceleme için görüntülenir.'}
                 </p>
               </div>
             )}

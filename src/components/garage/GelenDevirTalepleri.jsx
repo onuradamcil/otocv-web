@@ -30,6 +30,7 @@ import { useToast } from '../../context/ToastContext';
 import { devirGelenTalepler, devirIstekKarari } from '../../services/devirService';
 import useCanliTazeleme from '../../hooks/useCanliTazeleme';
 import { aracKapakGorseli } from '../../utils/aracGorseli';
+import AracGorseli from '../common/AracGorseli';
 
 function tarihBicimi(ts) {
   if (!ts) return '';
@@ -125,16 +126,21 @@ export default function GelenDevirTalepleri({ kart, onDegisti }) {
           return (
             <li key={t.istek_id} className="border border-slate-200 rounded-xl p-4 space-y-3">
               <div className="flex items-start gap-3">
-                <span className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 grid place-items-center">
+                {/* `relative` EKLENDİ: `AracGorseli` `fill` ile konumlanıyor ve
+                    konumlanmış bir ata olmadan en yakın üst kutuya taşar. */}
+                <span className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 grid place-items-center relative">
                   {/* ⚠ HAM ALAN BASILAMAZ: `image_url` virgülle birleştirilmiş
                       ÇOKLU adres tutabiliyor (canlıda 6 adres / 719 karakter
                       ölçüldü) ve doğrudan `src`e verilince kırık görsel
-                      çıkıyor. Kapak için ilk geçerli adres alınıyor. */}
-                  <img
+                      çıkıyor. Kapak için ilk geçerli adres alınıyor.
+
+                      `bosMetin=""`: 48 px'lik kutuya "GÖRSEL YOK" sığmıyor,
+                      görselsiz durumda boş gri kutu bırakılıyor. */}
+                  <AracGorseli
                     src={aracKapakGorseli(t.image_url)}
                     alt=""
-                    className="w-full h-full object-contain"
-                    onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-car.jpg'; }}
+                    sizes="48px"
+                    bosMetin=""
                   />
                 </span>
                 <div className="min-w-0 flex-1">
