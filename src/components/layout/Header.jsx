@@ -17,6 +17,9 @@ import { supabase } from '@/lib/supabase';
 import NotificationDropdown from '@/context/NotificationDropdown';
 import MobileDrawer from './MobileDrawer';
 import Icon from '@/components/common/icons';
+// Giriş/Hesap bağlantıları elle yazılmış metin bağlantılarıydı ve dokunma
+// alanları 16 px ölçülmüştü. `dugme.js` 44 px'i taban olarak veriyor.
+import { dugme } from '@/components/common/dugme';
 import { avatarUrl, AVATAR_DEGISTI } from '@/services/hesapService';
 import { okunmamisSayisi } from '@/services/mesajService';
 import useCanliTazeleme from '@/hooks/useCanliTazeleme';
@@ -205,7 +208,11 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
 
           <div className="flex items-center gap-8">
-            <Link href="/" onClick={closeMenus} className={`text-base font-display font-bold tracking-tight text-slate-900 rounded ${ODAK}`}>
+            {/* `inline-flex items-center min-h-[44px]`: logo bağlantısının
+                yüksekliği yalnızca yazı boyu kadardı (24 px ölçüldü). Logo
+                anasayfaya dönüşün ana yolu; dokunma alanı standardın altında
+                kalmamalı. */}
+            <Link href="/" onClick={closeMenus} className={`inline-flex items-center min-h-[44px] text-base font-display font-bold tracking-tight text-slate-900 rounded ${ODAK}`}>
               OTO.CV
             </Link>
 
@@ -228,15 +235,16 @@ export default function Header() {
               <Link
                 href="/devir"
                 onClick={closeMenus}
-                className={`transition-colors rounded ${ODAK} ${pathname.startsWith('/devir') ? 'text-indigo-600 font-semibold' : 'hover:text-slate-900'}`}
+                className={`inline-flex items-center min-h-[44px] transition-colors rounded ${ODAK} ${pathname.startsWith('/devir') ? 'text-indigo-600 font-semibold' : 'hover:text-slate-900'}`}
               >
                 Araç Devir
               </Link>
-              {/* ⚠ TEPKİSİZ ama duruş hâlinde yanındaki GERÇEK "Araç Devir"
-                bağlantısıyla birebir aynı renkteydi. Proje aynı ögeyi
-                Footer ve MobileDrawer'da zaten işaretliyor; yalnızca
-                burası atlanmıştı. */}
-            <span className="text-slate-300 cursor-not-allowed select-none" title="Yakında">Kurumsal Çözümler</span>
+              {/* ⚠ "Kurumsal Çözümler" KALDIRILDI.
+                Üç sorunu birdendi: (1) tıklanamıyordu, hiçbir hedefi yoktu,
+                (2) kontrastı 1.49:1 ölçüldü — yani fiilen görünmüyordu,
+                (3) `title="Yakında"` tek başına erişilebilir bir açıklama
+                değil (projede yazılı kural: GarageScreen.jsx:338).
+                Görünmeyen ve çalışmayan bir öge menüde yer tutmuyor. */}
             </nav>
           </div>
 
@@ -273,7 +281,7 @@ export default function Header() {
             <Link
               href={uyeHedef('/add-vehicle/step1')}
               onClick={closeMenus}
-              className={`hidden md:flex bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-md transition-all shadow-2xs items-center gap-1.5 border border-amber-500/30 ${ODAK}`}
+              className={`hidden md:flex min-h-[44px] bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3.5 rounded-xl transition-colors shadow-2xs items-center gap-1.5 border border-amber-500/30 ${ODAK}`}
             >
               <Icon name="ilan" size="xs" />
               <span>Araç Kaydet</span>
@@ -291,10 +299,18 @@ export default function Header() {
 
             {/* HESAP — masaüstü */}
             {!user ? (
-              <div className="hidden md:flex items-center gap-2.5 text-xs font-bold text-slate-600 pl-1">
-                <Link href="/login" className={`hover:text-indigo-600 transition-colors rounded ${ODAK}`}>Giriş Yap</Link>
-                <span className="text-slate-200" aria-hidden="true">|</span>
-                <Link href="/register" className={`hover:text-indigo-600 transition-colors rounded ${ODAK}`}>Hesap Aç</Link>
+              /* ⚠ DOKUNMA ALANI ÖLÇÜLDÜ VE 16 px'Tİ.
+                 "Giriş Yap" 49x16, "Hesap Aç" 53x16 — yani sayfanın en
+                 önemli iki eylemi, `dugme.js`'in ilan ettiği 44 px WCAG
+                 asgarisinin dörtte biri kadardı. Metin bağlantısı olduğu için
+                 yüksekliği yalnızca yazı boyu kadardı.
+
+                 Ayraç `|` de kaldırıldı: kontrastı 1.23:1 ölçüldü, yani
+                 görünmüyordu ama ekran okuyucuda `aria-hidden` sayesinde de
+                 okunmuyordu — hiçbir işi yoktu. */
+              <div className="hidden md:flex items-center gap-1 pl-1">
+                <Link href="/login" className={dugme('sessiz', { ek: ODAK })}>Giriş Yap</Link>
+                <Link href="/register" className={dugme('ikincil', { ek: ODAK })}>Hesap Aç</Link>
               </div>
             ) : (
               <div className="relative hidden md:block pl-1" ref={hesapMenuRef}>

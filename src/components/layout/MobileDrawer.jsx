@@ -36,7 +36,10 @@ const UYE_MENU = [
   { href: '/my-listings', label: 'Vitrindeki Araçlarım' },
   { href: '/favorilerim', label: 'Favorilerim' },
   { href: '/mesajlar', label: 'Mesajlarım' },
-  { href: '/query-history', label: 'Sorgulama Geçmişim' },
+  // ⚠ `yakinda`: bu rota `ComingSoon` basıyor. Header aynı bağlantıyı
+  // rozetle işaretliyordu, mobil çekmece İŞARETLEMİYORDU — yani dar ekranda
+  // kullanıcı hiçbir uyarı olmadan boş bir sayfaya gidiyordu.
+  { href: '/query-history', label: 'Sorgulama Geçmişim', yakinda: true },
   { href: '/packages', label: 'Ücretler & Ödemeler' },
   { href: '/account', label: 'Hesabım' },
 ];
@@ -141,9 +144,8 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
             </Link>
           ))}
 
-          <span className={`${SATIR} text-slate-300 cursor-not-allowed select-none`}>
-            Kurumsal Çözümler
-          </span>
+          {/* "Kurumsal Çözümler" KALDIRILDI — Header'daki ile aynı gerekçe:
+              tıklanamıyor, kontrastı eşiğin çok altında ve hiçbir hedefi yok. */}
 
           {user && (
             <>
@@ -151,8 +153,15 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
                 <span className="text-etiket font-bold text-slate-500 tracking-wider uppercase">Hesabım</span>
               </div>
               {UYE_MENU.map((m) => (
-                <Link key={m.href} href={m.href} onClick={onClose} className={`${SATIR} text-slate-700 font-semibold hover:bg-slate-50`}>
-                  {m.label}
+                <Link key={m.href} href={m.href} onClick={onClose} className={`${SATIR} text-slate-700 font-semibold hover:bg-slate-50 justify-between gap-2`}>
+                  <span>{m.label}</span>
+                  {/* Rozet, hedefin henüz boş olduğunu ÖNCEDEN söylüyor.
+                      Header bunu zaten yapıyordu, mobil çekmece yapmıyordu:
+                      dar ekrandaki kullanıcı uyarısız bir "yapım aşamasında"
+                      sayfasına gidiyordu. */}
+                  {m.yakinda && (
+                    <span className="etiket text-slate-500 shrink-0">Yakında</span>
+                  )}
                 </Link>
               ))}
             </>

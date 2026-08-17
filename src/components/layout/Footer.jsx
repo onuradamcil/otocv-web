@@ -30,7 +30,7 @@ function HazirLink({ href, children }) {
     <li>
       <Link
         href={href}
-        className="flex items-center min-h-[36px] metin-yardimci text-slate-600 hover:text-indigo-600 transition-colors rounded"
+        className="flex items-center min-h-[44px] metin-yardimci text-slate-600 hover:text-indigo-600 transition-colors rounded"
       >
         {children}
       </Link>
@@ -42,7 +42,7 @@ function YakindaOge({ children }) {
   return (
     <li>
       <span
-        className="flex items-center min-h-[36px] metin-yardimci text-slate-500 cursor-not-allowed select-none"
+        className="flex items-center min-h-[44px] metin-yardimci text-slate-500 cursor-not-allowed select-none"
         title="Yakında"
       >
         {children}
@@ -109,7 +109,7 @@ export default function Footer() {
               testleri üç sayfada birden kırıldı. */}
           <Link
             href="/kvkk"
-            className="inline-flex items-center min-h-[36px] metin-yardimci text-slate-500 hover:text-slate-700 transition-colors rounded"
+            className="inline-flex items-center min-h-[44px] metin-yardimci text-slate-500 hover:text-slate-700 transition-colors rounded"
           >
             Verileriniz nasıl işleniyor?
           </Link>

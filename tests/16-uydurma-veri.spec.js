@@ -302,6 +302,27 @@ const YASAKLI_SABITLER = [
   // Yani kullanıcı resmî belgesini veriyor, sistem ona güven rozeti
   // kazandığını söylüyor, dosya yok oluyordu. Ürün sahibinin kararıyla alan
   // komple kaldırıldı; bu desenler geri gelmesini engelliyor.
+  // -----------------------------------------------------------------------
+  // ⚠ BURAYA "city || '...'" DESENİ EKLENDİ VE GERİ ALINDI — NOT DURUYOR.
+  //
+  // Anasayfa kartında `{item.city || 'Ankara'}` vardı: şehri boş olan her
+  // araca "Ankara" basılıyordu (düzeltildi). Bunu desenle yasaklamak
+  // istendi ama YAPILAMIYOR:
+  //
+  //   `city || ''`            -> boş dize, meşru
+  //   `city || '—'`           -> "veri yok" işareti, meşru (favorilerim)
+  //   `city || 'İl Seçiniz'`  -> form yer tutucusu, meşru (Step2)
+  //   `city || 'Ankara'`      -> UYDURMA
+  //
+  // Dördü de aynı biçimde. Uydurma olanı ayıran şey biçim değil, yedeğin
+  // GERÇEKÇİ BİR ŞEHİR ADI olması — bu bir desenle karar verilemez ve
+  // eklenen desen üç meşru kullanımı da yakaladı (ölçüldü).
+  //
+  // Yanlış pozitif üreten bir bekçi, bekçi değil gürültüdür. Bu sınıf için
+  // doğru araç çalışma anı denetimi: `16`'nın "konumu olmayan araçta uydurma
+  // il/ilçe basılmıyor" testi (yukarıda) tam bunu ölçüyor.
+  // -----------------------------------------------------------------------
+
   { desen: 'AI ONAYLI',          ne: 'olmayan yapay zekâ onayı iddiası' },
   { desen: 'AI Güven',           ne: 'olmayan yapay zekâ rozeti iddiası' },
   { desen: 'AI Doğrulama',       ne: 'olmayan yapay zekâ doğrulama katmanı iddiası' },

@@ -70,6 +70,12 @@ const ALFABE = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 const UZUNLUK = 10;
 const ONEK = 'CV';
 
+// ESKİ BİÇİM: 6 base36 karakteri. Hâlâ geçerli kayıtlar var, o yüzden
+// `pinNormalize` (satır 150 civarı) ve `pinBicimiMi` ikisi de bu uzunluğu
+// tanımak zorunda. Sayı iki yerde ayrı yazılırsa biri güncellenip diğeri
+// unutulur — sabit olarak duruyor.
+const ESKI_UZUNLUK = 6;
+
 /**
  * Kriptografik üreteci getirir.
  *
@@ -154,6 +160,54 @@ export function pinNormalize(girdi) {
   // Karışık iki biçimin bir arada olması tam olarak bu tür hatalar
   // üretiyor; eski PIN'lerin de yenilenmesi roadmap'te açık madde.
   return `${ONEK}-${oneksiz}`;
+}
+
+/**
+ * Girdi PIN BİÇİMİNDE Mİ? Normalleştirmez, yalnızca söyler.
+ *
+ * -------------------------------------------------------------------------
+ * NİYE AYRI BİR FONKSİYON — GERÇEK BİR HATA YÜZÜNDEN
+ * -------------------------------------------------------------------------
+ * `pinNormalize` biçim denetleyicisi DEĞİL: uzunluk uymadığında da
+ * koşulsuz `CV-` öneki ekleyip geri döndürüyor (satır 156). Bu, kendi işi
+ * için doğru — çağıran taraf zaten bir PIN aradığını biliyor.
+ *
+ * Ama anasayfanın arama kutusu onu "bu bir PIN mi?" sorusunun cevabı gibi
+ * kullanıyordu:
+ *
+ *     const pin = pinNormalize(searchQuery);
+ *     if (pin) router.push(`/karne/${pin}`);
+ *
+ * Sonuç: "bmw" yazan kullanıcı `CV-BMW` üretiyor ve VAR OLMAYAN bir karne
+ * sayfasına fırlatılıyordu. Marka aramak isteyen kişi hata ekranına
+ * düşüyordu. Yer tutucu "Marka, model, şehir veya PIN" diyordu; dördünden
+ * üçü kullanıcıyı dışarı atıyordu.
+ *
+ * ⚠ ÇÖZÜM `pinNormalize`I DEĞİŞTİRMEK DEĞİL. O fonksiyon bir güvenlik
+ * denetimi taşıyor (alfabe dışı karakter reddi, `ilike` sömürüsü —
+ * satır 130-139) ve davranışını değiştirmek başka çağıranları etkiler.
+ * Bu yüzden yanına ayrı bir soru soruluyor.
+ *
+ * KABUL EDİLEN İKİ BİÇİM (`pinNormalize` ile aynı iki dal):
+ *   · 10 karakter Crockford base32 (yeni PIN'ler)
+ *   · 6 karakter base36 (eski PIN'ler — hâlâ geçerli kayıtlar var)
+ *
+ * @param {string} girdi
+ * @returns {boolean}
+ */
+export function pinBicimiMi(girdi) {
+  if (!girdi) return false;
+
+  // `pinNormalize` ile AYNI temizlik: boşluk ve tire atılıyor, önek varsa
+  // soyuluyor. İki fonksiyon aynı girdiyi aynı şekilde görmezse biri "PIN"
+  // derken diğeri boş döndürür.
+  const ham = String(girdi).toUpperCase().replace(/[\s-]/g, '');
+  const oneksiz = ham.startsWith(ONEK) ? ham.slice(ONEK.length) : ham;
+
+  // Alfabe dışı karakter (Türkçe harf dahil) → PIN değil.
+  if (!oneksiz || /[^0-9A-Z]/.test(oneksiz)) return false;
+
+  return oneksiz.length === UZUNLUK || oneksiz.length === ESKI_UZUNLUK;
 }
 
 export const PIN_ALFABESI = ALFABE;
