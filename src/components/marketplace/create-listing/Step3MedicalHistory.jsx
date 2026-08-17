@@ -7,7 +7,11 @@
 
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import Icon from '../../common/icons';
-import { gorselSikistir, SIKISTIRMA } from '../../../utils/gorselSikistir';
+import { useToast } from '../../../context/ToastContext';
+import {
+  gorselSikistir, SIKISTIRMA,
+  BELGE_ACCEPT, BELGE_TURLERI_METNI, belgeTuruUygun,
+} from '../../../utils/gorselSikistir';
 
 // --- İKON BİLEŞENLERİ (GOOGLE STITCH VEKTÖRLERİ) ---
 const FileTextIcon = () => (
@@ -36,6 +40,9 @@ const Step3Medical = forwardRef(({
   onBack,
   selectedYear 
 }, ref) => {
+  // Desteklenmeyen dosya türünü kullanıcıya söylemek için. Uygulamanın geri
+  // kalanı (Step1, MaintenanceDialog) aynı yolu kullanıyor.
+  const toast = useToast();
 
   const [touchedFields, setTouchedFields] = useState({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -656,12 +663,31 @@ const Step3Medical = forwardRef(({
                               Servis Makbuzu / Faturası <span className="text-slate-500 font-normal font-mono">(Opsiyonel - %95+ Güven Skoru)</span>
                             </span>
 
-                            <input 
-                              type="file" 
-                              accept="image/*,application/pdf" 
-                              id={`invoice-${record.id}`} 
+                            {/* `accept` ve tür denetimi kovanın kabul listesiyle
+                                AYNI kaynaktan geliyor. Eskiden
+                                `accept="image/*,application/pdf"` idi ve
+                                `vehicle-invoices` kovasının reddettiği türler
+                                (TIFF gibi) seçilebiliyordu: dosya sunucuda
+                                reddediliyor, kullanıcı faturasını eklediğini
+                                sanıyordu.
+
+                                ⚠ Denetim `accept`e GÜVENMİYOR: kullanıcı dosya
+                                seçicide "tüm dosyalar"a geçebiliyor. */}
+                            <input
+                              type="file"
+                              accept={BELGE_ACCEPT}
+                              id={`invoice-${record.id}`}
                               className="hidden"
-                              onChange={(e) => handleInvoiceUpload(record.id, e.target.files[0])}
+                              onChange={(e) => {
+                                const secilen = e.target.files?.[0];
+                                if (!secilen) return;
+                                if (!belgeTuruUygun(secilen)) {
+                                  toast.hata(`Bu dosya türü desteklenmiyor. ${BELGE_TURLERI_METNI} yükleyebilirsiniz.`);
+                                  e.target.value = '';
+                                  return;
+                                }
+                                handleInvoiceUpload(record.id, secilen);
+                              }}
                             />
 
                             <label 

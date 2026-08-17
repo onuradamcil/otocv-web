@@ -14,7 +14,10 @@ import { useToast } from '../../context/ToastContext';
 import Icon from '../common/icons';
 import { toIsoDate } from '../../utils/dateHelper';
 import TrPlaka from '../common/TrPlaka';
-import { gorselSikistir, SIKISTIRMA } from '../../utils/gorselSikistir';
+import {
+  gorselSikistir, SIKISTIRMA,
+  BELGE_ACCEPT, BELGE_TURLERI_METNI, belgeTuruUygun,
+} from '../../utils/gorselSikistir';
 
 export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClose, onRecordAdded }) {
   const toast = useToast();
@@ -382,11 +385,28 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
                 döndürüyor; eskiden bu doğrudan state'e yazılıyordu. Artık
                 seçim iptal edilirse eldeki belge korunuyor. */}
             <input
-              type="file" id="dialog-invoice" accept="image/*,application/pdf" className="hidden"
+              type="file" id="dialog-invoice" accept={BELGE_ACCEPT} className="hidden"
               disabled={faturaHazirlaniyor}
               onChange={async (e) => {
                 const secilen = e.target.files?.[0];
                 if (!secilen) return;
+
+                // ⚠ TÜR DENETİMİ ŞART — `accept` YETMİYOR.
+                //
+                // `accept` yalnızca dosya seçici penceresini süzüyor ve
+                // kullanıcı "tüm dosyalar"a geçebiliyor. `vehicle-invoices`
+                // kovası yalnızca JPG/PNG/WEBP/HEIC/PDF kabul ediyor;
+                // denetim olmadan reddedilen dosya sessiz kalıyor ve
+                // kullanıcı faturasını eklediğini sanıyor.
+                //
+                // Eskiden `accept="image/*,application/pdf"` idi: kovanın
+                // reddettiği türler (TIFF gibi) seçilebiliyordu.
+                if (!belgeTuruUygun(secilen)) {
+                  toast.hata(`Bu dosya türü desteklenmiyor. ${BELGE_TURLERI_METNI} yükleyebilirsiniz.`);
+                  e.target.value = '';
+                  return;
+                }
+
                 setFaturaHazirlaniyor(true);
                 try {
                   const { dosya } = await gorselSikistir(secilen, SIKISTIRMA.belge);

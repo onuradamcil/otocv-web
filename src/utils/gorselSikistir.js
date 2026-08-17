@@ -82,6 +82,38 @@ export function gorselTuruUygun(dosya) {
   return !!dosya && IZINLI_GORSEL_TURLERI.includes(dosya.type);
 }
 
+// =========================================================================
+// BELGE TÜRLERİ (fatura, makbuz, ruhsat)
+// =========================================================================
+// Görsel listesinden tek farkı PDF: fatura ve ruhsat sıklıkla PDF geliyor ve
+// `belgeler` ile `vehicle-invoices` kovaları onu kabul ediyor.
+//
+// ⚠ PDF SIKIŞTIRILMIYOR. `gorselSikistir` görüntü olmayan her dosyayı
+// dokunmadan geçiriyor: bir PDF'i tuvale çizmek onu piksele çevirip metnini
+// yok eder — faturada bu doğrudan veri kaybı.
+//
+// Bu liste `SahipsizGeriYukleDialog`da elle yazılıydı; oraya da buradan
+// veriliyor. İki listenin ayrı durması, birini güncelleyip diğerini
+// unutmanın en kısa yolu.
+// =========================================================================
+
+/** Belge kovalarının ve belge girdilerinin ortak kabul listesi. */
+export const IZINLI_BELGE_TURLERI = [
+  ...IZINLI_GORSEL_TURLERI,
+  'application/pdf',
+];
+
+/** Belge girdileri için `accept` dizesi. */
+export const BELGE_ACCEPT = IZINLI_BELGE_TURLERI.join(',');
+
+/** Kullanıcıya gösterilecek okunur belge biçimi listesi. */
+export const BELGE_TURLERI_METNI = 'JPG, PNG, WEBP, HEIC veya PDF';
+
+/** Dosya kabul edilen bir belge türü mü? */
+export function belgeTuruUygun(dosya) {
+  return !!dosya && IZINLI_BELGE_TURLERI.includes(dosya.type);
+}
+
 /**
  * Sıkıştırma profilleri. Sayılar rastgele değil, kullanım yerine bağlı.
  */

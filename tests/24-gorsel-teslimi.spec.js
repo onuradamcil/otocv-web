@@ -21,7 +21,7 @@
 // görür.
 // =========================================================================
 
-const { test, expect, girisYap } = require('./yardimcilar');
+const { test, expect, girisYap, supabaseIstemcisi } = require('./yardimcilar');
 
 /** Adres `/_next/image` iyileştiricisinden mi geliyor? (mutlak da olabiliyor) */
 function iyilestirilmis(src) {
@@ -71,6 +71,51 @@ test.describe('Görsel teslimi', () => {
         ).toBeLessThanOrEqual(g.kutuGenisligi * 3 + 32);
       }
     }
+  });
+
+  // =======================================================================
+  // VERİTABANINDA KULLANILAMAZ ADRES OLMAMALI
+  //
+  // Sihirbaz, yükleme başarısız olduğunda listeye `blob:` adresi koyuyordu ve
+  // o adres `image_url` alanına yazılıyordu. `blob:` yalnızca onu üreten
+  // sekmede geçerli: kullanıcı sayfayı kapattığı anda aracın fotoğrafı
+  // kalıcı olarak ölüyordu — ve kullanıcı hiçbir hata görmediği için
+  // kaydettiğini sanıyordu.
+  //
+  // Fotoğraf yoksa yer tutucu yolu (`/gorsel-yok.svg`) yazılıyordu; o da
+  // veri değil, gösterim ayrıntısı. Kayıt "görseli var" gibi görünüyordu.
+  //
+  // ⚠ BU TEST UYGULAMAYA DEĞİL SONUCA BAKIYOR: hangi kod yolunun yazdığı
+  // önemli değil, veritabanında böyle bir değer BULUNMAMALI. Yazma yolu
+  // ileride değişse bile koruma ayakta kalıyor.
+  // =======================================================================
+  test('vehicles.image_url yalnızca gerçek adres taşıyor', async () => {
+    const sb = await supabaseIstemcisi();
+    const { data, error } = await sb
+      .from('vehicles')
+      .select('plate_number, image_url');
+
+    expect(error, 'araç listesi okunamadı').toBeFalsy();
+
+    const bozuk = [];
+    for (const arac of data || []) {
+      if (!arac.image_url) continue; // boş meşru: fotoğrafsız araç
+      for (const ham of String(arac.image_url).split(',')) {
+        const adres = ham.trim();
+        if (!adres) continue;
+        // Kabul edilen tek biçim: http(s) ile başlayan gerçek adres.
+        if (!/^https?:\/\//i.test(adres)) {
+          bozuk.push(`${arac.plate_number} -> ${adres.slice(0, 60)}`);
+        }
+      }
+    }
+
+    expect(
+      bozuk,
+      'image_url kullanılamaz adres taşıyor (blob:/yer tutucu/boş). Bu kayıtların '
+      + 'fotoğrafı hiçbir zaman görünmez ve kullanıcı bunu düzeltemez. Bulunanlar: '
+      + bozuk.join(' | ')
+    ).toEqual([]);
   });
 
   test('İMZALI adresler iyileştiriciden GEÇMİYOR', async ({ page }) => {

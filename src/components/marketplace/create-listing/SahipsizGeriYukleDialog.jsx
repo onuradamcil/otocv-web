@@ -40,7 +40,7 @@ import useModalErisim from '../../../hooks/useModalErisim';
 import Icon from '../../common/icons';
 import PaywallDialog from '../../common/PaywallDialog';
 import { supabase } from '../../../lib/supabase';
-import { gorselSikistir, SIKISTIRMA } from '../../../utils/gorselSikistir';
+import { gorselSikistir, SIKISTIRMA, IZINLI_BELGE_TURLERI } from '../../../utils/gorselSikistir';
 import {
   BEYAN_METNI,
   sahipsizOnizleme,
@@ -48,7 +48,10 @@ import {
   sahipsizOtomatikTamamla,
 } from '../../../services/devirService';
 
-const IZINLI_TURLER = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf'];
+// Liste artık burada ELLE YAZILMIYOR. Aynı beş tür `belgeler`,
+// `vehicle-invoices` kovalarında ve iki fatura girdisinde de geçerli; ayrı
+// yerlerde tutulduğunda birini güncelleyip diğerini unutmak kaçınılmaz.
+const IZINLI_TURLER = IZINLI_BELGE_TURLERI;
 const EN_BUYUK_BAYT = 10 * 1024 * 1024;
 
 /** Kalan gün sayısı. Geçmişse 0. */

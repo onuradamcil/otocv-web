@@ -19,7 +19,9 @@ import { useToast } from '../../../context/ToastContext';
 import Icon from '../../common/icons';
 import { tramerTutari } from '../../../utils/tramerHelper';
 import { toIsoDate } from '../../../utils/dateHelper';
-import { YER_TUTUCU_GORSEL } from '../../../utils/aracGorseli';
+// `YER_TUTUCU_GORSEL` importu KALDIRILDI: yer tutucu artık veritabanına
+// yazılmıyor (yazma noktasındaki süzgecin gerekçesi orada yazılı) ve bu dosyada
+// başka kullanımı yok.
 import { pinUret } from '../../../utils/pinUretici';
 import { plakaDurumu } from '../../../services/devirService';
 import { harcanmamisHak, kilitHatasi } from '../../../services/odemeService';
@@ -321,10 +323,26 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
   // =========================================================================
   // 📸 2. BLOK: SUPABASE STORAGE FOTOĞRAF YÜKLEME MOTORU (ZIRHLI BLOB DESTEKLİ)
   // =========================================================================
+  // -------------------------------------------------------------------------
+  // ⚠ DÖNÜŞ SÖZLEŞMESİ DEĞİŞTİ: { adresler, basarisiz }
+  //
+  // Eskiden yalnızca bir dizi dönüyordu ve BAŞARISIZ yüklemeler o dizinin
+  // içine `blob:` adresi olarak giriyordu (üç ayrı yerden). O adres sadece
+  // açık sekmede geçerli; veritabanına yazıldığında araç kalıcı olarak kırık
+  // görselle kalıyordu. Kullanıcı ise "kaydedildi" görüp devam ediyordu —
+  // daha önce kapatılan "sessiz kayıt kaybı" hatasının aynı sınıfı.
+  //
+  // Yeni kural: bu fonksiyon YALNIZCA gerçekten yüklenmiş genel adresleri
+  // döndürüyor. Başarısızlar sayılıyor ve kararı çağıran veriyor — çünkü
+  // kullanıcıya ne söyleneceği (uyar / durdur) burada değil, akışta belli.
+  // -------------------------------------------------------------------------
   const uploadPhotosToSupabaseStorage = async (photosToUpload) => {
-    if (!photosToUpload || photosToUpload.length === 0) return [];
+    if (!photosToUpload || photosToUpload.length === 0) {
+      return { adresler: [], basarisiz: 0 };
+    }
 
     const uploadedUrls = [];
+    let basarisiz = 0;
 
     // ⚠ YOL ARTIK <user_id>/<plaka>/ — ESKİDEN SADECE <plaka>/ İDİ.
     //
@@ -350,7 +368,8 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     // yani kimse kimsenin görselini silemiyor.
     if (!user?.id) {
       console.error('🔴 Oturum yok, görsel yüklenemez.');
-      return [];
+      // Hepsi başarısız: oturum olmadan tek dosya bile yüklenemez.
+      return { adresler: [], basarisiz: photosToUpload.length };
     }
     // KLASÖR KİMLİĞİ TASLAKLA BİRLİKTE SAKLANIYOR.
     //
@@ -392,8 +411,11 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       }
 
       if (!fileObj) {
-        if (typeof photoItem === 'string') uploadedUrls.push(photoItem);
-        else if (photoItem?.preview) uploadedUrls.push(photoItem.preview);
+        // ⚠ ESKİDEN BURADA `blob:` ADRESİ LİSTEYE EKLENİYORDU.
+        // O adres yalnızca bu sekmede, yalnızca bu oturumda geçerli; sayfa
+        // kapanınca ölüyor. Veritabanına yazıldığında araç kalıcı olarak
+        // kırık görselle kalıyordu. Artık başarısız sayılıyor.
+        basarisiz += 1;
         continue;
       }
 
@@ -411,7 +433,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
         if (uploadError) {
           console.error(`🔴 Supabase Storage Yükleme Hatası (${filePath}):`, uploadError.message);
-          uploadedUrls.push(typeof photoItem === 'string' ? photoItem : (photoItem?.preview || URL.createObjectURL(fileObj)));
+          basarisiz += 1;
           continue;
         }
 
@@ -421,14 +443,19 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
         if (publicUrlData?.publicUrl) {
           uploadedUrls.push(publicUrlData.publicUrl);
+        } else {
+          // Yükleme başarılı ama adres üretilemedi: dosya kovada, kaydın
+          // gösterebileceği bir adres yok. Sessiz geçmek yerine sayılıyor.
+          console.error(`🔴 Genel adres üretilemedi: ${filePath}`);
+          basarisiz += 1;
         }
       } catch (err) {
         console.error('Fotoğraf yükleme hatası:', err);
-        uploadedUrls.push(typeof photoItem === 'string' ? photoItem : (photoItem?.preview || YER_TUTUCU_GORSEL));
+        basarisiz += 1;
       }
     }
 
-    return uploadedUrls;
+    return { adresler: uploadedUrls, basarisiz };
   };
 
   // =========================================================================
@@ -793,9 +820,31 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       // `41 IHH 434` -> `41_IHH_434` üretirken kaydın plakası `41IHH434`
       // oluyordu ve iki değer birbirini tutmuyordu.
 
-      const photoUrls = Array.isArray(formData.photos) 
-        ? formData.photos.join(',') 
-        : (formData.photos || YER_TUTUCU_GORSEL);
+      // =====================================================================
+      // ⚠ VERİTABANINA YALNIZCA GERÇEK ADRES GİRİYOR — SON SAVUNMA HATTI.
+      //
+      // Yükleyici artık başarısızları listeye koymuyor (yukarıda, dönüş
+      // sözleşmesi notu). Bu süzgeç ONA GÜVENMİYOR: `image_url` bir kez
+      // bozuk yazıldığında kullanıcı bunu kendisi düzeltemiyor, o yüzden
+      // yazma noktasında ikinci bir denetim ucuz ve haklı.
+      //
+      // Süzülen iki şey:
+      //   `blob:…`          -> yalnızca açık sekmede geçerli, sayfa kapanınca ölü
+      //   `/gorsel-yok.svg` -> yer tutucu. Eskiden fotoğraf yoksa BU YAZILIYORDU
+      //                        ve kayıt "görseli var" gibi görünüyordu.
+      //
+      // Fotoğraf yoksa artık `null` yazılıyor: kolon `null` kabul ediyor ve
+      // gösterim katmanı (`aracGorselleri`) boş durumu zaten doğru ele alıyor.
+      // Yer tutucuyu veriye yazmak, onu VERİ sanmakla aynı şey.
+      // =====================================================================
+      const gecerliFotograflar = (Array.isArray(formData.photos)
+        ? formData.photos
+        : [formData.photos]
+      ).filter((u) => typeof u === 'string' && /^https?:\/\//i.test(u));
+
+      const photoUrls = gecerliFotograflar.length > 0
+        ? gecerliFotograflar.join(',')
+        : null;
 
       // 🟢 1. VEHICLES PAYLOAD (TÜM Vitrin, AÇIKLAMA VE EKSPERTİZ ALANLARI DAHİL)
       const vehiclePayload = {
@@ -1067,12 +1116,44 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       });
 
       try {
-        const cdnPhotoUrls = await uploadPhotosToSupabaseStorage(formData.photos);
-        
-        const updatedStep1Data = {
-          ...formData,
-          photos: cdnPhotoUrls.length > 0 ? cdnPhotoUrls : formData.photos
-        };
+        const { adresler, basarisiz } = await uploadPhotosToSupabaseStorage(formData.photos);
+
+        // =================================================================
+        // ⚠ `: formData.photos` YEDEĞİ KALDIRILDI — ASIL HATA ORADAYDI.
+        //
+        // Eskiden şöyleydi:
+        //     photos: cdnPhotoUrls.length > 0 ? cdnPhotoUrls : formData.photos
+        //
+        // Yani yükleme tamamen başarısız olduğunda `formData.photos` aynen
+        // korunuyordu ve o dizinin içi `blob:` adresleriyle doluydu. Taslak
+        // bu adreslerle kaydediliyor, sihirbaz sonunda `image_url` alanına
+        // yazılıyordu. Sekme kapanınca adresler ölüyor ve araç KALICI olarak
+        // kırık görselle kalıyordu — kullanıcı ise hiçbir hata görmüyordu.
+        //
+        // Artık yalnızca gerçekten yüklenmiş adresler yazılıyor.
+        // =================================================================
+
+        // HİÇBİRİ yüklenemediyse ADIM İLERLEMİYOR. Fotoğraf zorunlu alan
+        // (Step1: `isPhotosValid = photos.length > 0`); ilerlemek, kullanıcıyı
+        // fotoğrafsız bir kayda doğru sessizce sürüklemek olurdu. Kullanıcı
+        // adımda kalıyor ve tekrar deneyebiliyor.
+        if (adresler.length === 0) {
+          toast.hata(
+            'Fotoğraflar yüklenemedi. Bağlantınızı denetleyip tekrar deneyin.'
+          );
+          return;
+        }
+
+        // Bir kısmı yüklendiyse: yüklenenlerle devam ediliyor ama kaç tanesinin
+        // eksik kaldığı AÇIKÇA söyleniyor. Sessizce eksiltmek, kullanıcının
+        // 10 fotoğraf eklediğini sanıp 7 tanesiyle yayına çıkması olurdu.
+        if (basarisiz > 0) {
+          toast.hata(
+            `${basarisiz} fotoğraf yüklenemedi ve eklenmedi. Sonraki adımlarda tekrar ekleyebilirsiniz.`
+          );
+        }
+
+        const updatedStep1Data = { ...formData, photos: adresler };
 
         setFormData(updatedStep1Data);
         await saveDraftToDatabase(2, updatedStep1Data);
@@ -1081,6 +1162,9 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (err) {
         console.error("Step 1 geçiş hatası:", err);
+        // ⚠ Eskiden bu dal SESSİZDİ: hata konsola yazılıp kullanıcı aynı
+        // ekranda hiçbir açıklama olmadan bırakılıyordu.
+        toast.hata('Fotoğraflar yüklenirken bir sorun oluştu. Tekrar deneyin.');
       } finally {
         setIsUploadingPhotos(false);
         setStepLoader({ isLoading: false, title: '', subtitle: '' });

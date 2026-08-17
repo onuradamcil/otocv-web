@@ -73,11 +73,34 @@ export default function NotificationDropdown({ onNavigate }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
         </svg>
 
+        {/* =================================================================
+            ROZET ÜÇ HANEDE TAŞIYORDU — ÖLÇÜMLE BULUNDU.
+            =================================================================
+            Dış kap SABİT 16x16 idi (`h-4 w-4`) ama içteki sayı içeriğe göre
+            büyüyor. Sayaç iki haneyi geçince metin kabı taşıp kesiliyordu.
+
+            Canlıda 229 okunmamış bildirimle yakalandı: üç ayrı mobil testi
+            ("MOBİLDE ... kesik metin yok") aynı anda düştü ve kesilen metin
+            üçünde de "229" idi. Sayaç 99'un altında kaldığı sürece hata
+            görünmüyordu — bu yüzden aylarca fark edilmemiş.
+
+            İki düzeltme birlikte:
+              1. Değer 99 üstünde "99+" diye gösteriliyor. Rozetin işi tam
+                 sayıyı vermek değil, "bakılacak bir şey var" demek; 229 ile
+                 99+ arasındaki fark kullanıcı için bir davranış değişikliği
+                 yaratmıyor.
+              2. Dış kap içeriğe göre büyüyor. Yalnızca kısaltma yapmak
+                 yetmezdi: dar bir kap 99+ ile de taşabilirdi.
+
+            ⚠ TAM SAYI KAYBOLMUYOR: `aria-label` (yukarıda) gerçek değeri
+            yazıyor, yani ekran okuyucu kullanıcısı "229 okunmamış" duyuyor.
+            Kısaltma görsel bir karar; bilgiyi eksiltmiyor.
+            ================================================================= */}
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 flex h-4 w-4">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-[18px] min-w-[18px] px-1 bg-rose-600 etiket text-white items-center justify-center shadow-sm">
-              {unreadCount}
+          <span className="absolute top-1 right-1 inline-flex">
+            <span className="animate-ping absolute inset-0 rounded-full bg-rose-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-[18px] min-w-[18px] px-1 bg-rose-600 etiket text-white items-center justify-center shadow-sm tabular-nums">
+              {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           </span>
         )}
