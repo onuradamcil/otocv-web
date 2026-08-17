@@ -19,6 +19,10 @@ import AracGorseli from '../common/AracGorseli';
 // alanını tek yerden veriyor. Bu dosya daha önce hepsini elle yazıyordu ve
 // dokunma hedefleri standardın altına düşmüştü.
 import { dugme } from '../common/dugme';
+import Link from 'next/link';
+// Fiyatlar TEK KAYNAKTAN geliyor: ekranla ödeme akışının farklı tutar
+// göstermesi kabul edilemez bir hata sınıfı.
+import { URUNLER, URUN_SIRASI, fiyatYaz } from '../../data/paketler';
 
 // =========================================================================
 // SÜZGEÇ ARAYÜZ PARÇALARI
@@ -28,6 +32,16 @@ import { dugme } from '../common/dugme';
 // kalması gibi sessiz farklar üretiyor — bu dosyada zaten olan şey buydu:
 // masaüstü çipleri bir duruma, mobil çipleri başka bir duruma yazıyordu.
 // =========================================================================
+
+// "Son eklenenler" eşiği. 7 gün: referans siteler 24-48 saat kullanıyor ama
+// onların günlük ilan hacmi bizim TOPLAM envanterimizden büyük. 48 saatlik bir
+// süzgeç bizde neredeyse her zaman boş dönerdi — çalışan ama faydasız bir
+// seçenek, tam da kaldırdığımız "%80+" çipinin hatası olurdu.
+//
+// ⚠ MODÜL DÜZEYİNDE: bileşen içinde tanımlıysa her render'da yeniden üretilen
+// bir değer olup `useMemo` bağımlılığı haline geliyor ve lint haklı olarak
+// uyarıyor.
+const YENI_ESIGI_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Sayılı tek satır seçenek (radyo davranışı: biri seçili). */
 function SuzgecSatiri({ etiket, adet, secili, sec }) {
@@ -146,6 +160,13 @@ export default function MarketplaceView({
   // bir `suzgec` nesnesinde (aşağıda).
   const [showAllVitrin, setShowAllVitrin] = useState(false);
 
+  // ⚠ `Date.now()` RENDER SIRASINDA ÇAĞRILAMAZ — lint bunu hata sayıyor ve
+  // haklı: saf olmayan bir çağrı, bileşen yeniden çizildiğinde farklı sonuç
+  // üretip süzgeci kararsız yapıyor. Zaman bir kez, açılışta alınıyor.
+  // "Son 7 gün" penceresi sayfa açılışına göre hesaplanıyor; bir süzgeç için
+  // doğru davranış bu.
+  const [acilisZamani] = useState(() => Date.now());
+
   // =========================================================================
   // SÜZGEÇ DURUMU — İLAN SİTESİ ALANLARI ÇIKTI, SİCİL ALANLARI GİRDİ
   //
@@ -172,6 +193,11 @@ export default function MarketplaceView({
     yilMax: '',
     sicilEnAz: 0,
     yalnizOneCikan: false,
+    // Referans sitelerde karşılığı olan zaman süzgeci: sahibinden
+    // "Son 48 Saat / 1 Hafta / 1 Ay", arabam "Son 24 Saat / 48 Saat".
+    // Bizde tek kademe yeterli: envanter küçük, daha ince kademeler hep
+    // boş sonuç verirdi.
+    yalnizYeni: false,
   });
 
   useEffect(() => {
@@ -239,6 +265,7 @@ export default function MarketplaceView({
     setSuzgec({
       marka: 'Tümü', sehir: 'Tümü', yakit: 'Tümü', vites: 'Tümü',
       yilMin: '', yilMax: '', sicilEnAz: 0, yalnizOneCikan: false,
+      yalnizYeni: false,
     });
   };
 
@@ -291,6 +318,12 @@ export default function MarketplaceView({
     },
     sicil: (i, s) => (Number(i.trust_score) || 0) >= Number(s.sicilEnAz || 0),
     oneCikan: (i, s) => !s.yalnizOneCikan || i.is_featured === true,
+    yeni: (i, s) => {
+      if (!s.yalnizYeni) return true;
+      const t = new Date(i.created_at || 0).getTime();
+      if (!Number.isFinite(t) || t === 0) return false;
+      return (s.__simdi - t) <= YENI_ESIGI_MS;
+    },
   }), []);
 
   /**
@@ -298,8 +331,11 @@ export default function MarketplaceView({
    * Sıralama: öne çıkanlar önce (ücreti ödenmiş görünürlük), sonra yeni olan.
    */
   const suz = useCallback((liste, s, q, haric) => {
+    // Açılış zamanı yüklemlere süzgeç nesnesiyle taşınıyor: yüklemler saf
+    // kalıyor, zamanı kendileri okumuyor.
+    const sz = { ...s, __simdi: acilisZamani };
     const gecenler = liste.filter((i) =>
-      Object.entries(YUKLEMLER).every(([ad, f]) => ad === haric || f(i, s, q))
+      Object.entries(YUKLEMLER).every(([ad, f]) => ad === haric || f(i, sz, q))
     );
     return gecenler.sort((a, b) => {
       // ⚠ ÖNE ÇIKARMA SIRALAMAYI BELİRLİYOR, GÖRÜNÜRLÜĞÜ ENGELLEMİYOR.
@@ -310,7 +346,7 @@ export default function MarketplaceView({
       if (a.is_featured !== b.is_featured) return a.is_featured ? -1 : 1;
       return new Date(b.created_at || 0) - new Date(a.created_at || 0);
     });
-  }, [YUKLEMLER]);
+  }, [YUKLEMLER, acilisZamani]);
 
   const aramaSorgusu = kucuk(searchQuery).trim();
 
@@ -360,16 +396,21 @@ export default function MarketplaceView({
         adet: sicilKumesi.filter((i) => (Number(i.trust_score) || 0) >= esik).length,
       })),
       oneCikanAdet: oneCikanKumesi.filter((i) => i.is_featured === true).length,
+      yeniAdet: suz(listings, suzgec, aramaSorgusu, 'yeni')
+        .filter((i) => {
+          const t = new Date(i.created_at || 0).getTime();
+          return Number.isFinite(t) && t !== 0 && (acilisZamani - t) <= YENI_ESIGI_MS;
+        }).length,
       tumuAdet: suz(listings, suzgec, aramaSorgusu, 'marka').length,
     };
-  }, [suz, listings, suzgec, aramaSorgusu]);
+  }, [suz, listings, suzgec, aramaSorgusu, acilisZamani]);
 
   /** Herhangi bir süzgeç etkin mi? "Sıfırla" ve boş durum metni için. */
   const suzgecEtkin = aramaSorgusu !== ''
     || suzgec.marka !== 'Tümü' || suzgec.sehir !== 'Tümü'
     || suzgec.yakit !== 'Tümü' || suzgec.vites !== 'Tümü'
     || suzgec.yilMin !== '' || suzgec.yilMax !== ''
-    || Number(suzgec.sicilEnAz) > 0 || suzgec.yalnizOneCikan;
+    || Number(suzgec.sicilEnAz) > 0 || suzgec.yalnizOneCikan || suzgec.yalnizYeni;
 
   const gosterilenler = showAllVitrin ? sonuclar : sonuclar.slice(0, 12);
 
@@ -511,6 +552,15 @@ export default function MarketplaceView({
                 degistir={() => suzgecDegistir('yalnizOneCikan', !suzgec.yalnizOneCikan)}
               />
 
+              {/* Zaman süzgeci — referans sitelerin ikisinde de kenar çubuğunun
+                  en üstünde duruyor. Kullanıcı bu kalıba alışkın. */}
+              <SuzgecAnahtari
+                etiket="Son 7 günde eklenen"
+                adet={secenekler.yeniAdet}
+                acik={suzgec.yalnizYeni}
+                degistir={() => suzgecDegistir('yalnizYeni', !suzgec.yalnizYeni)}
+              />
+
               {/* SİCİL PUANI — sabit "%80+" yerine bantlar ve GERÇEK sayılar. */}
               <div className="space-y-1.5 pt-3 border-t border-slate-100">
                 <span className="etiket text-slate-500 block">Sicil Puanı</span>
@@ -614,6 +664,11 @@ export default function MarketplaceView({
                   secili={suzgec.yalnizOneCikan}
                   sec={() => suzgecDegistir('yalnizOneCikan', !suzgec.yalnizOneCikan)}
                 />
+                <SuzgecCipi
+                  etiket={`Son 7 gün (${secenekler.yeniAdet})`}
+                  secili={suzgec.yalnizYeni}
+                  sec={() => suzgecDegistir('yalnizYeni', !suzgec.yalnizYeni)}
+                />
                 {secenekler.markalar.slice(0, 4).map(([ad, adet]) => (
                   <SuzgecCipi
                     key={ad}
@@ -697,25 +752,31 @@ export default function MarketplaceView({
 
             
             {/* =====================================================================
-                HİZMET ŞERİDİ — BEŞ KART, HOVER'DA YÜKSELEN
+                BÖLÜM SIRASI — SEKTÖR LİDERLERİYLE AYNI HİZADA
+                =====================================================================
+                Sıra bir tur boyunca vitrin en üstte olacak şekilde denendi
+                (gerekçe: öne çıkarma ücreti alınıyor, görünürlük aşağı
+                inmemeli). Ürün sahibi iki referans siteyi inceleyip geri
+                aldı ve haklıydı:
 
-                Bu şerit bir ara hiyerarşik bir düzene (bir baskın + üç
-                yardımcı) çevrilmişti; geri alındı. Beş eşit kart ürün
-                sahibinin tercihi ve şeridin işi bir eylemi dayatmak değil,
-                platformun beş kapısını aynı anda göstermek.
+                  · arabam.com — en üstte BEŞ hizmet kartı (Trink Sat, Arabam
+                    Kaç Para?, Sıfır Km Araçlar, Bana Araç Öner, Garaj),
+                    ardından "Vitrin" başlığı ve kart ızgarası.
+                  · sahibinden.com — sol kenarda hizmet blokları (Oto360,
+                    Emlak360), ardından "Anasayfa Vitrini".
 
-                TEK REVİZYON — ÇİFT KAPI KAPATILDI:
-                Eski beşlide "Künye Sorgula" ve "Sicil Sorgula" kartlarının
-                İKİSİ de `onNavigateToVerify`e gidiyordu; kullanıcıya iki
-                kapı gösterip tek odaya çıkarıyordu. PIN sorgusu tek kartta
-                birleşti, boşalan yere gerçek ve ayrı bir iş kondu: araç
-                devri (`/devir`).
+                İkisinde de hizmet şeridi vitrinin ÜSTÜNDE. Kullanıcı bu
+                düzene alışkın; aşinalık, bizim iç önceliğimizden ağır basıyor.
 
-                Kartlar `<button>`; `<div onClick>` klavyeyle kullanılamıyor.
-                Yükselme efekti `motion-reduce` ile kapanıyor — hareket
-                duyarlılığı olan kullanıcı için sektör standardı.
-            ===================================================================== */}
-            <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs select-none">
+                Vitrinin görünürlüğü yine korunuyor: hizmet şeridi tek satır
+                ve vitrin hemen altında, ilk ekranda kalıyor.
+
+                Sıra: hizmetler -> vitrin -> nereden başlarsınız ->
+                nasıl çalışır -> ücretli işlemler.
+                ===================================================================== */}
+            <h2 className="baslik-bolum text-slate-900">Hizmetler</h2>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-2xs select-none">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 {[
                   {
@@ -875,7 +936,21 @@ export default function MarketplaceView({
                 </div>
               ) : (
                 /* ARABAM.COM STYLE VİTRİN KARTLARI GRİDİ */
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3.5">
+                /* ⚠ BU KONUMDA SÜSLÜ PARANTEZLİ JSX YORUMU KULLANILAMAZ.
+                   Burası bir ternary'nin ifade dalı, JSX çocuğu değil. JSX
+                   yorumu orada NESNE DEĞİŞMEZİ olarak ayrıştırılıyor ve derleme
+                   "Expected '</', got 'ident'" ile düşüyor. Düz JS yorumu doğru.
+
+                   (Bir de: blok yorumun İÇİNDE yorum kapatma dizisi yazmak
+                   yorumu erken bitiriyor — o da ayrı bir derleme hatası verdi.)
+
+                   `2xl:grid-cols-6` — referans yoğunluğuna yaklaşma:
+                   arabam.com 6, sahibinden.com 7 sütun kullanıyor; bizde en
+                   fazla 5 vardı. Bugün iki araçla görünür fark yok ama
+                   envanter büyüdüğünde alışılmış yoğunluğun altında kalırdı.
+
+                   `sizes` de güncellendi (kart bileşeninin içinde). */
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5">
                   {gosterilenler.map((item, sira) => (
                     <ArabamStyleVitrinCard
                       key={item.listing_id || item.id}
@@ -890,8 +965,180 @@ export default function MarketplaceView({
               )}
             </div>
 
+            {/* =====================================================================
+                İKİ EŞİT YOL — ÜRÜN SAHİBİNİN SIRALAMASINDA 2 NUMARA
+                =====================================================================
+                Vitrin 1 numara (yukarıda). Bunlar 2 numara ve BİRBİRİNE EŞİT:
+                biri alan tarafını (bir aracın geçmişini gör), diğeri arz
+                tarafını (kendi aracının siciline sahip ol) açıyor.
+
+                ⚠ İKİSİ DE `ikincil`. `dugme.js:28` "ekran başına tek birincil"
+                diyor ve bu sayfada birincil hiçbir eyleme verilmedi: vitrin
+                zaten sayfanın içeriği, düğmeye ihtiyacı yok. İki eşit ağırlıklı
+                çağrıdan birini indigoya çevirmek, ürün sahibinin "eşit olmalı"
+                kararını sessizce bozmak olurdu.
+                ===================================================================== */}
+            {/* Bölüm başlığı `h2`: bu iki kartın h3'leri, başlığı olmayan bir
+                bölümde durduğu için belge sırasında "Vitrindeki Araçlar"ın
+                altına düşüyordu — oysa vitrinle ilgileri yok. */}
+            <h2 className="baslik-bolum text-slate-900">Nereden başlarsınız?</h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                {
+                  ikon: 'pinKod',
+                  baslik: 'Bir aracın geçmişini görün',
+                  ozet: 'Elinizdeki PIN kodunu girin; aracın bakım geçmişi, poliçe tarihleri ve sicil puanı açılır.',
+                  eylem: 'PIN ile sorgula',
+                  tik: onNavigateToVerify,
+                },
+                {
+                  ikon: 'arac',
+                  baslik: 'Aracınızın sicilini oluşturun',
+                  ozet: 'Bakımlarınızı faturasıyla biriktirin. Geçmişi belgeli bir araç, karnesini tek bağlantıyla gösterir.',
+                  eylem: 'Aracımı kaydet',
+                  tik: onNavigateToGarage,
+                },
+              ].map((yol) => (
+                <div key={yol.baslik} className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-2">
+                  <span className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 grid place-items-center text-indigo-600 shrink-0" aria-hidden="true">
+                    <Icon name={yol.ikon} size="md" />
+                  </span>
+                  <h3 className="baslik-kart text-slate-900">{yol.baslik}</h3>
+                  <p className="metin-yardimci text-slate-500 leading-relaxed flex-1">{yol.ozet}</p>
+                  <button type="button" onClick={yol.tik} className={dugme('ikincil', { tamGenislik: true })}>
+                    {yol.eylem}
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* =====================================================================
+                HİZMET ŞERİDİ — BEŞ KART, HOVER'DA YÜKSELEN
+
+                Bu şerit bir ara hiyerarşik bir düzene (bir baskın + üç
+                yardımcı) çevrilmişti; geri alındı. Beş eşit kart ürün
+                sahibinin tercihi ve şeridin işi bir eylemi dayatmak değil,
+                platformun beş kapısını aynı anda göstermek.
+
+                TEK REVİZYON — ÇİFT KAPI KAPATILDI:
+                Eski beşlide "Künye Sorgula" ve "Sicil Sorgula" kartlarının
+                İKİSİ de `onNavigateToVerify`e gidiyordu; kullanıcıya iki
+                kapı gösterip tek odaya çıkarıyordu. PIN sorgusu tek kartta
+                birleşti, boşalan yere gerçek ve ayrı bir iş kondu: araç
+                devri (`/devir`).
+
+                Kartlar `<button>`; `<div onClick>` klavyeyle kullanılamıyor.
+                Yükselme efekti `motion-reduce` ile kapanıyor — hareket
+                duyarlılığı olan kullanıcı için sektör standardı.
+            ===================================================================== */}
           </section>
 
+        </div>
+      </div>
+
+      {/* =====================================================================
+          NASIL ÇALIŞIR — ÜRÜNÜ İLK KEZ GÖRENE ANLATAN BÖLÜM
+          =====================================================================
+          Anasayfada ürünün ne olduğunu anlatan HİÇBİR ŞEY yoktu: bir h1, bir
+          arama kutusu ve araç kartları. İlk kez gelen biri bu ürünün ne
+          yaptığını öğrenemiyordu.
+
+          ⚠ HİÇBİR DOĞRULAMA İDDİASI YOK. Bu ürün beyanları bağımsız olarak
+          doğrulamıyor ve resmi belge bunu açıkça yazıyor. "AI onaylı",
+          "blokzincir", "noter onaylı", "%100 doğrulanmış", "TÜVTÜRK ONAYLI"
+          gibi ifadeler `16-uydurma-veri` tarafından yasaklı — haklı olarak.
+          Metinler yalnızca sistemin GERÇEKTEN yaptığı işi anlatıyor.
+
+          Sıra numarası süs değil: adımlar birbirini gerektiriyor.
+          ===================================================================== */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-5">
+          <div className="space-y-1">
+            <h2 className="baslik-bolum text-slate-900">Nasıl çalışır</h2>
+            <p className="metin-yardimci text-slate-500">
+              Sicil aracın kendi kaydıdır; beyanlardan ve yüklenen belgelerden oluşur.
+            </p>
+          </div>
+
+          <ol className="grid grid-cols-1 md:grid-cols-3 gap-4 list-none">
+            {[
+              {
+                baslik: 'Aracınızı kaydedin',
+                ozet: 'Plaka, kilometre ve poliçe tarihlerini girin. Kayıt tamamlandığında araca ait PIN kodu oluşur.',
+              },
+              {
+                baslik: 'Geçmişi biriktirin',
+                ozet: 'Her bakımı servis faturasıyla ekleyin. Sicil puanı, girdiğiniz beyanlar ve yüklediğiniz belgelerden hesaplanır.',
+              },
+              {
+                baslik: 'PIN ile gösterin',
+                ozet: 'Karneyi tek bağlantıyla paylaşın. Karşı taraf kaydı olduğu gibi görür.',
+              },
+            ].map((adim, i) => (
+              <li key={adim.baslik} className="flex gap-3">
+                <span
+                  className="w-7 h-7 rounded-full bg-slate-900 text-white grid place-items-center shrink-0 etiket tabular-nums"
+                  aria-hidden="true"
+                >
+                  {i + 1}
+                </span>
+                <div className="space-y-1 min-w-0">
+                  <h3 className="baslik-kart text-slate-900">{adim.baslik}</h3>
+                  <p className="metin-yardimci text-slate-500 leading-relaxed">{adim.ozet}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+
+      {/* =====================================================================
+          ÜCRETLİ İŞLEMLER — GELİR GETİREN ÖZELLİKLER GÖZ ÖNÜNDE
+          =====================================================================
+          Ürün sahibinin isteği: "bize gelir getirecek özellikler de göz önünde
+          olmalı." Bu dört işlem anasayfada HİÇ görünmüyordu; kullanıcı ancak o
+          işlemi yapmaya çalışırken ücreti öğreniyordu.
+
+          ⚠ FİYATLAR ELLE YAZILMIYOR. Tek kaynak `data/paketler.js`; ekranla
+          ödeme akışının farklı tutar göstermesi ürünün en pahalı hata sınıfı.
+
+          ⚠ ARAÇ FİYATI DEĞİL, HİZMET ÜCRETİ. Ürün araç tutarı göstermiyor
+          (hukuki gerekçe kart bileşeninde yazılı); burada gösterilen kendi
+          hizmet bedelimiz.
+
+          ⚠ BİNLİK AYRAÇ TUZAĞI: `14-urun-dili.spec.js:30` binlik ayraçlı
+          tutarları (₺1.250 gibi) yasaklıyor. Dördü de bin liranın altında
+          olduğu için bugün güvenli; bir ürün 999'u geçerse `fiyatYaz` nokta
+          koyar ve anasayfa dili testi ANINDA kırılır. Fiyat yükseltilirken
+          burası görülmeli.
+          ===================================================================== */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="baslik-bolum text-slate-900">Ücretli işlemler</h2>
+            <Link href="/packages" className={dugme('sessiz')}>
+              Ücretlerin tamamı
+            </Link>
+          </div>
+
+          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 list-none">
+            {URUN_SIRASI.map((anahtar) => {
+              const u = URUNLER[anahtar];
+              if (!u) return null;
+              return (
+                <li key={u.kod} className="border border-slate-200 rounded-xl p-3.5 space-y-1.5">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <h3 className="baslik-kart text-slate-900">{u.ad}</h3>
+                    <span className="metin-yardimci font-semibold text-slate-900 tabular-nums shrink-0">
+                      {fiyatYaz(u.fiyat)}
+                    </span>
+                  </div>
+                  <p className="metin-yardimci text-slate-500 leading-relaxed">{u.ozet}</p>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </div>
 
@@ -960,11 +1207,18 @@ function ArabamStyleVitrinCard({ item, sira = 0, onSelectVehicle, favorili = fal
             değerlendirilen profil o. Beş sütunun tamamına `priority` vermek
             "her şey öncelikli" demek olurdu — Next bunu da uyarıyor ve
             öncelik anlamını yitiriyor. */}
+        {/* `sizes` kapsayıcının GERÇEK ölçüsünden: `max-w-7xl` (1280px) ile
+            sınırlı, kart alanı 9/12 -> ~890px. Bu yüzden geniş ekranda ölçü
+            `vw` değil SABİT px — kutu artık büyümüyor. 5 sütun -> ~170px,
+            6 sütun (2xl) -> ~145px.
+
+            ⚠ Sütun sayısı değişince BURASI da güncellenmek zorunda; yoksa
+            tarayıcı yanlış boyutta görsel indirir ve iyileştirme boşa gider. */}
         <AracGorseli
           src={firstPhoto}
           alt={`${item.brand || ''} ${item.model || ''}`.trim()}
           priority={sira < 2}
-          sizes="(max-width: 639px) 50vw, (max-width: 767px) 33vw, (max-width: 1023px) 25vw, (max-width: 1279px) 18vw, 170px"
+          sizes="(max-width: 639px) 50vw, (max-width: 767px) 33vw, (max-width: 1023px) 25vw, (max-width: 1279px) 18vw, (max-width: 1535px) 170px, 145px"
         />
         {/* Not: görsel yokluğunda "GÖRSEL YOK" durumu artık `AracGorseli`
             içinde basılıyor — aynı metin, tek yerde. */}
