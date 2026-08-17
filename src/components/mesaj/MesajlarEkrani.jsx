@@ -59,12 +59,9 @@ export default function MesajlarEkrani() {
   const [taslak, setTaslak] = useState('');
   const [gonderiliyor, setGonderiliyor] = useState(false);
   const [sikayetAcik, setSikayetAcik] = useState(false);
-  // ⚠ ANLIK TESLİMİN DOĞRU ÇALIŞMASI İÇİN ŞART.
-  // Realtime kanalı konuşmadaki HER satırı yayıyor — kendi gönderdiğimizi de.
-  // Gelen satırın bize mi ait olduğunu ancak kendi kimliğimizi bilerek
-  // söyleyebiliriz; bilinmezse kendi mesajımız karşı taraftan gelmiş gibi
-  // görünüyor.
-  const [benimKimligim, setBenimKimligim] = useState(null);
+  // NOT: `benimKimligim` DURUMU KALDIRILDI, yerine `kimligimRef` geldi
+  // (gerekçesi aşağıda, ref'in tanımında). Durum kullanmak, kimlik henüz
+  // gelmemişken realtime dinleyicisinin yanlış karar vermesine yol açıyordu.
 
   const akisSonu = useRef(null);
 
@@ -114,79 +111,169 @@ export default function MesajlarEkrani() {
     }
   }, [listeyiYukle]);
 
-  useEffect(() => {
-    let iptal = false;
-    supabase.auth.getUser().then(({ data }) => {
-      if (!iptal) setBenimKimligim(data?.user?.id ?? null);
-    });
-    return () => { iptal = true; };
+  // =========================================================================
+  // KİMLİK ARTIK REF'TE — DURUMDA DEĞİL. NİYE?
+  //
+  // Kimlik `getUser()` ile asenkron geliyor. Realtime dinleyicisi durumdaki
+  // değere baksa, kimlik henüz gelmemişken bir mesaj düşerse `benimMi` FALSE
+  // hesaplanıyor ve kendi mesajımız KARŞI TARAFTAN gelmiş gibi çiziliyordu.
+  //
+  // Ayrıca dinleyici efekti `benimKimligim`e bağımlıydı: kimlik gelince kanal
+  // kapanıp yeniden açılıyordu ve o kısa boşlukta gelen satır kaybedilebiliyordu.
+  //
+  // Ref + tembel çözüm ikisini birden kapatıyor: dinleyici artık yalnızca
+  // `secili`ye bağlı ve kimliği gerektiği anda, gerekiyorsa bekleyerek çözüyor.
+  // =========================================================================
+  const kimligimRef = useRef(null);
+
+  // Gonderilmis ama gercek satiri henuz gelmemis yer tutucularin kimlikleri.
+  // Emniyet agi buna bakiyor; durum guncelleyicisi saf kaliyor.
+  const bekleyenlerRef = useRef(new Set());
+
+  // Kurulan emniyet zamanlayicilari. Bilesen sokulurken temizlenmeleri sart:
+  // aksi halde ekran kapandiktan sonra `setMesajlar` cagirip React uyarisi
+  // uretiyor ve gereksiz bir ag istegi atiyorlar.
+  const zamanlayicilarRef = useRef(new Set());
+  useEffect(() => () => {
+    zamanlayicilarRef.current.forEach(clearTimeout);
+    zamanlayicilarRef.current.clear();
   }, []);
+
+  const kimligimiCoz = useCallback(async () => {
+    if (kimligimRef.current) return kimligimRef.current;
+    const { data } = await supabase.auth.getUser();
+    kimligimRef.current = data?.user?.id ?? null;
+    return kimligimRef.current;
+  }, []);
+
+  // Önden ısıtma: ilk mesaj gelmeden kimlik hazır olsun.
+  useEffect(() => { kimligimiCoz(); }, [kimligimiCoz]);
 
   // ANLIK TESLİM. Abonelik konuşma değişince kapanıp yenisi açılıyor;
   // kapatmayı unutmak her seçimde bir kanal daha bırakırdı.
   useEffect(() => {
     if (!secili) return undefined;
-    const kapat = mesajlariDinle(secili, (yeni) => {
+
+    const kapat = mesajlariDinle(secili, async (yeni) => {
+      // ⚠ KİMLİK BURADA, GEREKTİĞİ ANDA ÇÖZÜLÜYOR.
+      // Kapanışta yakalanan bir değere bakmak, kimlik henüz gelmemişken
+      // kendi mesajımızı "karşı taraftan" saymak anlamına geliyordu.
+      const benId = await kimligimiCoz();
+      const benimMi = !!benId && yeni.gonderen_id === benId;
+
       setMesajlar((onceki) => {
         // Aynı satır iki kez gelirse (yeniden abone olma) yok say.
         if (onceki.some((m) => m.id === yeni.id)) return onceki;
 
-        // ⚠ GÖNDEREN KİMLİĞİNE BAKILIYOR — BAKILMIYORDU.
-        //
-        // Eskiden gelen her satır `benim: false` ile ekleniyordu. Realtime
-        // kanalı kendi gönderdiğimiz satırı da yaydığı için kullanıcı KENDİ
-        // mesajını ikinci kez, üstelik KARŞI TARAFTAN gelmiş gibi görüyordu.
-        //
-        // Yerindeki tekilleştirme bunu yakalayamıyordu: iyimser ekleme
-        // `yerel-0-12` gibi UYDURMA bir kimlik kullanıyor, realtime ise
-        // gerçek uuid getiriyor. İki kimlik hiçbir zaman eşleşmiyordu.
-        const benimMi = !!benimKimligim && yeni.gonderen_id === benimKimligim;
-
         if (benimMi) {
-          // Kendi mesajımız: iyimser yer tutucuyu gerçek satırla DEĞİŞTİR,
-          // yenisini ekleme. Böylece mesaj ekranda tek kalıyor ve gerçek
-          // kimliğine kavuşuyor (sonraki tekilleştirmeler çalışsın diye).
-          const yer = onceki.findIndex(
-            (m) => m.benim && String(m.id).startsWith('yerel-') && m.govde === yeni.govde
-          );
+          // Kendi mesajımız: BEKLEYEN yer tutucuyu gerçek satırla değiştir,
+          // yenisini ekleme.
+          //
+          // `bekliyor` bayrağına bakılıyor, kimlik önekine değil: yer tutucu
+          // artık gerçek bir UUID taşıyor (React `key` çakışmasın diye) ve
+          // "yerel-" gibi bir desenle ayırt edilemez.
+          //
+          // İlk eşleşen alınıyor: kullanıcı aynı metni iki kez gönderdiğinde
+          // iki bekleyen kayıt oluyor ve iki realtime satırı sırayla birini
+          // kapatıyor. Sıra korunduğu için eşleşme doğru.
+          const yer = onceki.findIndex((m) => m.bekliyor && m.govde === yeni.govde);
           if (yer > -1) {
+            bekleyenlerRef.current.delete(onceki[yer].id);
             const kopya = [...onceki];
             kopya[yer] = { id: yeni.id, benim: true, govde: yeni.govde, olustu: yeni.olustu };
             return kopya;
           }
         }
 
+        // Buraya düşen iki meşru durum var: karşı tarafın mesajı, ya da kendi
+        // mesajımızın BAŞKA bir sekmeden/cihazdan gönderilmiş olması.
         return [...onceki, { id: yeni.id, benim: benimMi, govde: yeni.govde, olustu: yeni.olustu }];
       });
 
       // Okundu işareti YALNIZCA karşı tarafın mesajı için. Kendi mesajımızı
       // okundu saymak, karşı taraf hiç açmadan "okundu" göstermek olurdu.
-      if (!benimKimligim || yeni.gonderen_id !== benimKimligim) okunduIsaretle(secili);
+      if (!benimMi) okunduIsaretle(secili);
     });
+
     return kapat;
-  }, [secili, benimKimligim]);
+  }, [secili, kimligimiCoz]);
 
   useEffect(() => {
     akisSonu.current?.scrollIntoView({ block: 'end' });
   }, [mesajlar.length]);
 
+  // =========================================================================
+  // ⚠ ASIL HATA BURADAYDI: "İYİMSER" EKLEME AWAIT'TEN SONRA YAPILIYORDU.
+  //
+  // Eski sıra şöyleydi:
+  //     await mesajGonder(...)        // satır veritabanına YAZILIYOR
+  //     setMesajlar(... yer tutucu)   // yer tutucu ANCAK ŞİMDİ ekleniyor
+  //
+  // Realtime, `await` çözülmeden önce INSERT olayını getiriyor. Yani gerçek
+  // sıra çoğu zaman şu oluyordu:
+  //
+  //   1. satır yazıldı
+  //   2. realtime geldi -> değiştirilecek yer tutucu HENÜZ YOK -> satır EKLENDİ
+  //   3. await döndü -> yer tutucu da EKLENDİ
+  //
+  // Sonuç: mesaj ekranda İKİ KEZ. Üstelik kimlik henüz çözülmemişse 2. adımda
+  // eklenen kopya `benim: false` alıyor ve KARŞI TARAFTAN gelmiş gibi
+  // çiziliyordu — kullanıcının bildirdiği belirti tam olarak buydu.
+  //
+  // "İyimser ekleme" adı doğruydu, yeri yanlıştı: iyimser olmak, sunucuyu
+  // BEKLEMEDEN göstermek demek.
+  // =========================================================================
   async function gonder(e) {
     e.preventDefault();
     const govde = taslak.trim();
     if (!govde || gonderiliyor || !secili) return;
 
+    // Gerçek bir UUID: React `key`i çakışmasın ve yer tutucu ile realtime
+    // satırı asla aynı kimliği taşımasın.
+    const geciciId = `bekleyen-${crypto.randomUUID()}`;
+
+    // ÖNCE ekrana, SONRA sunucuya.
+    bekleyenlerRef.current.add(geciciId);
+    setMesajlar((o) => [...o, {
+      id: geciciId, benim: true, govde, olustu: new Date().toISOString(), bekliyor: true,
+    }]);
+    setTaslak('');
     setGonderiliyor(true);
+
     const { basarili, hata } = await mesajGonder(secili, govde);
     setGonderiliyor(false);
 
-    if (!basarili) { toast.hata(hata); return; }
+    if (!basarili) {
+      // Baloncuk geri alınıyor VE yazı kullanıcıya geri veriliyor: gönderilemeyen
+      // bir mesajın ekranda kalması "gitti" yanılgısı yaratır, yazının silinmesi
+      // ise kullanıcının emeğini yok eder.
+      bekleyenlerRef.current.delete(geciciId);
+      setMesajlar((o) => o.filter((m) => m.id !== geciciId));
+      setTaslak((mevcut) => (mevcut.trim() ? mevcut : govde));
+      toast.hata(hata);
+      return;
+    }
 
-    // İyimser ekleme: Realtime kendi gönderdiğimiz satırı da yayıyor ama
-    // yazının kutudan hemen kaybolması gerekiyor.
-    setMesajlar((o) => [...o, {
-      id: `yerel-${o.length}-${govde.length}`, benim: true, govde, olustu: new Date().toISOString(),
-    }]);
-    setTaslak('');
+    // Başarılı. Gerçek satırı realtime getirip yer tutucuyu değiştirecek.
+    //
+    // EMNİYET AĞI: kanal koptuysa realtime hiç gelmez ve baloncuk sonsuza
+    // kadar `bekliyor` kalır — dahası, sonradan aynı metni gönderirsek onun
+    // satırını yanlışlıkla yutabilir. Süre sonunda hâlâ bekliyorsa konuşma
+    // sunucudan yeniden okunuyor; tek gerçek kaynak orası.
+    //
+    // ⚠ DENETİM REF'TEN YAPILIYOR, `setMesajlar` İÇİNDEN DEĞİL. Durum
+    // güncelleyicisinin içinde dışarıdaki bir değişkeni yazmak React'in
+    // güncelleyiciyi iki kez çağırabildiği durumlarda güvenilmez — kural
+    // olarak güncelleyici saf kalmalı.
+    const zamanlayici = setTimeout(async () => {
+      if (!bekleyenlerRef.current.has(geciciId)) return;
+      const { basarili: ok, veri } = await mesajlariGetir(secili);
+      if (ok && veri) {
+        bekleyenlerRef.current.delete(geciciId);
+        setMesajlar(veri.mesajlar || []);
+      }
+    }, 5000);
+    zamanlayicilarRef.current.add(zamanlayici);
   }
 
   async function engelleDegistir() {
@@ -384,11 +471,19 @@ export default function MesajlarEkrani() {
                 )}
                 {mesajlar.map((m) => (
                   <div key={m.id} className={`flex ${m.benim ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[78%] rounded-2xl px-3 py-2 ${
+                    {/* `bekliyor`: sunucu onayı henüz gelmedi. Hafif saydamlık
+                        kullanıcıya "gitti ama henüz kesinleşmedi" diyor —
+                        mesajlaşma uygulamalarının yerleşik dili. Ayrı bir metin
+                        eklenmiyor: baloncuğun içine "gönderiliyor" yazmak,
+                        mesajın kendisiymiş gibi okunuyor. */}
+                    <div className={`max-w-[78%] rounded-2xl px-3 py-2 transition-opacity ${
+                      m.bekliyor ? 'opacity-60' : 'opacity-100'
+                    } ${
                       m.benim
                         ? 'bg-indigo-600 text-white rounded-br-sm'
                         : 'bg-white border border-slate-200 text-slate-800 rounded-bl-sm'
-                    }`}>
+                    }`}
+                    aria-busy={m.bekliyor || undefined}>
                       <p className="metin-govde whitespace-pre-wrap break-words">{m.govde}</p>
                       <p className={`metin-yardimci mt-0.5 font-mono ${m.benim ? 'text-indigo-200' : 'text-slate-500'}`}>
                         {saatBicimi(m.olustu)}

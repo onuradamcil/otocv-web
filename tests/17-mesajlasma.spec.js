@@ -316,6 +316,114 @@ test.describe('Mesajlaşma arayüzü', () => {
     await expect(page.getByText(metin)).toBeVisible({ timeout: 20_000 });
   });
 
+  // =======================================================================
+  // REGRESYON: KENDİ MESAJIM İKİ KEZ VE "KARŞI TARAFTAN" GÖRÜNÜYORDU
+  //
+  // Ürün sahibinin bildirdiği hata: yazdığı mesaj aynı anda karşı taraftan
+  // gelmiş gibi ikinci kez beliriyordu.
+  //
+  // SEBEBİ: "iyimser ekleme" `await mesajGonder(...)` SONRASINDA yapılıyordu.
+  // Realtime INSERT olayı `await` çözülmeden önce geldiği için gerçek sıra
+  // şuydu:
+  //   1. satır yazıldı
+  //   2. realtime geldi -> değiştirilecek yer tutucu HENÜZ YOK -> satır eklendi
+  //   3. await döndü -> yer tutucu da eklendi   => ekranda İKİ baloncuk
+  // Kimlik (`getUser`) henüz çözülmemişse 2. adımdaki kopya `benim: false`
+  // alıyor ve KARŞI TARAF baloncuğu olarak çiziliyordu.
+  //
+  // ⚠ YARIŞ DURUMU UMULMUYOR, ZORLANIYOR.
+  //
+  // İlk yazımda bu test hatalı kodda da GEÇTİ: geliştirme makinesinde RPC
+  // yanıtı realtime'dan hızlı dönüyor, dolayısıyla yer tutucu yine önce
+  // ekleniyor ve kopya hiç oluşmuyor. Yani test, hatayı yakalamadığı hâlde
+  // yeşil veriyordu — en tehlikeli test türü.
+  //
+  // Çözüm: `mesaj_gonder` yanıtı KASITLI geciktiriliyor. Realtime WebSocket
+  // üzerinden geldiği için gecikmeden etkilenmiyor ve sıra kullanıcının
+  // yaşadığı hâle geliyor (yavaş bağlantı, yüklü sunucu). Hatalı kodda bu
+  // pencerede kopya kesin oluşuyor.
+  //
+  // Ayrıca gönderdikten sonra BEKLENİYOR: kopya realtime ile geldiği için
+  // hemen sayan bir denetim onu kaçırır.
+  // =======================================================================
+  test('REGRESYON: gönderilen mesaj TEK baloncuk ve KENDİ tarafımda', async ({ page }) => {
+    test.setTimeout(120_000);
+
+    // ⚠ İSTEK DEĞİL, YANIT GECİKTİRİLİYOR — VE FARK ÖNEMLİ.
+    //
+    // İlk denemede `await bekle(); route.continue()` yazılmıştı. O, İSTEĞİ
+    // geciktiriyor: satır 3 saniye sonra yazılıyor, realtime da ondan sonra
+    // geliyor, yer tutucu yine önce ekleniyor ve yarış HİÇ oluşmuyor. Test
+    // hatalı kodda da geçiyordu.
+    //
+    // Doğrusu: istek HEMEN gitsin (satır yazılsın, realtime yayılsın), ama
+    // istemcinin `await`i geç çözülsün. Kullanıcının yaşadığı durum bu —
+    // yavaş bağlantıda yanıt gecikiyor, realtime WebSocket'ten çabuk geliyor.
+    await page.route('**/rpc/mesaj_gonder', async (route) => {
+      const yanit = await route.fetch();               // satır şimdi yazılıyor
+      await new Promise((r) => setTimeout(r, 3000));    // yanıt bekletiliyor
+      await route.fulfill({ response: yanit });
+    });
+
+    await girisYap(page);
+    await page.goto('/mesajlar');
+    await page.waitForLoadState('networkidle');
+
+    const konusma = page.locator('aside button').first();
+    const varMi = await konusma.isVisible().catch(() => false);
+    test.skip(!varMi, 'araç sahibinin konuşması yok');
+    await konusma.click();
+
+    const metin = `Tek balon denetimi ${Date.now()}`;
+    await page.getByLabel('Mesajınız').fill(metin);
+    await page.getByRole('button', { name: /Gönder/i }).click();
+
+    // Baloncuk belirsin.
+    const balonlar = page.getByText(metin, { exact: true });
+    await expect(balonlar.first()).toBeVisible({ timeout: 30_000 });
+
+    // =====================================================================
+    // ⚠ TEK AN ÖRNEKLENMİYOR — PENCERE BOYUNCA İZLENİYOR.
+    //
+    // İlk yazımda test "gönder, 5 sn bekle, say" diyordu ve hatalı kodda
+    // GEÇİYORDU. Sebebi ölçüldü: kopya t≈3,5 sn'de oluşuyor, ama uygulamanın
+    // emniyet ağı t=5 sn'de konuşmayı sunucudan tazeleyip listeyi
+    // düzeltiyor. Yani kendi emniyet ağımız hatayı kendi testimizden
+    // saklıyordu — tam olarak "yanlış sebeple geçen test".
+    //
+    // Ölçülen seyir (hatalı kodda):
+    //     t=0,5s -> 1     realtime geldi
+    //     t=3,5s -> 2     await döndü, yer tutucu da eklendi  ← KOPYA
+    //     t=8,5s -> 1     emniyet ağı düzeltti
+    //
+    // Doğru iddia "sonunda tek" değil, "HİÇBİR AN ikiden fazla olmadı".
+    // Kullanıcı o 5 saniyeyi görüyor.
+    // =====================================================================
+    let enFazla = 0;
+    const seyir = [];
+    for (let i = 0; i < 32; i++) {
+      await page.waitForTimeout(250);
+      const n = await balonlar.count();
+      if (n > enFazla) enFazla = n;
+      seyir.push(n);
+    }
+
+    expect(
+      enFazla,
+      `mesaj bir an için ${enFazla} kez göründü (kopya). Seyir: ${seyir.join(',')}`
+    ).toBe(1);
+
+    // 2) Ve KENDİ tarafımda. Kendi baloncuğum `bg-indigo-600`, karşı tarafın
+    //    `bg-white border`. Kopya yanlış tarafta çizilirse burada düşer.
+    const balon = balonlar.locator(
+      'xpath=ancestor::div[contains(@class,"rounded-2xl")][1]'
+    );
+    await expect(
+      balon,
+      'kendi mesajım karşı taraf baloncuğu olarak çizilmiş'
+    ).toHaveClass(/bg-indigo-600/);
+  });
+
   test('oturumsuz ziyaretçi mesajlar sayfasında giriş uyarısı görüyor', async ({ page }) => {
     await page.goto('/mesajlar');
     await page.waitForLoadState('networkidle');
