@@ -43,6 +43,8 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
   // 1. BLOK: REAKTİF DURUM VE VERİTABANI HAFIZASI
   // =========================================================================
   const [vehicles, setVehicles] = useState([]);
+  // Hangi aracın görünürlüğü kaydediliyor (çift tıklamayı engelliyor).
+  const [gorunurlukKaydediliyor, setGorunurlukKaydediliyor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -157,6 +159,32 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
     const insp = calculatePolicyStatus(car.inspection_end_date);
     return ins.isCritical || kas.isCritical || insp.isCritical;
   });
+
+  /**
+   * Aracın aramada görünürlüğünü değiştirir.
+   *
+   * ⚠ İYİMSER GÜNCELLEME YOK. Anahtar önce ekranda dönüp sonra sunucudan
+   * hata gelirse kullanıcı aracını gizlediğini sanırken görünür kalır —
+   * mahremiyet ayarında en kötü hata sınıfı bu. Önce yazılıyor, sonra
+   * ekran güncelleniyor.
+   */
+  const gorunurlukDegistir = async (plaka, yeniDeger) => {
+    setGorunurlukKaydediliyor(plaka);
+    try {
+      const { error } = await supabase
+        .from('vehicles')
+        .update({ gorunurluk: yeniDeger })
+        .eq('plate_number', plaka);
+      if (error) throw error;
+      setVehicles((onceki) => onceki.map((a) => (
+        a.plate_number === plaka ? { ...a, gorunurluk: yeniDeger } : a
+      )));
+    } catch (hata) {
+      console.error('Görünürlük güncellenemedi:', hata.message);
+    } finally {
+      setGorunurlukKaydediliyor(null);
+    }
+  };
 
   const handleOpenModal = (vehicle, type, statusInfo) => {
     setSelectedVehicleForModal(vehicle);
@@ -515,6 +543,8 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
                 onOpenListingModal={handleOpenListingModal}
                 onOpenDevir={handleOpenDevirModal}
                 onManageListings={onManageListings}
+                gorunurlukDegistir={gorunurlukDegistir}
+                gorunurlukKaydediliyor={gorunurlukKaydediliyor === vehicle.plate_number}
               />
             ))}
           </div>
@@ -683,7 +713,10 @@ function MerkezEylem({ eylem, onAc }) {
 // sat" niyeti kartın üstünde doğuyor, kullanıcıyı yukarı göndermek yerine
 // yerinde karşılıyoruz. Keşfedilebilirlik korunuyor, gürültü kalkıyor.
 // =========================================================================
-function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, onOpenModal, onOpenListingModal, onOpenDevir, onManageListings }) {
+function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, onOpenModal, onOpenListingModal, onOpenDevir, onManageListings, gorunurlukDegistir, gorunurlukKaydediliyor }) {
+  // Kapatma onayı kart içinde soruluyor; ayrı bir modal açmak mahremiyet
+  // ayarı için gereğinden ağır ve kullanıcıyı karttan koparıyor.
+  const [gizlemeOnayi, setGizlemeOnayi] = useState(false);
   // Varsayilan 0: puan artik veritabaninda her zaman hesaplaniyor ve NULL olamaz.
   // Eskiden bu satirlar `?? 60`, `?? 92` ve `?? 94` idi -- AYNI arac icin uc
   // ayri sayi. Simdi olu kod; yine de 0 birakiliyor ki bir gun deger gelmezse
@@ -881,6 +914,86 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
             </div>
           )}
         </div>
+      </div>
+
+      {/* ====================================================================
+          KATMAN 4 — ARAMADA GÖRÜNÜRLÜK
+          ====================================================================
+          Kayıtlı her araç artık anasayfa aramasında ve marka süzgeçlerinde
+          çıkabiliyor. Bu satır o kararı KULLANICIYA bırakıyor.
+
+          ⚠ VARSAYILAN AÇIK (veritabanı `gorunurluk` alanının varsayılanı).
+          Ürün sahibinin kararı: "ilk seçenek görünür olsun, değiştirdiği
+          anda uyarı çıksın".
+
+          ⚠ KARNE HER İKİ DURUMDA DA KAPALI. Görünür olmak aracın künyesini
+          (marka/model/yıl/şehir/sicil puanı ve fotoğraf) açıyor; bakım
+          geçmişi ve belgeler DEĞİL. Karne yalnızca vitrine çıkarılınca
+          paylaşılıyor. Metin bunu açıkça söylüyor — kullanıcı ne verdiğini
+          bilmeden "görünür" diyemez.
+          ==================================================================== */}
+      <div className="pt-3 mt-3 border-t border-slate-100">
+        {gizlemeOnayi ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
+            <p className="metin-yardimci text-amber-900">
+              Aracınız aramalarda ve marka süzgeçlerinde <strong>görünmeyecek</strong>.
+              Yalnızca siz göreceksiniz.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setGizlemeOnayi(false); gorunurlukDegistir(vehicle.plate_number, 'gizli'); }}
+                className={dugme('yikici', { ek: 'flex-1' })}
+              >
+                Gizle
+              </button>
+              <button
+                type="button"
+                onClick={() => setGizlemeOnayi(false)}
+                className={dugme('ikincil', { ek: 'flex-1' })}
+              >
+                Vazgeç
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={vehicle.gorunurluk !== 'gizli'}
+            disabled={gorunurlukKaydediliyor}
+            onClick={() => {
+              if (vehicle.gorunurluk === 'gizli') {
+                gorunurlukDegistir(vehicle.plate_number, 'listelenebilir');
+              } else {
+                setGizlemeOnayi(true);
+              }
+            }}
+            className="w-full min-h-[44px] flex items-start gap-2.5 text-left rounded-md px-1 py-1 hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-60"
+          >
+            <span
+              aria-hidden="true"
+              className={`mt-0.5 shrink-0 w-9 h-5 rounded-full flex items-center transition-colors ${
+                vehicle.gorunurluk === 'gizli' ? 'bg-slate-300' : 'bg-indigo-600'
+              }`}
+            >
+              <span className={`w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                vehicle.gorunurluk === 'gizli' ? 'translate-x-0.5' : 'translate-x-[18px]'
+              }`}
+              />
+            </span>
+            <span className="min-w-0">
+              <span className="block etiket text-slate-700">
+                {vehicle.gorunurluk === 'gizli' ? 'Aramada görünmüyor' : 'Aramada görünüyor'}
+              </span>
+              <span className="block metin-yardimci text-slate-500 leading-snug">
+                {vehicle.gorunurluk === 'gizli'
+                  ? 'Görünür yaparsanız aracınız marka süzgeçlerinde ve aramada çıkar. Bakım geçmişiniz ve belgeleriniz yine kapalı kalır.'
+                  : 'Künyesi ve sicil puanı aramada çıkıyor. Bakım geçmişi ve belgeler kapalı.'}
+              </span>
+            </span>
+          </button>
+        )}
       </div>
 
     </div>

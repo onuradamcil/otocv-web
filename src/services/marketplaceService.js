@@ -155,10 +155,20 @@ export const unpublishVehicleListing = async (vehicle) => {
  */
 export const fetchMarketplaceListings = async (filters = {}) => {
   try {
-    const { data, error } = await supabase.rpc('vitrin_listesi', {
-      p_sehir: filters.city && filters.city !== 'Tümü' ? filters.city : null,
-      p_kullanici: filters.userId || null,
-    });
+    // ⚠ KAYNAK DEĞİŞTİ: `vitrin_listesi` -> `arac_arama`.
+    //
+    // `vitrin_listesi` YALNIZCA vitrin kaydı olan araçları veriyordu (2 araç),
+    // dolayısıyla anasayfadaki arama ve süzgeçler envanterin küçük bir
+    // dilimini süzüyordu. `arac_arama` görünürlüğü açık HER aracı döndürüyor
+    // ve `katman` alanıyla hangisinin vitrinde olduğunu söylüyor.
+    //
+    // ⚠ PIN yalnızca vitrin katmanında dolu geliyor: sadece listelenen bir
+    // aracın karnesi paylaşıma açık değil. Kart o yüzden `pin_code`a bakıp
+    // karneye gidip gitmeyeceğine karar veriyor.
+    //
+    // `vitrin_listesi` KALDIRILMADI: `MyListingsScreen` onu kullanıyor ve o
+    // ekranın işi zaten yalnızca kullanıcının kendi vitrin kayıtları.
+    const { data, error } = await supabase.rpc('arac_arama');
 
     if (error) throw error;
 

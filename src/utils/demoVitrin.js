@@ -18,23 +18,23 @@
 //   3. Silmek "dosyayı sil" kadar kolay olmalı, SQL geri alma değil.
 //
 // -------------------------------------------------------------------------
-// NASIL AÇILIR
+// NASIL ÇALIŞIYOR
 // -------------------------------------------------------------------------
-//   /?demo=32     -> 32 demo kart
-//   /?demo=8      -> 8 demo kart
-//   /             -> KAPALI (varsayılan). Adres çubuğunda parametre yoksa bu
-//                    dosyaya hiç dokunulmuyor, gerçek vitrin gelir.
+// Ürün sahibinin kararıyla adres parametresi kaldırıldı: demo kartlar artık
+// GERÇEK araçlarla aynı ızgarada, doğrudan anasayfada duruyor ("iki iş
+// yapmayalım"). Gerçek kayıtlar listenin başına konuyor.
 //
-// Demo açıkken kartlar TIKLANMAZ ve favorilenemez: arkalarında gerçek bir
-// sicil yok, tıklanabilir olsalar var olmayan bir karneye götürürlerdi.
-// Ekranın üstünde bunu söyleyen bir şerit çıkıyor.
+// Demo kartların PIN'i YOK, dolayısıyla karneye gitmiyorlar ve
+// favorilenmiyorlar. Bu ayrı bir kural değil: karnesi paylaşıma açık
+// olmayan HER kart (görünürlüğü `listelenebilir` olan gerçek araçlar dahil)
+// aynı davranışı gösteriyor — ölçüt `pin_code`.
 //
 // -------------------------------------------------------------------------
 // SİLMEK İÇİN
 // -------------------------------------------------------------------------
 //   1. Bu dosyayı sil.
-//   2. `MarketplaceView.jsx` içinde "DEMO" arayıp üç yeri kaldır:
-//      import satırı, `loadLiveListings` içindeki dal, demo şeridi.
+//   2. `MarketplaceView.jsx` içinde "DEMO" arayıp kalan iki yeri kaldır:
+//      import satırı ve `loadLiveListings` içindeki birleştirme dalı.
 // =========================================================================
 
 /**
@@ -103,7 +103,11 @@ export function demoVitrinUret(adet, simdi) {
       // veriyle karışırsa tek bakışta ayırt edilebilsin.
       listing_id: `demo-${i + 1}`,
       id: `demo-${i + 1}`,
-      pin_code: `CV-DEMO${String(i + 1).padStart(2, '0')}`,
+      // ⚠ PIN YOK. Demo aracin karnesi de yok; sahte bir PIN vermek
+      // karta tiklanabilir bir kapi acardi. Karti etkisiz kilan kural
+      // artik tek: PIN'i olmayan kartin karnesi paylasima acik degil —
+      // bu hem demo kartlari hem `listelenebilir` araclari kapsiyor.
+      pin_code: null,
       brand,
       series,
       model,

@@ -65,12 +65,6 @@ import { seckiUret } from '../../utils/secki';
 // uyarıyor.
 const YENI_ESIGI_MS = 7 * 24 * 60 * 60 * 1000;
 
-// DEMO — GEÇİCİ. Demo kartlarda tıklama ve favori etkisiz olmalı, ama
-// `undefined` geçmek olmaz: kart `onSelectVehicle(item)` diye ÇAĞIRIYOR
-// (favori düğmesi de `onFavori(...)`), yani tıklayan kullanıcı çalışma
-// zamanı hatası alırdı. Modül düzeyinde tek bir boş işlev: her render'da
-// yeni bir işlev üretilmiyor.
-const ETKISIZ = () => {};
 
 // Anasayfada gösterilecek EN FAZLA kart. Ürün sahibinin kararı: "sınırsız
 // ilan gösterilmemeli, 6*4 olabilir".
@@ -93,13 +87,19 @@ const SECKI_KART_SINIRI = 12;
 const TAM_SAYFA_ADIM = 48;
 
 /**
- * Kayıt demo mu?
+ * Bu aracın KARNESİ paylaşıma açık mı?
  *
- * ⚠ KART BAZINDA SORULUYOR, GLOBAL BAYRAKLA DEĞİL: demo kartlar artık GERÇEK
- * araçlarla AYNI ızgarada duruyor. Global bir "demo modu" bayrağı gerçek
- * kartları da tıklanamaz yapardı.
+ * ⚠ TEK KURAL, ÜÇ DURUMU BİRDEN KAPSIYOR. Karne `/karne/<pin>` ile açılıyor,
+ * yani PIN'i olmayan bir kartın gidecek yeri yok:
+ *   · `vitrin` katmanı        -> PIN dolu, karne açık
+ *   · `listelenebilir` katman -> PIN null (RPC bilerek vermiyor)
+ *   · demo kayıt              -> PIN null (arkasında gerçek sicil yok)
+ *
+ * Daha önce burada "demo mu" diye soruluyordu; görünürlük katmanları
+ * gelince o soru yetersiz kaldı — listelenen gerçek bir aracın da karnesi
+ * kapalı olabiliyor. Ölçüt artık verinin kendisi.
  */
-const demoKaydiMi = (item) => String(item?.listing_id || '').startsWith('demo-');
+const karneAcikMi = (item) => Boolean(item?.pin_code);
 
 /**
  * Sayılı tek satır seçenek (radyo davranışı: biri seçili).
@@ -686,6 +686,21 @@ export default function MarketplaceView({
    * sayede "marka boş ama seri dolu" durumu hiç oluşmuyor — `agacDerinligi`
    * (ilk boş kademeyi arıyor) tam buna dayanıyor.
    */
+  /**
+   * Kart tıklaması. Karnesi kapalı araçta SESSİZ KALMIYOR.
+   *
+   * ⚠ Eskiden bu kartlara boş bir işlev geçiliyordu: tıklıyordunuz, hiçbir
+   * şey olmuyordu. Kullanıcı sitenin bozuk olduğunu düşünüyordu; artık
+   * neden açılmadığı söyleniyor.
+   */
+  const kartTikla = (item) => {
+    if (karneAcikMi(item)) {
+      onSelectVehicle(item);
+      return;
+    }
+    toast.bilgi('Bu aracın karnesi paylaşıma açık değil. Sahibi vitrine çıkarırsa görüntülenebilir.');
+  };
+
   const agacSec = (derinlik, dugum) => {
     // Katalog gezinmesi: yol bu kademeye kadar kırpılıp yeni düğüm ekleniyor.
     setAgacYolu((y) => [...y.slice(0, derinlik), { id: dugum.id, ad: dugum.name }]);
@@ -1687,21 +1702,20 @@ export default function MarketplaceView({
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(136px,1fr))] gap-3.5 lg:min-h-[938px] content-start">
                   {gosterilenler.map((item, sira) => (
                     <ArabamStyleVitrinCard
-                      key={item.listing_id || item.id}
+                      key={item.kart_id || item.listing_id || item.id}
                       item={item}
                       sira={sira}
-                      demo={demoKaydiMi(item)}
                       /* DEMO — GEÇİCİ. Demo kartların arkasında gerçek bir
                          sicil YOK: tıklanabilir olsalar var olmayan bir
                          karneye götürürlerdi ("ölü kapı"), favori ise
                          olmayan bir PIN'i veritabanına yazmaya çalışırdı. */
-                      /* ⚠ KART BAZINDA. Demo ve gerçek kartlar aynı ızgarada:
-                         gerçek olanlar normal çalışmalı, demo olanlar hiçbir
-                         yere gitmemeli (arkalarında sicil yok) ve favori
-                         yazmamalı (olmayan bir PIN'i veritabanına yazardı). */
-                      onSelectVehicle={demoKaydiMi(item) ? ETKISIZ : onSelectVehicle}
-                      favorili={demoKaydiMi(item) ? false : favoriler.has(item.pin_code)}
-                      onFavori={demoKaydiMi(item) ? ETKISIZ : favoriTikla}
+                      /* Favori PIN'e yazılıyor; PIN'i olmayan kartta kalp
+                         hiç çizilmiyor (kart bileşeni `onFavori` yoksa
+                         atlıyor). Olmayan bir PIN'i favorilemek sessiz bir
+                         veri hatası olurdu. */
+                      onSelectVehicle={kartTikla}
+                      favorili={karneAcikMi(item) && favoriler.has(item.pin_code)}
+                      onFavori={karneAcikMi(item) ? favoriTikla : undefined}
                     />
                   ))}
                 </div>
@@ -1755,16 +1769,15 @@ export default function MarketplaceView({
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(136px,1fr))] gap-3.5 content-start">
                   {seckiler.map((item, sira) => (
                     <ArabamStyleVitrinCard
-                      key={`secki-${item.listing_id || item.id}`}
+                      key={`secki-${item.kart_id || item.listing_id || item.id}`}
                       item={item}
-                      demo={demoKaydiMi(item)}
                       /* `sira` 2'den başlıyor: `priority` yalnızca ilk iki
                          görsele veriliyor ve o hak vitrinin ilk satırına ait.
                          Buradaki kartlar ekranın çok altında, tembel yüklenmeli. */
                       sira={sira + 2}
-                      onSelectVehicle={demoKaydiMi(item) ? ETKISIZ : onSelectVehicle}
-                      favorili={demoKaydiMi(item) ? false : favoriler.has(item.pin_code)}
-                      onFavori={demoKaydiMi(item) ? ETKISIZ : favoriTikla}
+                      onSelectVehicle={kartTikla}
+                      favorili={karneAcikMi(item) && favoriler.has(item.pin_code)}
+                      onFavori={karneAcikMi(item) ? favoriTikla : undefined}
                     />
                   ))}
                 </div>
@@ -1881,7 +1894,10 @@ export default function MarketplaceView({
 // =========================================================================
 // 🚀 ARABAM.COM PIXEL-PERFECT VİTRİN KARTI (ArabamStyleVitrinCard)
 // =========================================================================
-function ArabamStyleVitrinCard({ item, sira = 0, onSelectVehicle, favorili = false, onFavori, demo = false }) {
+function ArabamStyleVitrinCard({ item, sira = 0, onSelectVehicle, favorili = false, onFavori }) {
+  // Karnesi kapalı kart da TIKLANABİLİR: tıklayınca neden açılmadığını
+  // söyleyen bir bilgi çıkıyor (`kartTikla`). O yüzden `aria-disabled` yok.
+  const karneAcik = Boolean(item.pin_code);
   const firstPhoto = item.image_url ? item.image_url.split(',')[0].trim() : null;
 
   return (
@@ -1898,17 +1914,12 @@ function ArabamStyleVitrinCard({ item, sira = 0, onSelectVehicle, favorili = fal
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectVehicle(item); }
       }}
-      /* ⚠ DEMO KARTLARDA `aria-disabled`. Kart hâlâ `role="button"` ama
-         tıklayınca hiçbir şey olmuyor; ekran okuyucu kullanıcısına bunu
-         söylemeden bırakmak, çalışmayan bir kontrolü çalışıyormuş gibi
-         sunmak olurdu. Erişilebilir ada da "demo kayıt" ekleniyor.
-         ⚠ "sicilini görüntüle" ifadesi KORUNUYOR: test paketi kartları tam
-         o alt dizeyle buluyor (`25-anasayfa`, `18-vitrin-gorunurlugu`). */
-      aria-disabled={demo || undefined}
-      aria-label={`${item.brand || ''} ${item.model || ''} ${item.year || ''} — ${demo ? 'demo kayıt, ' : ''}sicilini görüntüle`}
-      className={`bg-white border border-slate-200/90 rounded-md overflow-hidden shadow-2xs transition-all duration-150 group flex flex-col justify-between select-none p-1 focus-visible:ring-offset-1 ${
-        demo ? 'cursor-default' : 'hover:border-slate-400 hover:shadow-md cursor-pointer'
-      }`}
+      /* ⚠ "sicilini görüntüle" ifadesi KORUNUYOR: test paketi kartları tam
+         o alt dizeyle buluyor (`25-anasayfa`, `18-vitrin-gorunurlugu`).
+         Karnesi kapalı kartta ad bunu önceden söylüyor, böylece ekran
+         okuyucu kullanıcısı tıklamadan önce ne olacağını biliyor. */
+      aria-label={`${item.brand || ''} ${item.model || ''} ${item.year || ''} — ${karneAcik ? '' : 'karnesi kapalı, '}sicilini görüntüle`}
+      className="bg-white border border-slate-200/90 hover:border-slate-400 rounded-md overflow-hidden shadow-2xs hover:shadow-md transition-all duration-150 cursor-pointer group flex flex-col justify-between select-none p-1 focus-visible:ring-offset-1"
     >
       {/* `h-28` (112 px) — eskiden `h-36` (144 px) idi. Kart 311 px'ten
           ~245 px'e inince vitrine belirgin şekilde daha çok araç sığıyor.
