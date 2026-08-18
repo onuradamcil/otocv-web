@@ -22,13 +22,17 @@ import { dugme } from '../common/dugme';
 // Marka ağacının saf mantığı ayrı dosyada: React'e dokunmuyor ve bu dosya
 // zaten 1300+ satır. Normalize (Türkçe 'I' tuzağı) ve kanonik etiket seçimi
 // oradaki yorumlarda gerekçeli.
+import { KADEMELER, agacUygun, agacAnahtari } from '../../utils/markaAgaci';
+// Marka ağacının dalları KATALOG tablolarından geliyor (49 marka / 822 seri /
+// 3.591 model / 23.138 paket). Bu servis dosyada zaten vardı ama hiç
+// çağrılmıyordu; yeni fonksiyon yazmak yerine canlandırıldı. Step1'in kaskad
+// mantığıyla birebir aynı: kademe kademe, tıklandıkça.
 import {
-  KADEMELER,
-  agacUygun,
-  agaciKirp,
-  agacDerinligi,
-  kademeCocuklari,
-} from '../../utils/markaAgaci';
+  fetchCatalogBrands,
+  fetchCatalogSeries,
+  fetchCatalogModels,
+  fetchCatalogPackages,
+} from '../../services/catalogService';
 // DEMO — GEÇİCİ. Vitrin dolu hâlini görmek için; `?demo=N` yoksa hiç
 // çağrılmıyor. Kaldırmak için bu satırı, `loadLiveListings` içindeki dalı
 // ve demo şeridini sil (üçü de "DEMO" ile işaretli).
@@ -119,7 +123,11 @@ function SuzgecSatiri({ etiket, adet, secili, sec, basili = true, derine = false
     >
       <span className="metin-yardimci font-semibold truncate">{etiket}</span>
       <span className="metin-yardimci text-slate-600 tabular-nums shrink-0 flex items-center gap-1">
-        ({adet})
+        {/* ⚠ SAYAÇ İSTEĞE BAĞLI. Marka ağacı katalogtan besleniyor ve
+            katalogda "kaç araç var" bilgisi yok; ürün sahibi de sayaç
+            istemedi. Şehir/Yakıt/Vites grupları ise envanterden geliyor,
+            orada sayaç anlamlı ve duruyor. */}
+        {adet !== undefined && adet !== null && `(${adet})`}
         {/* Kademe derinleşiyor: ok bunu söylüyor. Kayıtta sağa bakan ikon
             YOK (`registry.jsx`: `asagi`, `geri` var); `asagi` döndürülüyor —
             `SuzgecAkordiyon` da `rotate-180` ile aynı şeyi yapıyor, yeni bir
@@ -347,7 +355,7 @@ function MobilGrup({ secenekler, secili, sec }) {
  * @param {(derinlik: number, anahtar: string) => void} p.sec
  * @param {'liste'|'cip'} [p.bicim] Masaüstü satır / dar ekran çip.
  */
-function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, git, sec, bicim = 'liste' }) {
+function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, yukleniyor, git, sec, bicim = 'liste' }) {
   const kokte = yol.length === 0;
 
   return (
@@ -402,10 +410,13 @@ function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, git, sec, bicim = 
         <p className="etiket text-slate-500">{kademeBasligi}</p>
       )}
 
-      {cocuklar.length === 0 ? (
-        /* EN DERİN KADEME (Donanım seçili) ya da o dalda alt ayrım yok. Boş
-           bir kutu "veri gelmedi" gibi görünürdü; çıkış yolu yukarıdaki
-           kırıntı, yani ölü uç değil. */
+      {yukleniyor ? (
+        /* Katalog kademesi iniyor. Step1'de bu durumda hiçbir şey
+           yazmıyordu ve sütun boş görünüyordu; burada söyleniyor. */
+        <p className="metin-yardimci text-slate-500">Yükleniyor…</p>
+      ) : cocuklar.length === 0 ? (
+        /* EN DERİN KADEME (donanım seçili) ya da katalogda o dalın altı boş.
+           Çıkış yolu yukarıdaki kırıntı, yani ölü uç değil. */
         <p className="metin-yardimci text-slate-500">
           Bu kademenin altında ayrım yok. Üst kademeye dönmek için yukarıdaki yolu kullanın.
         </p>
@@ -413,28 +424,27 @@ function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, git, sec, bicim = 
         <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto">
           {cocuklar.map((c) => (
             <SuzgecCipi
-              key={c.anahtar}
-              etiket={`${c.etiket} (${c.adet})`}
+              key={c.id}
+              etiket={c.name}
               basili={false}
               secili={false}
-              sec={() => sec(derinlik, c.anahtar)}
+              sec={() => sec(derinlik, c)}
             />
           ))}
         </div>
       ) : (
-        /* `max-h-64` — `SuzgecGrubu` ile AYNI değer ve HER kademede.
-           "Hangi kademe uzun olur" bir tahmindir; 60 serili bir marka
-           eklendiği gün yanlış çıkar. Sınır ancak taşınca görünüyor, yani
-           kısa listelerde bedeli sıfır. */
-        <div className="flex flex-col gap-0.5 max-h-64 overflow-y-auto pr-1">
+        /* ⚠ `max-h-72 overflow-y-auto` — KAYAN LİSTE ŞART.
+           Katalogda 49 marka var ve BMW'nin altında 18 seri, onun altında
+           274 model. Sınırsız uzayan bir liste kenar çubuğunu ekranlar boyu
+           uzatır; ürün sahibinin istediği de "marka scroll menüsü". */
+        <div className="flex flex-col gap-0.5 max-h-72 overflow-y-auto pr-1">
           {cocuklar.map((c) => (
             <SuzgecSatiri
-              key={c.anahtar}
-              etiket={c.etiket}
-              adet={c.adet}
+              key={c.id}
+              etiket={c.name}
               basili={false}
               derine
-              sec={() => sec(derinlik, c.anahtar)}
+              sec={() => sec(derinlik, c)}
             />
           ))}
         </div>
@@ -478,10 +488,26 @@ export default function MarketplaceView({
   // "Son 7 gün" penceresi sayfa açılışına göre hesaplanıyor; bir süzgeç için
   // doğru davranış bu.
   const [acilisZamani] = useState(() => Date.now());
-  // DEMO — GEÇİCİ. 0 = kapalı. `?demo=N` ile açılıyor.
-  const [demoAdet, setDemoAdet] = useState(0);
   // Yalnızca `/vitrin` sayfasında kullanılıyor: "Daha fazla göster" ile artıyor.
   const [sayfaAdet, setSayfaAdet] = useState(TAM_SAYFA_ADIM);
+
+  // =========================================================================
+  // MARKA AĞACI — KATALOG GEZİNMESİ
+  // =========================================================================
+  // `agacYolu` bulunulan kırılım: her kademe katalogtan gelen `{ id, ad }`.
+  // `id` bir ALT kademeyi çekmek için, `ad` araçlarla eşleştirmek için lazım.
+  //
+  // ⚠ SÜZME ÖLÇÜTÜ BURADA DEĞİL `suzgec`te. İki ayrı state tutmanın sebebi
+  // şu: `suz()` yalnızca `suzgec`i okuyor ve ızgara ondan besleniyor; ağaç
+  // ise katalog kimliklerine ihtiyaç duyuyor. `agacSec` ikisini BİRLİKTE
+  // güncelliyor, dolayısıyla ayrışamıyorlar.
+  const [agacYolu, setAgacYolu] = useState([]);
+  // ⚠ ÇOCUKLAR VE HANGİ YOLA AİT OLDUKLARI TEK STATE'TE. Ayrı bir
+  // `yukleniyor` bayrağı tutulmuyor: onu set etmek efekt gövdesinde
+  // eşzamanlı `setState` demekti ve React lint'i haklı olarak "zincirleme
+  // render" uyarısı veriyordu. Bunun yerine durum TÜRETİLİYOR — elimizdeki
+  // çocuklar bulunulan yola ait değilse yükleme sürüyor demektir.
+  const [agacKademe, setAgacKademe] = useState({ anahtar: null, cocuklar: [] });
 
 
   // =========================================================================
@@ -538,6 +564,33 @@ export default function MarketplaceView({
     model: '',
     donanim: '',
   });
+
+  // Bulunulan kademenin ÇOCUKLARINI çeker. Açılışta yalnızca 49 marka
+  // iniyor; seri/model/paket ancak tıklandıkça. 23.138 paket hiçbir zaman
+  // topluca çekilmiyor.
+  useEffect(() => {
+    let iptal = false;
+    const derinlik = agacYolu.length;
+    const anahtar = agacYolu.map((dugum) => dugum.id).join('>');
+
+    // En derin kademe (donanım seçili): altında çocuk yok, sorgu da yok.
+    // Çözülmüş bir promise kullanılıyor ki bu dalda da `setState` yalnızca
+    // asenkron geri çağrıda olsun — efekt gövdesi setState'siz kalıyor.
+    const istek =
+      derinlik >= KADEMELER.length ? Promise.resolve([])
+        : derinlik === 0 ? fetchCatalogBrands()
+          : derinlik === 1 ? fetchCatalogSeries(agacYolu[0].id)
+            : derinlik === 2 ? fetchCatalogModels(agacYolu[1].id)
+              : fetchCatalogPackages(agacYolu[2].id);
+
+    istek.then((liste) => {
+      // ⚠ `iptal`: kullanıcı yanıt gelmeden başka bir dala tıklarsa eski
+      // isteğin sonucu yeni kademenin üstüne yazılırdı.
+      if (!iptal) setAgacKademe({ anahtar, cocuklar: liste || [] });
+    });
+
+    return () => { iptal = true; };
+  }, [agacYolu]);
 
   useEffect(() => {
     loadLiveListings();
@@ -612,7 +665,6 @@ export default function MarketplaceView({
         // SİLMEK İÇİN: bu bloğu ve `demoVitrin.js` dosyasını kaldır.
         // =================================================================
         const demolar = demoVitrinUret(DEMO_EN_FAZLA, Date.now());
-        setDemoAdet(demolar.length);
         setListings([...gercek, ...demolar]);
       }
     } catch (error) {
@@ -634,11 +686,15 @@ export default function MarketplaceView({
    * sayede "marka boş ama seri dolu" durumu hiç oluşmuyor — `agacDerinligi`
    * (ilk boş kademeyi arıyor) tam buna dayanıyor.
    */
-  const agacSec = (derinlik, anahtar) => {
+  const agacSec = (derinlik, dugum) => {
+    // Katalog gezinmesi: yol bu kademeye kadar kırpılıp yeni düğüm ekleniyor.
+    setAgacYolu((y) => [...y.slice(0, derinlik), { id: dugum.id, ad: dugum.name }]);
+    // Süzme ölçütü: katalogtan gelen AD normalize edilip yazılıyor. Araçtaki
+    // metin de `agacUygun` içinde aynı işlemden geçiyor.
     setSuzgec((onceki) => {
       const yeni = { ...onceki };
       KADEMELER.forEach((k, i) => {
-        if (i === derinlik) yeni[k.alan] = anahtar;
+        if (i === derinlik) yeni[k.alan] = agacAnahtari(dugum.name);
         else if (i > derinlik) yeni[k.alan] = '';
       });
       return yeni;
@@ -647,6 +703,7 @@ export default function MarketplaceView({
 
   /** Kırıntıda `hedef` kademesine döner: o kademe ve altı boşalıyor. */
   const agacaGit = (hedef) => {
+    setAgacYolu((y) => y.slice(0, hedef));
     setSuzgec((onceki) => {
       const yeni = { ...onceki };
       KADEMELER.forEach((k, i) => {
@@ -658,6 +715,9 @@ export default function MarketplaceView({
 
   const suzgecleriSifirla = () => {
     setSearchQuery('');
+    // Katalog gezinmesi de köke dönüyor; yalnızca `suzgec` temizlenseydi
+    // ızgara sıfırlanır ama ağaç seçili dalda kalırdı.
+    setAgacYolu([]);
     setSuzgec({
       sehir: 'Tümü', yakit: 'Tümü', vites: 'Tümü',
       yilMin: '', yilMax: '', kmMin: '', kmMax: '', sicilEnAz: 0, yalnizOneCikan: false,
@@ -798,42 +858,6 @@ export default function MarketplaceView({
     const sicilKumesi = suz(listings, suzgec, aramaSorgusu, 'sicil');
     const oneCikanKumesi = suz(listings, suzgec, aramaSorgusu, 'oneCikan');
 
-    // -----------------------------------------------------------------------
-    // MARKA AĞACI — KADEME SAYAÇLARININ DÜRÜSTLÜĞÜ
-    //
-    // Her kademe, ÜSTündeki kademeler uygulanmış / kendisi ve ALTI
-    // kaldırılmış kümeden sayılıyor (`agaciKirp`). Yani Marka sayaçları ağaç
-    // kısıtı hiç yokmuş gibi, Seri sayaçları yalnızca marka uygulanmış hâlde
-    // çıkıyor. Şehir/yıl/km/sicil ise HER İKİSİNDE de uygulanıyor —
-    // kullanıcı İstanbul seçtiyse marka sayaçları da İstanbul'a ait olmalı.
-    //
-    // ⚠ `haric: 'agac'` KULLANILMADI: o dört kademeyi BİRDEN düşürürdü ve
-    // Seri sayaçları seçili markayı yok sayardı — tam istenmeyen davranış.
-    //
-    // Yalnızca GEREKEN kademeler hesaplanıyor: hiç seçim yoksa tek geçiş.
-    const derinlik = agacDerinligi(suzgec);
-    const sonKademe = Math.min(derinlik, KADEMELER.length - 1);
-    const kademeler = KADEMELER.slice(0, sonKademe + 1).map((k, i) =>
-      kademeCocuklari(suz(listings, agaciKirp(suzgec, i), aramaSorgusu), k.veri)
-    );
-
-    // Kırıntı yolu. KÖK DAİMA İLK HALKA: son halka `aria-current` taşıyan bir
-    // `<span>` (düğme değil), dolayısıyla derinlik 1'de köke dönecek başka
-    // bir kontrol kalmazdı.
-    const yol = derinlik === 0 ? [] : [
-      { hedef: 0, etiket: 'Tüm markalar' },
-      ...KADEMELER.slice(0, derinlik).map((k, i) => ({
-        hedef: i + 1,
-        // Etiket o kademenin KENDİ listesinden okunuyor (normalize anahtar
-        // → kanonik yazım). Bulunamadığı tek hâl diğer süzgeçlerin kümeyi
-        // tamamen boşaltmış olması; orada ızgara da boş ve kullanıcı "Bu
-        // süzgeçlerle araç bulunamadı" görüyor. Anahtarı basmak, boş bir
-        // halka basmaktan iyi.
-        etiket: kademeler[i]?.find((c) => c.anahtar === suzgec[k.alan])?.etiket
-          || suzgec[k.alan],
-      })),
-    ];
-
     return {
       sehirler: grupla('sehir', 'city'),
       yakitlar: grupla('yakit', 'fuel_type'),
@@ -858,18 +882,31 @@ export default function MarketplaceView({
       // kaldırılmış hâl. (Eskiden burada 'marka' yazıyordu; düz marka
       // listesi kaldırılınca o ad bir yükleme karşılık gelmez olmuştu.)
       tumuAdet: suz(listings, suzgec, aramaSorgusu, 'sehir').length,
-      // Ağacın ekrana gereken her şeyi tek nesnede: kırıntı, bulunulan
-      // kademe, o kademenin çocukları ve kapalı akordiyonda/mobil çipte
-      // görünecek özet.
-      agac: {
-        yol,
-        derinlik,
-        cocuklar: derinlik < KADEMELER.length ? kademeler[derinlik] : [],
-        kademeBasligi: derinlik < KADEMELER.length ? KADEMELER[derinlik].baslik : null,
-        ozet: yol.length ? yol[yol.length - 1].etiket : null,
-      },
     };
   }, [suz, listings, suzgec, aramaSorgusu, acilisZamani]);
+
+  // Ağacın ekrana gereken hâli. `secenekler` memo'sunda DEĞİL: artık
+  // envanterden hesaplanan bir şey yok, katalog state'inden doğrudan türüyor.
+  const agacDerinlik = agacYolu.length;
+  // Elimizdeki çocuklar bulunulan yola ait değilse istek hâlâ yolda.
+  const agacYoluAnahtari = agacYolu.map((dugum) => dugum.id).join('>');
+  const agacHazir = agacKademe.anahtar === agacYoluAnahtari;
+  const agacGorunum = {
+    derinlik: agacDerinlik,
+    // Eski kademenin çocuklarını yeni kırıntının altında göstermemek için
+    // hazır değilken boş liste veriliyor.
+    cocuklar: agacHazir ? agacKademe.cocuklar : [],
+    yukleniyor: !agacHazir,
+    kademeBasligi: agacDerinlik < KADEMELER.length ? KADEMELER[agacDerinlik].baslik : null,
+    ozet: agacDerinlik ? agacYolu[agacDerinlik - 1].ad : null,
+    // Kırıntı. KÖK DAİMA İLK HALKA: son halka `aria-current` taşıyan bir
+    // `<span>` (düğme değil), dolayısıyla derinlik 1'de köke dönecek başka
+    // bir kontrol kalmazdı.
+    yol: agacDerinlik === 0 ? [] : [
+      { hedef: 0, etiket: 'Tüm markalar' },
+      ...agacYolu.map((dugum, i) => ({ hedef: i + 1, etiket: dugum.ad })),
+    ],
+  };
 
   /** Herhangi bir süzgeç etkin mi? "Sıfırla" ve boş durum metni için. */
   const suzgecEtkin = aramaSorgusu !== ''
@@ -1092,12 +1129,13 @@ export default function MarketplaceView({
                   okuyucuda kontrolün kimliği kaybolur. Bulunulan kademe
                   gövdedeki kırıntı ve etiketle anlatılıyor.
                   ============================================================ */}
-              <SuzgecAkordiyon baslik="Marka" baslangictaAcik ozet={secenekler.agac.ozet}>
+              <SuzgecAkordiyon baslik="Marka" baslangictaAcik ozet={agacGorunum.ozet}>
                 <MarkaAgaci
-                  yol={secenekler.agac.yol}
-                  kademeBasligi={secenekler.agac.kademeBasligi}
-                  cocuklar={secenekler.agac.cocuklar}
-                  derinlik={secenekler.agac.derinlik}
+                  yol={agacGorunum.yol}
+                  kademeBasligi={agacGorunum.kademeBasligi}
+                  cocuklar={agacGorunum.cocuklar}
+                  derinlik={agacGorunum.derinlik}
+                  yukleniyor={agacGorunum.yukleniyor}
                   git={agacaGit}
                   sec={agacSec}
                 />
@@ -1243,11 +1281,11 @@ export default function MarketplaceView({
                     DOĞRU rol (basılı = seçim var, tekrar basmak kaldırıyor),
                     o yüzden `basili` geçilmiyor.
                     `ad` görünen metni İÇERİYOR (WCAG 2.5.3). */}
-                {secenekler.agac.ozet && (
+                {agacGorunum.ozet && (
                   <SuzgecCipi
-                    etiket={secenekler.agac.ozet}
+                    etiket={agacGorunum.ozet}
                     secili
-                    ad={`${secenekler.agac.ozet} — marka kırılımını temizle`}
+                    ad={`${agacGorunum.ozet} — marka kırılımını temizle`}
                     sec={() => agacaGit(0)}
                   />
                 )}
@@ -1279,12 +1317,13 @@ export default function MarketplaceView({
                   {/* MARKA AĞACI — masaüstüyle AYNI bileşen, AYNI durum.
                       Tek fark `bicim="cip"`: dar ekranda satır listesi yerine
                       sarmalı çipler, `MobilGrup`un kalıbı. */}
-                  <SuzgecAkordiyon baslik="Marka" baslangictaAcik ozet={secenekler.agac.ozet}>
+                  <SuzgecAkordiyon baslik="Marka" baslangictaAcik ozet={agacGorunum.ozet}>
                     <MarkaAgaci
-                      yol={secenekler.agac.yol}
-                      kademeBasligi={secenekler.agac.kademeBasligi}
-                      cocuklar={secenekler.agac.cocuklar}
-                      derinlik={secenekler.agac.derinlik}
+                      yol={agacGorunum.yol}
+                      kademeBasligi={agacGorunum.kademeBasligi}
+                      cocuklar={agacGorunum.cocuklar}
+                      derinlik={agacGorunum.derinlik}
+                      yukleniyor={agacGorunum.yukleniyor}
                       git={agacaGit}
                       sec={agacSec}
                       bicim="cip"
@@ -1513,29 +1552,6 @@ export default function MarketplaceView({
                 bulunmadığı için boşluğun bir işi kalmıyor. */}
             {!tamSayfa && <div className="hidden lg:block lg:h-[170px]" aria-hidden="true" />}
 
-            {/* DEMO — GEÇİCİ ŞERİT.
-                Demo açıkken ekranda ne olduğunu açıkça söylüyor. Uyarı rengi
-                (amber) bilerek: bu kartlar gerçek değil ve ekran görüntüsü
-                alınıp paylaşılırsa da öyle görünmeli. */}
-            {demoAdet > 0 && (
-              <div className="bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 flex items-start gap-2.5">
-                <span aria-hidden="true" className="shrink-0 text-amber-600 mt-0.5">
-                  <Icon name="uyari" size="md" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block baslik-kart text-amber-900">
-                    Demo görünümü — {demoAdet} sahte kart
-                  </span>
-                  <span className="block metin-yardimci text-amber-800">
-                    Vitrindeki kartların {demoAdet} tanesi yerleşimi değerlendirmek
-                    için üretilmiş sahte kayıt: arkalarında gerçek bir sicil yok,
-                    tıklanamaz ve favorilenemez. Veritabanına hiçbir şey yazılmadı.
-                    Gerçek araçlar aralarında ve normal çalışıyor.
-                  </span>
-                </span>
-              </div>
-            )}
-
             {/* 🚀 3.3 VİTRİN ALANI VE YENİLENMİŞ VİTRİN PANEL HEADER'I */}
             <div className="space-y-4">
               
@@ -1549,10 +1565,11 @@ export default function MarketplaceView({
                   süzülmediğini anlayamıyor. */}
               <div className="flex justify-between items-baseline gap-3 pb-2 border-b border-slate-200 select-none mb-3">
                 <h2 className="baslik-bolum text-slate-900">
+                  {/* ⚠ SAYAÇ KALDIRILDI — ürün sahibinin kararı: "sitemiz
+                      çok büyüdüğünde yaparız, şuan göstermeyelim". Envanter
+                      iki haneliyken sayı göstermek sitenin boyunu ilan
+                      ediyordu. Geri geleceği yer burası. */}
                   {suzgecEtkin ? 'Süzgeç sonuçları' : 'Vitrindeki Araçlar'}
-                  <span className="metin-yardimci text-slate-500 font-normal ml-2 tabular-nums">
-                    ({sonuclar.length})
-                  </span>
                 </h2>
 
                 {/* ⚠ ESKİDEN YERİNDE AÇIYORDU (`showAllVitrin`), ARTIK
@@ -1565,7 +1582,7 @@ export default function MarketplaceView({
                     onClick={() => router.push('/vitrin')}
                     className={dugme('sessiz', { ek: 'shrink-0' })}
                   >
-                    Tümünü göster ({sonuclar.length})
+                    Tümünü göster
                   </button>
                 )}
               </div>
@@ -1730,10 +1747,8 @@ export default function MarketplaceView({
               <div className="space-y-4">
                 <div className="flex justify-between items-baseline gap-3 pb-2 border-b border-slate-200 select-none mb-3">
                   <h2 className="baslik-bolum text-slate-900">
+                    {/* Sayaç kaldırıldı — vitrin başlığıyla aynı gerekçe. */}
                     Sizin için seçtiklerimiz
-                    <span className="metin-yardimci text-slate-500 font-normal ml-2 tabular-nums">
-                      ({seckiler.length})
-                    </span>
                   </h2>
                 </div>
 

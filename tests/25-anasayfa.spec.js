@@ -154,85 +154,97 @@ test.describe('Anasayfa · süzgeçler', () => {
   });
 
   // =======================================================================
-  // MARKA AĞACI — KADEMELİ SÜZGEÇ (Marka › Seri › Model › Donanım)
+  // MARKA AĞACI — KATALOG TABANLI KADEMELİ SÜZGEÇ
   //
-  // Ağaç hem GEZİNME hem SÜZGEÇ. İkisinden birinin çalışıp diğerinin
-  // çalışmaması tam da bu paketin var oluş sebebi olan hata sınıfı: bu
-  // dosyanın geçmişinde süzgeç arayüzünün tamamı çizilip HİÇBİR ŞEYİ
-  // süzmediği bir dönem var. O yüzden üç şey ayrı ayrı denetleniyor:
-  //   1. seçim ANINDA ızgarayı süzüyor
-  //   2. seçim bir ALT KADEMEYİ açıyor
-  //   3. kırıntıdan köke dönüş süzgeci GERİ ALIYOR
+  // ⚠ AĞACIN KAYNAĞI DEĞİŞTİ. Dallar eskiden ENVANTERDEN (vitrindeki
+  // araçlardan) türetiliyordu; ürün sahibi bunu reddetti:
   //
-  // Ölü dal denetimi de burada: sayaçlar o kademenin KENDİ kümesinden
-  // hesaplandığı için her çocuğun en az bir aracı olmalı. "(0)" görünüyorsa
-  // sayım yanlış kümeden yapılıyor — kaldırılan sabit "%80+ güven" çipinin
-  // hatası.
+  //   "Skoda'dan bir araç vitrine çıkmış diye süzgeçe Skoda eklemişsin.
+  //    O aracın vitrin süresi dolunca markayı süzgeçten mi kaldıracağız?"
+  //
+  // Artık dallar `car_brands/car_series/car_models/car_packages`
+  // tablolarından geliyor (49/822/3.591/23.138). Bu testin ASIL denetlediği
+  // şey de bu: envanterde HİÇ ARACI OLMAYAN bir markanın süzgeçte görünmesi.
+  // Eski envanter-tabanlı ağaçta o marka listede YOKTU — test o kodda düşer.
+  //
+  // ⚠ SAYAÇ DENETİMİ KALDIRILDI. Eski hâli her dalın `(N)` ile bitmesini
+  // şart koşuyordu; katalogda "kaç araç var" bilgisi yok ve ürün sahibi
+  // sayaç istemedi ("sitemiz çok büyüdüğünde yaparız").
   // =======================================================================
-  test('MARKA ağacı kademe kademe süzüyor ve kırıntıdan geri dönülüyor', async ({ page }) => {
+  test('MARKA ağacı katalogtan geliyor, kademe kademe süzüyor', async ({ page }) => {
     test.setTimeout(120_000);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(2000);
 
     const once = await kartSayisi(page);
     test.skip(once < 2, 'ağaç sınanacak kadar araç yok (en az 2 gerekiyor)');
 
-    // Kutu başlığı SABİT "Marka" — kademe kutunun İÇİNDE değişiyor. `.first()`
-    // şart: `getByRole` adı alt dize eşlediği için seçim yapıldıktan sonra
-    // kırıntıdaki "Tüm markalar" halkası da eşleşiyor; başlık DOM'da önce.
     const kutu = page.locator('aside').getByRole('button', { name: 'Marka' }).first();
     await expect(kutu, 'marka ağacı kutusu yok').toHaveCount(1);
-
     const govdeId = await kutu.getAttribute('aria-controls');
     const govde = page.locator(`[id="${govdeId}"]`);
     if ((await kutu.getAttribute('aria-expanded')) === 'false') await kutu.click();
 
-    await expect(
-      govde.getByRole('button').filter({ hasText: /\(0\)$/ }),
-      'ağaçta ölü dal var: (0) sayaçlı çocuk — sayım yanlış kümeden yapılıyor'
-    ).toHaveCount(0);
+    // Kademe satırları: kırıntıdaki "Tüm markalar" hariç her düğme.
+    const satirlar = () => govde.locator('button').filter({ hasNotText: /^Tüm markalar$/ });
+    await expect.poll(
+      () => satirlar().count(),
+      { timeout: 15_000, message: 'marka kademesi katalogtan dolmadı' }
+    ).toBeGreaterThan(20);
 
-    // 1) MARKA kademesi: toplamdan AZ sonuç veren bir dal seç, süzülme
-    //    ölçülebilsin.
-    const markalar = govde.getByRole('button').filter({ hasText: /\(\d+\)$/ });
-    const adet = await markalar.count();
-    expect(adet, 'marka kademesi boş çizildi').toBeGreaterThan(0);
+    // 1) ⚠ ASIL DENETİM: envanterde aracı OLMAYAN marka da listede.
+    //    Katalogda 49 marka var, envanterde bir avuç. Eski ağaç yalnızca
+    //    araçtan türeyen markaları çizdiği için bu iddia orada düşer.
+    const etiketler = (await satirlar().allInnerTexts()).map((t) => t.trim());
+    expect(
+      etiketler.length,
+      `katalog markaları gelmedi (${etiketler.length} satır): ağaç hâlâ envanterden mi türüyor?`
+    ).toBeGreaterThan(20);
 
+    // 2) Sayaç YOK — hiçbir dal "(N)" ile bitmiyor.
+    const sayacli = etiketler.filter((t) => /\(\d+\)$/.test(t));
+    expect(sayacli, `ağaçta sayaç var: ${sayacli.slice(0, 3).join(', ')}`).toEqual([]);
+
+    // 3) Aracı OLAN bir markaya tıklayınca ızgara süzülüyor VE alt kademe
+    //    açılıyor. Hangi markanın aracı olduğu envantere bağlı; toplamdan az
+    //    sonuç veren ilkini arıyoruz.
     let secilen = null;
-    for (let i = 0; i < adet; i++) {
-      const metin = (await markalar.nth(i).innerText()).replace(/\s+/g, ' ');
-      const m = metin.match(/^(.*)\((\d+)\)\s*$/);
-      if (m && Number(m[2]) > 0 && Number(m[2]) < once) {
-        secilen = m[1].trim();
-        await markalar.nth(i).click();
-        break;
-      }
+    for (const ad of etiketler) {
+      // ⚠ `getByRole(..., { exact: true })` — elle RegExp KURULMUYOR.
+      // Marka adlarında `.` ve `-` gibi regex anlamı olan karakterler var
+      // (Alfa Romeo, Mercedes-Benz, D.S. Automobiles); kaçış zinciri hem
+      // okunmaz hem kırılgandı. Playwright'ın kendi tam eşleşmesi bunu
+      // zaten doğru yapıyor.
+      const dugme = govde.getByRole('button', { name: ad, exact: true }).first();
+      if (!(await dugme.count())) continue;
+      await dugme.click();
+      await page.waitForTimeout(900);
+      const sonra = await kartSayisi(page);
+      if (sonra > 0 && sonra < once) { secilen = ad; break; }
+      // Bu markanın aracı yok: köke dönüp sıradakine bak.
+      await govde.getByRole('button', { name: 'Tüm markalar' }).click();
+      await page.waitForTimeout(600);
     }
-    test.skip(!secilen, 'toplamdan az sonuç veren marka yok');
-    await page.waitForTimeout(800);
+    test.skip(!secilen, 'envanterde hiçbir markaya ait araç bulunamadı');
 
-    // ANINDA SÜZME — ürün sahibinin şartı: "seçilen markanın kartları varsa
-    // onlar ekrana gelecek". Ağacın yalnızca gezinme olması yetmiyor.
     expect(
       await kartSayisi(page),
-      'marka seçildi ama ızgara süzülmedi — ağaç gezinme yapıyor, süzmüyor'
+      `"${secilen}" seçildi ama ızgara süzülmedi — ağaç gezinme yapıyor, süzmüyor`
     ).toBeLessThan(once);
 
-    // 2) BİR ALT KADEME AÇILDI. Kademe adı büyük harfe CSS ile çevriliyor
-    //    olabilir; `getByText` `text-transform`dan etkilenmiyor.
-    await expect(
-      govde.getByText('Seri', { exact: true }),
-      'marka seçildi ama alt kademe (Seri) açılmadı'
-    ).toBeVisible();
     await expect(
       govde.getByRole('button', { name: 'Tüm markalar' }),
       'kırıntı yolu çizilmedi — kullanıcının geri dönüş yolu yok'
     ).toHaveCount(1);
+    await expect.poll(
+      () => satirlar().count(),
+      { timeout: 15_000, message: 'alt kademe (seri) açılmadı' }
+    ).toBeGreaterThan(0);
 
-    // 3) GERİ DÖNÜŞ: kökteki halka süzgeci tamamen kaldırıyor.
+    // 4) Kökteki halka süzgeci tamamen geri alıyor.
     await govde.getByRole('button', { name: 'Tüm markalar' }).click();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(900);
     expect(
       await kartSayisi(page),
       'kırıntıdan köke dönüldü ama ızgara eski hâline gelmedi'
