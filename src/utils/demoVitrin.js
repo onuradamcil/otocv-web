@@ -3,31 +3,45 @@
 //
 // ⚠ BU DOSYA GEÇİCİDİR VE SİLİNMEK ÜZERE YAZILDI.
 //
-// Amaç: vitrin dolu olduğunda anasayfanın nasıl göründüğünü görmek. Envanter
-// bugün iki araç ve o hâliyle ne ızgara yoğunluğu ne de marka ağacının
-// derinliği değerlendirilebiliyor.
+// Amaç: süzgeçleri gerçekten sınayabilmek. Gerçek envanter 11 araç ve o
+// hâliyle ne ızgara yoğunluğu, ne marka ağacının derinliği, ne de şehir /
+// yakıt / vites / yıl / kilometre süzgeçleri değerlendirilebiliyor.
+//
+// -------------------------------------------------------------------------
+// ⚠ MARKA/SERİ/MODEL/DONANIM DEĞERLERİ UYDURMA DEĞİL
+// -------------------------------------------------------------------------
+// Aşağıdaki 44 kombinasyonun tamamı `car_brands / car_series / car_models /
+// car_packages` tablolarından ÇEKİLDİ. Bu şart: marka ağacı katalogtan
+// besleniyor ve araçlarla eşleşme normalize METİNLE yapılıyor. Elle
+// uydurulmuş bir seri adı ağaçta tıklanınca HİÇBİR ŞEY döndürmezdi — süzgeç
+// çalışıyorken çalışmıyor gibi görünürdü.
+//
+// Yenilemek için (SQL): car_brands -> car_series -> car_models ->
+// car_packages join'leyip 'marka|seri|model|donanim' biçiminde toplayın.
+//
+// -------------------------------------------------------------------------
+// HER KOMBİNASYONDAN ÜÇ ARAÇ
+// -------------------------------------------------------------------------
+// Ürün sahibinin isteği: "her araca özel bir kaç araç kaydı tarzı". Sebebi
+// somut: kombinasyon başına tek araç olsaydı ağacın en derin kademesi
+// (donanım) daima 1 kart döndürürdü ve "süzgeç gerçekten daraltıyor mu"
+// sorusu ölçülemezdi. Üç varyant x 44 kombinasyon -> 132 demo araç.
+//
+// Varyantlar arasında yıl, kilometre, şehir, yakıt, vites ve sicil puanı
+// DEĞİŞİYOR; böylece o süzgeçlerin hepsi aynı anda sınanabiliyor.
 //
 // -------------------------------------------------------------------------
 // NİYE VERİTABANINA YAZILMADI
 // -------------------------------------------------------------------------
-// Bu kayıtlar CANLI veritabanına HİÇ girmiyor. Üç sebep:
-//   1. Canlı veritabanının yedeği yok (PITR yok, temel migration yok).
-//      Görsel bir denemenin bedeli olarak veri riski alınmaz.
-//   2. Sahte kayıtlar `listings`/`vehicles` tablosuna girseydi sayaçlar,
-//      karne sorguları ve devir akışı da onları gerçek sanardı.
+//   1. Canlı veritabanının yedeği yok (PITR yok).
+//   2. Sahte kayıtlar `vehicles`a girseydi sayaçlar, karne sorguları ve
+//      devir akışı da onları gerçek sanardı.
 //   3. Silmek "dosyayı sil" kadar kolay olmalı, SQL geri alma değil.
 //
-// -------------------------------------------------------------------------
-// NASIL ÇALIŞIYOR
-// -------------------------------------------------------------------------
-// Ürün sahibinin kararıyla adres parametresi kaldırıldı: demo kartlar artık
-// GERÇEK araçlarla aynı ızgarada, doğrudan anasayfada duruyor ("iki iş
-// yapmayalım"). Gerçek kayıtlar listenin başına konuyor.
-//
-// Demo kartların PIN'i YOK, dolayısıyla karneye gitmiyorlar ve
-// favorilenmiyorlar. Bu ayrı bir kural değil: karnesi paylaşıma açık
-// olmayan HER kart (görünürlüğü `listelenebilir` olan gerçek araçlar dahil)
-// aynı davranışı gösteriyor — ölçüt `pin_code`.
+// Demo kartların PIN'i YOK, dolayısıyla karneye gitmiyor ve
+// favorilenmiyorlar. Bu ayrı bir kural değil: karnesi paylaşıma açık olmayan
+// HER kart (görünürlüğü `listelenebilir` olan gerçek araçlar dahil) aynı
+// davranışı gösteriyor — ölçüt `pin_code`.
 //
 // -------------------------------------------------------------------------
 // SİLMEK İÇİN
@@ -38,98 +52,128 @@
 // =========================================================================
 
 /**
- * Ham demo satırları.
- * Sütunlar: marka, seri, model, donanım, yıl, km, şehir, yakıt, vites,
- *           sicil puanı, öne çıkan mı, kaç gün önce eklendi.
- *
- * Değerler Türkiye pazarında gerçekten bulunan kombinasyonlar — marka
- * ağacının dört kademesinin nasıl dallandığını görebilmek için. Aynı
- * markadan birden fazla seri, aynı seriden birden fazla model bilinçli:
- * ağaç ancak böyle derinleşiyor (ör. Volkswagen > Passat > 1.6 TDI >
- * Highline / Comfortline).
+ * Katalogtan çekilmiş GERÇEK kombinasyonlar: `marka|seri|model|donanım`.
+ * 15 marka, 28 seri. Sıra korunuyor ki üretilen veri deterministik olsun.
  */
-const HAM = [
-  ['Volkswagen', 'Passat', '1.6 TDI', 'Highline', 2019, 128000, 'İstanbul', 'Dizel', 'Otomatik', 78, true, 2],
-  ['Volkswagen', 'Passat', '1.6 TDI', 'Comfortline', 2017, 186500, 'Ankara', 'Dizel', 'Otomatik', 64, false, 19],
-  ['Volkswagen', 'Golf', '1.4 TSI', 'Comfortline', 2016, 142300, 'İzmir', 'Benzin', 'Otomatik', 57, false, 41],
-  ['Volkswagen', 'Polo', '1.0 TSI', 'Trendline', 2021, 46800, 'Bursa', 'Benzin', 'Manuel', 86, false, 5],
-  ['Renault', 'Clio', '1.5 dCi', 'Touch', 2018, 97400, 'Antalya', 'Dizel', 'Manuel', 71, false, 12],
-  ['Renault', 'Clio', '1.0 TCe', 'Joy', 2022, 31200, 'Kocaeli', 'Benzin', 'Otomatik', 91, true, 1],
-  ['Renault', 'Megane', '1.3 TCe', 'Icon', 2020, 63900, 'İstanbul', 'Benzin', 'Otomatik', 83, false, 8],
-  ['Renault', 'Symbol', '1.0 SCe', 'Joy', 2019, 112700, 'Konya', 'Benzin', 'Manuel', 52, false, 33],
-  ['Fiat', 'Egea', '1.6 Multijet', 'Lounge', 2020, 88400, 'Ankara', 'Dizel', 'Otomatik', 74, false, 6],
-  ['Fiat', 'Egea', '1.6 Multijet', 'Urban', 2018, 154900, 'Adana', 'Dizel', 'Manuel', 48, false, 27],
-  ['Fiat', 'Egea', '1.4 Fire', 'Easy', 2017, 133600, 'Gaziantep', 'Benzin', 'Manuel', 41, false, 52],
-  ['Fiat', 'Doblo', '1.6 Multijet', 'Safeline', 2016, 219300, 'Kayseri', 'Dizel', 'Manuel', 36, false, 61],
-  ['Ford', 'Focus', '1.5 TDCi', 'Titanium', 2019, 104200, 'İzmir', 'Dizel', 'Otomatik', 77, false, 14],
-  ['Ford', 'Fiesta', '1.0 EcoBoost', 'Titanium', 2018, 79800, 'İstanbul', 'Benzin', 'Otomatik', 69, false, 22],
-  ['Opel', 'Astra', '1.6 CDTI', 'Excellence', 2018, 121500, 'Bursa', 'Dizel', 'Otomatik', 62, false, 30],
-  ['Opel', 'Corsa', '1.4', 'Enjoy', 2015, 168900, 'Antalya', 'LPG & Benzin', 'Manuel', 39, false, 47],
-  ['Toyota', 'Corolla', '1.6', 'Dream', 2019, 92600, 'Ankara', 'Benzin', 'Otomatik', 81, false, 4],
-  ['Toyota', 'C-HR', '1.8 Hybrid', 'Passion', 2021, 41300, 'İstanbul', 'Hibrit', 'Otomatik', 93, true, 3],
-  ['Honda', 'Civic', '1.6 i-DTEC', 'Executive', 2018, 118400, 'İzmir', 'Dizel', 'Otomatik', 72, false, 17],
-  ['BMW', '3 Serisi', '320i', 'M Sport', 2020, 58700, 'İstanbul', 'Benzin', 'Otomatik', 88, true, 2],
-  ['BMW', '3 Serisi', '320d', 'Luxury Line', 2017, 149200, 'Ankara', 'Dizel', 'Otomatik', 66, false, 25],
-  ['BMW', '5 Serisi', '520d', 'Executive', 2019, 96100, 'İzmir', 'Dizel', 'Otomatik', 79, false, 11],
-  ['Mercedes-Benz', 'C Serisi', 'C 200 d', 'AMG', 2020, 71400, 'İstanbul', 'Dizel', 'Otomatik', 85, false, 9],
-  ['Mercedes-Benz', 'E Serisi', 'E 200', 'Exclusive', 2018, 124800, 'Bursa', 'Benzin', 'Otomatik', 68, false, 36],
-  ['Audi', 'A3', '1.6 TDI', 'Sportback', 2017, 137500, 'Kocaeli', 'Dizel', 'Otomatik', 59, false, 44],
-  ['Audi', 'A4', '2.0 TDI', 'Design', 2019, 89300, 'Ankara', 'Dizel', 'Otomatik', 76, false, 15],
-  ['Hyundai', 'i20', '1.4 MPI', 'Elite', 2020, 54600, 'Konya', 'Benzin', 'Otomatik', 82, false, 7],
-  ['Hyundai', 'Tucson', '1.6 CRDi', 'Elite', 2021, 48200, 'İstanbul', 'Dizel', 'Otomatik', 89, false, 5],
-  ['Peugeot', '301', '1.6 BlueHDi', 'Active', 2018, 143700, 'Adana', 'Dizel', 'Manuel', 45, false, 38],
-  ['Skoda', 'Superb', '1.6 TDI', 'Prestige', 2019, 108900, 'İzmir', 'Dizel', 'Otomatik', 75, false, 20],
-  ['Dacia', 'Duster', '1.5 dCi', 'Prestige', 2020, 76300, 'Kayseri', 'Dizel', 'Manuel', 70, false, 13],
-  ['Dacia', 'Sandero', '1.0 TCe', 'Stepway', 2021, 39500, 'Gaziantep', 'Benzin', 'Manuel', 84, false, 6],
+const KOMBINASYONLAR = [
+  'Audi|A3|1.0 TFSI|Ambiente',
+  'Audi|A4|1.6|Ambiente',
+  'Audi|A4|1.6|Ambition',
+  'Bmw|1 Serisi|116d|Advantage',
+  'Bmw|1 Serisi|116d|Comfort',
+  'Bmw|3 Serisi|315|40th Year Edition',
+  'Bmw|3 Serisi|315|50th Year M Edition',
+  'Bmw|5 Serisi|518i|50th Year M Edition',
+  'Bmw|5 Serisi|518i|Business',
+  'Dacia|Duster|1.0 ECO-G|Ambiance',
+  'Dacia|Sandero|0.9 TCe|Ambiance',
+  'Dacia|Sandero|0.9 TCe|Essential',
+  'Fiat|Egea|1.0 FireFly|Cross',
+  'Fiat|Egea|1.0 FireFly|Cross Limited',
+  'Ford|Fiesta|1.0 EcoBoost|Ambiente',
+  'Ford|Fiesta|1.0 EcoBoost|Collection',
+  'Ford|Focus|1.0 EcoBoost|Ambiente',
+  'Ford|Focus|1.0 EcoBoost|Collection',
+  'Honda|Civic|1.3 Hybrid|Advance',
+  'Honda|Civic|1.3 Hybrid|Dream',
+  'Hyundai|i20|1.0 T-GDI|Elite',
+  'Hyundai|i20|1.0 T-GDI|Elite Plus',
+  'Hyundai|Tucson|1.6 CRDi|Elite Plus',
+  'Mercedes-Benz|E-Serisi|E 200|AMG',
+  'Mercedes-Benz|E-Serisi|E 200|Avantgarde',
+  'Nissan|Qashqai|1.2 DIG-T|Black Edition',
+  'Nissan|Qashqai|1.2 DIG-T|Design Pack',
+  'Opel|Astra|1.2 Turbo|CD',
+  'Opel|Astra|1.2 Turbo|CDX',
+  'Opel|Corsa|1.0|City',
+  'Opel|Corsa|1.0|Color Edition',
+  'Peugeot|3008|1.2 Hybrid|Access',
+  'Renault|Clio|0.9 TCe|Alize',
+  'Renault|Megane|1.2 TCe|Alize',
+  'Skoda|Octavia|1.0 e-TEC|Ambiente',
+  'Skoda|Superb|1.4 TSI|Active',
+  'Skoda|Superb|1.4 TSI|Ambition',
+  'Toyota|C-HR|1.2 Turbo|Diamond',
+  'Toyota|Corolla|1.3|Active',
+  'Toyota|Corolla|1.3|Advance',
+  'Volkswagen|Passat|1.4 TSI|Business',
+  'Volkswagen|Passat|1.4 TSI|Comfortline',
+  'Volkswagen|Polo|1.0|40. Yıl',
+  'Volkswagen|Polo|1.0|Basicline',
 ];
+
+// Varyasyon kaynakları. Uzunlukları BİLEREK farklı: hepsi aynı adımla
+// ilerleseydi her araçta aynı bileşim tekrarlanır ve süzgeçler birbirinden
+// ayrışmazdı (ör. her Dizel aracın hep Ankara'da olması gibi).
+const SEHIRLER = ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Konya', 'Adana', 'Kocaeli', 'Gaziantep', 'Kayseri', 'Mersin'];
+const YAKITLAR = ['Benzin', 'Dizel', 'LPG & Benzin', 'Hibrit', 'Elektrik', 'Benzin', 'Dizel'];
+const VITESLER = ['Otomatik', 'Manuel', 'Yarı Otomatik'];
 
 const GUN = 24 * 60 * 60 * 1000;
 
+/** Her kombinasyondan kaç araç üretiliyor. */
+const VARYANT = 3;
+
 /**
- * `adet` kadar demo kaydı `vitrin_listesi` RPC'sinin şeklinde üretir.
+ * Demo kayıtlarını üretir.
  *
  * ⚠ `simdi` DIŞARIDAN GEÇİLİYOR. `Date.now()` burada çağrılıp sonucu render
  * sırasında okunsaydı React saflık kuralı ihlal edilirdi (lint hatası).
- * Çağıran taraf zaten `acilisZamani`yi tutuyor.
  *
- * @param {number} adet Kaç kart üretilsin.
+ * @param {number} adet En fazla kaç kart (üst sınır {@link DEMO_EN_FAZLA}).
  * @param {number} simdi Şimdiki zaman (ms).
  */
 export function demoVitrinUret(adet, simdi) {
-  return HAM.slice(0, Math.max(0, adet)).map((satir, i) => {
-    const [brand, series, model, paket, year, km, city, fuel, vites, puan, oneCikan, gunOnce] = satir;
-    return {
-      // ⚠ `listing_id` "demo-" ile başlıyor: bir kayıt yanlışlıkla gerçek
-      // veriyle karışırsa tek bakışta ayırt edilebilsin.
+  const cikti = [];
+  const sinir = Math.min(Math.max(0, adet), KOMBINASYONLAR.length * VARYANT);
+
+  for (let i = 0; i < sinir; i++) {
+    const [brand, series, model, paket] = KOMBINASYONLAR[Math.floor(i / VARYANT)].split('|');
+    const v = i % VARYANT;
+
+    cikti.push({
+      // ⚠ "demo-" ön eki: bir kayıt yanlışlıkla gerçek veriyle karışırsa tek
+      // bakışta ayırt edilebilsin.
       listing_id: `demo-${i + 1}`,
       id: `demo-${i + 1}`,
-      // ⚠ PIN YOK. Demo aracin karnesi de yok; sahte bir PIN vermek
-      // karta tiklanabilir bir kapi acardi. Karti etkisiz kilan kural
-      // artik tek: PIN'i olmayan kartin karnesi paylasima acik degil —
-      // bu hem demo kartlari hem `listelenebilir` araclari kapsiyor.
+      kart_id: `demo-${i + 1}`,
+      // ⚠ PIN YOK. Demo aracın karnesi de yok; sahte bir PIN vermek karta
+      // tıklanabilir bir kapı açardı.
       pin_code: null,
+      katman: 'listelenebilir',
       brand,
       series,
       model,
       package: paket,
-      year,
-      km,
-      city,
-      fuel_type: fuel,
-      transmission: vites,
-      trust_score: puan,
-      is_featured: oneCikan,
-      created_at: new Date(simdi - gunOnce * GUN).toISOString(),
-      // Görsel YOK: `AracGorseli` bu durumda "GÖRSEL YOK" yer tutucusunu
-      // basıyor. Uydurma fotoğraf koymak, ürünün "beyan edilmeyeni beyan
-      // etme" kuralına aykırı olurdu.
+      // Yıl, km ve puan varyanta göre kayıyor: aynı donanımın üç aracı
+      // birbirinden ayırt edilebilsin ve yıl/km süzgeçleri sınanabilsin.
+      year: 2013 + ((i * 3 + v) % 12),
+      km: 18000 + ((i * 17393 + v * 40961) % 260000),
+      city: SEHIRLER[(i * 5 + v) % SEHIRLER.length],
+      fuel_type: YAKITLAR[(i * 3 + v) % YAKITLAR.length],
+      // ⚠ `(i + v)`, `(i + 2v)` DEĞİL. `v = i % 3` ve dizi de 3 uzunlukta
+      // olduğu için `(i + 2v) mod 3` = `3i mod 3` = DAİMA 0 idi: her demo
+      // araç 'Otomatik' çıkıyordu (ölçüldü: 139 Otomatik / 3 Manuel, ve o
+      // üçü gerçek araçlardan geliyordu). Katsayı toplamı 3'ün katı
+      // olmamalı; (1+1)=2 üçünü de eşit dağıtıyor.
+      transmission: VITESLER[(i + v) % VITESLER.length],
+      trust_score: 22 + ((i * 13 + v * 29) % 73),
+      // ~9'da bir öne çıkan: "Yalnızca öne çıkanlar" süzgeci anlamlı bir alt
+      // küme döndürsün ama ızgaranın çoğunu kaplamasın.
+      is_featured: i % 9 === 0,
+      created_at: new Date(simdi - ((i * 7 + v * 2) % 95) * GUN).toISOString(),
+      // Görsel YOK: `AracGorseli` "GÖRSEL YOK" yer tutucusunu basıyor.
+      // Uydurma fotoğraf koymak ürünün "beyan edilmeyeni beyan etme"
+      // kuralına aykırı olurdu.
       image_url: null,
-      // Başlık da verilmiyor: kart marka/model/donanımdan kendisi kuruyor.
+      // Başlık verilmiyor: kart marka/model/donanımdan kendisi kuruyor.
       listing_title: null,
       favorite_count: 0,
-    };
-  });
+      views_count: 0,
+    });
+  }
+  return cikti;
 }
 
-/** Üretilebilecek en fazla demo kart sayısı. */
-export const DEMO_EN_FAZLA = HAM.length;
+/** Üretilebilecek en fazla demo kart sayısı (44 kombinasyon x 3 varyant). */
+export const DEMO_EN_FAZLA = KOMBINASYONLAR.length * VARYANT;

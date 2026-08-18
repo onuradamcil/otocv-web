@@ -848,6 +848,10 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
 
       // 🟢 1. VEHICLES PAYLOAD (TÜM Vitrin, AÇIKLAMA VE EKSPERTİZ ALANLARI DAHİL)
       const vehiclePayload = {
+        // ⚠ GÖRÜNÜRLÜK 4. ADIMDA SORULUYOR (Step4PreviewAndPublish).
+        // Yedek 'listelenebilir': veritabanı varsayılanıyla aynı, yani
+        // kullanıcı o adımı hiç görmeden kaydetse bile davranış değişmiyor.
+        gorunurluk: formData.gorunurluk === 'gizli' ? 'gizli' : 'listelenebilir',
         user_id: user.id,
         plate_number: cleanPlate,
         title: formData.title || `${formData.selectedBrand?.name || ''} ${formData.selectedSeries?.name || ''} ${formData.selectedModel?.name || ''}`.trim(),

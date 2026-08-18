@@ -1218,6 +1218,72 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
 
       </div>
 
+     {/* ====================================================================
+         ARAMADA GÖRÜNÜRLÜK — KAYDETMEDEN ÖNCEKİ SON BİLGİ
+         ====================================================================
+         Kayıtlı her araç artık anasayfa aramasında ve marka süzgeçlerinde
+         çıkabiliyor. Bu, kullanıcının bilmeden olmaması gereken bir şey.
+
+         ⚠ NİYE STEP 1'DE DEĞİL BURADA: görünürlük bir YAYINLAMA kararı,
+         araç kimliği değil. Step 1'de kullanıcı henüz plakasını giriyor ve
+         "yayınlıyorum" bilincinde değil; orada sorulan bir soru okunmadan
+         geçilir. Burası kaydet düğmesinin hemen üstü — kararın verildiği an.
+
+         ⚠ VARSAYILAN AÇIK ve metin ne verildiğini AÇIKÇA söylüyor: künye
+         görünür oluyor, bakım geçmişi ve belgeler DEĞİL. "Görünür ol" derken
+         neyin paylaşıldığını bilmeyen bir kullanıcı rıza vermiş sayılmaz.
+         ==================================================================== */}
+      <div className="pt-6">
+        <div className={`rounded-lg border p-4 sm:p-5 transition-colors ${
+          formData.gorunurluk === 'gizli'
+            ? 'bg-amber-50 border-amber-300'
+            : 'bg-slate-50 border-slate-200'
+        }`}>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={formData.gorunurluk !== 'gizli'}
+            onClick={() => updateFormData({
+              gorunurluk: formData.gorunurluk === 'gizli' ? 'listelenebilir' : 'gizli',
+            })}
+            className="w-full min-h-[44px] flex items-start gap-3 text-left cursor-pointer"
+          >
+            <span
+              aria-hidden="true"
+              className={`mt-0.5 shrink-0 w-10 h-6 rounded-full flex items-center transition-colors ${
+                formData.gorunurluk === 'gizli' ? 'bg-slate-300' : 'bg-emerald-600'
+              }`}
+            >
+              <span className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                formData.gorunurluk === 'gizli' ? 'translate-x-0.5' : 'translate-x-[18px]'
+              }`}
+              />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold text-sm text-slate-900">
+                Aracınız aramada görünsün
+              </span>
+              <span className="block text-xs text-slate-600 leading-relaxed mt-1">
+                Marka, model, yıl, şehir ve sicil puanı anasayfadaki aramada ve
+                marka süzgeçlerinde çıkar; aracınızı arayan kişiler bulabilir.{' '}
+                <strong className="text-slate-800">
+                  Bakım geçmişiniz, belgeleriniz ve plakanız kapalı kalır
+                </strong>{' '}
+                — onlar yalnızca aracı vitrine çıkarırsanız paylaşılır.
+              </span>
+            </span>
+          </button>
+
+          {formData.gorunurluk === 'gizli' && (
+            <p className="mt-3 pt-3 border-t border-amber-200 text-xs text-amber-900 leading-relaxed">
+              <strong>Aracınız aramalarda ve marka süzgeçlerinde görünmeyecek.</strong>{' '}
+              Yalnızca siz göreceksiniz. Bu ayarı garajınızdan istediğiniz zaman
+              değiştirebilirsiniz.
+            </p>
+          )}
+        </div>
+      </div>
+
      {/* 🚀 ALT AKSİYON BUTONLARI */}
       <div className="flex items-center justify-between pt-6 pb-12 relative z-20">
         <button
