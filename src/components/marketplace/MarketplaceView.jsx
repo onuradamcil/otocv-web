@@ -349,55 +349,73 @@ function MobilGrup({ secenekler, secili, sec }) {
  * @param {{hedef: number, etiket: string}[]} p.yol Kırıntı halkaları. SON
  *   halka bulunulan yer (düğme DEĞİL). Boş dizi = köktesin, kırıntı çizilmiyor.
  * @param {string|null} p.kademeBasligi Gösterilen kademenin adı ('Seri').
- * @param {{anahtar: string, etiket: string, adet: number}[]} p.cocuklar
+ * @param {{id: number, name: string}[]} p.cocuklar Katalog düğümleri.
  * @param {number} p.derinlik Çocukların ait olduğu kademe (0-3).
  * @param {(hedef: number) => void} p.git Kırıntıda üst kademeye dön.
  * @param {(derinlik: number, anahtar: string) => void} p.sec
  * @param {'liste'|'cip'} [p.bicim] Masaüstü satır / dar ekran çip.
  */
+// Kırıntı yolunun kademe girintileri. Dizi olarak yazılıyor çünkü Tailwind
+// JIT'i `pl-${i*3}` gibi hesaplanmış sınıf adlarını TARAYAMIYOR — sınıfın
+// kaynakta birebir geçmesi gerekiyor.
+const YOL_GIRINTISI = ['pl-0', 'pl-3', 'pl-6', 'pl-9', 'pl-12'];
+
 function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, yukleniyor, git, sec, bicim = 'liste' }) {
   const kokte = yol.length === 0;
 
   return (
     <div className="space-y-2">
       {!kokte && (
-        /* ⚠ `<nav>` DEĞİL. Bunlar sayfa bağlantısı değil süzgeç düğmesi;
-           `nav` landmark'ı ekran okuyucuda sahte bir gezinme bölgesi üretir.
-           `flex-wrap` şart: uzun donanım adları ("X-PACK MULTIDRIVE S") dar
-           ekranda yatay taşma üretmesin (`04-mobil` ≤ 1 px denetliyor). */
-        <div className="flex flex-wrap items-center gap-x-0.5 gap-y-1">
+        /* ⚠ YOL YATAY DEĞİL, DİKEY VE GİRİNTİLİ.
+           Önceki hâl `flex-wrap` ile yan yana diziyordu ve uzun adlarda
+           panele sığmıyordu: "Tüm markalar › Alfa Romeo › 145" satırı
+           taşıyor, ok işareti bir alt satırın başına düşüyor ve iz
+           okunmaz hâle geliyordu. Kenar çubuğu ~250 px; marka + seri +
+           model adları yan yana o genişliğe sığmıyor.
+
+           Her kademe kendi satırında ve bir öncekinden girintili. Bu aynı
+           zamanda referans sitedeki ağaç görünümü. Genişlik sorunu tamamen
+           ortadan kalkıyor: satır başına tek ad, taşarsa `truncate`.
+
+           ⚠ `<nav>` DEĞİL. Bunlar sayfa bağlantısı değil süzgeç düğmesi;
+           `nav` landmark'ı ekran okuyucuda sahte bir gezinme bölgesi
+           üretir. */
+        <div className="flex flex-col">
           {yol.map((halka, i) => {
             const suradasin = i === yol.length - 1;
-            return (
-              <React.Fragment key={`${halka.hedef}-${halka.etiket}`}>
+            const girinti = YOL_GIRINTISI[Math.min(i, YOL_GIRINTISI.length - 1)];
+            return suradasin ? (
+              /* Bulunulan yer düğme DEĞİL: tıklanacak bir işi yok ve ölü bir
+                 kontrol göstermek yanlış bilgi. Düğme olmadığı için 44 px
+                 yükümlülüğü de doğmuyor. */
+              <span
+                key={`${halka.hedef}-${halka.etiket}`}
+                aria-current="true"
+                className={`${girinti} flex items-center gap-1 py-1 metin-yardimci font-semibold text-slate-900 min-w-0`}
+              >
                 {i > 0 && (
-                  <span aria-hidden="true" className="text-slate-400">
+                  <span aria-hidden="true" className="text-slate-400 shrink-0">
                     <Icon name="asagi" size="xs" className="-rotate-90" />
                   </span>
                 )}
-                {suradasin ? (
-                  /* Bulunulan yer düğme DEĞİL: tıklanacak bir işi yok ve ölü
-                     bir kontrol göstermek yanlış bilgi. Düğme olmadığı için
-                     44 px yükümlülüğü de doğmuyor. */
-                  <span
-                    aria-current="true"
-                    className="metin-yardimci font-semibold text-slate-900 truncate max-w-[10rem]"
-                  >
-                    {halka.etiket}
+                <span className="truncate">{halka.etiket}</span>
+              </span>
+            ) : (
+              <button
+                key={`${halka.hedef}-${halka.etiket}`}
+                type="button"
+                onClick={() => git(halka.hedef)}
+                /* Satır tam genişlik olduğu için `min-w-[44px]` derdi
+                   kalmadı; yalnızca yükseklik korunuyor. */
+                className={`${girinti} w-full min-h-[44px] flex items-center gap-1 rounded-md px-1 metin-yardimci font-semibold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 transition-colors cursor-pointer text-left min-w-0`}
+              >
+                {i > 0 && (
+                  <span aria-hidden="true" className="text-slate-400 shrink-0">
+                    <Icon name="asagi" size="xs" className="-rotate-90" />
                   </span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => git(halka.hedef)}
-                    // ⚠ `min-w-[44px]` ŞART, `min-h` tek başına yetmiyor:
-                    // kısa bir etiket ("GT") yalnızca dolguyla ~30 px kalır
-                    // ve 44 px testi düşer.
-                    className="min-h-[44px] min-w-[44px] px-1.5 rounded-md metin-yardimci font-semibold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 transition-colors cursor-pointer truncate max-w-[10rem] text-left"
-                  >
-                    {halka.etiket}
-                  </button>
                 )}
-              </React.Fragment>
+                <span className="truncate">{halka.etiket}</span>
+              </button>
             );
           })}
         </div>
