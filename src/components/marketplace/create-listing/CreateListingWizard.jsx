@@ -1432,7 +1432,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       {/* YARIM KALAN İLAN (DRAFT RECOVERY) MODAL BİLEŞENİ */}
       {showDraftModal && draftData && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-6 relative border border-slate-100 font-sans antialiased">
+          <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-6 relative border border-slate-100 font-sans antialiased">
             
             <button 
               onClick={() => handleDiscardDraft(true)}
@@ -1459,7 +1459,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               </div>
             </div>
 
-            <div className="bg-slate-100/80 p-3 sm:p-3.5 rounded-xl">
+            <div className="bg-slate-100/80 p-3 sm:p-3.5 rounded-md">
               <div className="bg-white border border-slate-200/80 rounded-lg p-3.5 flex items-center gap-3.5 shadow-2xs">
                 <div className="w-11 h-11 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -1503,7 +1503,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
       {/* 🛑 MÜKERRER PLAKA UYARI MODAL BİLEŞENİ */}
       {showDuplicatePlateModal && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4 animate-fadeIn font-sans antialiased">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-6 relative border border-slate-100">
+          <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-6 relative border border-slate-100">
             
             <button 
               onClick={() => setShowDuplicatePlateModal(false)}
@@ -1530,11 +1530,11 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               </div>
             </div>
 
-            <div className="bg-slate-100/80 p-4 sm:p-5 rounded-xl flex items-center justify-center">
+            <div className="bg-slate-100/80 p-4 sm:p-5 rounded-md flex items-center justify-center">
               <TrPlaka plaka={duplicatePlateNumber} boyut="lg" />
             </div>
 
-            <div className="bg-rose-50/70 border border-rose-100 p-3.5 rounded-xl flex items-start gap-3">
+            <div className="bg-rose-50/70 border border-rose-100 p-3.5 rounded-md flex items-start gap-3">
               <div className="p-1.5 bg-rose-100/80 text-rose-600 rounded-lg shrink-0 mt-0.5">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
@@ -1555,7 +1555,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 bir değer gösterilmiyor. Kullanıcı ücret ödemeye karar
                 verirken ne aldığını gerçek sayılarla görmeli. */}
             {duplicateSahipsiz && duplicateOzet && (
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5">
+              <div className="bg-slate-50 border border-slate-200 rounded-md p-4 space-y-2.5">
                 <p className="text-sm font-semibold text-slate-900">
                   {duplicateOzet.yil} {duplicateOzet.marka} {duplicateOzet.model}
                 </p>
@@ -1582,7 +1582,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               <button
                 type="button"
                 onClick={() => setShowDuplicatePlateModal(false)}
-                className="w-full bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-800 font-bold text-sm py-3.5 px-4 rounded-xl transition-all cursor-pointer text-center"
+                className="w-full bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-800 font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center"
               >
                 Plakayı Düzelt
               </button>
@@ -1593,7 +1593,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                     setShowDuplicatePlateModal(false);
                     router.push(duplicatePin ? `/details/${encodeURIComponent(duplicatePin)}` : '/garage');
                   }}
-                  className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-xl transition-all cursor-pointer text-center shadow-xs"
+                  className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center shadow-xs"
                 >
                   Aracıma Git
                 </button>
@@ -1602,7 +1602,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 <button
                   type="button"
                   onClick={() => { setShowDuplicatePlateModal(false); setDevralDialogOpen(true); }}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-xl transition-all cursor-pointer text-center shadow-xs"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center shadow-xs"
                 >
                   Bu Aracı Devral
                 </button>
@@ -1614,7 +1614,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 <button
                   type="button"
                   onClick={() => { setShowDuplicatePlateModal(false); setSahipsizDialogOpen(true); }}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-xl transition-all cursor-pointer text-center shadow-xs"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center shadow-xs"
                 >
                   Sicili Devral
                 </button>
@@ -1671,7 +1671,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
             await handleFinalPublish();
           }}
           detay={
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1">
+            <div className="bg-slate-50 border border-slate-200 rounded-md p-3 space-y-1">
               <p className="text-xs font-bold text-slate-700">
                 İlk aracınız ücretsizdi; bu ikinci ve sonraki araç kaydınız.
               </p>

@@ -47,7 +47,7 @@ export default function MesajlarPage() {
   if (durum === 'oturumyok') {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-4">
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 max-w-md w-full text-center space-y-4">
+        <div className="bg-white border border-slate-200 rounded-lg p-8 max-w-md w-full text-center space-y-4">
           <h1 className="baslik-bolum text-slate-900">Mesajlarım</h1>
           <p className="metin-yardimci text-slate-500">
             Yazışmalarınızı görmek için oturum açmanız gerekiyor.

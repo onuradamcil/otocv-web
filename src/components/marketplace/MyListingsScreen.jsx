@@ -60,7 +60,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
         </div>
         <button 
           onClick={onNavigateToGarage}
-          className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer"
+          className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-md transition-all shadow-xs cursor-pointer"
         >
           ← Garajıma Dön
         </button>
@@ -71,15 +71,15 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
         /* Ilan kartlari bekleniyor -> kart iskeleti. */
         <GlobalStepLoader mode="iskelet" varyant="kart" kapsayici={false} baslik={false} adet={3} />
       ) : listings.length === 0 ? (
-        <div className="py-20 flex flex-col items-center justify-center text-center space-y-3 bg-white rounded-3xl border border-dashed border-slate-200">
-          <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-500">
+        <div className="py-20 flex flex-col items-center justify-center text-center space-y-3 bg-white rounded-lg border border-dashed border-slate-200">
+          <div className="w-12 h-12 bg-slate-50 rounded-lg flex items-center justify-center text-slate-500">
             <Icon name="arac" size="xl" />
           </div>
           <h3 className="text-sm font-semibold text-slate-900">Vitrinde aracınız yok</h3>
           <p className="text-xs text-slate-500 max-w-sm">Garajınızdaki araçları vitrine çıkarınca buradan yönetebilirsiniz.</p>
           <button 
             onClick={onNavigateToGarage}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-md transition-all shadow-sm cursor-pointer"
           >
             Garajıma Git
           </button>
@@ -90,7 +90,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
             const firstPhoto = item.image_url ? item.image_url.split(',')[0].trim() : null;
 
             return (
-              <div key={item.id || item.listing_id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs flex flex-col justify-between p-4 space-y-4">
+              <div key={item.id || item.listing_id} className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs flex flex-col justify-between p-4 space-y-4">
                 
                 <div className="space-y-3">
                   {/* FOTOĞRAF VE ROZETLER */}
@@ -99,7 +99,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                       basmıyor ve görsel "alt'sız" kalıyordu — ekran okuyucu o
                       zaman dosya adını okur. Yedek olarak marka/model, o da
                       yoksa boş dize (süs görsel) kullanılıyor. */}
-                  <div className="h-40 w-full bg-slate-100 rounded-xl overflow-hidden relative">
+                  <div className="h-40 w-full bg-slate-100 rounded-md overflow-hidden relative">
                     {/* `sizes` ızgaradan: `grid-cols-1 md:2 lg:3` */}
                     <AracGorseli
                       src={firstPhoto}
@@ -131,7 +131,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                   </div>
 
                   {/* 📊 İSTATİSTİK BARI (GÖRÜNTÜLENME VE FAVORİ SAYISI) */}
-                  <div className="bg-slate-50 p-2.5 rounded-xl flex justify-between items-center text-xs font-semibold text-slate-600 border border-slate-100">
+                  <div className="bg-slate-50 p-2.5 rounded-md flex justify-between items-center text-xs font-semibold text-slate-600 border border-slate-100">
                     <div className="flex items-center gap-1.5" title="Görüntülenme Sayısı">
                       <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 123.572M12 20.25c4.97 0 9.185-3.223 10.675-7.69a1.75 1.75 0 000-1.12C21.185 6.973 16.97 3.75 12 3.75s-9.185 3.223-10.675 7.69a1.75 1.75 0 000 1.12C2.815 17.027 7.03 20.25 12 20.25z" />
@@ -168,7 +168,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                     kurma ve alan adı eşleme sorunu tamamen kalktı. */}
                 <Link
                   href={`/garage/${encodeURIComponent(item.pin_code || '')}/vitrin`}
-                  className="w-full inline-flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 font-bold text-xs rounded-xl transition-colors"
+                  className="w-full inline-flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 font-bold text-xs rounded-md transition-colors"
                 >
                   Vitrin Kartını Düzenle
                 </Link>

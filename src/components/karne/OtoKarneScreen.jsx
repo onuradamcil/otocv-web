@@ -144,7 +144,7 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
       {/* TOAST PANELİ */}
       {toast.show && (
         <div className="fixed top-6 right-6 z-50 animate-slideIn print:hidden">
-          <div className="flex items-center gap-2.5 px-4 py-3 bg-white border border-gray-200 rounded-xl shadow-lg max-w-sm">
+          <div className="flex items-center gap-2.5 px-4 py-3 bg-white border border-gray-200 rounded-md shadow-lg max-w-sm">
             <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full shrink-0" />
             <span className="text-xs font-medium text-slate-700 leading-normal">{toast.message}</span>
           </div>
@@ -165,13 +165,13 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
         </h1>
 
         <div className="flex items-center gap-2">
-          <button onClick={handleOutputEngine} className="bg-[#4F46E5] hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-98">
+          <button onClick={handleOutputEngine} className="bg-[#4F46E5] hover:bg-indigo-700 text-white px-3.5 py-2 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-98">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
             {activeTab === 0 ? 'Kartı İndir (PNG)' : 'Resmi Belge Al (PDF)'}
           </button>
-          <button onClick={() => setShowShareModal(true)} className="bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-98">
+          <button onClick={() => setShowShareModal(true)} className="bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 px-3.5 py-2 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-98">
             Paylaş
           </button>
         </div>
@@ -180,13 +180,13 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
       {/* SEKMELER */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 mt-8 space-y-8 print:m-0 print:p-0">
         <div className="flex justify-center select-none print:hidden">
-          <div className="bg-gray-200/60 border border-gray-200 p-1 rounded-2xl flex w-full max-w-[440px]">
+          <div className="bg-gray-200/60 border border-gray-200 p-1 rounded-lg flex w-full max-w-[440px]">
             <button onClick={() => setActiveTab(0)}
-                aria-pressed={activeTab === 0} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 0 ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
+                aria-pressed={activeTab === 0} className={`flex-1 py-2.5 rounded-md text-xs font-bold transition-all ${activeTab === 0 ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
               Paylaşım Kartı
             </button>
             <button onClick={() => setActiveTab(1)}
-                aria-pressed={activeTab === 1} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 1 ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
+                aria-pressed={activeTab === 1} className={`flex-1 py-2.5 rounded-md text-xs font-bold transition-all ${activeTab === 1 ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
               Detaylı Sicil Belgesi
             </button>
           </div>
@@ -203,8 +203,8 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
             </div>
             
             <div className="lg:col-span-7 space-y-6 print:hidden select-none">
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
-                <div className="w-8 h-8 bg-amber-50 border border-amber-100 rounded-xl flex items-center justify-center text-amber-600">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm space-y-4">
+                <div className="w-8 h-8 bg-amber-50 border border-amber-100 rounded-md flex items-center justify-center text-amber-600">
                   <Icon name="karne" size="md" />
                 </div>
                 <div className="space-y-1">
@@ -213,13 +213,13 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
                     Bu tescil paneli, aracınızın bakım geçmişini ve sicil puanını tek bir görselde özetler; paylaştığınız her yerde belgeli veriyi gösterir.
                   </p>
                 </div>
-                <div className="bg-amber-50 border border-amber-100/70 p-4 rounded-xl flex gap-2 text-xs font-semibold text-amber-900 leading-relaxed">
+                <div className="bg-amber-50 border border-amber-100/70 p-4 rounded-md flex gap-2 text-xs font-semibold text-amber-900 leading-relaxed">
                   <div className="w-1.5 h-1.5 bg-amber-600 rounded-full shrink-0 mt-1.5" />
                   <p>Bu dijital belgeyi araç fotoğraflarınızın arasına koyarak aracın bakım geçmişinin belgeli olduğunu ilk bakışta gösterebilirsiniz.</p>
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-5">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm space-y-5">
                 <span className="text-indigo-600 font-extrabold text-[10px] tracking-widest block uppercase">DÖKÜMANTASYON KULLANIM REHBERİ</span>
                 <div className="space-y-4">
                   <GuideRow num="1" title="Görseli İndirin" desc="Üst paneldeki eylem butonunu kullanarak tescilli dikey reklam kartını doğrudan galerinize PNG formatında kaydedin." />
@@ -231,7 +231,7 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
           </div>
         ) : (
           <div className="w-full flex flex-col items-center space-y-6 animate-fadeIn">
-            <div className="w-full max-w-[740px] bg-white border border-gray-200 rounded-xl p-4 text-center text-xs font-medium text-slate-500 shadow-sm print:hidden">
+            <div className="w-full max-w-[740px] bg-white border border-gray-200 rounded-md p-4 text-center text-xs font-medium text-slate-500 shadow-sm print:hidden">
               Araç başı test sürüşlerinde ve noter devir süreçlerinde alıcı mülkiyet güvenini mühürlemek için bu kurumsal tescil pasaportunun <span className="font-semibold text-slate-800">PDF çıktısını alabilir</span> veya doğrudan yazdırabilirsiniz.
             </div>
             <div className="w-full max-w-[740px] print:max-w-none print:w-full">
@@ -239,7 +239,7 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
                 /* Gelen sey bakim kayitlarindan olusan resmi dokum -> satir
                    listesi iskeleti. Kutu cercevesi korunuyor ki karnenin
                    belge gorunumu yuklenirken de bozulmasin. */
-                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                <div className="bg-white border border-gray-200 rounded-md p-4 shadow-sm">
                   <GlobalStepLoader mode="iskelet" varyant="liste" kapsayici={false} adet={5} />
                 </div>
               ) : sicilHatasi ? (
@@ -252,7 +252,7 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
                    Araç detayı ekranı bunu zaten doğru yapıyordu. */
                 <div
                   role="alert"
-                  className="bg-white border border-amber-200 rounded-xl p-6 shadow-sm text-center space-y-2"
+                  className="bg-white border border-amber-200 rounded-md p-6 shadow-sm text-center space-y-2"
                 >
                   <p className="text-xs font-black text-amber-900">Bakım kayıtları yüklenemedi</p>
                   <p className="text-[11px] text-amber-900/80 font-semibold leading-relaxed">
@@ -274,7 +274,7 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
       {/* PAYLAŞ MODALI */}
       {showShareModal && (
         <div className="fixed inset-0 z-50 bg-[#0F172A]/30 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 w-full max-w-sm shadow-xl space-y-4">
+          <div className="bg-white border border-gray-100 rounded-lg p-5 w-full max-w-sm shadow-xl space-y-4">
             <div className="flex justify-between items-center border-b border-gray-100 pb-2">
               <h3 className="text-xs font-bold text-[#0F172A]">Doğrulama Bağlantısı</h3>
               <button
@@ -286,7 +286,7 @@ export default function OtoKarneScreen({ vehicle, kayitlar = null, onBack, isPub
                 <Icon name="kapat" size="md" />
               </button>
             </div>
-            <div {...tiklanabilir(copyVerificationLink)} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-gray-200 hover:bg-slate-100 cursor-pointer transition-all">
+            <div {...tiklanabilir(copyVerificationLink)} className="flex items-center gap-3 p-3 rounded-md bg-slate-50 border border-gray-200 hover:bg-slate-100 cursor-pointer transition-all">
               <div className="flex-1 min-w-0">
                 <span className="text-xs font-bold text-[#0F172A] block">Linki Kopyala</span>
                 <span className="text-[10px] text-indigo-600 font-mono truncate block mt-0.5">{verificationUrl}</span>

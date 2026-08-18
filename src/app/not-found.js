@@ -29,7 +29,7 @@ export default function NotFound() {
       </header>
 
       <main className="flex-1 flex items-center justify-center p-4">
-        <div className="bg-white border border-gray-200 rounded-2xl p-8 md:p-10 max-w-md w-full text-center space-y-5 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-lg p-8 md:p-10 max-w-md w-full text-center space-y-5 shadow-sm">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 rounded-full text-slate-500 text-etiket font-semibold tracking-wider uppercase">
             Hata 404
           </span>
@@ -45,13 +45,13 @@ export default function NotFound() {
           <div className="flex flex-col sm:flex-row gap-2 justify-center pt-1">
             <Link
               href="/verify"
-              className={`flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-6 rounded-xl transition-colors ${ODAK}`}
+              className={`flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-6 rounded-md transition-colors ${ODAK}`}
             >
               PIN ile Araç Sorgula
             </Link>
             <Link
               href="/"
-              className={`flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs px-6 rounded-xl transition-colors ${ODAK}`}
+              className={`flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs px-6 rounded-md transition-colors ${ODAK}`}
             >
               Anasayfa
             </Link>

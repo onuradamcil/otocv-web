@@ -37,9 +37,9 @@ import {
   bekleyenKapatmaTalebi, kapatmaTalepEt, kapatmaTalebiIptal, aracOzeti,
 } from '../../services/hesapService';
 
-const GIRDI = 'w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 placeholder:text-slate-500 placeholder:font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:bg-white transition-colors disabled:opacity-60';
+const GIRDI = 'w-full h-11 px-3.5 rounded-md border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 placeholder:text-slate-500 placeholder:font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:bg-white transition-colors disabled:opacity-60';
 const ETIKET = 'text-etiket font-semibold text-slate-500 uppercase tracking-wider';
-const BIRINCIL = 'min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-500 text-white font-semibold text-xs rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed';
+const BIRINCIL = 'min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-500 text-white font-semibold text-xs rounded-md transition-colors cursor-pointer disabled:cursor-not-allowed';
 
 export default function HesabimEkrani() {
   const toast = useToast();
@@ -253,7 +253,7 @@ export default function HesabimEkrani() {
         {/* Bekleyen kapatma talebi varsa en üstte: ekranın geri kalanını
             düzenlemek anlamsız hâle gelmiyor ama kullanıcı durumu bilmeli. */}
         {talep && (
-          <div role="status" className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+          <div role="status" className="bg-rose-50 border border-rose-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
             <div className="flex items-start gap-3 min-w-0">
               <span className="text-rose-600 mt-0.5 shrink-0"><Icon name="uyari" size="md" /></span>
               <div className="min-w-0">
@@ -269,7 +269,7 @@ export default function HesabimEkrani() {
               type="button"
               onClick={talebiIptalEt}
               disabled={talepGonderiliyor}
-              className="shrink-0 min-h-[44px] px-4 bg-white border border-rose-200 hover:bg-rose-100 text-rose-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+              className="shrink-0 min-h-[44px] px-4 bg-white border border-rose-200 hover:bg-rose-100 text-rose-700 font-semibold text-xs rounded-md transition-colors cursor-pointer disabled:opacity-50"
             >
               Talebi iptal et
             </button>
@@ -380,13 +380,13 @@ export default function HesabimEkrani() {
 
         {/* ---------------------------------------------------------------- */}
         <Bolum baslik="E-posta adresi" ozet="Giriş yaparken kullandığınız adres.">
-          <div className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-3 mb-3">
+          <div className="bg-slate-50 border border-slate-200 rounded-md px-3.5 py-3 mb-3">
             <p className="text-etiket font-semibold text-slate-500 uppercase tracking-wider">Mevcut adres</p>
             <p className="text-xs font-bold text-slate-800 mt-0.5 break-all">{kullanici.email}</p>
           </div>
 
           {epostaBekliyor && (
-            <div role="status" className="bg-indigo-50 border border-indigo-200 rounded-xl p-3 mb-3">
+            <div role="status" className="bg-indigo-50 border border-indigo-200 rounded-md p-3 mb-3">
               <p className="text-yardimci text-indigo-900 font-semibold leading-relaxed">
                 Doğrulama bağlantısı gönderildi. <strong>Adresiniz siz bağlantıya tıklayana kadar
                 değişmiyor</strong>; o ana dek mevcut adresinizle giriş yapmaya devam edin.
@@ -481,7 +481,7 @@ export default function HesabimEkrani() {
         <Bolum baslik="Üyelik" ozet="Mevcut üyelik durumunuz ve ücretler.">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <span className={`w-9 h-9 rounded-xl grid place-items-center shrink-0 ${
+              <span className={`w-9 h-9 rounded-md grid place-items-center shrink-0 ${
                 profil?.is_premium ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-slate-100 text-slate-500'
               }`}>
                 <Icon name="yildiz" size="md" />
@@ -495,7 +495,7 @@ export default function HesabimEkrani() {
             </div>
             <Link
               href="/packages"
-              className="inline-flex items-center justify-center min-h-[44px] px-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl transition-colors shrink-0"
+              className="inline-flex items-center justify-center min-h-[44px] px-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-md transition-colors shrink-0"
             >
               Ücretleri görüntüle
             </Link>
@@ -508,7 +508,7 @@ export default function HesabimEkrani() {
             {/* KAPATILAMAYAN tercih. Gri bir anahtar gösterip tıklatmamak
                 yerine hiç anahtar konmuyor ve sebebi yazılıyor: çalışmayan
                 bir kontrol, olmayan bir kontrolden daha kafa karıştırıcı. */}
-            <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div className="flex items-start gap-3 p-3.5 rounded-md bg-slate-50 border border-slate-200">
               <span className="text-slate-400 mt-0.5 shrink-0"><Icon name="kalkan" size="sm" /></span>
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-slate-800">Devir ve sicil bildirimleri</p>
@@ -520,7 +520,7 @@ export default function HesabimEkrani() {
               </div>
             </div>
 
-            <label className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 hover:border-indigo-300 transition-colors cursor-pointer">
+            <label className="flex items-start gap-3 p-3.5 rounded-md border border-slate-200 hover:border-indigo-300 transition-colors cursor-pointer">
               <input
                 type="checkbox"
                 checked={!!profil?.pazarlama_izni}
@@ -565,7 +565,7 @@ export default function HesabimEkrani() {
                 type="button"
                 onClick={() => setKapatmaAcik(true)}
                 disabled={!!talep}
-                className="shrink-0 min-h-[44px] px-4 bg-white border border-rose-200 hover:bg-rose-50 disabled:opacity-50 disabled:cursor-not-allowed text-rose-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+                className="shrink-0 min-h-[44px] px-4 bg-white border border-rose-200 hover:bg-rose-50 disabled:opacity-50 disabled:cursor-not-allowed text-rose-700 font-semibold text-xs rounded-md transition-colors cursor-pointer"
               >
                 {talep ? 'Talebiniz bekliyor' : 'Kapatma talebi oluştur'}
               </button>
@@ -588,7 +588,7 @@ export default function HesabimEkrani() {
 
 function Bolum({ baslik, ozet, children }) {
   return (
-    <section className="bg-white border border-slate-200 rounded-2xl p-5 shadow-[0_4px_20px_rgba(15,23,42,0.03)]">
+    <section className="bg-white border border-slate-200 rounded-lg p-5 shadow-[0_4px_20px_rgba(15,23,42,0.03)]">
       <div className="mb-4">
         <h2 className="text-sm font-semibold text-slate-900 tracking-tight">{baslik}</h2>
         <p className="text-yardimci text-slate-500 font-semibold mt-0.5">{ozet}</p>

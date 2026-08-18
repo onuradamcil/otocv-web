@@ -287,7 +287,7 @@ const Step3Medical = forwardRef(({
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
 
         {/* 1. KATMAN: DIŞ BEYAZ PANEL */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="bg-white border border-slate-200/90 rounded-lg p-6 sm:p-8 shadow-sm space-y-6">
           
           {/* TEK VE NET ÜST BAŞLIK */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
@@ -312,12 +312,12 @@ const Step3Medical = forwardRef(({
               🚀 ZERO-STATE (KAYIT YOKSA GÖRÜNÜR)
              ========================================================================= */}
           {activeRecords.length === 0 && (
-            <div className="w-full border border-slate-200/90 rounded-xl bg-white shadow-2xs overflow-hidden font-sans select-none">
+            <div className="w-full border border-slate-200/90 rounded-md bg-white shadow-2xs overflow-hidden font-sans select-none">
               
               {/* ÜST HEADER ALANI */}
               <div className="p-6 sm:p-7 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="w-12 h-12 rounded-md bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-xs">
                     <svg className="w-6 h-6 text-indigo-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .415.117.802.321 1.132a2.378 2.378 0 0 0-.321 1.132c0 .231.035.454.1.664M4.5 12h15m-15 0a2.25 2.25 0 0 0-2.25 2.25v6.75c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-6.75A2.25 2.25 0 0 0 19.5 12M4.5 12V6.75A2.25 2.25 0 0 1 6.75 4.5h10.5a2.25 2.25 0 0 1 2.25 2.25V12" />
                     </svg>
@@ -334,7 +334,7 @@ const Step3Medical = forwardRef(({
                 </div>
 
                 {/* SAĞ ÜST KONTROL İCONU */}
-                <div className="hidden sm:flex w-11 h-11 border border-slate-200 rounded-xl items-center justify-center text-slate-500 bg-slate-50 shrink-0">
+                <div className="hidden sm:flex w-11 h-11 border border-slate-200 rounded-md items-center justify-center text-slate-500 bg-slate-50 shrink-0">
                   <ShieldCheckIcon />
                 </div>
               </div>
@@ -383,7 +383,7 @@ const Step3Medical = forwardRef(({
                 <button
                   type="button"
                   onClick={addNewRecord}
-                  className="bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-semibold text-xs sm:text-sm py-3.5 px-8 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                  className="bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-semibold text-xs sm:text-sm py-3.5 px-8 rounded-md transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -406,7 +406,7 @@ const Step3Medical = forwardRef(({
               2. KATMAN: ORTA GRİ BAZA CONTAINER (SANDVİÇ MİMARİSİ)
              ========================================================================= */}
           {activeRecords.length > 0 && (
-            <div className="bg-[#F2F4F7] border border-slate-200/80 rounded-xl p-4 sm:p-5 space-y-4">
+            <div className="bg-[#F2F4F7] border border-slate-200/80 rounded-md p-4 sm:p-5 space-y-4">
               
               {/* DİNAMİK SERVİS AKORDEON LİSTESİ */}
               <div className="space-y-4">
@@ -415,7 +415,7 @@ const Step3Medical = forwardRef(({
                   return (
                     <div 
                       key={record.id}
-                      className={`bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs transition-all duration-300 ${
+                      className={`bg-white border border-slate-200/90 rounded-md overflow-hidden shadow-2xs transition-all duration-300 ${
                         record.is_expanded ? 'ring-1 ring-indigo-500/20 border-indigo-300 shadow-sm' : 'hover:border-slate-300'
                       }`}
                     >
@@ -499,7 +499,7 @@ const Step3Medical = forwardRef(({
                             <label className="text-yardimci font-semibold text-slate-600 uppercase tracking-wide block">
                               İşlem Türü <span className="text-rose-600">*</span>
                             </label>
-                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-1 bg-slate-100/80 border border-slate-200/80 rounded-xl">
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-1 bg-slate-100/80 border border-slate-200/80 rounded-md">
                               {['Periyodik Bakım', 'Mekanik Bakım', 'Tamir / Onarım', 'Sarf Malzeme', 'Dış İşlem'].map((type) => {
                                 const isSel = record.service_type === type;
                                 return (
@@ -529,7 +529,7 @@ const Step3Medical = forwardRef(({
                                 <label className="text-yardimci font-semibold text-slate-600 uppercase tracking-wide">
                                   İşlem Tarihi <span className="text-rose-600">*</span>
                                 </label>
-                                <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
+                                <div className={`border rounded-md bg-white flex items-center h-11 px-3 transition-all ${
                                   record.date_error || isFieldInvalid(record, 'service_date') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
                                 }`}>
                                   <input 
@@ -550,7 +550,7 @@ const Step3Medical = forwardRef(({
                                 <label className="text-yardimci font-semibold text-slate-600 uppercase tracking-wide">
                                   Kurum / Servis Adı <span className="text-rose-600">*</span>
                                 </label>
-                                <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
+                                <div className={`border rounded-md bg-white flex items-center h-11 px-3 transition-all ${
                                   isFieldInvalid(record, 'shop_name') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
                                 }`}>
                                   <input 
@@ -571,7 +571,7 @@ const Step3Medical = forwardRef(({
                                 <label className="text-yardimci font-semibold text-slate-600 uppercase tracking-wide">
                                   İşlem Yapılan KM <span className="text-rose-600">*</span>
                                 </label>
-                                <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
+                                <div className={`border rounded-md bg-white flex items-center h-11 px-3 transition-all ${
                                   isFieldInvalid(record, 'km') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
                                 }`}>
                                   <input 
@@ -597,7 +597,7 @@ const Step3Medical = forwardRef(({
                                 <label className="text-yardimci font-semibold text-slate-600 uppercase tracking-wide">
                                   İşlem Tutarı (TL) <span className="text-rose-600">*</span>
                                 </label>
-                                <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
+                                <div className={`border rounded-md bg-white flex items-center h-11 px-3 transition-all ${
                                   isFieldInvalid(record, 'cost') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
                                 }`}>
                                   <input 
@@ -618,7 +618,7 @@ const Step3Medical = forwardRef(({
                                 <label className="text-yardimci font-semibold text-slate-600 uppercase tracking-wide">
                                   Yapılan İşlem Özeti <span className="text-rose-600">*</span>
                                 </label>
-                                <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
+                                <div className={`border rounded-md bg-white flex items-center h-11 px-3 transition-all ${
                                   isFieldInvalid(record, 'summary') ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
                                 }`}>
                                   <input 
@@ -642,7 +642,7 @@ const Step3Medical = forwardRef(({
                                 <label className="text-yardimci font-semibold text-indigo-600 uppercase tracking-wide block">
                                   Bir Sonraki Yağ Değişim Kilometresi (KM)
                                 </label>
-                                <div className="border border-indigo-200 rounded-xl bg-indigo-50/30 flex items-center h-11 px-3">
+                                <div className="border border-indigo-200 rounded-md bg-indigo-50/30 flex items-center h-11 px-3">
                                   <input 
                                     type="text" 
                                     placeholder="Örn: 135.000 (Gelecek Bakım Hatırlatıcısı İçin)" 
@@ -692,7 +692,7 @@ const Step3Medical = forwardRef(({
 
                             <label 
                               htmlFor={`invoice-${record.id}`}
-                              className={`w-full border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all ${
+                              className={`w-full border-2 border-dashed rounded-md p-4 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all ${
                                 !record.invoice_file ? 'bg-slate-50 border-slate-200 hover:border-indigo-400' : 'bg-emerald-50/50 border-emerald-500'
                               }`}
                             >
@@ -728,7 +728,7 @@ const Step3Medical = forwardRef(({
               <button
                 type="button" 
                 onClick={addNewRecord}
-                className="w-full py-4 bg-white hover:bg-slate-50/80 border border-slate-200/90 text-indigo-600 hover:text-indigo-700 font-semibold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs hover:border-slate-300"
+                className="w-full py-4 bg-white hover:bg-slate-50/80 border border-slate-200/90 text-indigo-600 hover:text-indigo-700 font-semibold text-xs sm:text-sm rounded-md flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs hover:border-slate-300"
               >
                 <div className="w-5 h-5 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm shrink-0">
                   +

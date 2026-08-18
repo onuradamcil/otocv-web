@@ -252,7 +252,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
       aria-modal="true"
       aria-label="Servis ve bakım kaydı penceresi"
     >
-      <div className="bg-white border border-gray-100 rounded-3xl w-full max-w-[560px] shadow-2xl overflow-hidden animate-scaleIn flex flex-col max-h-[90vh]">
+      <div className="bg-white border border-gray-100 rounded-lg w-full max-w-[560px] shadow-2xl overflow-hidden animate-scaleIn flex flex-col max-h-[90vh]">
         
         {/* HEADR BAR PANELİ */}
         <div className="bg-[#111827] px-6 py-5 flex justify-between items-center shrink-0">
@@ -285,7 +285,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
           {/* SEGMENT SEÇİCİ */}
           <div className="space-y-1.5">
             <label className="text-yardimci font-bold text-slate-500 tracking-wide block uppercase">İŞLEM TÜRÜ VE KATEGORİZASYON *</label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 p-1.5 bg-slate-50 border border-gray-200 rounded-xl">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 p-1.5 bg-slate-50 border border-gray-200 rounded-md">
               {['Periyodik Bakım', 'Mekanik Bakım', 'Tamir / Onarım', 'Sarf Malzeme', 'Dış İşlem'].map((type) => {
                 const isSel = serviceType === type;
                 return (
@@ -308,7 +308,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
               <label className="text-yardimci font-bold text-slate-500 tracking-wide block uppercase">İşlem Tarihi *</label>
               <input 
                 type="text" placeholder="GG/AA/YYYY" value={serviceDate}
-                className={`w-full px-3 py-2.5 bg-white border rounded-xl text-sm font-semibold font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all ${
+                className={`w-full px-3 py-2.5 bg-white border rounded-md text-sm font-semibold font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all ${
                   dateError || (submitAttempted && !serviceDate) ? 'border-red-400 focus:border-red-500 bg-red-50/10 text-red-900' : 'border-gray-300 focus:border-indigo-600 text-[#0F172A]'
                 }`}
                 onChange={(e) => handleDateChange(e.target.value)}
@@ -326,7 +326,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
               <label className="text-yardimci font-bold text-slate-500 tracking-wide block uppercase">Kurum / Usta *</label>
               <input 
                 type="text" placeholder="Örn: Yetkili Servis (Borusan)" value={shopName}
-                className={`w-full px-3 py-2.5 bg-white border rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all ${
+                className={`w-full px-3 py-2.5 bg-white border rounded-md text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all ${
                   submitAttempted && !shopName.trim() ? 'border-red-400 focus:border-red-500 bg-red-50/10 text-red-900' : 'border-gray-300 focus:border-indigo-600 text-[#0F172A]'
                 }`}
                 onChange={(e) => setShopName(e.target.value)}
@@ -341,7 +341,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
               <label className="text-yardimci font-bold text-slate-500 tracking-wide block uppercase">Servis KM *</label>
               <input 
                 type="text" placeholder="Örn: 42.000" value={km}
-                className={`w-full px-3 py-2.5 bg-white border rounded-xl text-sm font-semibold font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all ${
+                className={`w-full px-3 py-2.5 bg-white border rounded-md text-sm font-semibold font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all ${
                   submitAttempted && !km ? 'border-red-400 focus:border-red-500 bg-red-50/10 text-red-900' : 'border-gray-300 focus:border-indigo-600 text-[#0F172A]'
                 }`}
                 onChange={(e) => formatNumberInput(e.target.value, setKm)}
@@ -353,7 +353,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
               <label className="text-yardimci font-bold text-slate-500 tracking-wide block uppercase">Tutar (TL) *</label>
               <input 
                 type="text" placeholder="Örn: 8.500" value={cost}
-                className={`w-full px-3 py-2.5 bg-white border rounded-xl text-sm font-semibold font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all ${
+                className={`w-full px-3 py-2.5 bg-white border rounded-md text-sm font-semibold font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all ${
                   submitAttempted && !cost ? 'border-red-400 focus:border-red-500 bg-red-50/10 text-red-900' : 'border-gray-300 focus:border-indigo-600 text-[#0F172A]'
                 }`}
                 onChange={(e) => formatNumberInput(e.target.value, setCost)}
@@ -368,7 +368,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
               <label className="text-yardimci font-bold text-indigo-600 tracking-wide block uppercase">BİR SONRAKI YAĞ DEĞİŞİM KİLOMETRESİ (KM)</label>
               <input 
                 type="text" placeholder="Örn: 135.000 (Opsiyonel / Akıllı Alarm)" value={nextServiceKm} maxLength={11}
-                className="w-full px-3 py-2.5 bg-white border border-gray-300 focus:border-indigo-600 rounded-xl font-semibold text-sm font-mono tracking-wide focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all shadow-inner text-slate-800"
+                className="w-full px-3 py-2.5 bg-white border border-gray-300 focus:border-indigo-600 rounded-md font-semibold text-sm font-mono tracking-wide focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all shadow-inner text-slate-800"
                 onChange={(e) => formatNumberInput(e.target.value, setNextServiceKm)}
               />
             </div>
@@ -418,7 +418,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
             />
             <label
               htmlFor="dialog-invoice"
-              className={`w-full py-4 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-all duration-200 ${
+              className={`w-full py-4 border-2 border-dashed rounded-md flex items-center justify-center gap-2 transition-all duration-200 ${
                 faturaHazirlaniyor ? 'cursor-wait bg-slate-50 border-slate-300 text-slate-500' : 'cursor-pointer'
               } ${
                 !invoiceFile
@@ -449,7 +449,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
               placeholder="Örn: Ön fren balataları yenilendi ve hidrolik sıvıları tamamlandı."
               value={summary} rows={3}
               maxLength={60} // Destan yazmayı önleyen kurumsal uzunluk kalkanı
-              className={`w-full px-3 py-2.5 bg-white border rounded-xl text-sm font-semibold text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all resize-none ${
+              className={`w-full px-3 py-2.5 bg-white border rounded-md text-sm font-semibold text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all resize-none ${
                 submitAttempted && !summary.trim() ? 'border-red-400 focus:border-red-500 bg-red-50/10 text-red-900' : 'border-gray-300 focus:border-indigo-600'
               }`}
               onChange={(e) => setSummary(e.target.value)}
@@ -473,7 +473,7 @@ export default function MaintenanceDialog({ vehicle, plateNumber, isOpen, onClos
           {/* REAKTİF MÜHÜRLENDİ REÇETESİ BUTONU */}
           <button
             type="button" onClick={handleSave} disabled={isSaving || dateError || isSuccess}
-            className={`w-40 py-3 rounded-xl font-semibold text-xs shadow-md transition-all duration-300 flex items-center justify-center gap-2 ${
+            className={`w-40 py-3 rounded-md font-semibold text-xs shadow-md transition-all duration-300 flex items-center justify-center gap-2 ${
               isSuccess
                 ? 'bg-emerald-600 text-white scale-102 shadow-emerald-600/20' 
                 : isSaving || dateError

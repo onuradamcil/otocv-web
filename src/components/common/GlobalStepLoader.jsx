@@ -145,7 +145,7 @@ function KartIskeleti({ adet = 3, baslik = true }) {
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {Array.from({ length: adet }).map((_, i) => (
-          <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 space-y-3">
+          <div key={i} className="bg-white border border-slate-200 rounded-md p-5 space-y-3">
             <div className={`h-32 ${ACIK} rounded-lg`} />
             <Cizgi w="w-3/4" h="h-4" ton={KOYU} />
             <Cizgi w="w-1/2" />
@@ -218,10 +218,10 @@ function FormIskeleti({ adet = 3 }) {
       {Array.from({ length: adet }).map((_, i) => (
         <div key={i} className="space-y-1.5">
           <Cizgi w="w-24" h="h-2.5" />
-          <div className={`h-11 ${ACIK} rounded-xl`} />
+          <div className={`h-11 ${ACIK} rounded-md`} />
         </div>
       ))}
-      <div className={`h-11 ${KOYU} rounded-xl`} />
+      <div className={`h-11 ${KOYU} rounded-md`} />
     </div>
   );
 }

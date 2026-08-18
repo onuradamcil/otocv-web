@@ -110,7 +110,7 @@ export default function NotificationDropdown({ onNavigate }) {
 
       {/* DROPDOWN PANELİ */}
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 md:w-96 bg-white border border-slate-200/80 rounded-[24px] shadow-[0_20px_50px_rgba(15,23,42,0.08)] z-50 overflow-hidden animate-fadeIn">
+        <div className="absolute right-0 mt-3 w-80 md:w-96 bg-white border border-slate-200/80 rounded-lg shadow-[0_20px_50px_rgba(15,23,42,0.08)] z-50 overflow-hidden animate-fadeIn">
           
           <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <div className="flex items-center gap-2">

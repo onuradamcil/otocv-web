@@ -88,7 +88,7 @@ export function ToastProvider({ children }) {
             <div
               key={t.id}
               role={t.tip === 'error' ? 'alert' : 'status'}
-              className={`pointer-events-auto flex items-start gap-2.5 ${s.zemin} ${s.kenar} border rounded-xl shadow-lg px-4 py-3 motion-safe:animate-slideIn`}
+              className={`pointer-events-auto flex items-start gap-2.5 ${s.zemin} ${s.kenar} border rounded-md shadow-lg px-4 py-3 motion-safe:animate-slideIn`}
             >
               <Icon name={s.ikon} size="md" className={`mt-0.5 ${s.ikonRenk}`} />
 

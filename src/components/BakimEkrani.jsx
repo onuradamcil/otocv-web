@@ -58,7 +58,7 @@ function BakimKarti({ kayit, onKayitEkle }) {
   const kayitsiz = kayit.kayitSayisi === 0;
 
   return (
-    <article className={`border rounded-2xl p-5 space-y-4 ${
+    <article className={`border rounded-lg p-5 space-y-4 ${
       kayitsiz ? 'bg-amber-50/50 border-amber-200' : 'bg-white border-slate-200'
     }`}>
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
@@ -128,7 +128,7 @@ function BakimKarti({ kayit, onKayitEkle }) {
         <button
           type="button"
           onClick={onKayitEkle}
-          className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl
+          className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-md
             border border-slate-200 bg-white text-slate-700 hover:bg-slate-50
             metin-yardimci font-semibold transition-colors cursor-pointer"
         >
@@ -179,8 +179,8 @@ export default function BakimEkrani() {
   if (oturumsuz) {
     return (
       <Cerceve>
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center mx-auto">
+        <div className="bg-white border border-slate-200 rounded-lg p-8 text-center space-y-4">
+          <div className="w-12 h-12 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center mx-auto">
             <Icon name="anahtar" size="xl" />
           </div>
           <h1 className="baslik-sayfa text-slate-900">Önce oturum açın</h1>
@@ -192,7 +192,7 @@ export default function BakimEkrani() {
             type="button"
             onClick={() => router.push('/login')}
             className="inline-flex items-center gap-2 min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700
-              text-white font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+              text-white font-semibold text-xs rounded-md transition-colors cursor-pointer"
           >
             Oturum aç
           </button>
@@ -204,7 +204,7 @@ export default function BakimEkrani() {
   if (hata) {
     return (
       <Cerceve>
-        <div className="bg-white border border-rose-200 rounded-2xl p-6 text-center space-y-2">
+        <div className="bg-white border border-rose-200 rounded-lg p-6 text-center space-y-2">
           <h1 className="baslik-bolum text-slate-900">Ekran açılamadı</h1>
           <p className="metin-govde text-slate-600">{hata}</p>
         </div>
@@ -215,8 +215,8 @@ export default function BakimEkrani() {
   if (!veri || veri.aracSayisi === 0) {
     return (
       <Cerceve>
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center mx-auto">
+        <div className="bg-white border border-slate-200 rounded-lg p-8 text-center space-y-4">
+          <div className="w-12 h-12 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center mx-auto">
             <Icon name="arac" size="xl" />
           </div>
           <h1 className="baslik-sayfa text-slate-900">Henüz aracınız yok</h1>
@@ -228,7 +228,7 @@ export default function BakimEkrani() {
             type="button"
             onClick={() => router.push('/add-vehicle/step1')}
             className="inline-flex items-center gap-2 min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700
-              text-white font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+              text-white font-semibold text-xs rounded-md transition-colors cursor-pointer"
           >
             <Icon name="arti" size="sm" />
             Yeni Araç Kaydet
@@ -252,7 +252,7 @@ export default function BakimEkrani() {
     <Cerceve>
       <div className="space-y-5">
         {demo && (
-          <div role="status" className="flex items-start gap-3 p-4 rounded-xl border border-amber-300 bg-amber-50">
+          <div role="status" className="flex items-start gap-3 p-4 rounded-md border border-amber-300 bg-amber-50">
             <Icon name="uyari" size="lg" className="text-amber-700 shrink-0" />
             <div className="min-w-0">
               <p className="baslik-kart text-amber-900">ÖRNEK GÖRÜNÜM</p>
@@ -279,7 +279,7 @@ export default function BakimEkrani() {
             gerektiğini söyleyecek" bekleyebilir. Söyleyemiyoruz ve bunu
             saklamak yerine yazıyoruz. Vaat edilip yapılmayan şey, hiç
             vaat edilmemiş olandan kötüdür. */}
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
+        <div className="flex items-start gap-3 p-4 rounded-md bg-slate-50 border border-slate-200">
           <Icon name="bilgi" size="lg" className="text-slate-500 shrink-0" />
           <p className="metin-yardimci text-slate-600">
             Bakım aralığı aracın markasına, motoruna ve kullanımına göre
@@ -301,7 +301,7 @@ export default function BakimEkrani() {
 
         {/* --- SERVİS ORTAKLARI --- */}
         {servisOrtaklari.length > 0 && (
-          <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+          <section className="bg-white border border-slate-200 rounded-lg p-5 space-y-3">
             <h2 className="baslik-bolum text-slate-900">Çalıştığımız servisler</h2>
             <ul className="space-y-2">
               {servisOrtaklari.map((o) => (
@@ -310,7 +310,7 @@ export default function BakimEkrani() {
                     href={o.yonlendirmeUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-4 rounded-xl
+                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-4 rounded-md
                       border border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40
                       transition-colors group"
                   >

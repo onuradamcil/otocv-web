@@ -129,7 +129,7 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
         role="dialog"
         aria-modal="true"
         aria-labelledby="police-modal-baslik"
-        className="bg-white border border-slate-200 w-full max-w-md rounded-3xl p-6 shadow-2xl relative space-y-5"
+        className="bg-white border border-slate-200 w-full max-w-md rounded-lg p-6 shadow-2xl relative space-y-5"
       >
 
         {/* KAPATMA BUTONU */}
@@ -143,7 +143,7 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
 
         {/* BAŞLIK VE İKON ALANI */}
         <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${statusInfo.bgClass}`}>
+          <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${statusInfo.bgClass}`}>
             <Icon name={statusInfo.status === 'expired' ? 'uyari' : 'zil'} size="lg" />
           </div>
           <div>
@@ -153,7 +153,7 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
         </div>
 
         {/* ARAÇ KÜNYE VE NET TARİH ÖZET KARTI */}
-        <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl space-y-2.5">
+        <div className="bg-slate-50 border border-slate-100 p-4 rounded-lg space-y-2.5">
           <div className="flex justify-between items-center text-xs font-bold text-slate-800">
             <span>{vehicle.brand} {vehicle.model} ({vehicle.year})</span>
             <TrPlaka plaka={vehicle.plate_number} boyut="sm" />
@@ -204,7 +204,7 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
               // vardığı listede hangi satır için geldiğini yeniden arardı.
               router.push(teklifYolu(vehicle.plate_number, MODAL_TURU[policyType], 'police_modal'));
             }}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-xs shadow-lg shadow-indigo-600/20 transition-all active:scale-98 flex items-center justify-center gap-2"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-md font-bold text-xs shadow-lg shadow-indigo-600/20 transition-all active:scale-98 flex items-center justify-center gap-2"
           >
             <span>{isInspection ? 'Randevu ve hatırlatma seçenekleri' : 'Yenileme seçeneklerini gör'}</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
@@ -216,7 +216,7 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
             href={calendarUrl}
             target="_blank"
             rel="noreferrer"
-            className="w-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 block text-center"
+            className="w-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 py-2.5 rounded-md font-bold text-xs transition-all flex items-center justify-center gap-2 block text-center"
           >
             <Icon name="takvim" size="sm" />
             <span>Google Takvimime Ekle</span>

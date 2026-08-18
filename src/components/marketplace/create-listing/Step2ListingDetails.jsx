@@ -670,7 +670,7 @@ useEffect(() => {
         {/* =========================================================================
             PANEL 1: SEÇİLEN ARAÇ KÜNYESİ ÖZETİ
            ========================================================================= */}
-        <div className="bg-white border border-slate-200/90 rounded-xl p-4 shadow-2xs flex items-center justify-between gap-4">
+        <div className="bg-white border border-slate-200/90 rounded-md p-4 shadow-2xs flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5 overflow-hidden">
             <div className="w-11 h-11 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
               <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -698,7 +698,7 @@ useEffect(() => {
 {/* =========================================================================
             PANEL 2: TEMEL ARAÇ & VİTRİN BİLGİLERİ (DÜPLİKE ALANLAR SÖKÜLDÜ)
            ========================================================================= */}
-        <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-sm space-y-6">
+        <div className="bg-white border border-slate-200/90 rounded-md p-6 shadow-sm space-y-6">
           
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
             <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -912,7 +912,7 @@ useEffect(() => {
         {/* =========================================================================
             PANEL 2.5: ARAÇ DETAYLARI (OPSİYONEL TEKNİK BİLGİLER)
            ========================================================================= */}
-        <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-sm space-y-6">
+        <div className="bg-white border border-slate-200/90 rounded-md p-6 shadow-sm space-y-6">
           
           <div className="flex items-center pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
@@ -996,7 +996,7 @@ useEffect(() => {
         {/* =========================================================================
             PANEL 3: ARAÇ KONUM BİLGİLERİ
            ========================================================================= */}
-        <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-slate-200/90 rounded-md p-6 shadow-sm space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
             <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -1152,7 +1152,7 @@ useEffect(() => {
         {/* =========================================================================
             PANEL 4: EKSPERTİZ, BOYA / DEĞİŞEN & TRAMER BİLGİSİ
            ========================================================================= */}
-        <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-sm space-y-5">
+        <div className="bg-white border border-slate-200/90 rounded-md p-6 shadow-sm space-y-5">
           
           <div className="flex flex-col gap-1 pb-2 border-b border-slate-100">
             <div className="flex items-center">
@@ -1172,10 +1172,10 @@ useEffect(() => {
             </p>
           </div>
 
-          <div className="bg-slate-100/80 border border-slate-200/60 rounded-2xl p-4 space-y-4">
+          <div className="bg-slate-100/80 border border-slate-200/60 rounded-lg p-4 space-y-4">
 
             {/* 🥪 BEYAZ İÇ KART 1: TRAMER BİLGİSİ */}
-            <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-2xs space-y-4">
+            <div className="bg-white border border-slate-200/80 rounded-md p-5 shadow-2xs space-y-4">
               <h4 className="text-xs font-bold text-slate-800 tracking-tight border-b border-slate-100 pb-2">
                 Tramer Bilgisi
               </h4>
@@ -1239,7 +1239,7 @@ useEffect(() => {
             </div>
 
             {/* 🥪 BEYAZ İÇ KART 2: BOYA VE DEĞİŞEN OTO-VEKTÖR ŞEMASI */}
-            <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-2xs space-y-4">
+            <div className="bg-white border border-slate-200/80 rounded-md p-5 shadow-2xs space-y-4">
               
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
                 <h4 className="text-xs font-bold text-slate-800 tracking-tight">
@@ -1266,7 +1266,7 @@ useEffect(() => {
                 </label>
               </div>
 
-              <div className="relative border border-slate-200/70 rounded-xl bg-slate-50/60 p-4 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-6 min-h-[420px]">
+              <div className="relative border border-slate-200/70 rounded-md bg-slate-50/60 p-4 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-6 min-h-[420px]">
                 
                 <div className="absolute top-3 left-4 bg-white/90 backdrop-blur border border-slate-200 px-3 py-1 rounded-md text-xs font-bold text-slate-700 shadow-2xs z-10">
                   {hoveredPart ? CAR_PARTS.find(p => p.id === hoveredPart)?.name : 'Durumunu değiştirmek için parçaya tıklayın'}
@@ -1463,7 +1463,7 @@ useEffect(() => {
 
                 </div>
 
-                <div className="space-y-4 w-full md:w-80 text-xs text-slate-600 bg-white p-5 sm:p-6 rounded-xl border border-slate-200/90 shadow-2xs">
+                <div className="space-y-4 w-full md:w-80 text-xs text-slate-600 bg-white p-5 sm:p-6 rounded-md border border-slate-200/90 shadow-2xs">
                   
                   <div className="border-b border-slate-100 pb-2.5 space-y-1">
                     <p className="font-black text-slate-900 tracking-tight text-sm">Nasıl Kullanılır?</p>
@@ -1528,11 +1528,11 @@ useEffect(() => {
         {/* =========================================================================
             PANEL 5: ARAÇ DONANIM ÖZELLİKLERİ
            ========================================================================= */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-6">
+        <div className="bg-white border border-slate-200/90 rounded-lg p-6 shadow-sm space-y-6">
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
             <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-indigo-50 border border-indigo-100/80 flex items-center justify-center shrink-0 shadow-2xs">
+              <div className="w-11 h-11 rounded-md bg-indigo-50 border border-indigo-100/80 flex items-center justify-center shrink-0 shadow-2xs">
                 <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                 </svg>
@@ -1583,7 +1583,7 @@ useEffect(() => {
               return (
                 <div 
                   key={cat.title} 
-                  className={`border rounded-2xl overflow-hidden transition-all bg-white ${
+                  className={`border rounded-lg overflow-hidden transition-all bg-white ${
                     categorySelectedCount > 0 
                       ? 'border-indigo-200 shadow-2xs' 
                       : 'border-slate-200/90 hover:border-slate-300'
@@ -1666,7 +1666,7 @@ useEffect(() => {
                             return (
                               <label
                                 key={item}
-                                className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-between cursor-pointer transition-all select-none h-[46px] shadow-2xs focus-within:ring-2 focus-within:ring-indigo-600 ${
+                                className={`p-3 rounded-md border text-xs font-bold flex items-center justify-between cursor-pointer transition-all select-none h-[46px] shadow-2xs focus-within:ring-2 focus-within:ring-indigo-600 ${
                                   isChecked
                                     ? 'bg-indigo-50/90 border-indigo-600 text-indigo-950 shadow-xs'
                                     : 'bg-slate-50/70 border-slate-200/80 text-slate-700 hover:bg-slate-100/80 hover:border-slate-300'
@@ -1702,7 +1702,7 @@ useEffect(() => {
         {/* =========================================================================
             PANEL 6: İLAN AÇIKLAMASI
            ========================================================================= */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-slate-200/90 rounded-lg p-6 shadow-sm space-y-4">
           
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
@@ -1720,7 +1720,7 @@ useEffect(() => {
             </span>
           </div>
 
-          <div className={`border rounded-xl overflow-hidden transition-all shadow-2xs ${
+          <div className={`border rounded-md overflow-hidden transition-all shadow-2xs ${
             isFieldInvalid('description')
               ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/40'
               : 'border-slate-200/90 bg-white focus-within:border-indigo-600 focus-within:ring-1 focus-within:ring-indigo-600'

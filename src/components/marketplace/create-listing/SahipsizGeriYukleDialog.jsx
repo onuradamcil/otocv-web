@@ -194,7 +194,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
   };
 
   const talep = onizleme?.talebim;
-  const kutu = 'bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5 relative border border-slate-100 max-h-[90vh] overflow-y-auto';
+  const kutu = 'bg-white rounded-lg shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5 relative border border-slate-100 max-h-[90vh] overflow-y-auto';
   const panelRef = useModalErisim(onClose);
 
 
@@ -233,7 +233,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
             <button
               type="button"
               onClick={onClose}
-              className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer"
+              className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
             >
               Tamam
             </button>
@@ -253,7 +253,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                     Bekleme süresi doldu. Ödemeyi tamamladığınızda araç ve geçmiş
                     servis kayıtları garajınıza eklenecek.
                   </p>
-                  <div className="bg-amber-50/70 border border-amber-100 p-3.5 rounded-xl text-xs">
+                  <div className="bg-amber-50/70 border border-amber-100 p-3.5 rounded-md text-xs">
                     <p className="font-bold text-amber-950">Fatura belgeleri kapalı gelecek</p>
                     <p className="text-amber-900/80 font-medium leading-relaxed">
                       Belgeler önceki sahibin kişisel bilgilerini taşıyabilir. Bakım
@@ -265,14 +265,14 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                     type="button"
                     onClick={() => setPaywallAcik(true)}
                     disabled={islemde}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer"
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
                   >
                     {islemde ? 'İşleniyor…' : 'Ödemeyi Tamamla ve Devral'}
                   </button>
                 </>
               ) : (
                 <>
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center">
+                  <div className="bg-slate-50 border border-slate-200 rounded-md p-5 text-center">
                     <p className="text-3xl font-semibold text-slate-900 tabular-nums leading-none">
                       {kalanGun(talep.tamamlanabilir_at)}
                     </p>
@@ -302,7 +302,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
             <button
               type="button"
               onClick={onClose}
-              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer"
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
             >
               Kapat
             </button>
@@ -326,7 +326,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
 
             {/* Sayılar GERÇEK: veritabanından sayılıyor, tahmin değil. */}
             {onizleme && (
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5">
+              <div className="bg-slate-50 border border-slate-200 rounded-md p-4 space-y-2.5">
                 <p className="text-sm font-semibold text-slate-900">
                   {onizleme.yil} {onizleme.marka} {onizleme.model}
                 </p>
@@ -370,7 +370,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                   key={s.kod}
                   type="button"
                   onClick={() => { setYol(s.kod); setHata(''); }}
-                  className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer ${
+                  className={`w-full text-left p-4 rounded-md border transition-all cursor-pointer ${
                     yol === s.kod
                       ? 'bg-indigo-50/60 border-indigo-400 ring-2 ring-indigo-400/25'
                       : 'bg-white border-slate-200 hover:border-slate-300'
@@ -387,7 +387,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
             </div>
 
             {yol === 'otomatik' && (
-              <label className="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3.5 cursor-pointer">
+              <label className="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-md p-3.5 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={beyanOnayi}
@@ -432,7 +432,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer"
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
               >
                 Vazgeç
               </button>
@@ -440,7 +440,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                 type="button"
                 onClick={basvuruGonder}
                 disabled={islemde || !yol}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer shadow-xs"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer shadow-xs"
               >
                 {islemde ? 'Gönderiliyor…' : 'Başvuruyu Gönder'}
               </button>

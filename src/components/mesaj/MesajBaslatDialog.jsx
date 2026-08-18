@@ -79,10 +79,10 @@ export default function MesajBaslatDialog({ arac, onKapat, onGonder }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="mesaj-baslik"
-        className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 flex flex-col max-h-[88vh]"
+        className="relative w-full sm:max-w-lg bg-white rounded-t-lg sm:rounded-lg shadow-2xl border border-slate-200 flex flex-col max-h-[88vh]"
       >
         <div className="px-5 pt-5 pb-4 border-b border-slate-100 flex items-start gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center shrink-0">
             <Icon name="zil" size="lg" />
           </div>
           <div className="min-w-0 flex-1">
@@ -97,7 +97,7 @@ export default function MesajBaslatDialog({ arac, onKapat, onGonder }) {
             onClick={onKapat}
             disabled={gonderiliyor}
             aria-label="Kapat"
-            className="w-9 h-9 -mt-1 -mr-1 grid place-items-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+            className="w-9 h-9 -mt-1 -mr-1 grid place-items-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
           >
             <Icon name="kapat" size="md" />
           </button>
@@ -112,7 +112,7 @@ export default function MesajBaslatDialog({ arac, onKapat, onGonder }) {
               rows={5}
               maxLength={2000}
               placeholder="Aracın bakım geçmişi hakkında bilgi almak istiyorum…"
-              className="mt-1.5 w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors resize-none"
+              className="mt-1.5 w-full px-3 py-2.5 rounded-md border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors resize-none"
             />
             <span className="metin-yardimci text-slate-500 mt-1 block">
               {govde.length}/2000
@@ -121,7 +121,7 @@ export default function MesajBaslatDialog({ arac, onKapat, onGonder }) {
 
           {/* Beklentiyi baştan doğru kurmak: kullanıcı telefon numarası
               bekliyordu, artık öyle çalışmıyor. */}
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 space-y-1.5">
+          <div className="bg-slate-50 border border-slate-200/80 rounded-md p-3 space-y-1.5">
             <div className="flex items-center gap-1.5 text-indigo-700 font-bold metin-govde">
               <Icon name="kalkan" size="sm" />
               <span>Nasıl çalışıyor</span>

@@ -413,15 +413,23 @@ test.describe('Mesajlaşma arayüzü', () => {
       `mesaj bir an için ${enFazla} kez göründü (kopya). Seyir: ${seyir.join(',')}`
     ).toBe(1);
 
-    // 2) Ve KENDİ tarafımda. Kendi baloncuğum `bg-indigo-600`, karşı tarafın
-    //    `bg-white border`. Kopya yanlış tarafta çizilirse burada düşer.
-    const balon = balonlar.locator(
-      'xpath=ancestor::div[contains(@class,"rounded-2xl")][1]'
-    );
+    // 2) Ve KENDİ tarafımda. Kopya yanlış tarafta çizilirse burada düşer.
+    //
+    // ⚠ SEÇİCİ DEĞİŞTİ, TEST AYNI ŞEYİ DENETLİYOR.
+    // Eski hâli baloncuğu `contains(@class,"rounded-2xl")` ile buluyordu ve
+    // sonra `toHaveClass(/bg-indigo-600/)` ile yönü sınıyordu. Yani bir
+    // DAVRANIŞ testi iki ayrı STİL sınıfına bağlıydı: köşe yarıçapı ürün
+    // kararıyla `rounded-lg`'ye inince seçici hiçbir şey bulamadı ve test
+    // kodda hiçbir şey bozulmadan kırıldı — yanlış alarm.
+    //
+    // Artık baloncuk `data-yon` taşıyor (`MesajlarEkrani.jsx`). Yön bilgisi
+    // stilden değil, ögenin kendisinden okunuyor; ileride renk ya da yarıçap
+    // ne olursa olsun bu test ayakta kalıyor.
+    const balon = balonlar.locator('xpath=ancestor::div[@data-yon][1]');
     await expect(
       balon,
       'kendi mesajım karşı taraf baloncuğu olarak çizilmiş'
-    ).toHaveClass(/bg-indigo-600/);
+    ).toHaveAttribute('data-yon', 'benim');
   });
 
   test('oturumsuz ziyaretçi mesajlar sayfasında giriş uyarısı görüyor', async ({ page }) => {

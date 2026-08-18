@@ -48,7 +48,7 @@ export default function YasalSayfa({ baslik, ozet, bolumler }) {
 
       {/* Sayfanın durumu gizlenmiyor. "Yakında" demek yerine ne olduğunu ve
           bu arada neyin geçerli olduğunu söylüyor. */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+      <div className="bg-amber-50 border border-amber-200 rounded-md p-4 flex items-start gap-3">
         <span className="text-amber-600 shrink-0 mt-0.5">
           <Icon name="uyari" size="sm" strokeWidth={2.5} />
         </span>
@@ -74,7 +74,7 @@ export default function YasalSayfa({ baslik, ozet, bolumler }) {
               ) : (
                 <div
                   key={satir.ad}
-                  className="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4"
+                  className="bg-white border border-slate-200 rounded-md p-3.5 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4"
                 >
                   <span className="text-xs font-semibold text-slate-900 sm:w-44 shrink-0">
                     {satir.ad}

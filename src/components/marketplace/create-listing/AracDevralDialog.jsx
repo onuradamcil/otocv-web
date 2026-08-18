@@ -96,7 +96,7 @@ export default function AracDevralDialog({
     setSonuc({ talep: true, zatenVar: r.veri?.zaten_var === true });
   };
 
-  const kutu = 'bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5 relative border border-slate-100';
+  const kutu = 'bg-white rounded-lg shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5 relative border border-slate-100';
   const panelRef = useModalErisim(onClose);
 
 
@@ -143,7 +143,7 @@ export default function AracDevralDialog({
                 NEREDE olduğunu söylemek; ücret ise bir kez, aşağıda, nötr
                 bir satırda geçiyor — saklanmıyor ama başlığı da işgal
                 etmiyor. */}
-            <ol className="text-left bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+            <ol className="text-left bg-slate-50 border border-slate-200 rounded-md p-4 space-y-3">
               {[
                 ['1', 'Talep iletildi',
                  'Araç sahibine bildirim gönderildi.', true],
@@ -176,7 +176,7 @@ export default function AracDevralDialog({
             <button
               type="button"
               onClick={onClose}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
             >
               Anladım
             </button>
@@ -192,7 +192,7 @@ export default function AracDevralDialog({
                 Bakım kayıtları ve belgeler araçla birlikte devredildi. Araç artık garajınızda.
               </p>
             </div>
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-1">
+            <div className="bg-slate-50 border border-slate-200 rounded-md p-4 space-y-1">
               <p className="text-yardimci font-bold uppercase tracking-wider text-slate-500">
                 Yeni sicil kodu
               </p>
@@ -207,7 +207,7 @@ export default function AracDevralDialog({
             <button
               type="button"
               onClick={() => onDevralindi?.(sonuc)}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
             >
               Garajıma Git
             </button>
@@ -224,14 +224,14 @@ export default function AracDevralDialog({
                 bildirim göndereceğiz.
               </p>
             </div>
-            <p className="text-yardimci text-slate-500 leading-relaxed bg-slate-50 border border-slate-200 rounded-xl p-3">
+            <p className="text-yardimci text-slate-500 leading-relaxed bg-slate-50 border border-slate-200 rounded-md p-3">
               Araç sahibi onaylamadan hiçbir şey değişmez. Ulaşabiliyorsanız ondan bir devir
               kodu istemek en hızlı yol.
             </p>
             <button
               type="button"
               onClick={onClose}
-              className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer"
+              className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
             >
               Kapat
             </button>
@@ -256,7 +256,7 @@ export default function AracDevralDialog({
             </div>
 
             {hata && (
-              <div role="alert" className="bg-rose-50 border border-rose-200/80 text-rose-700 text-xs font-bold rounded-xl p-3 flex items-start gap-2">
+              <div role="alert" className="bg-rose-50 border border-rose-200/80 text-rose-700 text-xs font-bold rounded-md p-3 flex items-start gap-2">
                 <Icon name="uyari" size="sm" className="shrink-0 mt-0.5" />
                 <span>{hata}</span>
               </div>
@@ -265,7 +265,7 @@ export default function AracDevralDialog({
             {/* ---- ÖN İZLEME ---- */}
             {onizleme ? (
               <div className="space-y-4">
-                <div className="bg-slate-50/80 border border-slate-200 rounded-2xl p-4 space-y-3">
+                <div className="bg-slate-50/80 border border-slate-200 rounded-lg p-4 space-y-3">
                   <div className="flex items-baseline justify-between gap-3">
                     <p className="text-sm font-semibold text-slate-900">
                       {[onizleme.marka, onizleme.model].filter(Boolean).join(' ')}
@@ -300,7 +300,7 @@ export default function AracDevralDialog({
                     "satıcı" bu üründe yasaklı kelime, ve dil testi bu
                     diyaloğa hiç ulaşmıyor çünkü ancak geçerli kod girilince
                     açılıyor. */}
-                <div className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-1.5">
+                <div className="bg-white border border-slate-200 rounded-md p-3.5 space-y-1.5">
                   <div className="flex items-center gap-2">
                     <Icon name="kalkan" size="sm" className="text-slate-500" />
                     <p className="text-yardimci font-semibold uppercase tracking-wider text-slate-700">
@@ -314,7 +314,7 @@ export default function AracDevralDialog({
                   <button
                     type="button"
                     onClick={() => { setOnizleme(null); setHata(''); }}
-                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3.5 rounded-xl transition-colors cursor-pointer"
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3.5 rounded-md transition-colors cursor-pointer"
                   >
                     Geri
                   </button>
@@ -322,7 +322,7 @@ export default function AracDevralDialog({
                     type="button"
                     onClick={talepGonder}
                     disabled={islemde}
-                    className="bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+                    className="bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
                   >
                     {islemde ? (
                       <>
@@ -348,7 +348,7 @@ export default function AracDevralDialog({
                     placeholder="ÖRN: DV-4G8W-K2GS"
                     maxLength={13}
                     autoComplete="off"
-                    className="w-full py-4 px-5 bg-slate-50 border-2 border-gray-200 focus:border-indigo-500 rounded-xl text-center font-mono font-semibold text-lg tracking-widest uppercase text-slate-900 outline-none transition-colors placeholder:text-slate-300 placeholder:tracking-normal placeholder:text-sm placeholder:font-bold"
+                    className="w-full py-4 px-5 bg-slate-50 border-2 border-gray-200 focus:border-indigo-500 rounded-md text-center font-mono font-semibold text-lg tracking-widest uppercase text-slate-900 outline-none transition-colors placeholder:text-slate-300 placeholder:tracking-normal placeholder:text-sm placeholder:font-bold"
                   />
                   <p className="text-yardimci text-slate-500">
                     Kod 48 saat geçerlidir ve yalnızca bir kez kullanılabilir.
@@ -359,14 +359,14 @@ export default function AracDevralDialog({
                   <button
                     type="button"
                     onClick={() => { setYol(null); setHata(''); }}
-                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3.5 rounded-xl transition-colors cursor-pointer"
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3.5 rounded-md transition-colors cursor-pointer"
                   >
                     Geri
                   </button>
                   <button
                     type="submit"
                     disabled={islemde}
-                    className="bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+                    className="bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
                   >
                     {islemde ? (
                       <>
@@ -383,14 +383,14 @@ export default function AracDevralDialog({
             ) : (
               /* ---- YOL SEÇİMİ ---- */
               <div className="space-y-3">
-                <div className="bg-slate-100/80 p-4 sm:p-5 rounded-xl flex items-center justify-center">
+                <div className="bg-slate-100/80 p-4 sm:p-5 rounded-md flex items-center justify-center">
                   <TrPlaka plaka={plaka} boyut="lg" />
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setYol('kod')}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Icon name="pinKod" size="sm" />
                   Devir kodum var

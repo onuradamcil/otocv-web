@@ -204,12 +204,12 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
       aria-modal="true"
       aria-label="Araç devret penceresi"
     >
-      <div className="bg-white border border-gray-100 rounded-3xl w-full max-w-[560px] shadow-2xl overflow-hidden animate-scaleIn flex flex-col max-h-[90vh]">
+      <div className="bg-white border border-gray-100 rounded-lg w-full max-w-[560px] shadow-2xl overflow-hidden animate-scaleIn flex flex-col max-h-[90vh]">
 
         {/* ÜST BAR */}
         <div className="px-6 py-4 flex justify-between items-center shrink-0 border-b border-gray-100">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+            <div className="w-9 h-9 rounded-md bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
               <Icon name="arac" size="lg" />
             </div>
             <div className="min-w-0">
@@ -237,7 +237,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
 
         {/* SEKMELER */}
         <div className="px-6 pt-4 shrink-0">
-          <div className="bg-slate-100 p-1 rounded-xl flex gap-1">
+          <div className="bg-slate-100 p-1 rounded-md flex gap-1">
             <button type="button" onClick={() => setSekme('devret')} className={sekmeSinifi('devret')}>
               Devir Kodu
             </button>
@@ -249,7 +249,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
 
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {hata && (
-            <div role="alert" className="bg-rose-50 border border-rose-200/80 text-rose-700 text-xs font-bold rounded-xl p-3 flex items-start gap-2">
+            <div role="alert" className="bg-rose-50 border border-rose-200/80 text-rose-700 text-xs font-bold rounded-md p-3 flex items-start gap-2">
               <Icon name="uyari" size="sm" className="shrink-0 mt-0.5" />
               <span>{hata}</span>
             </div>
@@ -264,7 +264,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
             kod ? (
               /* ---- KOD VAR: göster, paylaş, iptal ---- */
               <div className="space-y-4">
-                <div className="bg-emerald-50/70 border border-emerald-200/90 rounded-2xl p-5 text-center space-y-3">
+                <div className="bg-emerald-50/70 border border-emerald-200/90 rounded-lg p-5 text-center space-y-3">
                   <p className="text-yardimci font-bold uppercase tracking-wider text-emerald-800">
                     Devir Kodu
                   </p>
@@ -281,7 +281,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   <button
                     type="button"
                     onClick={kodKopyala}
-                    className="bg-white border border-gray-200 hover:bg-slate-50 text-slate-800 font-bold text-xs py-3 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    className="bg-white border border-gray-200 hover:bg-slate-50 text-slate-800 font-bold text-xs py-3 rounded-md transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Icon name={kopyalandi ? 'onay' : 'pinKod'} size="sm" />
                     {kopyalandi ? 'Kopyalandı' : 'Kodu Kopyala'}
@@ -289,14 +289,14 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   <button
                     type="button"
                     onClick={kodPaylas}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-md transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Icon name="indir" size="sm" />
                     Alıcıya Gönder
                   </button>
                 </div>
 
-                <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-3.5 space-y-1.5">
+                <div className="bg-slate-50/80 border border-slate-200 rounded-md p-3.5 space-y-1.5">
                   <p className="text-yardimci font-bold text-slate-700">Alıcı ne yapacak?</p>
                   <p className="text-yardimci text-slate-600 leading-relaxed">
                     OTO.CV&apos;de <strong>Araç Devir</strong> sayfasında bu aracın plakasını yazıp
@@ -309,7 +309,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   type="button"
                   onClick={kodIptal}
                   disabled={islemde}
-                  className="w-full text-rose-600 hover:bg-rose-50 font-bold text-xs py-3 rounded-xl transition-colors cursor-pointer disabled:opacity-60"
+                  className="w-full text-rose-600 hover:bg-rose-50 font-bold text-xs py-3 rounded-md transition-colors cursor-pointer disabled:opacity-60"
                 >
                   Kodu iptal et
                 </button>
@@ -317,7 +317,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
             ) : (
               /* ---- KOD YOK: rıza + üret ---- */
               <div className="space-y-4">
-                <div className="bg-slate-50/80 border border-slate-200 rounded-2xl p-4 space-y-2">
+                <div className="bg-slate-50/80 border border-slate-200 rounded-lg p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <Icon name="kalkan" size="sm" className="text-slate-500" />
                     <p className="text-yardimci font-semibold uppercase tracking-wider text-slate-700">
@@ -349,7 +349,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   type="button"
                   onClick={kodUret}
                   disabled={islemde}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-xs py-3.5 rounded-xl transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-xs py-3.5 rounded-md transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   {islemde ? (
                     <>
@@ -373,7 +373,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                 </div>
               ) : (
                 <>
-                  <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 flex items-start gap-2">
+                  <div className="bg-amber-50/70 border border-amber-200/80 rounded-md p-3 flex items-start gap-2">
                     <Icon name="uyari" size="sm" className="text-amber-600 shrink-0 mt-0.5" />
                     <p className="text-yardimci text-slate-700 leading-relaxed">
                       <strong>Tanımadığınız birini onaylamayın.</strong> Onaylamadığınız sürece
@@ -383,7 +383,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   </div>
 
                   {talepler.map((t) => (
-                    <div key={t.id} className="border border-slate-200 rounded-xl p-4 space-y-3">
+                    <div key={t.id} className="border border-slate-200 rounded-md p-4 space-y-3">
                       <div className="flex items-baseline justify-between gap-2">
                         <p className="text-xs font-semibold text-slate-900 truncate">
                           {t.isteyen || 'İsim belirtilmemiş'}

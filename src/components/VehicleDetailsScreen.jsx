@@ -1155,14 +1155,14 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
               // metni "eklenmemiştir" diyor — bu bir beyandır. Sorgu
               // başarısızken o beyanı basmak, bilmediğimiz bir şeyi
               // söylemek olur: araçta kayıt olabilir, biz okuyamadık.
-              <div className="text-center py-10 px-4 text-xs font-semibold text-slate-500 border border-dashed border-amber-300 rounded-xl bg-amber-50/50 space-y-1">
+              <div className="text-center py-10 px-4 text-xs font-semibold text-slate-500 border border-dashed border-amber-300 rounded-md bg-amber-50/50 space-y-1">
                 <p className="text-slate-700">Bakım sicili şu an okunamadı.</p>
                 <p className="font-normal text-slate-500">
                   Bu, kayıt olmadığı anlamına gelmez. Sayfayı yenilemeyi deneyin.
                 </p>
               </div>
             ) : maintenanceRecords.length === 0 ? (
-              <div className="text-center py-10 text-xs font-semibold text-slate-500 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+              <div className="text-center py-10 text-xs font-semibold text-slate-500 border border-dashed border-slate-200 rounded-md bg-slate-50/50">
                 Bu araca ait henüz kayıtlı bir sanayi veya servis sicili eklenmemiştir.
               </div>
             ) : (
@@ -1497,7 +1497,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
             <Icon name="kapat" size="md" />
             Kapat
           </button>
-          <div className="max-w-4xl max-h-[85vh] bg-white p-2 rounded-xl overflow-hidden shadow-2xl flex items-center justify-center">
+          <div className="max-w-4xl max-h-[85vh] bg-white p-2 rounded-md overflow-hidden shadow-2xl flex items-center justify-center">
             {/* next/image BURADA YANLIŞ: fatura kovası ÖZEL, adres 300 saniye
               ömürlü İMZALI bağlantı. Next 16'da iyileştirme önbelleği
               varsayılan 4 SAAT — yani önbellekteki kopya imzadan uzun yaşar ve

@@ -136,7 +136,7 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-8">
         <div className="max-w-2xl mx-auto space-y-4">
-          {[0, 1, 2].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-200 animate-pulse" />)}
+          {[0, 1, 2].map((i) => <div key={i} className="h-24 rounded-lg bg-slate-200 animate-pulse" />)}
         </div>
       </div>
     );
@@ -145,7 +145,7 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
   if (durum === 'yok' || durum === 'hata') {
     return (
       <div className="min-h-screen bg-[#F8FAFC] grid place-items-center p-4">
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 max-w-md w-full text-center space-y-4">
+        <div className="bg-white border border-slate-200 rounded-lg p-8 max-w-md w-full text-center space-y-4">
           <h1 className="baslik-bolum text-slate-900">
             {durum === 'yok' ? 'Araç bulunamadı' : 'Kayıt yüklenemedi'}
           </h1>
@@ -171,14 +171,14 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
           </p>
         </div>
 
-        <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+        <section className="bg-white border border-slate-200 rounded-lg p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label className="block">
               <span className="etiket text-slate-500">İl</span>
               <select
                 value={form.city}
                 onChange={(e) => ilDegisti(e.target.value)}
-                className="mt-1.5 w-full min-h-[44px] px-3 rounded-xl border border-slate-200 bg-slate-50 metin-govde text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
+                className="mt-1.5 w-full min-h-[44px] px-3 rounded-md border border-slate-200 bg-slate-50 metin-govde text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
               >
                 <option value="">Seçiniz</option>
                 {iller.map((il) => <option key={il} value={il}>{il}</option>)}
@@ -191,7 +191,7 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
                 value={form.district}
                 onChange={(e) => setForm((f) => ({ ...f, district: e.target.value }))}
                 disabled={!form.city}
-                className="mt-1.5 w-full min-h-[44px] px-3 rounded-xl border border-slate-200 bg-slate-50 metin-govde text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors disabled:opacity-50"
+                className="mt-1.5 w-full min-h-[44px] px-3 rounded-md border border-slate-200 bg-slate-50 metin-govde text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors disabled:opacity-50"
               >
                 <option value="">{form.city ? 'Seçiniz' : 'Önce il seçin'}</option>
                 {ilceler.map((ilce) => <option key={ilce} value={ilce}>{ilce}</option>)}
@@ -207,7 +207,7 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               maxLength={120}
               placeholder={`${arac.year} ${arac.brand} ${arac.model}`}
-              className="mt-1.5 w-full min-h-[44px] px-3 rounded-xl border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
+              className="mt-1.5 w-full min-h-[44px] px-3 rounded-md border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
             />
           </label>
 
@@ -219,7 +219,7 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
               rows={6}
               maxLength={4000}
               placeholder="Aracın durumu, bakım geçmişi ve bilinmesini istediğiniz noktalar."
-              className="mt-1.5 w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors resize-none"
+              className="mt-1.5 w-full px-3 py-2.5 rounded-md border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors resize-none"
             />
             <span className={`metin-yardimci mt-1 block ${aciklamaYeterli ? 'text-slate-500' : 'text-amber-700'}`}>
               {aciklamaYeterli
@@ -229,7 +229,7 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
           </label>
 
           {/* ⚠ NİYE MARKA/MODEL/KM YOK — kullanıcı aramasın diye söyleniyor. */}
-          <p className="metin-yardimci text-slate-500 bg-slate-50 border border-slate-200/80 rounded-xl p-3 leading-relaxed">
+          <p className="metin-yardimci text-slate-500 bg-slate-50 border border-slate-200/80 rounded-md p-3 leading-relaxed">
             Marka, model, yıl, kilometre ve plaka buradan değiştirilemez. Bunlar sicilin
             kimliğini oluşturuyor; kilometrenin serbestçe düzeltilebilmesi sicil puanındaki
             kilometre tutarlılığı denetimini anlamsız kılardı.

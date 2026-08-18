@@ -242,7 +242,7 @@ export default function VitrinKartiEkrani({ pin }) {
         </div>
 
         {/* ARAÇ ÖZETİ — DÜZENLENMİYOR, GÖSTERİLİYOR */}
-        <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+        <section className="bg-white border border-slate-200 rounded-lg p-5 space-y-4">
           <div className="flex items-start gap-4">
             <TrPlaka plaka={arac.plate_number} boyut="md" />
             <div className="min-w-0 flex-1">
@@ -270,7 +270,7 @@ export default function VitrinKartiEkrani({ pin }) {
               idi ve o sayfa SALT OKUNUR: kullanıcıya "tamamlayın" deniyor,
               tamamlayacak yer verilmiyordu. Çıkışsız yol. */}
           {eksikAlanlar.length > 0 && (
-            <div role="status" className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+            <div role="status" className="bg-amber-50 border border-amber-200 rounded-md p-3 space-y-2">
               <p className="metin-yardimci text-amber-900">
                 Araç kaydınızda <strong>{eksikAlanlar.join(', ')}</strong> eksik. Vitrin kartı bu
                 bilgileri araç kaydından alıyor.
@@ -300,20 +300,20 @@ export default function VitrinKartiEkrani({ pin }) {
           </div>
         </section>
 
-        <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+        <section className="bg-white border border-slate-200 rounded-lg p-5 space-y-4">
           <h2 className="baslik-bolum text-slate-900">Vitrin ayarları</h2>
 
           {/* ⚠ BEDEL ALANI YOK VE BU BİLİNÇLİ.
               Araca ait herhangi bir tutar göstermek platformu satış sitesi
               konumuna sokuyor. Vitrin kartının işi aracın SİCİLİNİ görünür
               kılmak; pazarlık platformun dışında. */}
-          <p className="metin-yardimci text-slate-600 bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+          <p className="metin-yardimci text-slate-600 bg-slate-50 border border-slate-200 rounded-md p-3.5">
             Vitrin kartı aracınızın <strong>doğrulanmış sicilini</strong> gösterir: bakım
             geçmişi, poliçe durumu ve sicil puanı. Bedel bilgisi yer almaz; ilgilenenler
             sizinle iletişime geçer.
           </p>
 
-          <label className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 hover:border-indigo-300 transition-colors cursor-pointer">
+          <label className="flex items-start gap-3 p-3.5 rounded-md border border-slate-200 hover:border-indigo-300 transition-colors cursor-pointer">
             <input
               type="checkbox"
               checked={oneCikar}
@@ -335,7 +335,7 @@ export default function VitrinKartiEkrani({ pin }) {
           </label>
 
           {hataMetni && (
-            <p role="alert" className="metin-yardimci text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-3">
+            <p role="alert" className="metin-yardimci text-rose-700 bg-rose-50 border border-rose-200 rounded-md p-3">
               {hataMetni}
             </p>
           )}
@@ -391,7 +391,7 @@ export default function VitrinKartiEkrani({ pin }) {
 function Kutu({ baslik, aciklama, children }) {
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-200 rounded-2xl p-8 max-w-md w-full text-center space-y-4">
+      <div className="bg-white border border-slate-200 rounded-lg p-8 max-w-md w-full text-center space-y-4">
         <h1 className="baslik-bolum text-slate-900">{baslik}</h1>
         <p className="metin-yardimci text-slate-500">{aciklama}</p>
         <div className="flex flex-col sm:flex-row gap-2">{children}</div>

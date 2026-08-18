@@ -208,7 +208,7 @@ export default function DevirPage() {
         return plaka.includes(filtre.replace(/\s+/g, '')) || ad.includes(filtre);
       });
 
-  const kart = 'bg-white border border-slate-200 rounded-2xl p-6 space-y-4';
+  const kart = 'bg-white border border-slate-200 rounded-lg p-6 space-y-4';
 
   if (yukleniyor) {
     return (
@@ -239,14 +239,14 @@ export default function DevirPage() {
             <button
               type="button"
               onClick={() => router.push('/login')}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-6 py-3 rounded-xl transition-colors cursor-pointer"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-6 py-3 rounded-md transition-colors cursor-pointer"
             >
               Giriş Yap
             </button>
             <button
               type="button"
               onClick={() => router.push('/register')}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-6 py-3 rounded-xl transition-colors cursor-pointer"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-6 py-3 rounded-md transition-colors cursor-pointer"
             >
               Hesap Aç
             </button>
@@ -298,16 +298,16 @@ export default function DevirPage() {
                 onChange={(e) => setAracFiltresi(e.target.value)}
                 placeholder="Plaka ya da model ara…"
                 aria-label="Araçlarım içinde ara"
-                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-md text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
               />
             )}
 
             {araclar.length === 0 ? (
-              <p className="text-xs text-slate-500 font-medium bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <p className="text-xs text-slate-500 font-medium bg-slate-50 border border-slate-200 rounded-md p-4">
                 Garajınızda devredilebilecek araç yok.
               </p>
             ) : suzulmusAraclar.length === 0 ? (
-              <p className="text-xs text-slate-500 font-medium bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <p className="text-xs text-slate-500 font-medium bg-slate-50 border border-slate-200 rounded-md p-4">
                 Aramanıza uyan araç yok.
               </p>
             ) : (
@@ -317,7 +317,7 @@ export default function DevirPage() {
                     <button
                       type="button"
                       onClick={() => setDevredilecek(a)}
-                      className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition-all text-left cursor-pointer"
+                      className="w-full flex items-center gap-3 p-3 rounded-md border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition-all text-left cursor-pointer"
                     >
                       <TrPlaka plaka={a.plate_number} boyut="md" />
                       <span className="text-xs font-bold text-slate-700 truncate min-w-0">
@@ -354,7 +354,7 @@ export default function DevirPage() {
                 kod üretiyordu ama alıcının onu yazacağı bir yer yoktu.
                 Kullanıcı önce plakayı yazmak, sonra açılan diyalogda "Devir
                 kodum var" seçeneğini bulmak zorundaydı. */}
-            <form onSubmit={kodulAra} className="space-y-3 bg-indigo-50/50 border border-indigo-100 rounded-xl p-4">
+            <form onSubmit={kodulAra} className="space-y-3 bg-indigo-50/50 border border-indigo-100 rounded-md p-4">
               <label htmlFor="devir-kodu" className="block text-xs font-bold text-slate-700">
                 Devir kodum var
               </label>
@@ -366,7 +366,7 @@ export default function DevirPage() {
                 placeholder="DV-A4B7-C2D9"
                 autoComplete="off"
                 spellCheck={false}
-                className="w-full px-3.5 py-3 border border-slate-200 bg-white rounded-xl text-sm font-mono font-semibold tracking-widest text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
+                className="w-full px-3.5 py-3 border border-slate-200 bg-white rounded-md text-sm font-mono font-semibold tracking-widest text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
               />
 
               {kodHatasi && (
@@ -378,7 +378,7 @@ export default function DevirPage() {
               <button
                 type="submit"
                 disabled={kodAraniyor || !kodGirdi.trim()}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
               >
                 {kodAraniyor ? 'Kod kontrol ediliyor…' : 'Kodu Kullan'}
               </button>
@@ -408,7 +408,7 @@ export default function DevirPage() {
                   onChange={(e) => { setPlakaGirdi(e.target.value.toUpperCase()); setAramaHatasi(''); }}
                   placeholder="34 ABC 123"
                   autoComplete="off"
-                  className="w-full px-3.5 py-3 border border-slate-200 rounded-xl text-sm font-mono font-semibold tracking-wider text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
+                  className="w-full px-3.5 py-3 border border-slate-200 rounded-md text-sm font-mono font-semibold tracking-wider text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
                 />
               </div>
 
@@ -421,7 +421,7 @@ export default function DevirPage() {
               <button
                 type="submit"
                 disabled={aranıyor}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
               >
                 {aranıyor ? 'Kontrol ediliyor…' : 'Devam'}
               </button>

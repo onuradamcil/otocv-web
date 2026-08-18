@@ -55,10 +55,10 @@ export default function TeklifKarti({
     <button
       type="button"
       onClick={() => router.push(teklifYolu(plaka, tur, kaynak))}
-      className="w-full text-left flex items-center gap-3 p-4 rounded-xl border border-indigo-200
+      className="w-full text-left flex items-center gap-3 p-4 rounded-md border border-indigo-200
         bg-indigo-50/60 hover:bg-indigo-50 hover:border-indigo-300 transition-colors cursor-pointer group"
     >
-      <span className="w-10 h-10 rounded-xl grid place-items-center shrink-0 bg-white text-indigo-600 ring-1 ring-inset ring-indigo-100">
+      <span className="w-10 h-10 rounded-md grid place-items-center shrink-0 bg-white text-indigo-600 ring-1 ring-inset ring-indigo-100">
         <Icon name="kalkan" size="lg" />
       </span>
 

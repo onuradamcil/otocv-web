@@ -292,7 +292,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
       </div>
       
       {/* 🛡️ KURUMSAL DİJİTAL KARNE ÖN İZLEME & BİLGİ GÜNCELLEME BANTI */}
-      <div className="bg-slate-900 text-white rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md border border-slate-800 relative z-20 overflow-hidden">
+      <div className="bg-slate-900 text-white rounded-md p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md border border-slate-800 relative z-20 overflow-hidden">
         
         {/* Sol Taraf: Rozet, İkon ve Açıklama */}
         <div className="flex items-center gap-3.5 z-10">
@@ -1007,7 +1007,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
             </div>
 
             {rawServiceRecords.length === 0 ? (
-              <div className="text-center py-10 text-xs font-semibold text-slate-500 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+              <div className="text-center py-10 text-xs font-semibold text-slate-500 border border-dashed border-slate-200 rounded-md bg-slate-50/50">
                 Bu araca ait henüz kayıtlı bir sanayi veya servis sicili eklenmemiştir.
               </div>
             ) : (
@@ -1265,7 +1265,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
             <Icon name="kapat" size="md" />
             Kapat
           </button>
-          <div className="max-w-4xl max-h-[85vh] bg-white p-2 rounded-xl overflow-hidden shadow-2xl flex items-center justify-center">
+          <div className="max-w-4xl max-h-[85vh] bg-white p-2 rounded-md overflow-hidden shadow-2xl flex items-center justify-center">
             {/* next/image BURADA YANLIŞ: fatura kovası ÖZEL, adres 300 saniye
               ömürlü İMZALI bağlantı. Next 16'da iyileştirme önbelleği
               varsayılan 4 SAAT — yani önbellekteki kopya imzadan uzun yaşar ve

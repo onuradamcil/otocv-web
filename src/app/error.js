@@ -30,7 +30,7 @@ export default function Error({ error, reset }) {
       </header>
 
       <main className="flex-1 flex items-center justify-center p-4">
-        <div className="bg-white border border-gray-200 rounded-2xl p-8 md:p-10 max-w-md w-full text-center space-y-5 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-lg p-8 md:p-10 max-w-md w-full text-center space-y-5 shadow-sm">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 border border-rose-100 rounded-full text-rose-600 text-etiket font-semibold tracking-wider uppercase">
             Beklenmeyen Hata
           </span>
@@ -47,7 +47,7 @@ export default function Error({ error, reset }) {
             <button
               type="button"
               onClick={() => reset()}
-              className={`flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-6 rounded-xl transition-colors ${ODAK}`}
+              className={`flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-6 rounded-md transition-colors ${ODAK}`}
             >
               Tekrar Dene
             </button>
@@ -57,7 +57,7 @@ export default function Error({ error, reset }) {
                 oturum durumu korunur. */}
             <Link
               href="/"
-              className={`flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs px-6 rounded-xl transition-colors ${ODAK}`}
+              className={`flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs px-6 rounded-md transition-colors ${ODAK}`}
             >
               Anasayfa
             </Link>

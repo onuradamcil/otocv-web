@@ -109,7 +109,7 @@ export default function GelenDevirTalepleri({ kart, onDegisti }) {
       </div>
 
       {bekleyen.length > 0 && (
-        <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 flex items-start gap-2">
+        <div className="bg-amber-50/70 border border-amber-200/80 rounded-md p-3 flex items-start gap-2">
           <Icon name="uyari" size="sm" className="text-amber-600 shrink-0 mt-0.5" />
           <p className="metin-yardimci text-slate-700 leading-relaxed">
             <strong>Tanımadığınız birini onaylamayın.</strong> Onaylamadığınız sürece araç
@@ -124,7 +124,7 @@ export default function GelenDevirTalepleri({ kart, onDegisti }) {
           const onaylandi = t.durum === 'onaylandi';
 
           return (
-            <li key={t.istek_id} className="border border-slate-200 rounded-xl p-4 space-y-3">
+            <li key={t.istek_id} className="border border-slate-200 rounded-md p-4 space-y-3">
               <div className="flex items-start gap-3">
                 {/* `relative` EKLENDİ: `AracGorseli` `fill` ile konumlanıyor ve
                     konumlanmış bir ata olmadan en yakın üst kutuya taşar. */}
@@ -155,14 +155,14 @@ export default function GelenDevirTalepleri({ kart, onDegisti }) {
                 </span>
               </div>
 
-              <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3">
+              <div className="bg-slate-50 border border-slate-200/80 rounded-md p-3">
                 <p className="metin-yardimci text-slate-500">Talep eden</p>
                 {/* YALNIZCA AD: soyadı, e-posta ve telefon gösterilmiyor. */}
                 <p className="metin-govde font-bold text-slate-900">{t.talep_eden}</p>
               </div>
 
               {onaylandi ? (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-start gap-2">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-md p-3 flex items-start gap-2">
                   <Icon name="onay" size="sm" className="text-emerald-600 shrink-0 mt-0.5" />
                   <p className="metin-yardimci text-emerald-900 leading-relaxed">
                     Onayladınız. Devralan devir ücretini ödediğinde araç ona geçecek.

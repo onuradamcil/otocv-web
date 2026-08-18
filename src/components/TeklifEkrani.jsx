@@ -92,7 +92,7 @@ function BelgeKarti({ kayit, kaynak, demo }) {
   };
 
   return (
-    <article className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+    <article className="bg-white border border-slate-200 rounded-lg p-5 space-y-4">
       {/* --- DURUM: hepsi gerçek veriden --- */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
         <span className="flex items-center gap-3 shrink-0">
@@ -120,7 +120,7 @@ function BelgeKarti({ kayit, kaynak, demo }) {
             href={takvimUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl
+            className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-md
               border border-slate-200 bg-white text-slate-700 hover:bg-slate-50
               metin-yardimci font-semibold transition-colors"
           >
@@ -133,7 +133,7 @@ function BelgeKarti({ kayit, kaynak, demo }) {
               href="https://www.tuvturk.com.tr"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl
+              className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-md
                 bg-slate-900 hover:bg-slate-800 text-white metin-yardimci font-semibold transition-colors"
             >
               TÜVTÜRK randevusu al
@@ -178,7 +178,7 @@ function BelgeKarti({ kayit, kaynak, demo }) {
                     href={o.yonlendirmeUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-4 rounded-xl
+                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-4 rounded-md
                       border border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40
                       transition-colors group"
                   >
@@ -224,7 +224,7 @@ function BelgeKarti({ kayit, kaynak, demo }) {
             </p>
           </div>
         ) : talepli ? (
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+          <div className="flex items-start gap-3 p-4 rounded-md bg-emerald-50 border border-emerald-200">
             <Icon name="onay" size="lg" className="text-emerald-700 shrink-0" />
             <p className="metin-govde text-emerald-900">
               Talebiniz alındı. Bu belge için anlaşmalı ortağımız olduğunda
@@ -244,7 +244,7 @@ function BelgeKarti({ kayit, kaynak, demo }) {
               type="button"
               onClick={talepEt}
               disabled={gonderiliyor}
-              className="inline-flex items-center justify-center gap-2 min-h-[44px] px-5 rounded-xl
+              className="inline-flex items-center justify-center gap-2 min-h-[44px] px-5 rounded-md
                 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed
                 text-white metin-yardimci font-semibold transition-colors cursor-pointer"
             >
@@ -326,8 +326,8 @@ export default function TeklifEkrani() {
   if (oturumsuz) {
     return (
       <Cerceve>
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center mx-auto">
+        <div className="bg-white border border-slate-200 rounded-lg p-8 text-center space-y-4">
+          <div className="w-12 h-12 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center mx-auto">
             <Icon name="kalkan" size="xl" />
           </div>
           <h1 className="baslik-sayfa text-slate-900">Önce oturum açın</h1>
@@ -339,7 +339,7 @@ export default function TeklifEkrani() {
             type="button"
             onClick={() => router.push('/login')}
             className="inline-flex items-center gap-2 min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700
-              text-white font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+              text-white font-semibold text-xs rounded-md transition-colors cursor-pointer"
           >
             Oturum aç
           </button>
@@ -351,7 +351,7 @@ export default function TeklifEkrani() {
   if (hata) {
     return (
       <Cerceve>
-        <div className="bg-white border border-rose-200 rounded-2xl p-6 text-center space-y-2">
+        <div className="bg-white border border-rose-200 rounded-lg p-6 text-center space-y-2">
           <h1 className="baslik-bolum text-slate-900">Ekran açılamadı</h1>
           <p className="metin-govde text-slate-600">{hata}</p>
         </div>
@@ -362,8 +362,8 @@ export default function TeklifEkrani() {
   if (!veri || veri.aracSayisi === 0) {
     return (
       <Cerceve>
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center mx-auto">
+        <div className="bg-white border border-slate-200 rounded-lg p-8 text-center space-y-4">
+          <div className="w-12 h-12 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center mx-auto">
             <Icon name="arac" size="xl" />
           </div>
           <h1 className="baslik-sayfa text-slate-900">Henüz aracınız yok</h1>
@@ -375,7 +375,7 @@ export default function TeklifEkrani() {
             type="button"
             onClick={() => router.push('/add-vehicle/step1')}
             className="inline-flex items-center gap-2 min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700
-              text-white font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+              text-white font-semibold text-xs rounded-md transition-colors cursor-pointer"
           >
             <Icon name="arti" size="sm" />
             Yeni Araç Kaydet
@@ -413,7 +413,7 @@ export default function TeklifEkrani() {
         {demo && (
           <div
             role="status"
-            className="flex items-start gap-3 p-4 rounded-xl border border-amber-300 bg-amber-50"
+            className="flex items-start gap-3 p-4 rounded-md border border-amber-300 bg-amber-50"
           >
             <Icon name="uyari" size="lg" className="text-amber-700 shrink-0" />
             <div className="min-w-0">
@@ -451,7 +451,7 @@ export default function TeklifEkrani() {
         )}
 
         {gosterilecek.length === 0 ? (
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+          <div className="flex items-center gap-3 p-4 rounded-md bg-emerald-50 border border-emerald-200">
             <Icon name="onay" size="lg" className="text-emerald-700 shrink-0" />
             <p className="metin-govde text-emerald-900">
               Takip edilen bir belge tarihi bulunmuyor. Araç kayıtlarınıza poliçe

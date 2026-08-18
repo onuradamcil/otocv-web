@@ -35,7 +35,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
 
   return (
     <div className="min-h-screen bg-[#FFFDFB] flex items-center justify-center p-4">
-      <div className="bg-white border border-amber-200 rounded-2xl p-8 max-w-md w-full text-center space-y-5 shadow-sm">
+      <div className="bg-white border border-amber-200 rounded-lg p-8 max-w-md w-full text-center space-y-5 shadow-sm">
 
         <div className="space-y-2">
           <h1 className="text-lg font-semibold text-slate-900 tracking-tight">
@@ -52,7 +52,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
             ne kadar veri olduğunu söylemek dürüstlük gereği: kullanıcı neyin
             kapalı olduğunu bilmeli. */}
         {(o.kayit !== undefined || o.marka) && (
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+          <div className="bg-slate-50 border border-slate-200 rounded-md p-4 space-y-3">
             {o.marka && (
               <p className="text-sm font-semibold text-slate-900">
                 {o.yil} {o.marka} {o.model}
@@ -86,7 +86,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
           <button
             type="button"
             onClick={() => router.push('/')}
-            className="w-full bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs py-3 rounded-xl transition-colors cursor-pointer"
+            className="w-full bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs py-3 rounded-md transition-colors cursor-pointer"
           >
             Anasayfa
           </button>
@@ -96,7 +96,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
           <button
             type="button"
             onClick={() => router.push('/add-vehicle/step1')}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-xl transition-colors cursor-pointer"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-md transition-colors cursor-pointer"
           >
             Sicili Devral
           </button>

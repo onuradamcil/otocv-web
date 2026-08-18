@@ -59,10 +59,10 @@ export default function SikayetDialog({ sebepler, onKapat, onGonder }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="sikayet-baslik"
-        className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 flex flex-col max-h-[88vh]"
+        className="relative w-full sm:max-w-md bg-white rounded-t-lg sm:rounded-lg shadow-2xl border border-slate-200 flex flex-col max-h-[88vh]"
       >
         <div className="px-5 pt-5 pb-4 border-b border-slate-100 flex items-start gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-100 text-amber-600 grid place-items-center shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-amber-50 border border-amber-100 text-amber-600 grid place-items-center shrink-0">
             <Icon name="uyari" size="lg" />
           </div>
           <div className="min-w-0 flex-1">
@@ -76,7 +76,7 @@ export default function SikayetDialog({ sebepler, onKapat, onGonder }) {
             onClick={onKapat}
             disabled={gonderiliyor}
             aria-label="Kapat"
-            className="w-9 h-9 -mt-1 -mr-1 grid place-items-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+            className="w-9 h-9 -mt-1 -mr-1 grid place-items-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
           >
             <Icon name="kapat" size="md" />
           </button>
@@ -88,7 +88,7 @@ export default function SikayetDialog({ sebepler, onKapat, onGonder }) {
             {sebepler.map((s) => (
               <label
                 key={s.kod}
-                className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-colors ${
+                className={`flex items-center gap-2.5 p-2.5 rounded-md border cursor-pointer transition-colors ${
                   sebep === s.kod ? 'border-indigo-300 bg-indigo-50/60' : 'border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -113,7 +113,7 @@ export default function SikayetDialog({ sebepler, onKapat, onGonder }) {
               rows={3}
               maxLength={1000}
               placeholder="Ne olduğunu kısaca anlatın."
-              className="mt-1.5 w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors resize-none"
+              className="mt-1.5 w-full px-3 py-2.5 rounded-md border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors resize-none"
             />
           </label>
         </div>

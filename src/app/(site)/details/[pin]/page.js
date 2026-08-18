@@ -169,7 +169,7 @@ export default function VehicleDetailsPage() {
     // eskiden bu durumda ekranda sonsuza kadar dönen bir iskelet vardı.
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 max-w-md w-full text-center space-y-4 shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-lg p-8 max-w-md w-full text-center space-y-4 shadow-sm">
           <h1 className="text-lg font-semibold text-slate-900 tracking-tight">Araç detayına ulaşılamadı</h1>
           <p className="text-xs text-slate-500 font-medium leading-relaxed">
             Sunucuya bağlanılamadı. Bağlantınızı kontrol edip tekrar deneyin.
@@ -179,14 +179,14 @@ export default function VehicleDetailsPage() {
             <button
               type="button"
               onClick={() => setTetik((n) => n + 1)}
-              className="flex-1 min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer"
+              className="flex-1 min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-md transition-colors cursor-pointer"
             >
               Tekrar Dene
             </button>
             <button
               type="button"
               onClick={() => router.push('/')}
-              className="flex-1 min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+              className="flex-1 min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-xs rounded-md transition-colors cursor-pointer"
             >
               Anasayfa
             </button>
@@ -203,7 +203,7 @@ export default function VehicleDetailsPage() {
     // gerçek sebebi ve ne yapması gerektiğini söylüyoruz.
     return (
       <div className="min-h-screen bg-[#FFFDFB] flex items-center justify-center p-4">
-        <div className="bg-white border border-amber-200 rounded-2xl p-8 max-w-md w-full text-center space-y-4 shadow-sm">
+        <div className="bg-white border border-amber-200 rounded-lg p-8 max-w-md w-full text-center space-y-4 shadow-sm">
           <h1 className="text-lg font-semibold text-slate-900 tracking-tight">Çok fazla sorgu yapıldı</h1>
           <p className="text-xs text-slate-500 font-medium leading-relaxed">
             Kısa süre içinde çok sayıda sicil sorgusu geldiği için bağlantınız
@@ -216,7 +216,7 @@ export default function VehicleDetailsPage() {
           <button
             type="button"
             onClick={() => router.push('/')}
-            className="w-full bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs py-3 rounded-xl transition-colors"
+            className="w-full bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs py-3 rounded-md transition-colors"
           >
             Anasayfa
           </button>
@@ -232,7 +232,7 @@ export default function VehicleDetailsPage() {
   if (status === 'notfound') {
     return (
       <div className="min-h-screen bg-[#FFFDFB] flex items-center justify-center p-4">
-        <div className="bg-white border border-gray-200 rounded-2xl p-8 max-w-md w-full text-center space-y-4 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-lg p-8 max-w-md w-full text-center space-y-4 shadow-sm">
           <h1 className="text-lg font-semibold text-slate-900 tracking-tight">Araç bulunamadı</h1>
           <p className="text-xs text-slate-500 font-medium leading-relaxed">
             <span className="font-mono font-bold text-slate-700">{pin}</span> koduna ait tescilli bir kayıt
@@ -242,14 +242,14 @@ export default function VehicleDetailsPage() {
             <button
               type="button"
               onClick={() => router.push('/verify')}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-xl transition-colors cursor-pointer"
+              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-md transition-colors cursor-pointer"
             >
               PIN ile Sorgula
             </button>
             <button
               type="button"
               onClick={() => router.push('/')}
-              className="flex-1 bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs py-3 rounded-xl transition-colors cursor-pointer"
+              className="flex-1 bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs py-3 rounded-md transition-colors cursor-pointer"
             >
               Anasayfa
             </button>

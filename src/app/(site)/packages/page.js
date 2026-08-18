@@ -44,7 +44,7 @@ export default function Page() {
       </div>
 
       {DEMO_MOD && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+        <div className="bg-amber-50 border border-amber-200 rounded-md p-4 flex items-start gap-3">
           <span className="text-amber-600 shrink-0 mt-0.5">
             <Icon name="uyari" size="sm" strokeWidth={2.5} />
           </span>
@@ -67,7 +67,7 @@ export default function Page() {
           return (
             <div
               key={urun.kod}
-              className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3"
+              className="bg-white border border-slate-200 rounded-lg p-5 space-y-3"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-0.5 min-w-0">
@@ -105,7 +105,7 @@ export default function Page() {
 
       {/* ÜCRETSİZ OLANLAR. Ne için para alınmadığını söylemek, ne için
           alındığı kadar önemli — kullanıcı belge yüklerken tereddüt etmesin. */}
-      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-2.5">
+      <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 space-y-2.5">
         <h2 className="text-sm font-semibold text-slate-900">Her zaman ücretsiz</h2>
         {[
           'İlk aracınızın kaydı ve dijital karnesi',
@@ -126,7 +126,7 @@ export default function Page() {
       {/* ÖDEME GEÇMİŞİ. Boş ama gizlenmiyor. */}
       <div className="space-y-3">
         <h2 className="text-sm font-semibold text-slate-900">Ödeme geçmişi</h2>
-        <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-1">
+        <div className="bg-white border border-dashed border-slate-300 rounded-lg p-8 text-center space-y-1">
           <p className="text-xs font-bold text-slate-600">Henüz ödeme kaydınız yok</p>
           <p className="text-yardimci text-slate-500 font-medium leading-relaxed">
             Tahsilat başladığında ödemeleriniz ve faturalarınız burada listelenecek.
@@ -148,7 +148,7 @@ export default function Page() {
       <button
         type="button"
         onClick={() => router.push('/garage')}
-        className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-6 py-3 rounded-xl transition-colors cursor-pointer"
+        className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-6 py-3 rounded-md transition-colors cursor-pointer"
       >
         Garajıma Dön
       </button>

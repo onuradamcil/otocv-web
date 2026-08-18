@@ -66,7 +66,7 @@ export default function ResetPasswordPage() {
   if (status === 'invalid') {
     return (
       <div className="min-h-screen bg-[#FFFDFB] flex items-center justify-center p-4">
-        <div className="bg-white border border-gray-200 rounded-2xl p-8 max-w-md w-full text-center space-y-4 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-lg p-8 max-w-md w-full text-center space-y-4 shadow-sm">
           <h1 className="text-lg font-semibold text-slate-900 tracking-tight">Bağlantı geçerli değil</h1>
           <p className="text-xs text-slate-500 font-medium leading-relaxed">
             Şifre sıfırlama bağlantısı geçersiz ya da süresi dolmuş. Bağlantılar tek kullanımlıktır ve
@@ -76,14 +76,14 @@ export default function ResetPasswordPage() {
             <button
               type="button"
               onClick={() => router.push('/login')}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-xl transition-colors cursor-pointer"
+              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-md transition-colors cursor-pointer"
             >
               Giriş Ekranına Dön
             </button>
             <button
               type="button"
               onClick={() => router.push('/')}
-              className="flex-1 bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs py-3 rounded-xl transition-colors cursor-pointer"
+              className="flex-1 bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs py-3 rounded-md transition-colors cursor-pointer"
             >
               Anasayfa
             </button>

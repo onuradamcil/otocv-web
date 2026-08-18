@@ -45,10 +45,10 @@ import { formatTrDate } from '../utils/dateHelper';
 /** Sayı + etiket taşıyan küçük kart. Ölçekteki `.sayi-vurgu` kullanılıyor. */
 function SayiKarti({ sayi, etiket, ikon, vurgu = false }) {
   return (
-    <div className={`rounded-2xl border p-4 flex items-center gap-3 ${
+    <div className={`rounded-lg border p-4 flex items-center gap-3 ${
       vurgu ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'
     }`}>
-      <div className={`w-10 h-10 rounded-xl grid place-items-center shrink-0 ${
+      <div className={`w-10 h-10 rounded-md grid place-items-center shrink-0 ${
         vurgu ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600'
       }`}>
         <Icon name={ikon} size="lg" />
@@ -84,7 +84,7 @@ function TarihSatiri({ kayit, onAc }) {
     <button
       type="button"
       onClick={onAc}
-      className="w-full text-left flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition-colors cursor-pointer"
+      className="w-full text-left flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-md border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition-colors cursor-pointer"
     >
       <span className="flex items-center gap-2.5 sm:gap-3 shrink-0">
         <span className={`w-2 h-2 rounded-full shrink-0 ${durum.dotClass}`} />
@@ -112,7 +112,7 @@ function TarihSatiri({ kayit, onAc }) {
 /** Bölüm sarmalayıcı — kart kalıbı garaj ve vitrin ekranlarıyla aynı. */
 function Bolum({ baslik, aciklama, children, sag }) {
   return (
-    <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+    <section className="bg-white border border-slate-200 rounded-lg p-5 space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="baslik-bolum text-slate-900">{baslik}</h2>
@@ -150,7 +150,7 @@ export default function OzetEkrani() {
   if (hata) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16">
-        <div className="bg-white border border-rose-200 rounded-2xl p-6 text-center space-y-2">
+        <div className="bg-white border border-rose-200 rounded-lg p-6 text-center space-y-2">
           <h1 className="baslik-bolum text-slate-900">Özet açılamadı</h1>
           <p className="metin-govde text-slate-600">{hata}</p>
         </div>
@@ -163,8 +163,8 @@ export default function OzetEkrani() {
   if (!veri || veri.aracSayisi === 0) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 animate-fadeIn">
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center mx-auto">
+        <div className="bg-white border border-slate-200 rounded-lg p-8 text-center space-y-4">
+          <div className="w-12 h-12 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center mx-auto">
             <Icon name="arac" size="xl" />
           </div>
           <h1 className="baslik-sayfa text-slate-900">Henüz aracınız yok</h1>
@@ -175,7 +175,7 @@ export default function OzetEkrani() {
           <button
             type="button"
             onClick={() => router.push('/add-vehicle/step1')}
-            className="inline-flex items-center gap-2 min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-md transition-colors cursor-pointer"
           >
             <Icon name="arti" size="sm" />
             Yeni Araç Kaydet
@@ -231,7 +231,7 @@ export default function OzetEkrani() {
             ))}
           </div>
         ) : (
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+          <div className="flex items-center gap-3 p-4 rounded-md bg-emerald-50 border border-emerald-200">
             <Icon name="onay" size="lg" className="text-emerald-700 shrink-0" />
             <p className="metin-govde text-emerald-900">
               Tüm belgeleriniz güvenli aralıkta. Yaklaşan bir tarih olduğunda burada görünecek.

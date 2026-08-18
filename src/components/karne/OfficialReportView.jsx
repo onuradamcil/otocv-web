@@ -158,7 +158,7 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
     <div className="flex justify-center items-center py-2 bg-transparent select-none print:p-0 w-full">
       <div 
         id="official-report-print-zone" 
-        className="w-full bg-[#FAFAF7] border border-[#E5DECE] rounded-xl p-10 relative shadow-xl shadow-slate-950/5 flex flex-col justify-between print:border-none print:shadow-none print:rounded-none print:p-0 print:bg-white min-h-[1000px]"
+        className="w-full bg-[#FAFAF7] border border-[#E5DECE] rounded-md p-10 relative shadow-xl shadow-slate-950/5 flex flex-col justify-between print:border-none print:shadow-none print:rounded-none print:p-0 print:bg-white min-h-[1000px]"
       >
         <CropMark position="top-0 left-0" vertical={true} horizontal={true} />
         <CropMark position="top-0 right-0" vertical={true} horizontal={false} />
@@ -188,7 +188,7 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
           </div>
 
           {/* KÜNYE VE KADRAN */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center bg-[#F1EDE4]/20 p-6 rounded-xl border border-[#E5DECE]/50">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center bg-[#F1EDE4]/20 p-6 rounded-md border border-[#E5DECE]/50">
             <div className="md:col-span-8 space-y-4">
               <div>
                 <span className="text-[10px] font-bold text-[#4F46E5] tracking-wider uppercase">{vehicle?.year ? `${vehicle.year} ÜRETİM YILI` : 'ÜRETİM YILI BEYAN EDİLMEMİŞ'}</span>
@@ -267,7 +267,7 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
               Kaldırılan iki satır geri gelmeyecek: haciz/rehin ve UYAP sorgusu
               kurumsal e-Devlet entegrasyonu olmadan hiçbir zaman gerçek olamaz.
               ===================================================================== */}
-          <div className="bg-[#F1EDE4]/40 border border-[#E5DECE] rounded-xl p-5 space-y-3.5">
+          <div className="bg-[#F1EDE4]/40 border border-[#E5DECE] rounded-md p-5 space-y-3.5">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h4 className="text-[10px] font-bold text-[#1E1B4B] tracking-widest uppercase">OTO.CV SİCİL BULGULARI</h4>
               <span className="text-[8.5px] text-slate-400 font-medium tracking-wide">
@@ -343,7 +343,7 @@ export default function OfficialReportView({ vehicle, maintenanceRecords = [], i
               Yeni metin belgenin ne olduğunu ve ne OLMADIĞINI açıkça söylüyor.
               Bir belgenin sınırlarını yazması, güvenilirliğini düşürmez —
               arttırır; alıcı neye güvenebileceğini bilir. */}
-          <div className="text-[10px] text-slate-400 font-medium leading-relaxed bg-white border border-gray-200/80 p-4 rounded-xl space-y-1.5">
+          <div className="text-[10px] text-slate-400 font-medium leading-relaxed bg-white border border-gray-200/80 p-4 rounded-md space-y-1.5">
             <span className="font-bold text-slate-500 block">BELGENİN KAPSAMI VE SINIRLARI</span>
             <p className="m-0">
               Bu belge, araç sahibinin Oto.CV sistemine girdiği bakım kayıtlarının ve
@@ -445,7 +445,7 @@ const SATIR_DURUM = {
 function SpecRow({ label, value, durum }) {
   const s = SATIR_DURUM[durum];
   return (
-    <div className={`border rounded-xl p-3 flex flex-col justify-center shadow-sm select-none bg-white ${s ? s.kenar : 'border-[#E5DECE]/50'}`}>
+    <div className={`border rounded-md p-3 flex flex-col justify-center shadow-sm select-none bg-white ${s ? s.kenar : 'border-[#E5DECE]/50'}`}>
       <span className="text-slate-400 text-[9px] font-bold tracking-wider block leading-none">{label}</span>
       <span className={`text-xs font-bold truncate block mt-1 ${s ? s.renk : 'text-[#1E1B4B]'}`}>{value}</span>
     </div>
@@ -505,7 +505,7 @@ function DurumIkonu({ durum, className }) {
 
 function DateMatrixBox({ title, date }) {
   return (
-    <div className="flex-1 bg-white border border-gray-200/60 rounded-xl p-3 text-center shadow-sm select-none">
+    <div className="flex-1 bg-white border border-gray-200/60 rounded-md p-3 text-center shadow-sm select-none">
       <span className="text-slate-400 text-[8px] font-bold block tracking-wider leading-none">{title}</span>
       <span className="text-xs font-bold text-[#0F172A] font-mono block mt-1.5 tracking-wider">{date}</span>
     </div>

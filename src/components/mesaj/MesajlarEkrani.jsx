@@ -299,7 +299,7 @@ export default function MesajlarEkrani() {
     <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 py-6">
       <h1 className="baslik-sayfa text-slate-900 mb-4">Mesajlarım</h1>
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs grid grid-cols-1 md:grid-cols-12 min-h-[560px]">
+      <div className="bg-white border border-slate-200 rounded-md overflow-hidden shadow-2xs grid grid-cols-1 md:grid-cols-12 min-h-[560px]">
 
         {/* SOL: KONUŞMA LİSTESİ.
             Mobilde konuşma seçiliyken gizleniyor — iki bölme 390px'e sığmaz. */}
@@ -476,13 +476,24 @@ export default function MesajlarEkrani() {
                         mesajlaşma uygulamalarının yerleşik dili. Ayrı bir metin
                         eklenmiyor: baloncuğun içine "gönderiliyor" yazmak,
                         mesajın kendisiymiş gibi okunuyor. */}
-                    <div className={`max-w-[78%] rounded-2xl px-3 py-2 transition-opacity ${
+                    <div className={`max-w-[78%] rounded-lg px-3 py-2 transition-opacity ${
                       m.bekliyor ? 'opacity-60' : 'opacity-100'
                     } ${
                       m.benim
                         ? 'bg-indigo-600 text-white rounded-br-sm'
                         : 'bg-white border border-slate-200 text-slate-800 rounded-bl-sm'
                     }`}
+                    /* ⚠ TEST ÇIPASI, SÜS DEĞİL.
+                       `17-mesajlasma` "kendi mesajım karşı taraf baloncuğu
+                       olarak çizilmiş mi" testi baloncuğu
+                       `xpath=ancestor::div[contains(@class,"rounded-2xl")]`
+                       ile buluyordu — bir DAVRANIŞ testi bir STİL sınıfına
+                       bağlıydı. Yarıçap `rounded-lg`'ye inince o seçici
+                       hiçbir şey bulamadı: test kod bozulmadan kırıldı.
+                       Sınıf adını güncellemek aynı kırılganlığı sürdürürdü;
+                       `data-yon` stilden bağımsız ve baloncuğun taşıdığı
+                       gerçek bilgiyi (hangi taraf) doğrudan söylüyor. */
+                    data-yon={m.benim ? 'benim' : 'karsi'}
                     aria-busy={m.bekliyor || undefined}>
                       <p className="metin-govde whitespace-pre-wrap break-words">{m.govde}</p>
                       <p className={`metin-yardimci mt-0.5 font-mono ${m.benim ? 'text-indigo-200' : 'text-slate-500'}`}>
@@ -503,7 +514,7 @@ export default function MesajlarEkrani() {
                   onChange={(e) => setTaslak(e.target.value)}
                   maxLength={2000}
                   placeholder="Mesajınızı yazın…"
-                  className="flex-1 min-h-[44px] px-3 rounded-xl border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
+                  className="flex-1 min-h-[44px] px-3 rounded-md border border-slate-200 bg-slate-50 metin-govde text-slate-800 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
                 />
                 <button type="submit" disabled={!taslak.trim() || gonderiliyor} className={dugme('birincil')}>
                   {gonderiliyor ? 'Gönderiliyor…' : 'Gönder'}

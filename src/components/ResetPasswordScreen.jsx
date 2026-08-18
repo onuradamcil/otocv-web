@@ -61,7 +61,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
       {/* MERKEZİ ODAK KARTI */}
       <div className="w-full mx-auto px-4 py-12 flex-1 flex flex-col justify-center items-center">
         
-        <div className="w-full max-w-md bg-white border border-slate-200/60 rounded-[32px] shadow-[0_20px_50px_rgba(15,23,42,0.01)] p-8 md:p-10 flex flex-col space-y-6 relative overflow-hidden">
+        <div className="w-full max-w-md bg-white border border-slate-200/60 rounded-lg shadow-[0_20px_50px_rgba(15,23,42,0.01)] p-8 md:p-10 flex flex-col space-y-6 relative overflow-hidden">
           
           <div className="space-y-1.5 text-center">
             <h1 className="text-xl font-semibold tracking-tight text-[#0F172A]">Yeni Şifre Belirle</h1>
@@ -69,14 +69,14 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
           </div>
 
           {errorMessage && (
-            <div role="alert" className="bg-red-50 border border-red-100 text-red-600 text-yardimci font-semibold px-4 py-2.5 rounded-xl flex items-start gap-2 animate-fadeIn">
+            <div role="alert" className="bg-red-50 border border-red-100 text-red-600 text-yardimci font-semibold px-4 py-2.5 rounded-md flex items-start gap-2 animate-fadeIn">
               <Icon name="uyari" size="sm" className="mt-0.5" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {successMessage && (
-            <div role="status" className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-yardimci font-semibold px-4 py-2.5 rounded-xl flex items-start gap-2 animate-fadeIn">
+            <div role="status" className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-yardimci font-semibold px-4 py-2.5 rounded-md flex items-start gap-2 animate-fadeIn">
               <Icon name="onay" size="sm" className="mt-0.5" />
               <span>{successMessage}</span>
             </div>
@@ -86,7 +86,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
             <div className="space-y-1 relative">
               <label htmlFor="alan-yeni-sifre" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Yeni Şifre</label>
               <div className="relative">
-                <input id="alan-yeni-sifre" type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none shadow-sm" />
+                <input id="alan-yeni-sifre" type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-md focus:outline-none shadow-sm" />
                 {/* Etiket ikonda değil BUTONDA: içeriği tek başına ikon olan
                     butonun adını ekran okuyucu ancak buradan öğrenir. */}
                 <button
@@ -103,10 +103,10 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
 
             <div className="space-y-1">
               <label htmlFor="alan-sifreyi-tekrarla" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifreyi Tekrarla</label>
-              <input id="alan-sifreyi-tekrarla" type={showPassword ? 'text' : 'password'} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-xl focus:outline-none shadow-sm" />
+              <input id="alan-sifreyi-tekrarla" type={showPassword ? 'text' : 'password'} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-xs font-medium rounded-md focus:outline-none shadow-sm" />
             </div>
 
-            <button type="submit" disabled={loading} className="w-full bg-[#0F172A] hover:bg-slate-800 text-white py-3 rounded-xl font-semibold text-xs tracking-wide shadow-sm transition-colors mt-2">
+            <button type="submit" disabled={loading} className="w-full bg-[#0F172A] hover:bg-slate-800 text-white py-3 rounded-md font-semibold text-xs tracking-wide shadow-sm transition-colors mt-2">
               {loading ? 'Şifre Güncelleniyor...' : 'Şifreyi Güncelle'}
             </button>
           </form>

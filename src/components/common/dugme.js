@@ -11,6 +11,10 @@
 //     `bg-indigo-600` — AYNI dosyada, iki farklı düğmede.
 //   · Kenarlıklar karışık: `border-gray-200` ve `border-slate-200`.
 //   · Köşe yarıçapı beş ayrı değer: rounded-md / lg / xl / 2xl / 3xl.
+//     (GÜNCEL: yarıçap sonradan ürün sahibinin kararıyla ikiye indirildi —
+//     panel/kart `lg` 8px, denetim `md` 6px. Yuvarlak kalanlar yalnızca
+//     `rounded-full` rozetler ve iki bilinçli istisna: mesaj baloncuğunun
+//     kuyruğu ile PNG'ye çekilen karne kartı. Bu satır o günün TEŞHİSİ.)
 //   · Garaj araç kartında üç düğme yan yana duruyor ama biri dolu indigo,
 //     ikisi beyaz çerçeveli, dördüncüsü (`⋯`) bambaşka. Üçü de aynı sıklıkta
 //     kullanılan eşdeğer eylemler; farklı görünmeleri bir bilgi taşımıyordu.
@@ -44,7 +48,7 @@ const TABAN =
   // Düğme metni ölçeğe bağlı: 13px/600. Eskiden `text-xs font-bold`
   // (12px/700) idi — ölçek 400 tabanına geçince düğmeler gövdeden iki kademe
   // ağır kalıyordu ve ekrandaki en koyu metin düğme etiketi oluyordu.
-  'rounded-xl text-[0.8125rem] font-semibold tracking-tight transition-colors ' +
+  'rounded-md text-[0.8125rem] font-semibold tracking-tight transition-colors ' +
   'cursor-pointer disabled:cursor-not-allowed select-none ' + ODAK;
 
 const SEVIYELER = {
@@ -91,7 +95,7 @@ export function ikonDugmesi(seviye = 'ikincil', ek = '') {
   const stil = SEVIYELER[seviye] || SEVIYELER.ikincil;
   return [
     'inline-flex items-center justify-center w-11 min-h-[44px] shrink-0',
-    'rounded-xl transition-colors cursor-pointer select-none',
+    'rounded-md transition-colors cursor-pointer select-none',
     ODAK, stil, ek,
   ].filter(Boolean).join(' ');
 }

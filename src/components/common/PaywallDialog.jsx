@@ -134,7 +134,7 @@ export default function PaywallDialog({
           İlk hâlinde sabit yükseklikti ve içerik ekrandan uzun olduğunda
           modalın ÜSTÜ görünmez oluyordu — yani demo bandı ve başlık
           kayboluyordu. Tarayıcıda görülmeseydi fark edilmezdi. */}
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full relative border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-lg shadow-2xl max-w-md w-full relative border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col">
 
         {/* DEMO BANDI — en üstte, kaçırılamaz yerde. shrink-0: içerik
             kayarken bant yerinde kalıyor. */}
@@ -172,7 +172,7 @@ export default function PaywallDialog({
           {/* Bağlama özel içerik: hangi araç, hangi ilan. Çağıran veriyor. */}
           {detay}
 
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5">
+          <div className="bg-slate-50 border border-slate-200 rounded-md p-4 space-y-2.5">
             {urun.kazanimlar.map((k) => (
               <div key={k} className="flex items-start gap-2.5">
                 <span className="text-emerald-600 shrink-0 mt-0.5">
@@ -215,7 +215,7 @@ export default function PaywallDialog({
               type="button"
               onClick={onKapat}
               disabled={islemde}
-              className="w-full bg-slate-100 hover:bg-slate-200 disabled:opacity-60 text-slate-800 font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer"
+              className="w-full bg-slate-100 hover:bg-slate-200 disabled:opacity-60 text-slate-800 font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
             >
               Vazgeç
             </button>
@@ -223,7 +223,7 @@ export default function PaywallDialog({
               type="button"
               onClick={satinAl}
               disabled={islemde}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-sm py-3.5 rounded-xl transition-all cursor-pointer shadow-xs"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer shadow-xs"
             >
               {islemde
                 ? 'İşleniyor…'

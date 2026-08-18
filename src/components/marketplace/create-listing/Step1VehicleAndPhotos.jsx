@@ -393,7 +393,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
         {/* ---------------------------------------------------------------------
             BÖLÜM 1: BİREYSEL İLAN KOTASI (AYNEN KORUNDU)
            --------------------------------------------------------------------- */}
-        <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 select-none">
+        <div className="bg-white border border-slate-200/90 rounded-md p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 select-none">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
               <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -442,7 +442,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
         {/* ---------------------------------------------------------------------
             BÖLÜM 2: FOTOĞRAF YÜKLEME KUTUSU (AYNEN KORUNDU)
            --------------------------------------------------------------------- */}
-        <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-slate-200/90 rounded-md p-6 shadow-sm space-y-4">
           <div className="flex items-center gap-1.5">
             <span className="text-rose-600 font-black text-lg">*</span>
             <h3 className="text-base font-extrabold text-slate-900 tracking-tight">Fotoğraf</h3>
@@ -457,7 +457,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
             </p>
           </div>
 
-          <div className="bg-[#F2F4F7] border border-slate-200/80 rounded-xl p-4 sm:p-5">
+          <div className="bg-[#F2F4F7] border border-slate-200/80 rounded-md p-4 sm:p-5">
             <div className="bg-white border border-slate-200/90 rounded-lg p-5 shadow-2xs space-y-5">
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -465,7 +465,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`relative border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer transition-all min-h-[125px] text-center group ${
+                  className={`relative border-2 border-dashed rounded-md p-4 flex flex-col items-center justify-center cursor-pointer transition-all min-h-[125px] text-center group ${
                     isDragging 
                       ? 'border-rose-600 bg-rose-100/60 scale-[1.01]' 
                       : 'border-rose-300 hover:border-rose-500 bg-rose-50/20 hover:bg-rose-50/50'
@@ -483,7 +483,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   <span className="text-[13px] text-slate-600 font-semibold mt-0.5">veya Sürükle Bırak</span>
                 </label>
 
-                <div className="border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center text-center opacity-80 hover:opacity-100 transition-opacity cursor-not-allowed bg-slate-50/40 min-h-[125px]">
+                <div className="border border-slate-200 rounded-md p-4 flex flex-col items-center justify-center text-center opacity-80 hover:opacity-100 transition-opacity cursor-not-allowed bg-slate-50/40 min-h-[125px]">
                   <svg className="w-7 h-7 text-rose-600 mb-1.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.25 9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
@@ -497,7 +497,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   <span className="etiket text-slate-500 border border-slate-300 rounded px-1.5 py-0.5 mt-1">Yakında</span>
                 </div>
 
-                <div className="border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center text-center opacity-80 hover:opacity-100 transition-opacity cursor-not-allowed bg-slate-50/40 min-h-[125px]">
+                <div className="border border-slate-200 rounded-md p-4 flex flex-col items-center justify-center text-center opacity-80 hover:opacity-100 transition-opacity cursor-not-allowed bg-slate-50/40 min-h-[125px]">
                   <svg className="w-7 h-7 text-rose-600 mb-1.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 14.25h1.5v1.5h-1.5v-1.5zM16.5 14.25h1.5v1.5h-1.5v-1.5zM13.5 17.25h1.5v1.5h-1.5v-1.5zM18 17.25h1.5v1.5H18v-1.5z" />
@@ -553,7 +553,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
        {/* ---------------------------------------------------------------------
             BÖLÜM 3: TESCİL VE RUHSAT MODÜLÜ (REFERANS UYUMLU 3'LÜ KATMAN YAPISI)
            --------------------------------------------------------------------- */}
-        <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-sm space-y-4 font-sans antialiased">
+        <div className="bg-white border border-slate-200/90 rounded-md p-6 shadow-sm space-y-4 font-sans antialiased">
           
           {/* 1. KATMAN: EN DIŞ BEYAZ PANEL BAŞLIĞI */}
           <div className="flex items-center justify-between">
@@ -573,10 +573,10 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
           </p>
 
           {/* 2. KATMAN: ORTA GRİ BAZA CONTAINER */}
-          <div className="bg-[#F2F4F7] border border-slate-200/80 rounded-xl p-4 sm:p-5 space-y-4">
+          <div className="bg-[#F2F4F7] border border-slate-200/80 rounded-md p-4 sm:p-5 space-y-4">
             
             {/* 3. KATMAN - PANEL A: TESCİL VE POLİÇE İÇ BEYAZ KARTI */}
-            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs space-y-4">
+            <div className="bg-white border border-slate-200/90 rounded-md p-5 shadow-2xs space-y-4">
               
               {/* INPUT MATRİSİ (PLAKA VE KM) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -624,7 +624,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wide">
                     Güncel Kilometre (KM) <span className="text-rose-600">*</span>
                   </label>
-                  <div className={`border rounded-xl bg-white flex items-center h-11 px-3 transition-all ${
+                  <div className={`border rounded-md bg-white flex items-center h-11 px-3 transition-all ${
                     touchedFields.mileage && !isKmValid ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
                   }`}>
                     <input 
@@ -659,7 +659,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     <label className="text-[11px] font-bold text-slate-600 uppercase">
                       Trafik Sigortası <span className="text-rose-600">*</span>
                     </label>
-                    <div className={`border rounded-xl bg-white flex items-center h-10 px-3 transition-all ${
+                    <div className={`border rounded-md bg-white flex items-center h-10 px-3 transition-all ${
                       touchedFields.traffic && !isTrafficDateValid ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
                     }`}>
                       <input 
@@ -681,7 +681,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     <label className="text-[11px] font-bold text-slate-600 uppercase">
                       Kasko Poliçesi <span className="text-slate-500 font-normal font-mono">(Opsiyonel)</span>
                     </label>
-                    <div className={`border rounded-xl bg-white flex items-center h-10 px-3 transition-all ${
+                    <div className={`border rounded-md bg-white flex items-center h-10 px-3 transition-all ${
                       touchedFields.kasko && !isKaskoDateValid ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
                     }`}>
                       <input 
@@ -700,7 +700,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     <label className="text-[11px] font-bold text-slate-600 uppercase">
                       TÜVTÜRK Muayene <span className="text-rose-600">*</span>
                     </label>
-                    <div className={`border rounded-xl bg-white flex items-center h-10 px-3 transition-all ${
+                    <div className={`border rounded-md bg-white flex items-center h-10 px-3 transition-all ${
                       touchedFields.inspection && !isInspectionDateValid ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
                     }`}>
                       <input 
@@ -757,7 +757,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
         {/* ---------------------------------------------------------------------
             BÖLÜM 5: ARAÇ SEÇİMİ KATALOĞU (AYNEN KORUNDU)
            --------------------------------------------------------------------- */}
-        <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-sm space-y-4 font-sans antialiased">
+        <div className="bg-white border border-slate-200/90 rounded-md p-6 shadow-sm space-y-4 font-sans antialiased">
           
           <div className="flex items-center gap-2">
             <span className="text-rose-600 font-black text-2xl sm:text-3xl leading-none">*</span>
@@ -766,7 +766,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
             </h3>
           </div>
 
-          <div className="bg-[#F2F4F7] border border-slate-200/80 rounded-xl p-4 sm:p-5 space-y-3">
+          <div className="bg-[#F2F4F7] border border-slate-200/80 rounded-md p-4 sm:p-5 space-y-3">
             
             {/* RAHATLATILMIŞ BREADCRUMB */}
             <div className="text-xs sm:text-sm font-semibold text-slate-800 px-1 min-h-[26px] flex items-center">

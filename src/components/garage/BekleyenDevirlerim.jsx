@@ -147,7 +147,7 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
           const onaylandi = d.durum === 'onaylandi';
 
           return (
-            <li key={d.istek_id} className="border border-slate-200 rounded-xl p-4 space-y-3">
+            <li key={d.istek_id} className="border border-slate-200 rounded-md p-4 space-y-3">
               <div className="flex items-start gap-3">
                 {/* `relative` EKLENDİ: `AracGorseli` `fill` ile konumlanıyor. */}
                 <span className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 grid place-items-center relative">
@@ -173,7 +173,7 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
 
               {onaylandi ? (
                 <>
-                  <div className={`rounded-xl p-3 space-y-1.5 border ${
+                  <div className={`rounded-md p-3 space-y-1.5 border ${
                     acil ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'
                   }`}>
                     <div className="flex items-center gap-1.5">
@@ -215,7 +215,7 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
               ) : (
                 /* 'bekliyor': kullanıcının yapabileceği bir şey yok.
                    Tıklanamayan bir düğme koymak "bozuk" izlenimi verirdi. */
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-start gap-2">
+                <div className="bg-slate-50 border border-slate-200 rounded-md p-3 flex items-start gap-2">
                   <Icon name="bilgi" size="sm" className="text-slate-400 shrink-0 mt-0.5" />
                   <p className="metin-yardimci text-slate-600 leading-relaxed">
                     Araç sahibinin onayı bekleniyor. Onaylandığında bildirim alacak ve

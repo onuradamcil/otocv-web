@@ -141,10 +141,10 @@ export default function AracSeciciDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="arac-secici-baslik"
-        className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 flex flex-col max-h-[85vh]"
+        className="relative w-full sm:max-w-lg bg-white rounded-t-lg sm:rounded-lg shadow-2xl border border-slate-200 flex flex-col max-h-[85vh]"
       >
         <div className="px-5 pt-5 pb-4 border-b border-slate-100 flex items-start gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center shrink-0">
             <Icon name={ikon} size="lg" />
           </div>
           <div className="min-w-0 flex-1">
@@ -157,7 +157,7 @@ export default function AracSeciciDialog({
             type="button"
             onClick={onClose}
             aria-label="Kapat"
-            className="w-9 h-9 -mt-1 -mr-1 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0 cursor-pointer"
+            className="w-9 h-9 -mt-1 -mr-1 grid place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0 cursor-pointer"
           >
             <Icon name="kapat" size="md" />
           </button>
@@ -172,7 +172,7 @@ export default function AracSeciciDialog({
               onChange={(e) => setArama(e.target.value)}
               placeholder="Plaka, marka veya model ara"
               aria-label="Araç ara"
-              className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 placeholder:text-slate-400 placeholder:font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:bg-white transition-colors"
+              className="w-full h-11 px-3.5 rounded-md border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 placeholder:text-slate-400 placeholder:font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:bg-white transition-colors"
             />
           </div>
         )}
@@ -191,7 +191,7 @@ export default function AracSeciciDialog({
                   type="button"
                   disabled={!!sebep}
                   onClick={() => onSec(v)}
-                  className={`w-full text-left flex items-center gap-3 p-3 rounded-2xl border transition-all ${
+                  className={`w-full text-left flex items-center gap-3 p-3 rounded-lg border transition-all ${
                     sebep
                       ? 'border-slate-100 bg-slate-50/70 cursor-not-allowed opacity-70'
                       : 'border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 active:scale-[0.99] cursor-pointer'

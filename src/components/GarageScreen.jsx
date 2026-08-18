@@ -304,7 +304,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
               Uyarı rengi duruyor ama dolgu yerine ince çerçeve + açık zemin:
               göze çarpıyor, bağırmıyor. Aciliyet renkle anlatılıyor, alanla
               değil. */}
-          <div className="bg-rose-50 border border-rose-200 text-rose-900 px-5 py-3.5 rounded-2xl flex items-center justify-between gap-4 select-none">
+          <div className="bg-rose-50 border border-rose-200 text-rose-900 px-5 py-3.5 rounded-lg flex items-center justify-between gap-4 select-none">
             <div className="flex items-center gap-3 min-w-0">
               <span className="relative flex h-3 w-3 shrink-0">
                 {/* Nokta beyazdı — koyu kırmızı zeminde görünüyordu, açık
@@ -333,7 +333,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
                   sayıyla vardığı ekranı çelişkiye düşürürdü. */}
               <button
                 onClick={() => router.push(teklifYolu(null, null, 'garaj_serit'))}
-                className="bg-rose-600 hover:bg-rose-700 text-white metin-yardimci font-semibold px-4 py-2 rounded-xl transition-colors active:scale-95 cursor-pointer shrink-0"
+                className="bg-rose-600 hover:bg-rose-700 text-white metin-yardimci font-semibold px-4 py-2 rounded-md transition-colors active:scale-95 cursor-pointer shrink-0"
               >
                 Hemen Teklif Al
               </button>
@@ -344,7 +344,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
                 onClick={() => setIsBannerDismissed(true)}
                 title="Uyarıyı Kapat"
                 aria-label="Uyarıyı kapat"
-                className="text-rose-500 hover:text-rose-800 p-1.5 hover:bg-rose-100 rounded-xl transition-colors cursor-pointer shrink-0"
+                className="text-rose-500 hover:text-rose-800 p-1.5 hover:bg-rose-100 rounded-md transition-colors cursor-pointer shrink-0"
               >
                 <Icon name="kapat" size="md" strokeWidth={2.5} />
               </button>
@@ -378,7 +378,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
         ===================================================================== */}
         <section
           aria-label="Araç Merkezi"
-          className="bg-white border border-slate-200 rounded-3xl shadow-[0_4px_20px_rgba(15,23,42,0.03)] overflow-hidden select-none"
+          className="bg-white border border-slate-200 rounded-lg shadow-[0_4px_20px_rgba(15,23,42,0.03)] overflow-hidden select-none"
         >
           {/* ⚠ SÜZGEÇ ÇİPLERİ BURADAN TAŞINDI — "Araçlarım" başlığının yanına.
               Çipler AŞAĞIDAKİ araç ızgarasını süzüyor ama burada, "Ne yapmak
@@ -470,13 +470,13 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
         ) : error ? (
           <div
             role="alert"
-            className="py-10 px-4 bg-red-50 border border-red-200 rounded-xl text-red-600 metin-yardimci font-semibold flex items-center justify-center gap-2"
+            className="py-10 px-4 bg-red-50 border border-red-200 rounded-md text-red-600 metin-yardimci font-semibold flex items-center justify-center gap-2"
           >
             <Icon name="uyari" size="md" />
             <span>Veritabanı bağlantı hatası: {error}</span>
           </div>
         ) : gorunenAraclar.length === 0 ? (
-          <div className="py-20 flex flex-col items-center text-center space-y-3 bg-white rounded-2xl border border-dashed border-slate-300">
+          <div className="py-20 flex flex-col items-center text-center space-y-3 bg-white rounded-lg border border-dashed border-slate-300">
             <Icon name="klasor" size="2xl" className="text-slate-300" />
             <div>
               {/* Süzgeç yüzünden boşsa bunu SÖYLÜYORUZ. "Garajınız boş"
@@ -639,7 +639,7 @@ function MerkezEylem({ eylem, onAc }) {
       type="button"
       disabled={kapali}
       onClick={onAc}
-      className={`text-left p-4 rounded-2xl border transition-all group ${
+      className={`text-left p-4 rounded-lg border transition-all group ${
         kapali
           ? 'border-slate-100 bg-slate-50/60 cursor-not-allowed'
           : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40 hover:shadow-sm active:scale-[0.99] cursor-pointer focus-visible:ring-offset-2'
@@ -651,7 +651,7 @@ function MerkezEylem({ eylem, onAc }) {
             İki tonlu: renkli zemin + renkli çizgi; hover'da dolu hale
             geçiyor, yani durum değişimi renkle değil DOLULUKLA anlatılıyor. */}
         <span
-          className={`w-12 h-12 rounded-2xl grid place-items-center shrink-0 transition-colors ${
+          className={`w-12 h-12 rounded-lg grid place-items-center shrink-0 transition-colors ${
             kapali
               ? 'bg-slate-100 text-slate-500'
               : 'bg-indigo-50 text-indigo-600 ring-1 ring-inset ring-indigo-100 group-hover:bg-indigo-600 group-hover:text-white group-hover:ring-indigo-600'
@@ -736,7 +736,7 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
   };
 
   return (
-    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-[0_4px_20px_rgba(15,23,42,0.03)] hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition-all duration-300 flex flex-col gap-4 group hover:border-slate-300">
+    <div className="bg-white border border-slate-200/90 rounded-lg p-5 shadow-[0_4px_20px_rgba(15,23,42,0.03)] hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition-all duration-300 flex flex-col gap-4 group hover:border-slate-300">
 
       {/* KATMAN 1 — KİMLİK
           `flex-wrap` + `basis-full`: MOBİLDE ÖLÇÜLDÜ, bilgi sütununa yalnızca
@@ -757,7 +757,7 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
             `group-hover:scale-105` de kaldırıldı: görseli büyütmek hiçbir şey
             söylemiyordu — tıklanınca yakınlaşma olmuyor, sadece hareket
             ediyordu. Vurgu artık kartın kendisinde (gölge ve kenarlık). */}
-        <div className="w-[76px] h-[76px] rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden relative p-1">
+        <div className="w-[76px] h-[76px] rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden relative p-1">
           {/* İç sarmalayıcı `p-1`i KORUMAK için: `fill` konumlandırması iç
               boşluğu yok sayıp kutunun kenarına yayılıyor. Doğrudan bağlanırsa
               görsel 68 px yerine 76 px olur ve kart hizası kayar. */}
@@ -796,7 +796,7 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
 
         {/* Skor rozeti: eskiden `text-xs sm:text-sm` idi — aynı bilgi ekran
             genişliğine göre boyut değiştiriyordu, oysa önemi değişmiyor. */}
-        <div className="ml-auto sm:ml-0 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl text-right shrink-0 select-none">
+        <div className="ml-auto sm:ml-0 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-md text-right shrink-0 select-none">
           <span className="metin-yardimci text-indigo-700 block font-mono">
             Skor: %{score}
           </span>
@@ -851,7 +851,7 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
           {menuAcik && (
             <div
               role="menu"
-              className="absolute right-0 bottom-full mb-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-30 py-1 motion-safe:animate-fadeIn"
+              className="absolute right-0 bottom-full mb-2 w-56 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden z-30 py-1 motion-safe:animate-fadeIn"
             >
               {vehicle.is_listed ? (
                 <MenuOgesi
@@ -899,7 +899,7 @@ function PoliceCipi({ etiket, durum, onAc }) {
     <button
       type="button"
       onClick={onAc}
-      className={`border px-2 py-1.5 rounded-xl flex flex-col justify-center items-start gap-0.5 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 shadow-2xs text-left ${durum.bgClass}`}
+      className={`border px-2 py-1.5 rounded-md flex flex-col justify-center items-start gap-0.5 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 shadow-2xs text-left ${durum.bgClass}`}
     >
       {/* ⚠ `opacity-70` KALDIRILDI: çipin renkli zemini üzerinde etiketi
           %70 saydamlığa düşürmek kontrastı 4.5:1 eşiğinin altına indiriyordu

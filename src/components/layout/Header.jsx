@@ -281,7 +281,7 @@ export default function Header() {
             <Link
               href={uyeHedef('/add-vehicle/step1')}
               onClick={closeMenus}
-              className={`hidden md:flex min-h-[44px] bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3.5 rounded-xl transition-colors shadow-2xs items-center gap-1.5 border border-amber-500/30 ${ODAK}`}
+              className={`hidden md:flex min-h-[44px] bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3.5 rounded-md transition-colors shadow-2xs items-center gap-1.5 border border-amber-500/30 ${ODAK}`}
             >
               <Icon name="ilan" size="xs" />
               <span>Araç Kaydet</span>
@@ -331,7 +331,7 @@ export default function Header() {
                 </button>
 
                 {isDropdownOpen && (
-                  <div id="hesap-menusu" className="absolute right-0 mt-3 w-72 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden z-50 text-sm">
+                  <div id="hesap-menusu" className="absolute right-0 mt-3 w-72 bg-white border border-slate-200 rounded-md shadow-xl overflow-hidden z-50 text-sm">
                     {/* BAŞLIK: eskiden yalnızca ham e-posta yazıyordu.
                         Garaj ekranından kaldırılan profil kartının taşıdığı
                         bilgi (baş harfler, ad soyad, üyelik) buraya taşındı —
