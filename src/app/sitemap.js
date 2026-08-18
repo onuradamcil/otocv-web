@@ -13,6 +13,10 @@ export default function sitemap() {
   return [
     { url: `${TABAN}/`, lastModified: simdi, changeFrequency: 'daily', priority: 1 },
     { url: `${TABAN}/verify`, lastModified: simdi, changeFrequency: 'monthly', priority: 0.8 },
+    // Vitrinin tam listesi. Anasayfa sabit 24 kart gösteriyor; sığmayan
+    // araçların tek adresi burası, dolayısıyla indekslenmesi gereken
+    // içerik de burada. `daily`: envanter kullanıcı kaydıyla değişiyor.
+    { url: `${TABAN}/vitrin`, lastModified: simdi, changeFrequency: 'daily', priority: 0.9 },
     // Yasal sayfalar indekslenmeli: kullanıcı "oto.cv kvkk" diye aradığında
     // bulabilmeli ve arama motoru sitenin bu metinlere sahip olduğunu görmeli.
     { url: `${TABAN}/kvkk`, lastModified: simdi, changeFrequency: 'yearly', priority: 0.3 },

@@ -271,7 +271,30 @@ async function belgeSekmesiniAc(page) {
  * geliştirme sırasında iki kez düşüldü; bu yüzden yardımcı olarak sabitlendi.
  */
 async function hamMetin(page) {
-  return page.locator('body').textContent();
+  // ⚠ ESKİ HÂLİ `body.textContent()` İDİ VE ÇOĞUNLUKLA KODU TARIYORDU.
+  //
+  // Ölçüldü (`/insurance-offer`): `body.textContent()` 21.886 karakter
+  // döndürüyor ve bunun 21.317'si (%97) `<body>` içindeki 5 `<script>`
+  // etiketinden geliyor — Next'in RSC yükü. Görünür metin yalnızca ~570
+  // karakter. Yani bu yardımcıyı kullanan HER denetim (yasak kelime,
+  // tutar kalıbı, uydurma iddia) esas olarak derleme çıktısını tarıyordu.
+  //
+  // Sonuç somut: `21-teklif-akisi`in "prim/tutar basılmıyor" testi tam
+  // suite koşumunda `65TL` bulup düştü. Ekranda öyle bir metin YOK —
+  // `TeklifEkrani.jsx` içinde ne "TL" ne "₺" geçiyor. Eşleşme RSC
+  // yükündeki rastgele bir derleme kimliğinden geliyordu; hash her
+  // derlemede değiştiği için hata da aralıklı çıkıyordu.
+  //
+  // ⚠ `innerText` KULLANILMIYOR: o yalnızca GÖRÜNEN metni veriyor ve
+  // `display:none` içerikleri atlıyor. Bu yardımcının işi "sayfada bu
+  // metin geçiyor mu" sorusuna cevap vermek; gizli ama DOM'da duran bir
+  // ihlali kaçırmak istemiyoruz. Bu yüzden metin düğümleri korunuyor,
+  // yalnızca KOD taşıyan etiketler çıkarılıyor.
+  return page.evaluate(() => {
+    const kopya = document.body.cloneNode(true);
+    kopya.querySelectorAll('script, style, template, noscript').forEach((e) => e.remove());
+    return kopya.textContent || '';
+  });
 }
 
 // =========================================================================

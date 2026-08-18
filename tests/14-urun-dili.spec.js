@@ -82,7 +82,10 @@ test.describe('Ürün dili', () => {
   // Oturum GEREKTİRMEYEN rotalar. Hukuki sayfalar bilhassa burada:
   // indekslenen metinde ürün dili ihlali en pahalı olan yer orası.
   const HERKESE_ACIK = [
-    '/', '/verify', '/devir', '/login', '/register',
+    // `/vitrin` EKLENDİ: yeni herkese açık rota ve anasayfayla AYNI
+    // kartları basıyor. Bekçiye alınmasaydı yasak kelime taraması
+    // sitenin araç listeleyen ikinci sayfasını hiç görmezdi.
+    '/', '/vitrin', '/verify', '/devir', '/login', '/register',
     '/gizlilik', '/kullanim-sartlari', '/kvkk', '/packages',
   ];
 

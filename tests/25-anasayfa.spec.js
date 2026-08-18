@@ -22,15 +22,41 @@
 // yeniden tasarlanabilir; değişmemesi gereken şey "tıklayınca liste süzülür".
 // =========================================================================
 
+// `girisYap` ve `supabaseIstemcisi` KALDIRILDI: garaj şeridi testi çıktı
+// (bölüm ürün sahibinin kararıyla kaldırıldı) ve kalan testlerin hiçbiri
+// oturum gerektirmiyor — anasayfa ziyaretçiye açık.
 const { test, expect } = require('./yardimcilar');
 
-/** Izgaradaki kart sayısı. Kartlar araç görseli taşıyor. */
+/**
+ * Izgaradaki KART sayısı.
+ *
+ * ⚠ ÖNCEKİ HÂLİ KUSURLUYDU: `page.locator('main img, img').count()` yani
+ * sayfadaki HER görseli sayıyordu. İki yönlü yanlıştı:
+ *   · Anasayfaya herhangi bir görsel eklenmesi (hero, logo, illüstrasyon)
+ *     testi hiçbir davranış bozulmadan kırıyordu.
+ *   · `AracGorseli` görsel yokken `<span>GÖRSEL YOK</span>` basıyor
+ *     (`AracGorseli.jsx:109`) — yani görselsiz kartlar HİÇ sayılmıyordu.
+ *     "Kart sayısı" ölçtüğünü sanan bir ölçüm, aslında görsel sayıyordu.
+ *
+ * Doğru çıpa kartın kendi erişilebilir adı: her vitrin kartı
+ * `role="button"` ve `aria-label="… — sicilini görüntüle"` taşıyor.
+ */
 async function kartSayisi(page) {
-  return page.locator('main img, img').count();
+  return page.locator('[role="button"][aria-label*="sicilini görüntüle"]').count();
 }
 
 test.describe('Anasayfa · süzgeçler', () => {
-  test('MARKA süzgeci ızgarayı gerçekten süzüyor', async ({ page }) => {
+  // ⚠ ESKİ HÂLİ "MARKA süzgeci" idi. Marka listesi kaldırıldı (ürün sahibinin
+  // kararı; referans siteler de anasayfada marka listesi göstermiyor). Ama
+  // eski testin seçicisi zaten KUSURLUYDU:
+  //     page.locator('aside').getByRole('button').filter({hasText:/\(\d+\)$/})
+  // Bu, marka'ya İZOLE DEĞİL — "Yalnızca öne çıkanlar (2)" anahtarını, sicil
+  // bantlarını, şehir/yakıt/vites satırlarını da yakalıyordu. Grup sırası
+  // değişse başka bir süzgece tıklardı ve test bunu fark etmezdi.
+  //
+  // Yeni test bir GRUBU adıyla açıp içindeki seçeneğe tıklıyor: hangi süzgece
+  // dokunduğu belirsiz değil.
+  test('ŞEHİR süzgeci ızgarayı gerçekten süzüyor', async ({ page }) => {
     test.setTimeout(120_000);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
@@ -39,21 +65,37 @@ test.describe('Anasayfa · süzgeçler', () => {
     const once = await kartSayisi(page);
     test.skip(once < 2, 'süzülecek kadar araç yok (en az 2 gerekiyor)');
 
-    // Kenar çubuğundaki ilk MARKA seçeneği ("Tümü" hariç).
-    const markaGrubu = page.locator('aside').getByRole('button')
+    // Akordiyon başlığı: tek seçeneği olan gruplar hiç çizilmiyor.
+    const baslik = page.getByRole('button', { name: 'Şehir' });
+    test.skip(await baslik.count() === 0, 'şehir grubu yok (tek seçenek)');
+    await baslik.first().click();
+    await page.waitForTimeout(400);
+
+    // ⚠ SEÇİCİ GRUBUN GÖVDESİNE KİLİTLENDİ — `aside` kapsamı ARTIK YETMİYOR.
+    //
+    // Eski hâli `page.locator('aside').getByRole('button').filter(/\(\d+\)$/)`
+    // idi. Marka ağacı eklenince onun kademe satırları da "(N)" ile bitiyor VE
+    // DOM'da Şehir grubundan ÖNCE geliyor: kapsamsız seçici bir MARKA satırına
+    // tıklardı, kart sayısı yine azalırdı ve test YEŞİL yanardı — şehir
+    // süzgeci hiç sınanmadan. Testin kendi 49-58. satırlarındaki uyarının
+    // aynı hatası, bu kez marka listesi geri geldiği için.
+    //
+    // Akordiyonun mevcut `aria-controls` bağı doğru çıpayı veriyor.
+    // `[id="..."]` biçimi zorunlu: `useId()` çıktısı CSS `#id` seçicisinde
+    // geçersiz karakter taşıyor.
+    const govdeId = await baslik.first().getAttribute('aria-controls');
+    const secenek = page.locator(`[id="${govdeId}"]`).getByRole('button')
       .filter({ hasNotText: /^Tümü/ })
       .filter({ hasText: /\(\d+\)$/ });
+    const adet = await secenek.count();
+    test.skip(adet === 0, 'şehir seçeneği yok');
 
-    const adet = await markaGrubu.count();
-    test.skip(adet === 0, 'marka seçeneği yok');
-
-    // Sayısı toplamdan AZ olan bir seçenek seç: süzülme ölçülebilsin.
     let secildi = false;
     for (let i = 0; i < adet; i++) {
-      const etiket = (await markaGrubu.nth(i).innerText()).replace(/\s+/g, ' ');
+      const etiket = (await secenek.nth(i).innerText()).replace(/\s+/g, ' ');
       const m = etiket.match(/\((\d+)\)/);
       if (m && Number(m[1]) > 0 && Number(m[1]) < once) {
-        await markaGrubu.nth(i).click();
+        await secenek.nth(i).click();
         secildi = true;
         break;
       }
@@ -61,13 +103,140 @@ test.describe('Anasayfa · süzgeçler', () => {
     test.skip(!secildi, 'toplamdan az sonuç veren seçenek bulunamadı');
 
     await page.waitForTimeout(800);
-    const sonra = await kartSayisi(page);
+    expect(
+      await kartSayisi(page),
+      'süzgeç tıklandı ama ızgara değişmedi — ızgara süzülmüş listeye bağlı değil'
+    ).toBeLessThan(once);
+  });
+
+  // KİLOMETRE — YENİ SÜZGEÇ. `km` alanı RPC'den geliyordu ama hiçbir yerde
+  // kullanılmıyordu; bu test onun gerçekten bağlandığını kanıtlıyor.
+  test('KİLOMETRE aralığı ızgarayı süzüyor', async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1500);
+
+    const once = await kartSayisi(page);
+    test.skip(once < 1, 'araç yok');
+
+    await page.getByRole('button', { name: 'Kilometre' }).first().click();
+    await page.waitForTimeout(400);
+
+    // Hiçbir aracın sağlamayacağı bir taban: liste boşalmalı.
+    await page.getByLabel('En az kilometre').fill('99999999');
+    await page.waitForTimeout(700);
 
     expect(
-      sonra,
-      `süzgeç tıklandı ama ızgara değişmedi (önce ${once}, sonra ${sonra}). `
-      + 'Bu, ızgaranın süzülmüş listeye bağlı OLMADIĞI anlamına gelir.'
+      await kartSayisi(page),
+      'kilometre alt sınırı verildi ama ızgara değişmedi — km süzgeci bağlı değil'
+    ).toBe(0);
+  });
+
+  // AKORDİYON DAVRANIŞI — grup başlığı içeriği açıp kapatıyor.
+  test('akordiyon başlığı grubu açıp kapatıyor', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1200);
+
+    const baslik = page.getByRole('button', { name: 'Kilometre' }).first();
+    // Kilometre KAPALI geliyor (yalnızca ilk iki grup açık).
+    await expect(baslik).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.getByLabel('En az kilometre')).toHaveCount(0);
+
+    await baslik.click();
+    await expect(baslik).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByLabel('En az kilometre')).toBeVisible();
+
+    await baslik.click();
+    await expect(baslik).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.getByLabel('En az kilometre')).toHaveCount(0);
+  });
+
+  // =======================================================================
+  // MARKA AĞACI — KADEMELİ SÜZGEÇ (Marka › Seri › Model › Donanım)
+  //
+  // Ağaç hem GEZİNME hem SÜZGEÇ. İkisinden birinin çalışıp diğerinin
+  // çalışmaması tam da bu paketin var oluş sebebi olan hata sınıfı: bu
+  // dosyanın geçmişinde süzgeç arayüzünün tamamı çizilip HİÇBİR ŞEYİ
+  // süzmediği bir dönem var. O yüzden üç şey ayrı ayrı denetleniyor:
+  //   1. seçim ANINDA ızgarayı süzüyor
+  //   2. seçim bir ALT KADEMEYİ açıyor
+  //   3. kırıntıdan köke dönüş süzgeci GERİ ALIYOR
+  //
+  // Ölü dal denetimi de burada: sayaçlar o kademenin KENDİ kümesinden
+  // hesaplandığı için her çocuğun en az bir aracı olmalı. "(0)" görünüyorsa
+  // sayım yanlış kümeden yapılıyor — kaldırılan sabit "%80+ güven" çipinin
+  // hatası.
+  // =======================================================================
+  test('MARKA ağacı kademe kademe süzüyor ve kırıntıdan geri dönülüyor', async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1500);
+
+    const once = await kartSayisi(page);
+    test.skip(once < 2, 'ağaç sınanacak kadar araç yok (en az 2 gerekiyor)');
+
+    // Kutu başlığı SABİT "Marka" — kademe kutunun İÇİNDE değişiyor. `.first()`
+    // şart: `getByRole` adı alt dize eşlediği için seçim yapıldıktan sonra
+    // kırıntıdaki "Tüm markalar" halkası da eşleşiyor; başlık DOM'da önce.
+    const kutu = page.locator('aside').getByRole('button', { name: 'Marka' }).first();
+    await expect(kutu, 'marka ağacı kutusu yok').toHaveCount(1);
+
+    const govdeId = await kutu.getAttribute('aria-controls');
+    const govde = page.locator(`[id="${govdeId}"]`);
+    if ((await kutu.getAttribute('aria-expanded')) === 'false') await kutu.click();
+
+    await expect(
+      govde.getByRole('button').filter({ hasText: /\(0\)$/ }),
+      'ağaçta ölü dal var: (0) sayaçlı çocuk — sayım yanlış kümeden yapılıyor'
+    ).toHaveCount(0);
+
+    // 1) MARKA kademesi: toplamdan AZ sonuç veren bir dal seç, süzülme
+    //    ölçülebilsin.
+    const markalar = govde.getByRole('button').filter({ hasText: /\(\d+\)$/ });
+    const adet = await markalar.count();
+    expect(adet, 'marka kademesi boş çizildi').toBeGreaterThan(0);
+
+    let secilen = null;
+    for (let i = 0; i < adet; i++) {
+      const metin = (await markalar.nth(i).innerText()).replace(/\s+/g, ' ');
+      const m = metin.match(/^(.*)\((\d+)\)\s*$/);
+      if (m && Number(m[2]) > 0 && Number(m[2]) < once) {
+        secilen = m[1].trim();
+        await markalar.nth(i).click();
+        break;
+      }
+    }
+    test.skip(!secilen, 'toplamdan az sonuç veren marka yok');
+    await page.waitForTimeout(800);
+
+    // ANINDA SÜZME — ürün sahibinin şartı: "seçilen markanın kartları varsa
+    // onlar ekrana gelecek". Ağacın yalnızca gezinme olması yetmiyor.
+    expect(
+      await kartSayisi(page),
+      'marka seçildi ama ızgara süzülmedi — ağaç gezinme yapıyor, süzmüyor'
     ).toBeLessThan(once);
+
+    // 2) BİR ALT KADEME AÇILDI. Kademe adı büyük harfe CSS ile çevriliyor
+    //    olabilir; `getByText` `text-transform`dan etkilenmiyor.
+    await expect(
+      govde.getByText('Seri', { exact: true }),
+      'marka seçildi ama alt kademe (Seri) açılmadı'
+    ).toBeVisible();
+    await expect(
+      govde.getByRole('button', { name: 'Tüm markalar' }),
+      'kırıntı yolu çizilmedi — kullanıcının geri dönüş yolu yok'
+    ).toHaveCount(1);
+
+    // 3) GERİ DÖNÜŞ: kökteki halka süzgeci tamamen kaldırıyor.
+    await govde.getByRole('button', { name: 'Tüm markalar' }).click();
+    await page.waitForTimeout(800);
+    expect(
+      await kartSayisi(page),
+      'kırıntıdan köke dönüldü ama ızgara eski hâline gelmedi'
+    ).toBe(once);
   });
 
   test('ARAMA yazmak listeyi süzüyor, Enter KARNEYE GÖTÜRMÜYOR', async ({ page }) => {
@@ -181,6 +350,78 @@ test.describe('Anasayfa · yapı ve erişilebilirlik', () => {
     ).toEqual([]);
   });
 
+  // =======================================================================
+  // GARAJ ŞERİDİ — ZİYARETÇİYE HİÇBİR SORGU ATILMIYOR
+  //
+  // Oturumlu kullanıcıya anasayfada kendi garajından bir şerit gösteriliyor.
+  // Bunun iki katı riski var ve ikisi de test edilmeli:
+  //
+  //   1. Ziyaretçiye şerit GÖSTERİLMEMELİ (verisi yok).
+  //   2. Ziyaretçi için SORGU ATILMAMALI. `vehicles` tablosu RLS'e tabi;
+  //      oturumsuz çağrı hata döndürüp konsola yazıyor ve
+  //      `01-rota-erisim.spec.js:63` ("/ konsola error yazmıyor") ile
+  //      `04-mobil.spec.js:112` (Next hata katmanı ikinci dialog sanılıyor)
+  //      testlerini BİRDEN kırıyor.
+  //
+  // İkinci madde ağ trafiğine bakmadan doğrulanamaz: şerit görünmüyor olabilir
+  // ama sorgu yine atılmış olabilir. Bu yüzden istekler dinleniyor.
+  // =======================================================================
+  test('ZİYARETÇİDE garaj şeridi yok ve vehicles sorgusu ATILMIYOR', async ({ page }) => {
+    const aracSorgulari = [];
+    page.on('request', (r) => {
+      const u = r.url();
+      if (/\/rest\/v1\/vehicles/.test(u)) aracSorgulari.push(r.method());
+    });
+
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2500);
+
+    await expect(
+      page.getByText(/Garajınızda/),
+      'oturumsuz ziyaretçiye garaj şeridi gösteriliyor'
+    ).toHaveCount(0);
+
+    expect(
+      aracSorgulari,
+      'oturumsuz ziyaretçi için `vehicles` sorgusu atılıyor — RLS hatası '
+      + 'konsola düşer ve iki testi birden kırar'
+    ).toEqual([]);
+  });
+
+  // Ürün sahibinin kararıyla kaldırılan bölümler geri gelmesin.
+  test('KALDIRILAN bölümler geri gelmedi', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1200);
+
+    const metin = await page.locator('body').innerText();
+
+    // 1) Garaj şeridi — oturumlu kullanıcıya da gösterilmiyor artık.
+    expect(metin, 'garaj şeridi geri gelmiş').not.toContain('Garajınızda');
+    // 2) Ücretli işlemler şeridi.
+    expect(metin, '"Ücretli işlemler" bölümü geri gelmiş').not.toContain('Ücretli işlemler');
+    // 3) "Nereden başlarsınız?" — Hizmetler'deki iki kartın tekrarıydı.
+    expect(metin, '"Nereden başlarsınız" bölümü geri gelmiş').not.toContain('Nereden başlarsınız');
+    // 4) ⚠ MADDE KALDIRILDI — ÜRÜN SAHİBİ KARARI GERİ ALDI.
+    //
+    //    Buradaki iddia `getByRole('button', { name: 'Marka' })` sayısının 0
+    //    olmasıydı. Yasaklanan şey DÜZ marka listesiydi: ~50 marka, tek
+    //    kademe, yer kaplayan ve sonucu daraltmayan bir liste.
+    //
+    //    Yerine gelen yapı KADEMELİ AĞAÇ (Marka › Seri › Model › Donanım):
+    //    ekranda hep tek kademe duruyor (2-10 satır) ve her tıklama ızgarayı
+    //    ANINDA daraltıyor. Ağacın kendisi "MARKA ağacı kademe kademe
+    //    süzüyor" testiyle denetleniyor; burada onu yasaklamak iki testi
+    //    çelişik hâle getirirdi.
+    //
+    //    ⚠ Bu iddia zaten kırılgandı: `getByRole` adı varsayılan olarak
+    //    büyük/küçük harf duyarsız ALT DİZE eşliyor, yani seçim yapıldığında
+    //    kırıntıdaki "Tüm markalar" halkası da eşleşiyordu.
+    //
+    //    1-3. maddeler yerinde: o bölümler gerçekten kaldırıldı.
+  });
+
   test('anasayfanın KENDİ metadata\'sı var', async ({ page }) => {
     await page.goto('/');
     // `(site)/page.js` ve `layout.js` ikisi de 'use client' olduğu için
@@ -195,3 +436,11 @@ test.describe('Anasayfa · yapı ve erişilebilirlik', () => {
     expect(aciklama.length, 'description fazla kısa').toBeGreaterThan(60);
   });
 });
+
+// =========================================================================
+// OTURUMLU KULLANICI — ANASAYFA ARTIK KİŞİSEL
+//
+// Ölçülmüştü: oturumlu ve oturumsuz ziyaretçi anasayfada BİREBİR AYNI şeyi
+// görüyordu. Tek fark dolu kalpler ve başlıktaki menüydü — yani geri gelen
+// kullanıcıya kişisel hiçbir sebep sunulmuyordu.
+// =========================================================================

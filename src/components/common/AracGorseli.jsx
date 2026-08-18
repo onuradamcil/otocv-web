@@ -106,7 +106,13 @@ export default function AracGorseli({
 
   if (yok) {
     return (
-      <span className="absolute inset-0 flex items-center justify-center bg-slate-100 text-etiket font-bold text-slate-500 text-center leading-tight px-1">
+      /* ⚠ `text-slate-600`, `slate-500` DEĞİL. Ölçüldü: slate-500 bu
+         zeminde (slate-100) 4.34:1 veriyor ve WCAG AA küçük metin eşiği
+         4.5. Metin 11 px kalın; kalınlık büyük-metin muafiyetine (18.66 px)
+         yetmiyor, yani gerçek bir ihlaldi. slate-600 aynı zeminde 6.92:1.
+         Uzun süre görünmedi çünkü her aracın fotoğrafı vardı; fotoğrafsız
+         kayıt eklenince ortaya çıktı. */
+      <span className="absolute inset-0 flex items-center justify-center bg-slate-100 text-etiket font-bold text-slate-600 text-center leading-tight px-1">
         {bosMetin}
       </span>
     );

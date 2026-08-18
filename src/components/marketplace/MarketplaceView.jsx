@@ -6,7 +6,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useId } from 'react';
 import { favoriKimlikleri, favoriDegistir } from '../../services/favoriService';
 import { fetchMarketplaceListings } from '../../services/marketplaceService';
 import { useToast } from '../../context/ToastContext';
@@ -19,10 +19,28 @@ import AracGorseli from '../common/AracGorseli';
 // alanını tek yerden veriyor. Bu dosya daha önce hepsini elle yazıyordu ve
 // dokunma hedefleri standardın altına düşmüştü.
 import { dugme } from '../common/dugme';
-import Link from 'next/link';
-// Fiyatlar TEK KAYNAKTAN geliyor: ekranla ödeme akışının farklı tutar
-// göstermesi kabul edilemez bir hata sınıfı.
-import { URUNLER, URUN_SIRASI, fiyatYaz } from '../../data/paketler';
+// Marka ağacının saf mantığı ayrı dosyada: React'e dokunmuyor ve bu dosya
+// zaten 1300+ satır. Normalize (Türkçe 'I' tuzağı) ve kanonik etiket seçimi
+// oradaki yorumlarda gerekçeli.
+import {
+  KADEMELER,
+  agacUygun,
+  agaciKirp,
+  agacDerinligi,
+  kademeCocuklari,
+} from '../../utils/markaAgaci';
+// DEMO — GEÇİCİ. Vitrin dolu hâlini görmek için; `?demo=N` yoksa hiç
+// çağrılmıyor. Kaldırmak için bu satırı, `loadLiveListings` içindeki dalı
+// ve demo şeridini sil (üçü de "DEMO" ile işaretli).
+import { demoVitrinUret, DEMO_EN_FAZLA } from '../../utils/demoVitrin';
+import { seckiUret } from '../../utils/secki';
+//  importu KALDIRILDI: tek kullanicisi "Ucretlerin tamami" bagi vardi.
+// `paketler` importu KALDIRILDI: "Ücretli işlemler" bölümü çıktı.
+// ⚠ `ozetGetir` DEĞİL. O fonksiyon panel için tüm bakım kayıtlarını çekiyor;
+// anasayfada o maliyet gereksiz. Gerekçe servis dosyasında yazılı.
+// `garajSeridiGetir` importu KALDIRILDI: garaj şeridi ürün sahibinin
+// kararıyla çıktı (aşağıda, kaldırıldığı yerde gerekçesi yok — bölüm
+// tamamen silindi; servis fonksiyonu da `ozetService`ten kaldırıldı).
 
 // =========================================================================
 // SÜZGEÇ ARAYÜZ PARÇALARI
@@ -43,19 +61,72 @@ import { URUNLER, URUN_SIRASI, fiyatYaz } from '../../data/paketler';
 // uyarıyor.
 const YENI_ESIGI_MS = 7 * 24 * 60 * 60 * 1000;
 
-/** Sayılı tek satır seçenek (radyo davranışı: biri seçili). */
-function SuzgecSatiri({ etiket, adet, secili, sec }) {
+// DEMO — GEÇİCİ. Demo kartlarda tıklama ve favori etkisiz olmalı, ama
+// `undefined` geçmek olmaz: kart `onSelectVehicle(item)` diye ÇAĞIRIYOR
+// (favori düğmesi de `onFavori(...)`), yani tıklayan kullanıcı çalışma
+// zamanı hatası alırdı. Modül düzeyinde tek bir boş işlev: her render'da
+// yeni bir işlev üretilmiyor.
+const ETKISIZ = () => {};
+
+// Anasayfada gösterilecek EN FAZLA kart. Ürün sahibinin kararı: "sınırsız
+// ilan gösterilmemeli, 6*4 olabilir".
+//
+// ⚠ 24 SEÇİLDİ ÇÜNKÜ SÜTUN SAYILARINA BÖLÜNÜYOR: ızgara `auto-fill` ve
+// genişliğe göre 2/3/4/5/6 sütun veriyor. 24; 2, 3, 4 ve 6'ya tam bölünüyor,
+// yani o genişliklerde son satır DOLU bitiyor — şikâyet edilen "yarım kalmış
+// son satır" ortadan kalkıyor. Yalnızca 5 sütunda (1024-1279 px) son satır
+// 4 kartla kapanıyor; 6 kartlık satırda 2 kart kalmasından çok daha az göze
+// batıyor ve bunu tam çözmek sütun sayısını JS ile ölçmeyi gerektirirdi.
+const ANASAYFA_KART_SINIRI = 24;
+
+// "Sizin için seçtiklerimiz" bölümündeki kart sayısı. 12 = geniş ekranda
+// iki dolu satır; vitrinin yarısı kadar yer kaplayarak ikincil kaldığını
+// belli ediyor.
+const SECKI_KART_SINIRI = 12;
+
+// `/vitrin` sayfasında bir seferde çizilen kart sayısı. Envanter bugün
+// küçük ama sınırsız `map` bir gün binlerce düğüm demek olurdu.
+const TAM_SAYFA_ADIM = 48;
+
+/**
+ * Kayıt demo mu?
+ *
+ * ⚠ KART BAZINDA SORULUYOR, GLOBAL BAYRAKLA DEĞİL: demo kartlar artık GERÇEK
+ * araçlarla AYNI ızgarada duruyor. Global bir "demo modu" bayrağı gerçek
+ * kartları da tıklanamaz yapardı.
+ */
+const demoKaydiMi = (item) => String(item?.listing_id || '').startsWith('demo-');
+
+/**
+ * Sayılı tek satır seçenek (radyo davranışı: biri seçili).
+ *
+ * @param {boolean} [p.basili=true] `aria-pressed` basılsın mı.
+ * @param {boolean} [p.derine=false] Satır bir ALT KADEMEYE iniyor mu.
+ */
+function SuzgecSatiri({ etiket, adet, secili, sec, basili = true, derine = false }) {
   return (
     <button
       type="button"
       onClick={sec}
-      aria-pressed={secili}
-      className={`w-full min-h-[44px] px-2.5 rounded-xl cursor-pointer flex justify-between items-center gap-2 text-left transition-colors ${
+      // ⚠ `aria-pressed` YALNIZCA GERÇEK AÇ/KAPA İÇİN. Marka ağacının satırı
+      // tıklandığında bir alt kademeye geçiyor ve LİSTEDEN KAYBOLUYOR;
+      // orada `aria-pressed="false"` asla değişmeyen bir durum bildirir,
+      // yani ekran okuyucu kullanıcısına yanlış kontrol tipi anlatır.
+      {...(basili ? { 'aria-pressed': secili } : {})}
+      className={`w-full min-h-[44px] px-2.5 rounded-md cursor-pointer flex justify-between items-center gap-2 text-left transition-colors ${
         secili ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700 hover:bg-slate-50'
       }`}
     >
       <span className="metin-yardimci font-semibold truncate">{etiket}</span>
-      <span className="metin-yardimci text-slate-600 tabular-nums shrink-0">({adet})</span>
+      <span className="metin-yardimci text-slate-600 tabular-nums shrink-0 flex items-center gap-1">
+        ({adet})
+        {/* Kademe derinleşiyor: ok bunu söylüyor. Kayıtta sağa bakan ikon
+            YOK (`registry.jsx`: `asagi`, `geri` var); `asagi` döndürülüyor —
+            `SuzgecAkordiyon` da `rotate-180` ile aynı şeyi yapıyor, yeni bir
+            kalıp değil. `aria-hidden` (Icon varsayılanı): anlamı satırın
+            kendi metni taşıyor. */}
+        {derine && <Icon name="asagi" size="xs" className="-rotate-90 text-slate-400" />}
+      </span>
     </button>
   );
 }
@@ -67,7 +138,7 @@ function SuzgecAnahtari({ etiket, adet, acik, degistir }) {
       type="button"
       onClick={degistir}
       aria-pressed={acik}
-      className={`w-full min-h-[44px] px-2.5 rounded-xl cursor-pointer flex items-center gap-2 text-left transition-colors ${
+      className={`w-full min-h-[44px] px-2.5 rounded-md cursor-pointer flex items-center gap-2 text-left transition-colors ${
         acik ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700 hover:bg-slate-50'
       }`}
     >
@@ -87,33 +158,143 @@ function SuzgecAnahtari({ etiket, adet, acik, degistir }) {
   );
 }
 
-/** Masaüstü kenar çubuğu seçenek grubu. Seçenek yoksa grup HİÇ çizilmiyor. */
-function SuzgecGrubu({ baslik, secenekler, tumuAdet, secili, sec }) {
-  // Projede yerleşik kural: veri yoksa bölüm çizilmiyor. Tek seçeneği olan
-  // bir süzgeç de süzmüyor — yalnızca yer kaplıyor.
-  if (!secenekler || secenekler.length < 2) return null;
-
+/**
+ * Seçenek listesi. BAŞLIK VE ÇERÇEVE ARTIK BURADA DEĞİL — onları saran
+ * `SuzgecAkordiyon` veriyor. Aksi hâlde başlık iki kez çizilirdi.
+ *
+ * ⚠ `length < 2` koruması BURADAN KALDIRILDI ve çağıran tarafa taşındı:
+ * burada `null` dönmek, akordiyon başlığını BOŞ bir gövdeyle bırakıyordu —
+ * kullanıcı grubu açıyor ve hiçbir şey görmüyordu. Grubun tamamı çizilmemeli.
+ */
+function SuzgecGrubu({ secenekler, tumuAdet, secili, sec }) {
   return (
-    <div className="space-y-1.5 pt-3 border-t border-slate-100">
-      <span className="etiket text-slate-500 block">{baslik}</span>
-      <div className="flex flex-col gap-0.5 max-h-64 overflow-y-auto pr-1">
-        <SuzgecSatiri etiket="Tümü" adet={tumuAdet} secili={secili === 'Tümü'} sec={() => sec('Tümü')} />
-        {secenekler.map(([ad, adet]) => (
-          <SuzgecSatiri key={ad} etiket={ad} adet={adet} secili={secili === ad} sec={() => sec(ad)} />
-        ))}
-      </div>
+    <div className="flex flex-col gap-0.5 max-h-64 overflow-y-auto pr-1">
+      <SuzgecSatiri etiket="Tümü" adet={tumuAdet} secili={secili === 'Tümü'} sec={() => sec('Tümü')} />
+      {secenekler.map(([ad, adet]) => (
+        <SuzgecSatiri key={ad} etiket={ad} adet={adet} secili={secili === ad} sec={() => sec(ad)} />
+      ))}
     </div>
   );
 }
 
-/** Dar ekran çipi. */
-function SuzgecCipi({ etiket, secili, sec }) {
+// =========================================================================
+// AKORDİYON GRUBU — REFERANS SİTELERİN KALIBI
+//
+// arabam.com'un süzgeç panelinde 21 grup var ve başlıklar arası mesafe ~41 px
+// ölçüldü: yani çoğu KAPALI akordiyon. Sebebi açık — yedi ya da yirmi grubu
+// aynı anda açık tutmak kenar çubuğunu ekranlar boyu uzatıyor ve kullanıcı
+// araçları görmek için süzgeçleri kaydırmak zorunda kalıyor.
+//
+// Bizde önceki hâl tam bu sorundaydı: dört seçenek grubu (marka/şehir/yakıt/
+// vites) ve iki blok hepsi açıktı. Marka listesi kaldırıldı ama kalanlar da
+// envanter büyüdüğünde aynı yere varırdı.
+//
+// ⚠ MODAL DEĞİL, AÇILIR PANEL. `role="dialog"` KULLANILMIYOR: `04-mobil`
+// paketi mobil çekmeceyi `[role='dialog'][aria-modal='true']` ile buluyor
+// (satır 112) ve anasayfada ikinci bir eşleşme o testi kırar.
+// =========================================================================
+
+/**
+ * Katlanabilir süzgeç grubu.
+ *
+ * @param {object} p
+ * @param {string} p.baslik Grup adı — başlık düğmesinin erişilebilir adı.
+ * @param {boolean} p.baslangictaAcik İlk açılışta açık mı.
+ * @param {string} [p.ozet] Başlıkta gösterilecek kısa durum (ör. seçili değer).
+ */
+function SuzgecAkordiyon({ baslik, baslangictaAcik = false, ozet, children }) {
+  const [acik, setAcik] = useState(baslangictaAcik);
+  // `useId`: aynı sayfada birden fazla akordiyon var, `aria-controls`
+  // hedeflerinin çakışmaması gerekiyor.
+  const govdeId = `suzgec-${useId()}`;
+
+  return (
+    <div className="border-t border-slate-100 first:border-t-0">
+      <button
+        type="button"
+        onClick={() => setAcik((a) => !a)}
+        aria-expanded={acik}
+        aria-controls={govdeId}
+        className="w-full min-h-[44px] flex items-center justify-between gap-2 text-left cursor-pointer group"
+      >
+        <span className="etiket text-slate-600 group-hover:text-slate-900 transition-colors">
+          {baslik}
+        </span>
+        <span className="flex items-center gap-1.5 shrink-0">
+          {/* Kapalıyken seçili değeri başlıkta göstermek, grubu açmadan
+              "burada bir süzgeç etkin" bilgisini veriyor. */}
+          {!acik && ozet && (
+            <span className="metin-yardimci text-indigo-600 font-semibold truncate max-w-[110px]">
+              {ozet}
+            </span>
+          )}
+          {/* Ok ikonu `aria-hidden`: durumu `aria-expanded` taşıyor, ikon
+              yalnızca görsel. Ad düğmede, ikonda değil (Icon.jsx:53 kuralı). */}
+          <span
+            aria-hidden="true"
+            className={`text-slate-400 transition-transform ${acik ? 'rotate-180' : ''}`}
+          >
+            <Icon name="asagi" size="sm" />
+          </span>
+        </span>
+      </button>
+
+      {acik && (
+        <div id={govdeId} className="pb-3 space-y-1">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * En az / en çok aralık girdisi. Yıl ve Kilometre aynı bileşeni kullanıyor —
+ * referans sitelerde de Fiyat/Yıl/Kilometre birebir aynı kontrol.
+ *
+ * ⚠ Etiketler `sr-only`: görsel olarak yer tutucu yeterli ama ekran okuyucu
+ * kullanıcısı iki girdiyi ayırt edemezdi.
+ */
+function AralikGirdisi({ ad, birim, enAz, enCok, degistir }) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {[
+        { anahtar: 'enAz', deger: enAz, etiket: `En az ${ad}`, yer: birim ? `En az (${birim})` : 'En az' },
+        { anahtar: 'enCok', deger: enCok, etiket: `En çok ${ad}`, yer: birim ? `En çok (${birim})` : 'En çok' },
+      ].map((g) => (
+        <label key={g.anahtar} className="block">
+          <span className="sr-only">{g.etiket}</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            placeholder={g.yer}
+            value={g.deger}
+            onChange={(e) => degistir(g.anahtar, e.target.value)}
+            className="w-full min-h-[44px] bg-slate-50 border border-slate-200 rounded-md px-2.5 text-yardimci outline-none focus:border-indigo-600"
+          />
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Dar ekran çipi.
+ *
+ * @param {boolean} [p.basili=true] `aria-pressed` basılsın mı (ağaç
+ *   çiplerinde basılmıyor: tıklama seçim değil, derine iniş).
+ * @param {string} [p.ad] Genişletilmiş erişilebilir ad. ⚠ GÖRÜNEN METNİ
+ *   İÇERMEK ZORUNDA (WCAG 2.5.3 Label in Name) — çağıran taraf
+ *   `${etiket} — ...` biçiminde kuruyor.
+ */
+function SuzgecCipi({ etiket, secili, sec, basili = true, ad }) {
   return (
     <button
       type="button"
       onClick={sec}
-      aria-pressed={secili}
-      className={`shrink-0 min-h-[44px] px-3.5 rounded-xl text-yardimci font-semibold border transition-colors cursor-pointer ${
+      {...(basili ? { 'aria-pressed': secili } : {})}
+      {...(ad ? { 'aria-label': ad } : {})}
+      className={`shrink-0 min-h-[44px] px-3.5 rounded-md text-yardimci font-semibold border transition-colors cursor-pointer ${
         secili ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
       }`}
     >
@@ -122,24 +303,156 @@ function SuzgecCipi({ etiket, secili, sec }) {
   );
 }
 
-/** Dar ekran seçenek grubu — çip olarak sarmalı. */
-function MobilGrup({ baslik, secenekler, secili, sec }) {
-  if (!secenekler || secenekler.length < 2) return null;
+/**
+ * Dar ekran seçenek grubu — çip olarak sarmalı.
+ * Başlık ve çerçeve `SuzgecAkordiyon`da; `length < 2` koruması da çağıran
+ * tarafta (boş akordiyon gövdesi bırakmamak için).
+ */
+function MobilGrup({ secenekler, secili, sec }) {
   return (
-    <div className="pt-2 border-t border-slate-100 space-y-1.5">
-      <span className="etiket text-slate-500 block">{baslik}</span>
-      <div className="flex flex-wrap gap-1.5">
-        <SuzgecCipi etiket="Tümü" secili={secili === 'Tümü'} sec={() => sec('Tümü')} />
-        {secenekler.map(([ad, adet]) => (
-          <SuzgecCipi key={ad} etiket={`${ad} (${adet})`} secili={secili === ad} sec={() => sec(ad)} />
-        ))}
-      </div>
+    <div className="flex flex-wrap gap-1.5">
+      <SuzgecCipi etiket="Tümü" secili={secili === 'Tümü'} sec={() => sec('Tümü')} />
+      {secenekler.map(([ad, adet]) => (
+        <SuzgecCipi key={ad} etiket={`${ad} (${adet})`} secili={secili === ad} sec={() => sec(ad)} />
+      ))}
     </div>
   );
 }
 
-export default function MarketplaceView({ 
-  onSelectVehicle, 
+// =========================================================================
+// KADEMELİ MARKA AĞACI — sahibinden.com kalıbı
+//
+// Marka → Seri → Model → Donanım. Bir kademe seçildiği anda ızgara SÜZÜLÜYOR
+// ve altındaki kademe açılıyor: ayrı bir "uygula" adımı yok. Yani bu yapı
+// hem gezinme hem süzgeç — ürün sahibinin şartı buydu.
+//
+// ⚠ DURUM BURADA TUTULMUYOR. Masaüstü ve dar ekran AYNI bileşeni, AYNI
+// durumu okuyarak kullanıyor; tek fark `bicim`. Bu dosyanın geçmişinde
+// "masaüstü çipleri bir duruma, mobil çipleri başkasına yazıyordu" hatası
+// var; ikinci bir durum kaynağı açmak onu geri getirirdi.
+//
+// ⚠ AĞAÇTA "Tümü" SATIRI YOK. Kırıntının kökü ("Tüm markalar") o işi
+// yapıyor; iki kontrolün aynı eylemi taşıması kullanıcıya hangisinin ne
+// yaptığını sorduruyor.
+// =========================================================================
+
+/**
+ * @param {object} p
+ * @param {{hedef: number, etiket: string}[]} p.yol Kırıntı halkaları. SON
+ *   halka bulunulan yer (düğme DEĞİL). Boş dizi = köktesin, kırıntı çizilmiyor.
+ * @param {string|null} p.kademeBasligi Gösterilen kademenin adı ('Seri').
+ * @param {{anahtar: string, etiket: string, adet: number}[]} p.cocuklar
+ * @param {number} p.derinlik Çocukların ait olduğu kademe (0-3).
+ * @param {(hedef: number) => void} p.git Kırıntıda üst kademeye dön.
+ * @param {(derinlik: number, anahtar: string) => void} p.sec
+ * @param {'liste'|'cip'} [p.bicim] Masaüstü satır / dar ekran çip.
+ */
+function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, git, sec, bicim = 'liste' }) {
+  const kokte = yol.length === 0;
+
+  return (
+    <div className="space-y-2">
+      {!kokte && (
+        /* ⚠ `<nav>` DEĞİL. Bunlar sayfa bağlantısı değil süzgeç düğmesi;
+           `nav` landmark'ı ekran okuyucuda sahte bir gezinme bölgesi üretir.
+           `flex-wrap` şart: uzun donanım adları ("X-PACK MULTIDRIVE S") dar
+           ekranda yatay taşma üretmesin (`04-mobil` ≤ 1 px denetliyor). */
+        <div className="flex flex-wrap items-center gap-x-0.5 gap-y-1">
+          {yol.map((halka, i) => {
+            const suradasin = i === yol.length - 1;
+            return (
+              <React.Fragment key={`${halka.hedef}-${halka.etiket}`}>
+                {i > 0 && (
+                  <span aria-hidden="true" className="text-slate-400">
+                    <Icon name="asagi" size="xs" className="-rotate-90" />
+                  </span>
+                )}
+                {suradasin ? (
+                  /* Bulunulan yer düğme DEĞİL: tıklanacak bir işi yok ve ölü
+                     bir kontrol göstermek yanlış bilgi. Düğme olmadığı için
+                     44 px yükümlülüğü de doğmuyor. */
+                  <span
+                    aria-current="true"
+                    className="metin-yardimci font-semibold text-slate-900 truncate max-w-[10rem]"
+                  >
+                    {halka.etiket}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => git(halka.hedef)}
+                    // ⚠ `min-w-[44px]` ŞART, `min-h` tek başına yetmiyor:
+                    // kısa bir etiket ("GT") yalnızca dolguyla ~30 px kalır
+                    // ve 44 px testi düşer.
+                    className="min-h-[44px] min-w-[44px] px-1.5 rounded-md metin-yardimci font-semibold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 transition-colors cursor-pointer truncate max-w-[10rem] text-left"
+                  >
+                    {halka.etiket}
+                  </button>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Kademe adı BAŞLIK DEĞİL, etiket. `h4` yazmak `h2`den sonra atlama
+          üretir ve bu metin bir belge bölümü açmıyor. Kökte hiç basılmıyor:
+          akordiyon başlığı zaten "Marka". */}
+      {!kokte && kademeBasligi && (
+        <p className="etiket text-slate-500">{kademeBasligi}</p>
+      )}
+
+      {cocuklar.length === 0 ? (
+        /* EN DERİN KADEME (Donanım seçili) ya da o dalda alt ayrım yok. Boş
+           bir kutu "veri gelmedi" gibi görünürdü; çıkış yolu yukarıdaki
+           kırıntı, yani ölü uç değil. */
+        <p className="metin-yardimci text-slate-500">
+          Bu kademenin altında ayrım yok. Üst kademeye dönmek için yukarıdaki yolu kullanın.
+        </p>
+      ) : bicim === 'cip' ? (
+        <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto">
+          {cocuklar.map((c) => (
+            <SuzgecCipi
+              key={c.anahtar}
+              etiket={`${c.etiket} (${c.adet})`}
+              basili={false}
+              secili={false}
+              sec={() => sec(derinlik, c.anahtar)}
+            />
+          ))}
+        </div>
+      ) : (
+        /* `max-h-64` — `SuzgecGrubu` ile AYNI değer ve HER kademede.
+           "Hangi kademe uzun olur" bir tahmindir; 60 serili bir marka
+           eklendiği gün yanlış çıkar. Sınır ancak taşınca görünüyor, yani
+           kısa listelerde bedeli sıfır. */
+        <div className="flex flex-col gap-0.5 max-h-64 overflow-y-auto pr-1">
+          {cocuklar.map((c) => (
+            <SuzgecSatiri
+              key={c.anahtar}
+              etiket={c.etiket}
+              adet={c.adet}
+              basili={false}
+              derine
+              sec={() => sec(derinlik, c.anahtar)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function MarketplaceView({
+  // `/vitrin` sayfası bu bileşeni YENİDEN KULLANIYOR. Süzgeç motoru, marka
+  // ağacı ve kart ızgarası 700 satırdan fazla; ikinci bir kopya çıkarmak
+  // yerine anasayfaya özgü bölümler bu bayrakla kapatılıyor.
+  //
+  // Kapanan bölümler: Hizmetler şeridi, ayrılmış boşluk, "Sizin için
+  // seçtiklerimiz", "Nasıl çalışır" ve "Tümünü göster" bağı. Kalan: hero
+  // araması, süzgeç paneli ve ızgara — yani sayfanın var oluş sebebi.
+  tamSayfa = false,
+  onSelectVehicle,
   onNavigateToGarage, 
   onNavigateToVerify, 
   onNavigateToInsurance, 
@@ -158,7 +471,6 @@ export default function MarketplaceView({
   // `selectedBrand` ve `quickFilter` KALDIRILDI: ikisi de yalnızca hiç
   // çizilmeyen `filteredListings` içinde okunuyordu. Süzgeç durumu artık tek
   // bir `suzgec` nesnesinde (aşağıda).
-  const [showAllVitrin, setShowAllVitrin] = useState(false);
 
   // ⚠ `Date.now()` RENDER SIRASINDA ÇAĞRILAMAZ — lint bunu hata sayıyor ve
   // haklı: saf olmayan bir çağrı, bileşen yeniden çizildiğinde farklı sonuç
@@ -166,6 +478,11 @@ export default function MarketplaceView({
   // "Son 7 gün" penceresi sayfa açılışına göre hesaplanıyor; bir süzgeç için
   // doğru davranış bu.
   const [acilisZamani] = useState(() => Date.now());
+  // DEMO — GEÇİCİ. 0 = kapalı. `?demo=N` ile açılıyor.
+  const [demoAdet, setDemoAdet] = useState(0);
+  // Yalnızca `/vitrin` sayfasında kullanılıyor: "Daha fazla göster" ile artıyor.
+  const [sayfaAdet, setSayfaAdet] = useState(TAM_SAYFA_ADIM);
+
 
   // =========================================================================
   // SÜZGEÇ DURUMU — İLAN SİTESİ ALANLARI ÇIKTI, SİCİL ALANLARI GİRDİ
@@ -185,12 +502,16 @@ export default function MarketplaceView({
   // olurdu. Alan RPC'ye eklenene kadar bu süzgeç açılmıyor.
   // =========================================================================
   const [suzgec, setSuzgec] = useState({
-    marka: 'Tümü',
     sehir: 'Tümü',
     yakit: 'Tümü',
     vites: 'Tümü',
     yilMin: '',
     yilMax: '',
+    // `km` alanı `vitrin_listesi` RPC'sinden BUGÜN de geliyordu ama hiçbir
+    // yerde kullanılmıyordu — en büyük süzgeç boşluğu buydu. Referans
+    // sitelerin ikisinde de Kilometre aralığı var.
+    kmMin: '',
+    kmMax: '',
     sicilEnAz: 0,
     yalnizOneCikan: false,
     // Referans sitelerde karşılığı olan zaman süzgeci: sahibinden
@@ -198,6 +519,24 @@ export default function MarketplaceView({
     // Bizde tek kademe yeterli: envanter küçük, daha ince kademeler hep
     // boş sonuç verirdi.
     yalnizYeni: false,
+    // MARKA AĞACI — dört kademe (Marka → Seri → Model → Donanım).
+    // Boş dize = "bu kademe seçilmedi".
+    //
+    // ⚠ SAKLANAN DEĞER NORMALİZE ANAHTAR, EKRAN ETİKETİ DEĞİL. 'BMW' ile
+    // 'bmw' tek dal olmak zorunda; ham etiket saklansaydı "iki yazımdan
+    // hangisi seçili" sorusu cevapsız kalırdı. Etiket her render'da ağacın
+    // kendi listesinden okunuyor — tek kaynak. Normalize kuralı ve neden
+    // `toLocaleLowerCase('tr')` OLMADIĞI `utils/markaAgaci.js`te yazılı.
+    //
+    // ⚠ NİYE `suzgec` İÇİNDE, AYRI STATE DEĞİL: ızgara tek çağrıdan
+    // besleniyor — `suz(listings, suzgec, aramaSorgusu)`. Ağaç `suzgec`in
+    // içinde olduğu an seçim AYNI render'da ızgarayı süzüyor, ek tel yok.
+    // Ayrı state olsaydı `suz`a ikinci bir argüman geçirmek ve sekiz çağrı
+    // yerini değiştirmek gerekirdi.
+    marka: '',
+    seri: '',
+    model: '',
+    donanim: '',
   });
 
   useEffect(() => {
@@ -244,9 +583,37 @@ export default function MarketplaceView({
   const loadLiveListings = async () => {
     try {
       setLoading(true);
+
       const result = await fetchMarketplaceListings();
       if (result.success) {
-        setListings(result.data || []);
+        const gercek = result.data || [];
+
+        // =================================================================
+        // DEMO — GEÇİCİ, SİLİNMEK ÜZERE YAZILDI
+        // =================================================================
+        // Sahte kartlar GERÇEK araçlarla aynı listeye ekleniyor. Ürün
+        // sahibinin kararı: vitrin, süzgeçler ve yeni bölümler ancak dolu
+        // envanterle değerlendirilebiliyor ve bunu iki ayrı adreste
+        // denemek iki kez iş demek.
+        //
+        // ⚠ VERİTABANINA HİÇBİR ŞEY YAZILMIYOR. Kayıtlar yalnızca bu
+        // tarayıcı oturumunda, bellekte var.
+        //
+        // ⚠ GERÇEK KAYITLAR ÖNDE. Sıralamayı zaten `suz` yapıyor
+        // (öne çıkanlar, sonra tarih) ama birleştirme sırası da gerçek
+        // veriyi öne alıyor: demo bir gün silindiğinde ızgaranın ilk
+        // kartları değişmesin.
+        //
+        // ⚠ `acilisZamani` DEĞİL `Date.now()`: `acilisZamani` bir state
+        // değeri ve buradan okunması `loadLiveListings`i ona bağlardı
+        // (lint "bayat kapanış" uyarısı verir). Bu fonksiyon render
+        // sırasında değil `useEffect` içinden çalışıyor.
+        //
+        // SİLMEK İÇİN: bu bloğu ve `demoVitrin.js` dosyasını kaldır.
+        // =================================================================
+        const demolar = demoVitrinUret(DEMO_EN_FAZLA, Date.now());
+        setDemoAdet(demolar.length);
+        setListings([...gercek, ...demolar]);
       }
     } catch (error) {
       console.error("Vitrin yüklenirken hata oluştu:", error);
@@ -259,13 +626,46 @@ export default function MarketplaceView({
     setSuzgec((onceki) => ({ ...onceki, [alan]: deger }));
   };
 
+  /**
+   * Ağaçta bir kademe seçer.
+   *
+   * ⚠ ALTINDAKİ KADEMELER SIFIRLANIYOR ve bu bir DEĞİŞMEZ: marka değişince
+   * eski seri yeni markaya ait olmayabilir, sonuç kesin boş çıkardı. Bu
+   * sayede "marka boş ama seri dolu" durumu hiç oluşmuyor — `agacDerinligi`
+   * (ilk boş kademeyi arıyor) tam buna dayanıyor.
+   */
+  const agacSec = (derinlik, anahtar) => {
+    setSuzgec((onceki) => {
+      const yeni = { ...onceki };
+      KADEMELER.forEach((k, i) => {
+        if (i === derinlik) yeni[k.alan] = anahtar;
+        else if (i > derinlik) yeni[k.alan] = '';
+      });
+      return yeni;
+    });
+  };
+
+  /** Kırıntıda `hedef` kademesine döner: o kademe ve altı boşalıyor. */
+  const agacaGit = (hedef) => {
+    setSuzgec((onceki) => {
+      const yeni = { ...onceki };
+      KADEMELER.forEach((k, i) => {
+        if (i >= hedef) yeni[k.alan] = '';
+      });
+      return yeni;
+    });
+  };
+
   const suzgecleriSifirla = () => {
     setSearchQuery('');
-    setShowAllVitrin(false);
     setSuzgec({
-      marka: 'Tümü', sehir: 'Tümü', yakit: 'Tümü', vites: 'Tümü',
-      yilMin: '', yilMax: '', sicilEnAz: 0, yalnizOneCikan: false,
+      sehir: 'Tümü', yakit: 'Tümü', vites: 'Tümü',
+      yilMin: '', yilMax: '', kmMin: '', kmMax: '', sicilEnAz: 0, yalnizOneCikan: false,
       yalnizYeni: false,
+      // ⚠ AĞAÇ DA SIFIRLANIYOR. Unutulsaydı "Süzgeçleri sıfırla" ızgarayı
+      // seçili markada BIRAKIR ve `suzgecEtkin` true kalırdı: düğmeye
+      // basılıyor, hiçbir şey olmuyor gibi görünürdü.
+      marka: '', seri: '', model: '', donanim: '',
     });
   };
 
@@ -303,17 +703,40 @@ export default function MarketplaceView({
   const YUKLEMLER = useMemo(() => ({
     arama: (i, s, q) => {
       if (!q) return true;
-      return [i.brand, i.model, i.series, i.listing_title, i.city, i.pin_code]
+      // `package` EKLENDİ: marka ağacı donanımı birinci sınıf bir kademe
+      // yaptı, dolayısıyla "X-PACK" yazan kullanıcıya boş dönmek artık
+      // ağaçla tutarsızlık. Ağaç dört alanı kullanıyorsa arama da kullanmalı.
+      return [i.brand, i.model, i.series, i.package, i.listing_title, i.city, i.pin_code]
         .some((alan) => kucuk(alan).includes(q));
     },
-    marka: (i, s) => s.marka === 'Tümü' || i.brand === s.marka,
     sehir: (i, s) => s.sehir === 'Tümü' || i.city === s.sehir,
     yakit: (i, s) => s.yakit === 'Tümü' || i.fuel_type === s.yakit,
     vites: (i, s) => s.vites === 'Tümü' || i.transmission === s.vites,
+    // MARKA AĞACI — dört kademe TEK yüklemde.
+    //
+    // ⚠ NİYE DÖRT AYRI YÜKLEM DEĞİL: `haric` tek bir yüklem adını atlıyor,
+    // ağaç ise dört kademelik bir ZİNCİR. Dört ayrı adla "yalnızca markayı
+    // uygula, seriyi uygulama" gibi bir ara durumu ifade etmenin yolu yok.
+    // Sayım tarafı bu yüzden `haric` değil KIRPILMIŞ SÜZGEÇ kullanıyor
+    // (aşağıda `secenekler`, `agaciKirp`).
+    agac: agacUygun,
     yil: (i, s) => {
       const y = Number(i.year) || 0;
       if (s.yilMin && y < Number(s.yilMin)) return false;
       if (s.yilMax && y > Number(s.yilMax)) return false;
+      return true;
+    },
+    km: (i, s) => {
+      // ⚠ `km` 0 ya da boş olabiliyor. Aralık verilmişse kaydı ELEMEK yerine
+      // dahil etmek yanlış olurdu; ama "0 km" de meşru bir değer (sıfır araç).
+      // Bu yüzden yalnızca DEĞER YOKSA (null/undefined/boş) eleniyor.
+      const ham = i.km;
+      if (!s.kmMin && !s.kmMax) return true;
+      if (ham === null || ham === undefined || ham === '') return false;
+      const k = Number(ham);
+      if (!Number.isFinite(k)) return false;
+      if (s.kmMin && k < Number(s.kmMin)) return false;
+      if (s.kmMax && k > Number(s.kmMax)) return false;
       return true;
     },
     sicil: (i, s) => (Number(i.trust_score) || 0) >= Number(s.sicilEnAz || 0),
@@ -356,12 +779,6 @@ export default function MarketplaceView({
     [suz, listings, suzgec, aramaSorgusu]
   );
 
-  /** Öne çıkanların sayısı — vitrin şeridinin başlığı için. */
-  const oneCikanSayisi = useMemo(
-    () => listings.filter((i) => i.is_featured === true).length,
-    [listings]
-  );
-
   /**
    * Seçenek listeleri ve GERÇEK sayaçları.
    * Her seçenek grubu kendi süzgeci hariç tutularak sayılıyor.
@@ -381,8 +798,43 @@ export default function MarketplaceView({
     const sicilKumesi = suz(listings, suzgec, aramaSorgusu, 'sicil');
     const oneCikanKumesi = suz(listings, suzgec, aramaSorgusu, 'oneCikan');
 
+    // -----------------------------------------------------------------------
+    // MARKA AĞACI — KADEME SAYAÇLARININ DÜRÜSTLÜĞÜ
+    //
+    // Her kademe, ÜSTündeki kademeler uygulanmış / kendisi ve ALTI
+    // kaldırılmış kümeden sayılıyor (`agaciKirp`). Yani Marka sayaçları ağaç
+    // kısıtı hiç yokmuş gibi, Seri sayaçları yalnızca marka uygulanmış hâlde
+    // çıkıyor. Şehir/yıl/km/sicil ise HER İKİSİNDE de uygulanıyor —
+    // kullanıcı İstanbul seçtiyse marka sayaçları da İstanbul'a ait olmalı.
+    //
+    // ⚠ `haric: 'agac'` KULLANILMADI: o dört kademeyi BİRDEN düşürürdü ve
+    // Seri sayaçları seçili markayı yok sayardı — tam istenmeyen davranış.
+    //
+    // Yalnızca GEREKEN kademeler hesaplanıyor: hiç seçim yoksa tek geçiş.
+    const derinlik = agacDerinligi(suzgec);
+    const sonKademe = Math.min(derinlik, KADEMELER.length - 1);
+    const kademeler = KADEMELER.slice(0, sonKademe + 1).map((k, i) =>
+      kademeCocuklari(suz(listings, agaciKirp(suzgec, i), aramaSorgusu), k.veri)
+    );
+
+    // Kırıntı yolu. KÖK DAİMA İLK HALKA: son halka `aria-current` taşıyan bir
+    // `<span>` (düğme değil), dolayısıyla derinlik 1'de köke dönecek başka
+    // bir kontrol kalmazdı.
+    const yol = derinlik === 0 ? [] : [
+      { hedef: 0, etiket: 'Tüm markalar' },
+      ...KADEMELER.slice(0, derinlik).map((k, i) => ({
+        hedef: i + 1,
+        // Etiket o kademenin KENDİ listesinden okunuyor (normalize anahtar
+        // → kanonik yazım). Bulunamadığı tek hâl diğer süzgeçlerin kümeyi
+        // tamamen boşaltmış olması; orada ızgara da boş ve kullanıcı "Bu
+        // süzgeçlerle araç bulunamadı" görüyor. Anahtarı basmak, boş bir
+        // halka basmaktan iyi.
+        etiket: kademeler[i]?.find((c) => c.anahtar === suzgec[k.alan])?.etiket
+          || suzgec[k.alan],
+      })),
+    ];
+
     return {
-      markalar: grupla('marka', 'brand'),
       sehirler: grupla('sehir', 'city'),
       yakitlar: grupla('yakit', 'fuel_type'),
       vitesler: grupla('vites', 'transmission'),
@@ -401,18 +853,74 @@ export default function MarketplaceView({
           const t = new Date(i.created_at || 0).getTime();
           return Number.isFinite(t) && t !== 0 && (acilisZamani - t) <= YENI_ESIGI_MS;
         }).length,
-      tumuAdet: suz(listings, suzgec, aramaSorgusu, 'marka').length,
+      // Şehir/Yakıt/Vites gruplarındaki "Tümü" satırının sayısı. 'sehir'
+      // hariç tutuluyor çünkü üç grubun da en geniş kümesi bu: kendi süzgeci
+      // kaldırılmış hâl. (Eskiden burada 'marka' yazıyordu; düz marka
+      // listesi kaldırılınca o ad bir yükleme karşılık gelmez olmuştu.)
+      tumuAdet: suz(listings, suzgec, aramaSorgusu, 'sehir').length,
+      // Ağacın ekrana gereken her şeyi tek nesnede: kırıntı, bulunulan
+      // kademe, o kademenin çocukları ve kapalı akordiyonda/mobil çipte
+      // görünecek özet.
+      agac: {
+        yol,
+        derinlik,
+        cocuklar: derinlik < KADEMELER.length ? kademeler[derinlik] : [],
+        kademeBasligi: derinlik < KADEMELER.length ? KADEMELER[derinlik].baslik : null,
+        ozet: yol.length ? yol[yol.length - 1].etiket : null,
+      },
     };
   }, [suz, listings, suzgec, aramaSorgusu, acilisZamani]);
 
   /** Herhangi bir süzgeç etkin mi? "Sıfırla" ve boş durum metni için. */
   const suzgecEtkin = aramaSorgusu !== ''
-    || suzgec.marka !== 'Tümü' || suzgec.sehir !== 'Tümü'
+    || suzgec.sehir !== 'Tümü'
     || suzgec.yakit !== 'Tümü' || suzgec.vites !== 'Tümü'
     || suzgec.yilMin !== '' || suzgec.yilMax !== ''
-    || Number(suzgec.sicilEnAz) > 0 || suzgec.yalnizOneCikan || suzgec.yalnizYeni;
+    || suzgec.kmMin !== '' || suzgec.kmMax !== ''
+    || Number(suzgec.sicilEnAz) > 0 || suzgec.yalnizOneCikan || suzgec.yalnizYeni
+    // Ağacın dört kademesi elle yazılıyor: dosyanın yerleşik üslubu bu ve
+    // `agacSec`in değişmezi ileride kayarsa bu satır yine doğru kalır.
+    || suzgec.marka !== '' || suzgec.seri !== ''
+    || suzgec.model !== '' || suzgec.donanim !== '';
 
-  const gosterilenler = showAllVitrin ? sonuclar : sonuclar.slice(0, 12);
+  /**
+   * Izgarada çizilen kartlar.
+   *
+   * ⚠ ESKİDEN "12 GÖSTER, GERİSİNİ YERİNDE AÇ" İDİ. Ürün sahibi bunu
+   * reddetti: anasayfa sınırsız uzayamaz. Artık sabit üst sınır var ve
+   * fazlası `/vitrin` sayfasına gidiyor.
+   */
+  const gosterilenler = tamSayfa
+    ? sonuclar.slice(0, sayfaAdet)
+    : sonuclar.slice(0, ANASAYFA_KART_SINIRI);
+
+  /**
+   * "Sizin için seçtiklerimiz" kartları.
+   *
+   * ⚠ VİTRİNDE GÖSTERİLENLER HARİÇ. Aynı aracı iki blokta göstermek seçkiyi
+   * değersizleştirir ve kullanıcıya listenin kısa olduğunu düşündürür.
+   *
+   * ⚠ SÜZGEÇTEN ETKİLENMİYOR (`listings`, `sonuclar` değil). Seçki bir
+   * öneri; kullanıcı "Dizel" süzdüğünde önerilerin de dizele daralması,
+   * bölümün amacı olan "bunlara da bakın" işini ortadan kaldırırdı.
+   *
+   * ⚠ Tohum `acilisZamani`: seçki sayfa açıkken sabit kalıyor (her
+   * render'da zıplamıyor), yeni ziyarette değişiyor.
+   */
+  const seckiler = useMemo(() => {
+    if (tamSayfa) return [];
+    // ⚠ SÜZGEÇ ETKİNKEN SEÇKİ YOK. Bunu test paketi yakaladı ve haklıydı:
+    // seçki bilerek süzgeçten bağımsız (öneri olması gerekiyor), ama o
+    // zaman kullanıcı "Bu süzgeçlerle araç bulunamadı" yazısının hemen
+    // ALTINDA 12 alakasız kart görüyordu — sonucun boş olduğu mesajını
+    // doğrudan yalanlıyor. Aktif bir aramada seçki, sonuçlarla yarışıyor.
+    // Bölüm gezinme yardımı; arama sırasında değil, varsayılan görünümde işe yarıyor.
+    if (suzgecEtkin) return [];
+    const gosterilen = new Set(gosterilenler.map((i) => i.listing_id || i.id));
+    const havuz = listings.filter((i) => !gosterilen.has(i.listing_id || i.id));
+    // Dördüncü argüman (gezinme geçmişi) BUGÜN BOŞ — bkz. `utils/secki.js`.
+    return seckiUret(havuz, SECKI_KART_SINIRI, acilisZamani);
+  }, [tamSayfa, suzgecEtkin, listings, gosterilenler, acilisZamani]);
 
   // =========================================================================
   // 3. BLOK: ARAYÜZ RENDER KATMANI (DESKTOP WEB ENTERPRISE)
@@ -425,8 +933,13 @@ export default function MarketplaceView({
         <div className="max-w-7xl mx-auto text-center space-y-3">
           {/* "Güvenle Satın Alın" KALKTI: satış sitesi başlığıydı. Ürünün
               vaadi aracı satmak değil, geçmişini belgelemek. */}
+          {/* `/vitrin` kendi sayfası ve kendi `h1`ine sahip olmalı: aynı
+              başlığı iki rotada kullanmak hem SEO'da hem ekran okuyucuda
+              "aynı sayfa" izlenimi verir. */}
           <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-100">
-            Aracın Geçmişini Bilin, Kararınızı Belgeyle Verin
+            {tamSayfa
+              ? 'Vitrindeki Tüm Araçlar'
+              : 'Aracın Geçmişini Bilin, Kararınızı Belgeyle Verin'}
           </h1>
           
           {/* ARAMA — PIN ARTIK GERÇEKTEN İŞLENİYOR.
@@ -456,7 +969,7 @@ export default function MarketplaceView({
                 if (pin) router.push(`/karne/${encodeURIComponent(pin)}`);
               }
             }}
-            className="max-w-2xl mx-auto bg-white p-1 rounded-xl border border-slate-700 shadow-lg flex items-center gap-2"
+            className="max-w-2xl mx-auto bg-white p-1 rounded-md border border-slate-700 shadow-lg flex items-center gap-2"
           >
             <div className="text-slate-500 pl-3">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -498,7 +1011,7 @@ export default function MarketplaceView({
                 Doğru davranış varsayılanı bırakmak: indigo halka beyaz zeminde
                 6.29:1. `odak-acik` yalnızca gerçekten koyu bir zemin ÜZERİNDE
                 duran odaklanabilir öge çıkarsa kullanılmalı. */}
-            <button type="submit" className="bg-[#0F172A] hover:bg-slate-800 text-white text-yardimci font-semibold px-5 min-h-[44px] rounded-xl transition-colors shrink-0 cursor-pointer">
+            <button type="submit" className="bg-[#0F172A] hover:bg-slate-800 text-white text-yardimci font-semibold px-5 min-h-[44px] rounded-md transition-colors shrink-0 cursor-pointer">
               Ara
             </button>
           </form>
@@ -522,117 +1035,170 @@ export default function MarketplaceView({
           <aside className="hidden lg:block lg:col-span-3 space-y-5 select-none">
             
             {/* =================================================================
-                SÜZGEÇLER — ARTIK GERÇEKTEN SÜZÜYOR.
-                Eski hâlinde bu kutucukların hiçbiri listeyi etkilemiyordu
-                (gerekçe yukarıda, `suz` fonksiyonunun başında).
+                SÜZGEÇ PANELİ — GRUP BAŞLIĞI MANTIĞI
+                =================================================================
+                Önceki hâlde tek bir "Süzgeçler" kart başlığı vardı ve altındaki
+                her şey açıktı. Referans sitelerde böyle bir üst başlık YOK:
+                yapıyı GRUP BAŞLIKLARI taşıyor ve gruplar katlanabiliyor
+                (arabam.com'da 21 grup, başlıklar arası ~41 px — ölçüldü).
 
-                Başlık `h2`: sayfada h1'den sonraki ilk seviye burası.
-                Eskiden `h4` idi ve belge sırası h1 -> h4 diye atlıyordu.
+                ⚠ `h2` KALDIRILMADI, GÖRSEL OLARAK GİZLENDİ (`sr-only`). İki
+                sebep: (1) `<aside>` bir gezinme bölgesi ve erişilebilir adı
+                olmalı, (2) `25-anasayfa.spec.js` başlık sırasını denetliyor —
+                h2 silinirse geride kalan h3'ler h1'den sonra atlama üretir.
+
+                Açılış durumu: ilk iki grup açık (Marka ağacı + Sicil Puanı).
+                Hepsi kapalı olsaydı kullanıcı hangi süzgeçlerin olduğunu
+                görmeden başlardı; hepsi açık olsaydı düzeltmeye çalıştığımız
+                uzunluk sorunu geri gelirdi. arabam'da da iki grup açık geliyor.
                 ================================================================= */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-4">
-              <div className="flex justify-between items-center pb-2.5 border-b border-slate-100">
-                <h2 className="baslik-kart text-slate-900">Süzgeçler</h2>
-                {suzgecEtkin && (
+            <div className="bg-white border border-slate-200 rounded-lg px-4 py-3 shadow-2xs">
+              <h2 className="sr-only">Süzgeçler</h2>
+
+              {/* HIZLI SÜZGEÇLER — akordiyon DIŞINDA, her zaman görünür.
+                  Referans sitelerin ikisinde de kenar çubuğunun en üstünde
+                  katlanmamış hâlde duruyor ("Acil Acil", "Son 48 Saat"). */}
+              <div className="space-y-0.5 pb-3">
+                <SuzgecAnahtari
+                  etiket="Yalnızca öne çıkanlar"
+                  adet={secenekler.oneCikanAdet}
+                  acik={suzgec.yalnizOneCikan}
+                  degistir={() => suzgecDegistir('yalnizOneCikan', !suzgec.yalnizOneCikan)}
+                />
+                <SuzgecAnahtari
+                  etiket="Son 7 günde eklenen"
+                  adet={secenekler.yeniAdet}
+                  acik={suzgec.yalnizYeni}
+                  degistir={() => suzgecDegistir('yalnizYeni', !suzgec.yalnizYeni)}
+                />
+              </div>
+
+              {/* ============================================================
+                  MARKA AĞACI — KADEMELİ (Marka › Seri › Model › Donanım)
+                  ============================================================
+                  ⚠ BU BÖLÜM DAHA ÖNCEKİ "marka listesi kaldırıldı" KARARINI
+                  GERİ ALIYOR — ama o kararın gerekçesi DÜZ bir listeydi: ~50
+                  marka, tek kademe, yer kaplayan ve daraltmayan. Ürün
+                  sahibinin istediği bu değil: her adımda ekranda YALNIZCA BİR
+                  kademe duruyor (2-10 satır) ve her tıklama ızgarayı ANINDA
+                  daraltıyor. Düz liste geri gelmedi.
+
+                  Akordiyon İÇİNDE ve açık geliyor. Her zaman görünür olsaydı
+                  kırıntı + 256 px liste kalıcı yer tutar ve Sicil Puanı ekran
+                  altına inerdi — düzeltilen sorunun aynısı.
+
+                  Başlık SABİT "Marka", kademeyle DEĞİŞMİYOR: `aria-expanded`
+                  taşıyan bir düğmenin adı kullanıcı tıkladıkça değişirse ekran
+                  okuyucuda kontrolün kimliği kaybolur. Bulunulan kademe
+                  gövdedeki kırıntı ve etiketle anlatılıyor.
+                  ============================================================ */}
+              <SuzgecAkordiyon baslik="Marka" baslangictaAcik ozet={secenekler.agac.ozet}>
+                <MarkaAgaci
+                  yol={secenekler.agac.yol}
+                  kademeBasligi={secenekler.agac.kademeBasligi}
+                  cocuklar={secenekler.agac.cocuklar}
+                  derinlik={secenekler.agac.derinlik}
+                  git={agacaGit}
+                  sec={agacSec}
+                />
+              </SuzgecAkordiyon>
+
+              {/* SİCİL PUANI — ürünün ayırt edici alanı, o yüzden marka
+                  ağacından hemen sonra ve açık geliyor. Sabit "%80+" çipi
+                  kaldırılmıştı (veritabanındaki en yüksek puan 72; o çip daima
+                  boş sonuç veriyordu); yerine sayılı bantlar. */}
+              <SuzgecAkordiyon
+                baslik="Sicil Puanı"
+                baslangictaAcik
+                ozet={Number(suzgec.sicilEnAz) > 0 ? `${suzgec.sicilEnAz}+` : null}
+              >
+                {secenekler.sicilBantlari.map(({ esik, adet }) => (
+                  <SuzgecSatiri
+                    key={esik}
+                    etiket={esik === 0 ? 'Tümü' : `${esik} ve üzeri`}
+                    adet={adet}
+                    secili={Number(suzgec.sicilEnAz) === esik}
+                    sec={() => suzgecDegistir('sicilEnAz', esik)}
+                  />
+                ))}
+              </SuzgecAkordiyon>
+
+              {/* ⚠ `baslangictaAcik` KALDIRILDI. Yukarıdaki gerekçe "ilk iki
+                  grup açık" diyor; marka ağacı eklenince üçüncü açık grup
+                  olurdu ve panel yine uzardı. Yorumun kendi kuralını ihlal
+                  eden bir kod, o yorumu güvenilmez yapar. */}
+              <SuzgecAkordiyon
+                baslik="Model Yılı"
+                ozet={[suzgec.yilMin, suzgec.yilMax].filter(Boolean).join('–') || null}
+              >
+                <AralikGirdisi
+                  ad="model yılı"
+                  enAz={suzgec.yilMin}
+                  enCok={suzgec.yilMax}
+                  degistir={(hangi, deger) => suzgecDegistir(hangi === 'enAz' ? 'yilMin' : 'yilMax', deger)}
+                />
+              </SuzgecAkordiyon>
+
+              {/* KİLOMETRE — YENİ. `km` alanı RPC'den bugün de geliyordu ama
+                  hiçbir yerde kullanılmıyordu; referans sitelerin ikisinde de
+                  bu süzgeç var. */}
+              <SuzgecAkordiyon
+                baslik="Kilometre"
+                ozet={[suzgec.kmMin, suzgec.kmMax].filter(Boolean).join('–') || null}
+              >
+                <AralikGirdisi
+                  ad="kilometre"
+                  birim="km"
+                  enAz={suzgec.kmMin}
+                  enCok={suzgec.kmMax}
+                  degistir={(hangi, deger) => suzgecDegistir(hangi === 'enAz' ? 'kmMin' : 'kmMax', deger)}
+                />
+              </SuzgecAkordiyon>
+
+              {/* ⚠ MARKA GRUBU KALDIRILDI — ÜRÜN SAHİBİNİN KARARI, VE
+                  REFERANS SİTELER DE ONU DOĞRULUYOR.
+                  arabam.com'da marka listesi süzgeç akordiyonunun İÇİNDE değil;
+                  ayrı bir taksonomi listesi ve yalnızca kategori sayfasında
+                  (~50 marka). İki sitenin de ANASAYFASINDA marka listesi yok.
+                  Marka aramada kalıyor: kullanıcı yazarak süzebiliyor. */}
+
+              {[
+                { baslik: 'Şehir', secenekler: secenekler.sehirler, alan: 'sehir' },
+                { baslik: 'Yakıt Tipi', secenekler: secenekler.yakitlar, alan: 'yakit' },
+                { baslik: 'Vites Tipi', secenekler: secenekler.vitesler, alan: 'vites' },
+              ]
+                // Tek seçeneği olan bir süzgeç süzmüyor, yalnızca yer kaplıyor.
+                // Projede yerleşik kural: veri yoksa bölüm hiç çizilmiyor.
+                .filter((g) => (g.secenekler || []).length >= 2)
+                .map((g) => (
+                <SuzgecAkordiyon
+                  key={g.alan}
+                  baslik={g.baslik}
+                  ozet={suzgec[g.alan] !== 'Tümü' ? suzgec[g.alan] : null}
+                >
+                  <SuzgecGrubu
+                    secenekler={g.secenekler}
+                    tumuAdet={secenekler.tumuAdet}
+                    secili={suzgec[g.alan]}
+                    sec={(deger) => suzgecDegistir(g.alan, deger)}
+                  />
+                </SuzgecAkordiyon>
+              ))}
+
+              {/* "Sıfırla" EN ALTTA ve yalnızca bir süzgeç etkinken. Üstte
+                  olduğunda, hiç süzgeç uygulamamış kullanıcıya da sürekli
+                  görünen ölü bir düğmeydi. */}
+              {suzgecEtkin && (
+                <div className="pt-3 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={suzgecleriSifirla}
-                    className={dugme('sessiz', { ek: 'min-h-[44px] px-2 -mx-2 text-indigo-600' })}
+                    className={dugme('ikincil', { tamGenislik: true })}
                   >
-                    Sıfırla
+                    Süzgeçleri sıfırla
                   </button>
-                )}
-              </div>
-
-              {/* ÖNE ÇIKANLAR — ücreti ödenmiş görünürlük. Kapatılabilir bir
-                  süzgeç, kesin bir duvar değil. */}
-              <SuzgecAnahtari
-                etiket="Yalnızca öne çıkanlar"
-                adet={secenekler.oneCikanAdet}
-                acik={suzgec.yalnizOneCikan}
-                degistir={() => suzgecDegistir('yalnizOneCikan', !suzgec.yalnizOneCikan)}
-              />
-
-              {/* Zaman süzgeci — referans sitelerin ikisinde de kenar çubuğunun
-                  en üstünde duruyor. Kullanıcı bu kalıba alışkın. */}
-              <SuzgecAnahtari
-                etiket="Son 7 günde eklenen"
-                adet={secenekler.yeniAdet}
-                acik={suzgec.yalnizYeni}
-                degistir={() => suzgecDegistir('yalnizYeni', !suzgec.yalnizYeni)}
-              />
-
-              {/* SİCİL PUANI — sabit "%80+" yerine bantlar ve GERÇEK sayılar. */}
-              <div className="space-y-1.5 pt-3 border-t border-slate-100">
-                <span className="etiket text-slate-500 block">Sicil Puanı</span>
-                <div className="flex flex-col gap-0.5">
-                  {secenekler.sicilBantlari.map(({ esik, adet }) => (
-                    <SuzgecSatiri
-                      key={esik}
-                      etiket={esik === 0 ? 'Tümü' : `${esik} ve üzeri`}
-                      adet={adet}
-                      secili={Number(suzgec.sicilEnAz) === esik}
-                      sec={() => suzgecDegistir('sicilEnAz', esik)}
-                    />
-                  ))}
                 </div>
-              </div>
-
-              <SuzgecGrubu
-                baslik="Marka"
-                secenekler={secenekler.markalar}
-                tumuAdet={secenekler.tumuAdet}
-                secili={suzgec.marka}
-                sec={(d) => suzgecDegistir('marka', d)}
-              />
-
-              <SuzgecGrubu
-                baslik="Şehir"
-                secenekler={secenekler.sehirler}
-                tumuAdet={secenekler.tumuAdet}
-                secili={suzgec.sehir}
-                sec={(d) => suzgecDegistir('sehir', d)}
-              />
-
-              <SuzgecGrubu
-                baslik="Yakıt"
-                secenekler={secenekler.yakitlar}
-                tumuAdet={secenekler.tumuAdet}
-                secili={suzgec.yakit}
-                sec={(d) => suzgecDegistir('yakit', d)}
-              />
-
-              <SuzgecGrubu
-                baslik="Vites"
-                secenekler={secenekler.vitesler}
-                tumuAdet={secenekler.tumuAdet}
-                secili={suzgec.vites}
-                sec={(d) => suzgecDegistir('vites', d)}
-              />
-
-              <div className="space-y-1.5 pt-3 border-t border-slate-100">
-                <span className="etiket text-slate-500 block">Model Yılı</span>
-                <div className="grid grid-cols-2 gap-2">
-                  <label className="block">
-                    <span className="sr-only">En eski model yılı</span>
-                    <input
-                      type="number" inputMode="numeric" placeholder="En eski"
-                      value={suzgec.yilMin}
-                      onChange={(e) => suzgecDegistir('yilMin', e.target.value)}
-                      className="w-full min-h-[44px] bg-slate-50 border border-slate-200 rounded-xl px-2.5 text-yardimci outline-none focus:border-indigo-600"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="sr-only">En yeni model yılı</span>
-                    <input
-                      type="number" inputMode="numeric" placeholder="En yeni"
-                      value={suzgec.yilMax}
-                      onChange={(e) => suzgecDegistir('yilMax', e.target.value)}
-                      className="w-full min-h-[44px] bg-slate-50 border border-slate-200 rounded-xl px-2.5 text-yardimci outline-none focus:border-indigo-600"
-                    />
-                  </label>
-                </div>
-              </div>
-
+              )}
             </div>
 
           </aside>
@@ -669,20 +1235,27 @@ export default function MarketplaceView({
                   secili={suzgec.yalnizYeni}
                   sec={() => suzgecDegistir('yalnizYeni', !suzgec.yalnizYeni)}
                 />
-                {secenekler.markalar.slice(0, 4).map(([ad, adet]) => (
+                {/* AKTİF MARKA KIRILIMI — panel KAPALIYKEN tek görünen iz.
+                    Panel kapanınca kullanıcı hangi markada olduğunu
+                    göremiyordu: bölüm başlığı "Süzgeç sonuçları (N)" diyor
+                    ama hangi süzgecin uygulandığını söylemiyor.
+                    Tek tıkla ağacın tamamını temizliyor; burada `aria-pressed`
+                    DOĞRU rol (basılı = seçim var, tekrar basmak kaldırıyor),
+                    o yüzden `basili` geçilmiyor.
+                    `ad` görünen metni İÇERİYOR (WCAG 2.5.3). */}
+                {secenekler.agac.ozet && (
                   <SuzgecCipi
-                    key={ad}
-                    etiket={`${ad} (${adet})`}
-                    secili={suzgec.marka === ad}
-                    sec={() => suzgecDegistir('marka', suzgec.marka === ad ? 'Tümü' : ad)}
+                    etiket={secenekler.agac.ozet}
+                    secili
+                    ad={`${secenekler.agac.ozet} — marka kırılımını temizle`}
+                    sec={() => agacaGit(0)}
                   />
-                ))}
-
+                )}
                 <button
                   type="button"
                   onClick={() => setSuzgecAcik((a) => !a)}
                   aria-expanded={suzgecAcik}
-                  className={`shrink-0 min-h-[44px] px-3.5 rounded-xl text-yardimci font-semibold border transition-colors cursor-pointer inline-flex items-center gap-1.5 ml-auto ${
+                  className={`shrink-0 min-h-[44px] px-3.5 rounded-md text-yardimci font-semibold border transition-colors cursor-pointer inline-flex items-center gap-1.5 ml-auto ${
                     suzgecAcik ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200'
                   }`}
                 >
@@ -694,58 +1267,103 @@ export default function MarketplaceView({
               </div>
 
               {suzgecAcik && (
-                <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 motion-safe:animate-fadeIn">
-                  <div className="flex items-center justify-between">
-                    <span className="etiket text-slate-500">Sicil Puanı</span>
-                    {suzgecEtkin && (
+                /* ⚠ MODAL DEĞİL, AÇILIR PANEL.
+                   `role="dialog"` + `aria-modal` EKLENMEYECEK: `04-mobil`
+                   paketi mobil çekmeceyi tam o seçiciyle buluyor (satır 112)
+                   ve anasayfada ikinci bir eşleşme o testi kırar. Panelin
+                   modal olması da gerekmiyor — sayfa akışını kesmiyor. */
+                <div className="bg-white border border-slate-200 rounded-lg px-4 py-3 motion-safe:animate-fadeIn">
+                  {/* Masaüstüyle AYNI grup sırası ve aynı bileşenler.
+                      İki ekranın süzgeç sırası ayrışırsa kullanıcı cihaz
+                      değiştirdiğinde yeniden öğrenmek zorunda kalıyor. */}
+                  {/* MARKA AĞACI — masaüstüyle AYNI bileşen, AYNI durum.
+                      Tek fark `bicim="cip"`: dar ekranda satır listesi yerine
+                      sarmalı çipler, `MobilGrup`un kalıbı. */}
+                  <SuzgecAkordiyon baslik="Marka" baslangictaAcik ozet={secenekler.agac.ozet}>
+                    <MarkaAgaci
+                      yol={secenekler.agac.yol}
+                      kademeBasligi={secenekler.agac.kademeBasligi}
+                      cocuklar={secenekler.agac.cocuklar}
+                      derinlik={secenekler.agac.derinlik}
+                      git={agacaGit}
+                      sec={agacSec}
+                      bicim="cip"
+                    />
+                  </SuzgecAkordiyon>
+
+                  <SuzgecAkordiyon
+                    baslik="Sicil Puanı"
+                    baslangictaAcik
+                    ozet={Number(suzgec.sicilEnAz) > 0 ? `${suzgec.sicilEnAz}+` : null}
+                  >
+                    <div className="flex flex-wrap gap-1.5">
+                      {secenekler.sicilBantlari.map(({ esik, adet }) => (
+                        <SuzgecCipi
+                          key={esik}
+                          etiket={esik === 0 ? `Tümü (${adet})` : `${esik}+ (${adet})`}
+                          secili={Number(suzgec.sicilEnAz) === esik}
+                          sec={() => suzgecDegistir('sicilEnAz', esik)}
+                        />
+                      ))}
+                    </div>
+                  </SuzgecAkordiyon>
+
+                  <SuzgecAkordiyon
+                    baslik="Model Yılı"
+                    ozet={[suzgec.yilMin, suzgec.yilMax].filter(Boolean).join('–') || null}
+                  >
+                    <AralikGirdisi
+                      ad="model yılı"
+                      enAz={suzgec.yilMin}
+                      enCok={suzgec.yilMax}
+                      degistir={(hangi, deger) => suzgecDegistir(hangi === 'enAz' ? 'yilMin' : 'yilMax', deger)}
+                    />
+                  </SuzgecAkordiyon>
+
+                  <SuzgecAkordiyon
+                    baslik="Kilometre"
+                    ozet={[suzgec.kmMin, suzgec.kmMax].filter(Boolean).join('–') || null}
+                  >
+                    <AralikGirdisi
+                      ad="kilometre"
+                      birim="km"
+                      enAz={suzgec.kmMin}
+                      enCok={suzgec.kmMax}
+                      degistir={(hangi, deger) => suzgecDegistir(hangi === 'enAz' ? 'kmMin' : 'kmMax', deger)}
+                    />
+                  </SuzgecAkordiyon>
+
+                  {[
+                    { baslik: 'Şehir', secenekler: secenekler.sehirler, alan: 'sehir' },
+                    { baslik: 'Yakıt Tipi', secenekler: secenekler.yakitlar, alan: 'yakit' },
+                    { baslik: 'Vites Tipi', secenekler: secenekler.vitesler, alan: 'vites' },
+                  ]
+                    .filter((g) => (g.secenekler || []).length >= 2)
+                    .map((g) => (
+                      <SuzgecAkordiyon
+                        key={g.alan}
+                        baslik={g.baslik}
+                        ozet={suzgec[g.alan] !== 'Tümü' ? suzgec[g.alan] : null}
+                      >
+                        <MobilGrup
+                          secenekler={g.secenekler}
+                          secili={suzgec[g.alan]}
+                          sec={(deger) => suzgecDegistir(g.alan, deger)}
+                        />
+                      </SuzgecAkordiyon>
+                    ))}
+
+                  {suzgecEtkin && (
+                    <div className="pt-3 border-t border-slate-100">
                       <button
                         type="button"
                         onClick={suzgecleriSifirla}
-                        className={dugme('sessiz', { ek: 'min-h-[44px] px-2 -mx-2 text-indigo-600' })}
+                        className={dugme('ikincil', { tamGenislik: true })}
                       >
-                        Sıfırla
+                        Süzgeçleri sıfırla
                       </button>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {secenekler.sicilBantlari.map(({ esik, adet }) => (
-                      <SuzgecCipi
-                        key={esik}
-                        etiket={esik === 0 ? `Tümü (${adet})` : `${esik}+ (${adet})`}
-                        secili={Number(suzgec.sicilEnAz) === esik}
-                        sec={() => suzgecDegistir('sicilEnAz', esik)}
-                      />
-                    ))}
-                  </div>
-
-                  <MobilGrup baslik="Marka" secenekler={secenekler.markalar}
-                    secili={suzgec.marka} sec={(d) => suzgecDegistir('marka', d)} />
-                  <MobilGrup baslik="Şehir" secenekler={secenekler.sehirler}
-                    secili={suzgec.sehir} sec={(d) => suzgecDegistir('sehir', d)} />
-                  <MobilGrup baslik="Yakıt" secenekler={secenekler.yakitlar}
-                    secili={suzgec.yakit} sec={(d) => suzgecDegistir('yakit', d)} />
-                  <MobilGrup baslik="Vites" secenekler={secenekler.vitesler}
-                    secili={suzgec.vites} sec={(d) => suzgecDegistir('vites', d)} />
-
-                  <div className="pt-2 border-t border-slate-100">
-                    <span className="etiket text-slate-500">Model Yılı</span>
-                    <div className="grid grid-cols-2 gap-2 mt-1.5">
-                      <label className="block">
-                        <span className="sr-only">En eski model yılı</span>
-                        <input type="number" inputMode="numeric" placeholder="En eski"
-                          value={suzgec.yilMin}
-                          onChange={(e) => suzgecDegistir('yilMin', e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 min-h-[44px] text-yardimci outline-none focus:border-indigo-600" />
-                      </label>
-                      <label className="block">
-                        <span className="sr-only">En yeni model yılı</span>
-                        <input type="number" inputMode="numeric" placeholder="En yeni"
-                          value={suzgec.yilMax}
-                          onChange={(e) => suzgecDegistir('yilMax', e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 min-h-[44px] text-yardimci outline-none focus:border-indigo-600" />
-                      </label>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
@@ -774,9 +1392,12 @@ export default function MarketplaceView({
                 Sıra: hizmetler -> vitrin -> nereden başlarsınız ->
                 nasıl çalışır -> ücretli işlemler.
                 ===================================================================== */}
-            <h2 className="baslik-bolum text-slate-900">Hizmetler</h2>
+            {/* `/vitrin` sayfasında GİZLİ: orası tek işe odaklı bir liste
+                sayfası, platformun beş kapısını orada tekrar göstermek
+                kullanıcıyı aradığı işten uzaklaştırırdı. */}
+            {!tamSayfa && <h2 className="baslik-bolum text-slate-900">Hizmetler</h2>}
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-2xs select-none">
+            <div className={`bg-white border border-slate-200 rounded-lg p-3 shadow-2xs select-none ${tamSayfa ? 'hidden' : ''}`}>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 {[
                   {
@@ -869,6 +1490,52 @@ export default function MarketplaceView({
               </div>
             </div>
 
+            {/* ==============================================================
+                AYRILMIŞ BOŞLUK — İÇERİK BİLEREK YOK
+                ==============================================================
+                Burada üç slogan kutusu ve "Aracınızı vitrinde öne çıkarın"
+                şeridi vardı; ürün sahibinin kararıyla ikisi de kaldırıldı.
+
+                ⚠ BOŞLUK KAPATILMIYOR, VİTRİN YUKARI ÇEKİLMİYOR — bu da açık
+                bir karar ("bu kısım boş kalacak, vitrin ilanlarını buraya
+                kaydırma"). Blok silinip yerine hiçbir şey konmasaydı vitrin
+                başlığı ~195 px yukarı kayar ve süzgeç panelinin hizasından
+                çıkardı; oysa o hizalama korunmak isteniyor.
+
+                ⚠ YALNIZCA GENİŞ EKRANDA (`hidden lg:block`). Hizalanacak iki
+                sütun yalnızca `lg` ve üstünde yan yana; dar ekranda sütunlar
+                alt alta diziliyor, orada bu boşluk hizalama değil sadece boş
+                kaydırma olurdu.
+
+                Yükseklik kaldırılan bloğun ölçülen yüksekliği (171 px).
+                ============================================================== */}
+            {/* `/vitrin`de yok: orada hizalanacak bir "Hizmetler" bloğu
+                bulunmadığı için boşluğun bir işi kalmıyor. */}
+            {!tamSayfa && <div className="hidden lg:block lg:h-[170px]" aria-hidden="true" />}
+
+            {/* DEMO — GEÇİCİ ŞERİT.
+                Demo açıkken ekranda ne olduğunu açıkça söylüyor. Uyarı rengi
+                (amber) bilerek: bu kartlar gerçek değil ve ekran görüntüsü
+                alınıp paylaşılırsa da öyle görünmeli. */}
+            {demoAdet > 0 && (
+              <div className="bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 flex items-start gap-2.5">
+                <span aria-hidden="true" className="shrink-0 text-amber-600 mt-0.5">
+                  <Icon name="uyari" size="md" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block baslik-kart text-amber-900">
+                    Demo görünümü — {demoAdet} sahte kart
+                  </span>
+                  <span className="block metin-yardimci text-amber-800">
+                    Vitrindeki kartların {demoAdet} tanesi yerleşimi değerlendirmek
+                    için üretilmiş sahte kayıt: arkalarında gerçek bir sicil yok,
+                    tıklanamaz ve favorilenemez. Veritabanına hiçbir şey yazılmadı.
+                    Gerçek araçlar aralarında ve normal çalışıyor.
+                  </span>
+                </span>
+              </div>
+            )}
+
             {/* 🚀 3.3 VİTRİN ALANI VE YENİLENMİŞ VİTRİN PANEL HEADER'I */}
             <div className="space-y-4">
               
@@ -888,13 +1555,17 @@ export default function MarketplaceView({
                   </span>
                 </h2>
 
-                {sonuclar.length > 12 && (
+                {/* ⚠ ESKİDEN YERİNDE AÇIYORDU (`showAllVitrin`), ARTIK
+                    SAYFA DEĞİŞTİRİYOR. Ürün sahibi anasayfanın sınırsız
+                    uzamasını reddetti; sığmayanların adresi `/vitrin`.
+                    `/vitrin`in kendisinde bu bağ anlamsız, o yüzden gizli. */}
+                {!tamSayfa && sonuclar.length > ANASAYFA_KART_SINIRI && (
                   <button
                     type="button"
-                    onClick={() => setShowAllVitrin(!showAllVitrin)}
+                    onClick={() => router.push('/vitrin')}
                     className={dugme('sessiz', { ek: 'shrink-0' })}
                   >
-                    {showAllVitrin ? 'Daha az göster' : 'Tümünü göster'}
+                    Tümünü göster ({sonuclar.length})
                   </button>
                 )}
               </div>
@@ -908,7 +1579,7 @@ export default function MarketplaceView({
                    HAK ETMİYOR. Eskiden tek metin vardı ve "vitrinde araç yok"
                    diyordu — süzgeçle daraltıp sonuç bulamayan kullanıcı da
                    bunu görüyor, vitrinin boş olduğunu sanıyordu. */
-                <div className="py-16 flex flex-col items-center justify-center text-center gap-2 bg-white rounded-2xl border border-dashed border-slate-200 p-6">
+                <div className="py-16 flex flex-col items-center justify-center text-center gap-2 bg-white rounded-lg border border-dashed border-slate-200 p-6">
                   <span className="text-slate-400" aria-hidden="true">
                     <Icon name="arac" size="2xl" />
                   </span>
@@ -944,74 +1615,146 @@ export default function MarketplaceView({
                    (Bir de: blok yorumun İÇİNDE yorum kapatma dizisi yazmak
                    yorumu erken bitiriyor — o da ayrı bir derleme hatası verdi.)
 
-                   `2xl:grid-cols-6` — referans yoğunluğuna yaklaşma:
-                   arabam.com 6, sahibinden.com 7 sütun kullanıyor; bizde en
-                   fazla 5 vardı. Bugün iki araçla görünür fark yok ama
-                   envanter büyüdüğünde alışılmış yoğunluğun altında kalırdı.
+                   ----------------------------------------------------------
+                   IZGARA: SABİT SÜTUN SAYISI DEĞİL, `auto-fill`
+                   ----------------------------------------------------------
+                   (⚠ Bu blok yukarıdaki kuralın canlı örneği: buraya
+                   süslü parantezli JSX yorumu yazıldı ve derleme yine
+                   "Expected '</', got 'ident'" ile düştü. Düz JS yorumu.)
 
-                   `sizes` de güncellendi (kart bileşeninin içinde). */
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5">
+                   Kırılma noktalı hâl `grid-cols-2 sm:3 md:4 xl:5 2xl:6` idi
+                   ve kart genişliği aralıklar arasında SAVRULUYORDU. Ölçüldü:
+
+                     480px → 217px (2 sütun)      900px → 203px (4 sütun)
+                     640px → 188px (3 sütun)     1180px → 197px (4 sütun)
+
+                   Ürün sahibinin "kartlar enine çok geniş" tespiti tam bu:
+                   `md` aralığı 768-1279 arasını tek bir 4 sütunla karşılıyor,
+                   yani aralığın üst ucunda kartlar şişiyor.
+
+                   `auto-fill` genişliği tarayıcıya bırakıyor: asgari 136px
+                   veren kaç sütun sığıyorsa o kadar. Ölçülen yeni aralık
+                   138-170px — her viewport'ta, tek bir kırılma noktası
+                   yazmadan. 1180px'te 197 → 155px ve 4 yerine 5 sütun.
+                   Referans yoğunluğu da yakalanıyor: 1280px'te 6 sütun
+                   (arabam.com 6, sahibinden.com 7 kullanıyor).
+
+                   ⚠ `auto-fit` DEĞİL. `auto-fit` boş track'leri çökertir:
+                   vitrinde iki araç varken kartlar satırı doldurmak için
+                   ~450px'e yayılırdı. `auto-fill` boş track'i korur.
+
+                   `sizes` de güncellendi (kart bileşeninin içinde).
+
+                   ----------------------------------------------------------
+                   ⚠ `lg:min-h-[938px]` — PANEL BOYU SABİT
+                   ----------------------------------------------------------
+                   (Bu yorum da düz JS olmak zorunda: ternary dalına süslü
+                   parantezli JSX yorumu yazıldı ve derleme yine düştü.
+                   Üstelik ilk düzeltme denemesi İKİNCİ tuzağa düştü —
+                   yukarıda anlatılan kapatma dizisi bu yorumun içinde
+                   birebir yazılınca blok erken bitti. O yüzden burada
+                   hiçbir yerde o iki karakter yan yana geçmiyor.)
+                    Ürün sahibinin kararı: "az ilan varsa site boyu
+                    kısalmamalı". Envanter azaldığında ya da bir süzgeç
+                    sonucu daralttığında sayfa boyunun zıplaması, altındaki
+                    her şeyin (seçki, "Nasıl çalışır", footer) yer
+                    değiştirmesi demek.
+
+                    938 px = 4 satır × 224 px kart + 3 × 14 px boşluk, yani
+                    24 kartın 6 sütunda kapladığı yükseklik. `min-height`
+                    olduğu için TABAN: dar ekranda 24 kart daha çok satıra
+                    yayılınca kutu kendiliğinden büyüyor.
+
+                   ⚠ Yalnızca `lg`: dar ekranda 938 px'lik boş bir kutu
+                   hizalama değil, sadece boş kaydırma olurdu. */
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(136px,1fr))] gap-3.5 lg:min-h-[938px] content-start">
                   {gosterilenler.map((item, sira) => (
                     <ArabamStyleVitrinCard
                       key={item.listing_id || item.id}
                       item={item}
                       sira={sira}
-                      onSelectVehicle={onSelectVehicle}
-                      favorili={favoriler.has(item.pin_code)}
-                      onFavori={favoriTikla}
+                      demo={demoKaydiMi(item)}
+                      /* DEMO — GEÇİCİ. Demo kartların arkasında gerçek bir
+                         sicil YOK: tıklanabilir olsalar var olmayan bir
+                         karneye götürürlerdi ("ölü kapı"), favori ise
+                         olmayan bir PIN'i veritabanına yazmaya çalışırdı. */
+                      /* ⚠ KART BAZINDA. Demo ve gerçek kartlar aynı ızgarada:
+                         gerçek olanlar normal çalışmalı, demo olanlar hiçbir
+                         yere gitmemeli (arkalarında sicil yok) ve favori
+                         yazmamalı (olmayan bir PIN'i veritabanına yazardı). */
+                      onSelectVehicle={demoKaydiMi(item) ? ETKISIZ : onSelectVehicle}
+                      favorili={demoKaydiMi(item) ? false : favoriler.has(item.pin_code)}
+                      onFavori={demoKaydiMi(item) ? ETKISIZ : favoriTikla}
                     />
                   ))}
                 </div>
               )}
             </div>
 
+            {/* `/vitrin` sayfasında sayfalama: sınırsız `map` bir gün
+                binlerce DOM düğümü demek olurdu. Anasayfada bu düğme hiç
+                çizilmiyor, orada sınır sabit (24) ve fazlası zaten buraya
+                yönlendiriliyor. */}
+            {tamSayfa && sonuclar.length > gosterilenler.length && (
+              <div className="flex justify-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSayfaAdet((n) => n + TAM_SAYFA_ADIM)}
+                  className={dugme('ikincil')}
+                >
+                  Daha fazla göster ({sonuclar.length - gosterilenler.length} araç daha)
+                </button>
+              </div>
+            )}
+
             {/* =====================================================================
-                İKİ EŞİT YOL — ÜRÜN SAHİBİNİN SIRALAMASINDA 2 NUMARA
+                SİZİN İÇİN SEÇTİKLERİMİZ
                 =====================================================================
-                Vitrin 1 numara (yukarıda). Bunlar 2 numara ve BİRBİRİNE EŞİT:
-                biri alan tarafını (bir aracın geçmişini gör), diğeri arz
-                tarafını (kendi aracının siciline sahip ol) açıyor.
+                Vitrinin hemen altında, aynı kart düzeniyle ikinci bir blok.
 
-                ⚠ İKİSİ DE `ikincil`. `dugme.js:28` "ekran başına tek birincil"
-                diyor ve bu sayfada birincil hiçbir eyleme verilmedi: vitrin
-                zaten sayfanın içeriği, düğmeye ihtiyacı yok. İki eşit ağırlıklı
-                çağrıdan birini indigoya çevirmek, ürün sahibinin "eşit olmalı"
-                kararını sessizce bozmak olurdu.
+                ⚠ İÇERİK KURALI GEÇİCİ. Ürün sahibinin planı: "ilk başta
+                rastgele ama sonradan kullanıcının gezdiği araçlara göre".
+                Bugün tohumlu rastgele seçim yapılıyor; kişiselleştirme
+                kancası `utils/secki.js` içinde tek noktada duruyor ve sinyal
+                bağlandığında yalnızca orası değişecek.
+
+                ⚠ BAŞLIK `h2`: belge sırası h1 -> h2 -> h3 akıyor, "Vitrindeki
+                Araçlar" da h2. İkisi kardeş bölüm, biri diğerinin alt başlığı
+                değil.
+
+                ⚠ Boşsa HİÇ ÇİZİLMİYOR. Envanter 24'ün altındayken seçilecek
+                araç kalmıyor; boş bir başlık bırakmak "burada bir şey olmalıydı"
+                izlenimi verirdi.
                 ===================================================================== */}
-            {/* Bölüm başlığı `h2`: bu iki kartın h3'leri, başlığı olmayan bir
-                bölümde durduğu için belge sırasında "Vitrindeki Araçlar"ın
-                altına düşüyordu — oysa vitrinle ilgileri yok. */}
-            <h2 className="baslik-bolum text-slate-900">Nereden başlarsınız?</h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                {
-                  ikon: 'pinKod',
-                  baslik: 'Bir aracın geçmişini görün',
-                  ozet: 'Elinizdeki PIN kodunu girin; aracın bakım geçmişi, poliçe tarihleri ve sicil puanı açılır.',
-                  eylem: 'PIN ile sorgula',
-                  tik: onNavigateToVerify,
-                },
-                {
-                  ikon: 'arac',
-                  baslik: 'Aracınızın sicilini oluşturun',
-                  ozet: 'Bakımlarınızı faturasıyla biriktirin. Geçmişi belgeli bir araç, karnesini tek bağlantıyla gösterir.',
-                  eylem: 'Aracımı kaydet',
-                  tik: onNavigateToGarage,
-                },
-              ].map((yol) => (
-                <div key={yol.baslik} className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-2">
-                  <span className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 grid place-items-center text-indigo-600 shrink-0" aria-hidden="true">
-                    <Icon name={yol.ikon} size="md" />
-                  </span>
-                  <h3 className="baslik-kart text-slate-900">{yol.baslik}</h3>
-                  <p className="metin-yardimci text-slate-500 leading-relaxed flex-1">{yol.ozet}</p>
-                  <button type="button" onClick={yol.tik} className={dugme('ikincil', { tamGenislik: true })}>
-                    {yol.eylem}
-                  </button>
+            {!tamSayfa && !suzgecEtkin && seckiler.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-baseline gap-3 pb-2 border-b border-slate-200 select-none mb-3">
+                  <h2 className="baslik-bolum text-slate-900">
+                    Sizin için seçtiklerimiz
+                    <span className="metin-yardimci text-slate-500 font-normal ml-2 tabular-nums">
+                      ({seckiler.length})
+                    </span>
+                  </h2>
                 </div>
-              ))}
-            </div>
+
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(136px,1fr))] gap-3.5 content-start">
+                  {seckiler.map((item, sira) => (
+                    <ArabamStyleVitrinCard
+                      key={`secki-${item.listing_id || item.id}`}
+                      item={item}
+                      demo={demoKaydiMi(item)}
+                      /* `sira` 2'den başlıyor: `priority` yalnızca ilk iki
+                         görsele veriliyor ve o hak vitrinin ilk satırına ait.
+                         Buradaki kartlar ekranın çok altında, tembel yüklenmeli. */
+                      sira={sira + 2}
+                      onSelectVehicle={demoKaydiMi(item) ? ETKISIZ : onSelectVehicle}
+                      favorili={demoKaydiMi(item) ? false : favoriler.has(item.pin_code)}
+                      onFavori={demoKaydiMi(item) ? ETKISIZ : favoriTikla}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* =====================================================================
                 HİZMET ŞERİDİ — BEŞ KART, HOVER'DA YÜKSELEN
@@ -1052,8 +1795,15 @@ export default function MarketplaceView({
 
           Sıra numarası süs değil: adımlar birbirini gerektiriyor.
           ===================================================================== */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-5">
+      {/* ⚠ BEYAZ PANELDEN ÇIKARILDI, FOOTER'A YASLANDI.
+          Bölüm DOM sırasında zaten en sondaydı (altında yalnızca
+          `(site)/layout.js:28`'deki Footer var) — "çok yukarıda duruyor"
+          izlenimi vitrinde iki araç olmasındandı, sıradan değil.
+          Yine de kart görünümü onu bir İÇERİK BÖLÜMÜ gibi gösteriyordu;
+          artık üstten ince çizgiyle ayrılan sakin bir şerit, yani footer
+          bölgesinin bir parçası gibi okunuyor. */}
+      <div className={`border-t border-slate-200 mt-6 ${tamSayfa ? 'hidden' : ''}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-5">
           <div className="space-y-1">
             <h2 className="baslik-bolum text-slate-900">Nasıl çalışır</h2>
             <p className="metin-yardimci text-slate-500">
@@ -1090,55 +1840,22 @@ export default function MarketplaceView({
               </li>
             ))}
           </ol>
-        </div>
-      </div>
 
-      {/* =====================================================================
-          ÜCRETLİ İŞLEMLER — GELİR GETİREN ÖZELLİKLER GÖZ ÖNÜNDE
-          =====================================================================
-          Ürün sahibinin isteği: "bize gelir getirecek özellikler de göz önünde
-          olmalı." Bu dört işlem anasayfada HİÇ görünmüyordu; kullanıcı ancak o
-          işlemi yapmaya çalışırken ücreti öğreniyordu.
+          {/* ⚠ SAYFADAKI TEK `birincil` DÜĞME — VE YERİ BURASI.
+              "Nereden başlarsınız?" bölümü kaldırıldı çünkü iki kartı
+              Hizmetler şeridindeki iki kartla AYNI rotalara gidiyordu
+              (`/verify` ve `/garage`) — kullanıcıya aynı iki kapı iki kez
+              gösteriliyordu.
 
-          ⚠ FİYATLAR ELLE YAZILMIYOR. Tek kaynak `data/paketler.js`; ekranla
-          ödeme akışının farklı tutar göstermesi ürünün en pahalı hata sınıfı.
-
-          ⚠ ARAÇ FİYATI DEĞİL, HİZMET ÜCRETİ. Ürün araç tutarı göstermiyor
-          (hukuki gerekçe kart bileşeninde yazılı); burada gösterilen kendi
-          hizmet bedelimiz.
-
-          ⚠ BİNLİK AYRAÇ TUZAĞI: `14-urun-dili.spec.js:30` binlik ayraçlı
-          tutarları (₺1.250 gibi) yasaklıyor. Dördü de bin liranın altında
-          olduğu için bugün güvenli; bir ürün 999'u geçerse `fiyatYaz` nokta
-          koyar ve anasayfa dili testi ANINDA kırılır. Fiyat yükseltilirken
-          burası görülmeli.
-          ===================================================================== */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-4">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="baslik-bolum text-slate-900">Ücretli işlemler</h2>
-            <Link href="/packages" className={dugme('sessiz')}>
-              Ücretlerin tamamı
-            </Link>
+              Çağrı artık ikna edildiği YERDE: üç adımı okuyup ürünün ne
+              yaptığını anlayan kişinin bir sonraki hareketi bu.
+              `dugme.js:28` "ekran başına tek birincil" diyor; sayfada başka
+              birincil yok, o hak buraya ayrıldı. */}
+          <div className="pt-1">
+            <button type="button" onClick={onNavigateToGarage} className={dugme('birincil')}>
+              Aracımı kaydet
+            </button>
           </div>
-
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 list-none">
-            {URUN_SIRASI.map((anahtar) => {
-              const u = URUNLER[anahtar];
-              if (!u) return null;
-              return (
-                <li key={u.kod} className="border border-slate-200 rounded-xl p-3.5 space-y-1.5">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <h3 className="baslik-kart text-slate-900">{u.ad}</h3>
-                    <span className="metin-yardimci font-semibold text-slate-900 tabular-nums shrink-0">
-                      {fiyatYaz(u.fiyat)}
-                    </span>
-                  </div>
-                  <p className="metin-yardimci text-slate-500 leading-relaxed">{u.ozet}</p>
-                </li>
-              );
-            })}
-          </ul>
         </div>
       </div>
 
@@ -1149,7 +1866,7 @@ export default function MarketplaceView({
 // =========================================================================
 // 🚀 ARABAM.COM PIXEL-PERFECT VİTRİN KARTI (ArabamStyleVitrinCard)
 // =========================================================================
-function ArabamStyleVitrinCard({ item, sira = 0, onSelectVehicle, favorili = false, onFavori }) {
+function ArabamStyleVitrinCard({ item, sira = 0, onSelectVehicle, favorili = false, onFavori, demo = false }) {
   const firstPhoto = item.image_url ? item.image_url.split(',')[0].trim() : null;
 
   return (
@@ -1166,10 +1883,22 @@ function ArabamStyleVitrinCard({ item, sira = 0, onSelectVehicle, favorili = fal
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectVehicle(item); }
       }}
-      aria-label={`${item.brand || ''} ${item.model || ''} ${item.year || ''} — sicilini görüntüle`}
-      className="bg-white border border-slate-200/90 hover:border-slate-400 rounded-md overflow-hidden shadow-2xs hover:shadow-md transition-all duration-150 cursor-pointer group flex flex-col justify-between select-none p-1.5 focus-visible:ring-offset-1"
+      /* ⚠ DEMO KARTLARDA `aria-disabled`. Kart hâlâ `role="button"` ama
+         tıklayınca hiçbir şey olmuyor; ekran okuyucu kullanıcısına bunu
+         söylemeden bırakmak, çalışmayan bir kontrolü çalışıyormuş gibi
+         sunmak olurdu. Erişilebilir ada da "demo kayıt" ekleniyor.
+         ⚠ "sicilini görüntüle" ifadesi KORUNUYOR: test paketi kartları tam
+         o alt dizeyle buluyor (`25-anasayfa`, `18-vitrin-gorunurlugu`). */
+      aria-disabled={demo || undefined}
+      aria-label={`${item.brand || ''} ${item.model || ''} ${item.year || ''} — ${demo ? 'demo kayıt, ' : ''}sicilini görüntüle`}
+      className={`bg-white border border-slate-200/90 rounded-md overflow-hidden shadow-2xs transition-all duration-150 group flex flex-col justify-between select-none p-1 focus-visible:ring-offset-1 ${
+        demo ? 'cursor-default' : 'hover:border-slate-400 hover:shadow-md cursor-pointer'
+      }`}
     >
-      <div className="h-36 w-full bg-[#F1F5F9] rounded flex items-center justify-center overflow-hidden shrink-0 relative">
+      {/* `h-28` (112 px) — eskiden `h-36` (144 px) idi. Kart 311 px'ten
+          ~245 px'e inince vitrine belirgin şekilde daha çok araç sığıyor.
+          Oran hâlâ 4:3'e yakın; araç fotoğrafı için doğru çerçeve. */}
+      <div className="h-28 w-full bg-[#F1F5F9] rounded flex items-center justify-center overflow-hidden shrink-0 relative">
         {/* FAVORİ — kartın kendi tıklamasını TETİKLEMEMELİ.
             `stopPropagation` olmadan kalbe basmak aracı da açardı. */}
         {onFavori && (
@@ -1207,24 +1936,29 @@ function ArabamStyleVitrinCard({ item, sira = 0, onSelectVehicle, favorili = fal
             değerlendirilen profil o. Beş sütunun tamamına `priority` vermek
             "her şey öncelikli" demek olurdu — Next bunu da uyarıyor ve
             öncelik anlamını yitiriyor. */}
-        {/* `sizes` kapsayıcının GERÇEK ölçüsünden: `max-w-7xl` (1280px) ile
-            sınırlı, kart alanı 9/12 -> ~890px. Bu yüzden geniş ekranda ölçü
-            `vw` değil SABİT px — kutu artık büyümüyor. 5 sütun -> ~170px,
-            6 sütun (2xl) -> ~145px.
+        {/* `sizes` SADELEŞTİ, çünkü ızgara artık `auto-fill minmax(136px,1fr)`.
+            Eski hâl her kırılma noktası için ayrı bir dal yazıyordu (`18vw`,
+            `170px`, `145px`) ve sütun sayısı her değiştiğinde elle güncellemek
+            gerekiyordu — kaçırıldığı an tarayıcı yanlış boyutta görsel indirir.
 
-            ⚠ Sütun sayısı değişince BURASI da güncellenmek zorunda; yoksa
-            tarayıcı yanlış boyutta görsel indirir ve iyileştirme boşa gider. */}
+            `auto-fill` ile kart genişliği artık BİR BANTTA: ölçülen 138-170px
+            (480 → 1920 px arası yedi viewport). Üst sınır 170px olduğu için
+            tek sabit ölçü doğru cevap; `sizes`in fazla tahmin etmesi güvenli
+            (biraz büyük görsel iner), az tahmin etmesi bulanıklık üretir.
+
+            400px altı ayrı: orada ızgara 2 sütuna düşüyor ve kart ~165px, yani
+            viewport'un yarısı — `50vw` o aralığı doğru anlatıyor. */}
         <AracGorseli
           src={firstPhoto}
           alt={`${item.brand || ''} ${item.model || ''}`.trim()}
           priority={sira < 2}
-          sizes="(max-width: 639px) 50vw, (max-width: 767px) 33vw, (max-width: 1023px) 25vw, (max-width: 1279px) 18vw, (max-width: 1535px) 170px, 145px"
+          sizes="(max-width: 400px) 50vw, 170px"
         />
         {/* Not: görsel yokluğunda "GÖRSEL YOK" durumu artık `AracGorseli`
             içinde basılıyor — aynı metin, tek yerde. */}
       </div>
       
-      <div className="pt-2 px-1 pb-1 flex-1 flex flex-col justify-between bg-white">
+      <div className="pt-1.5 px-1 pb-0.5 flex-1 flex flex-col justify-between bg-white">
         <div className="space-y-1">
           {/* ⚠ `|| 'Ankara'` KALDIRILDI — UYDURMA VERİYDİ.
               Şehri boş olan HER araca her ziyaretçiye "Ankara" basılıyordu.
@@ -1239,24 +1973,30 @@ function ArabamStyleVitrinCard({ item, sira = 0, onSelectVehicle, favorili = fal
           </div>
 
           {/* `h3`: vitrin bölümünün başlığı `h2`, kartlar onun altı. */}
-          <h3 className="metin-yardimci text-slate-700 leading-snug line-clamp-2 min-h-[32px]">
+          <h3 className="metin-yardimci text-slate-700 leading-snug line-clamp-2 min-h-[30px]">
             {item.listing_title || `${item.brand} ${item.model} ${item.package || ''}`}
           </h3>
         </div>
 
-        <div className="mt-2 bg-slate-50 border border-slate-200/80 rounded px-2 py-1 flex items-center justify-between">
-          <span className="text-etiket text-slate-500 font-medium">Güven Karne Skoru</span>
-          <span className="text-yardimci font-bold text-indigo-600">{item.trust_score ?? 0}/100</span>
+        {/* Etiket "Güven Karne Skoru" -> "Sicil Puanı": 6 sütunda kart ~148 px
+            genişlikte ve uzun etiket sayıyı alt satıra itiyordu (ölçüldü).
+            Kısa ad hem sığıyor hem ürünün kendi diline daha yakın. */}
+        <div className="mt-1.5 bg-slate-50 border border-slate-200/80 rounded px-2 py-0.5 flex items-center justify-between gap-1">
+          <span className="text-etiket text-slate-600 shrink-0">Sicil Puanı</span>
+          <span className="text-yardimci font-semibold text-indigo-600 tabular-nums shrink-0">{item.trust_score ?? 0}/100</span>
         </div>
 
-        {/* ⚠ TUTAR GÖSTERİLMİYOR — HUKUKİ.
-            Ürüne ait herhangi bir fiyat, platformu satış sitesi konumuna
-            sokuyor. Bu ürün dijital taşıt sicili. Kartın vurgusu bedel
-            değil SİCİL: karne, kartın asıl vaadi. */}
-        <div className="mt-2 flex items-center gap-1.5 text-yardimci font-bold text-indigo-600">
-          <Icon name="karne" size="xs" />
-          Sicil karnesini gör
-        </div>
+        {/* ⚠ "Sicil karnesini gör" SATIRI KALDIRILDI.
+            İki sebebi vardı ve ikisi de ölçülebilir:
+            · Kartın KENDİSİ `role="button"` — o satır tıklanabilir bir çağrı
+              gibi görünüyor ama ayrı bir hedefi yok. Kullanıcıya ikinci bir
+              düğme varmış gibi geliyordu.
+            · Yer kaplıyordu: kart 311 px yükseklikteydi; bu satır ve boşluğu
+              ~28 px'ini alıyordu. Vitrine mümkün olduğunca çok araç sığmalı.
+
+            ⚠ TUTAR HÂLÂ GÖSTERİLMİYOR — HUKUKİ. Ürüne ait herhangi bir fiyat,
+            platformu satış sitesi konumuna sokuyor. Kartın vurgusu bedel değil
+            SİCİL; onu da yukarıdaki sicil şeridi taşıyor. */}
       </div>
     </div>
   );

@@ -18,6 +18,11 @@ const { test, expect, girisYap } = require('./yardimcilar');
 const ACIK_ROTALAR = [
   { yol: '/', ad: 'Anasayfa / vitrin' },
   { yol: '/verify', ad: 'PIN sorgulama' },
+  // Anasayfa sabit 24 kart gösteriyor; sığmayan araçların tek adresi
+  // burası. Yeni rota olduğu için bekçiye eklendi: aksi hâlde konsol
+  // hatası, oturum sızıntısı ve boş sayfa denetimlerinin hiçbiri
+  // bu rotaya uygulanmazdı.
+  { yol: '/vitrin', ad: 'Vitrin (tüm araçlar)' },
   { yol: '/login', ad: 'Giriş' },
   { yol: '/register', ad: 'Kayıt' },
   { yol: '/dashboard', ad: 'Özet (yer tutucu)' },
