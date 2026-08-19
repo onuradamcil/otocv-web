@@ -78,7 +78,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
           <div className="w-12 h-12 bg-slate-50 rounded-lg flex items-center justify-center text-slate-500">
             <Icon name="arac" size="xl" />
           </div>
-          <h3 className="text-sm font-semibold text-slate-900">Vitrinde aracınız yok</h3>
+          <h2 className="text-sm font-semibold text-slate-900">Vitrinde aracınız yok</h2>
           <p className="text-xs text-slate-500 max-w-sm">Garajınızdaki araçları vitrine çıkarınca buradan yönetebilirsiniz.</p>
           <button 
             onClick={onNavigateToGarage}
@@ -135,7 +135,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                         <span className="text-etiket font-semibold text-slate-500 tabular-nums">{item.year}</span>
                       )}
                     </div>
-                    <h4 className="text-sm font-semibold text-slate-900 truncate">{item.brand} {item.model}</h4>
+                    <h2 className="text-sm font-semibold text-slate-900 truncate">{item.brand} {item.model}</h2>
                     {/* Kaynak RPC alani `listing_title` adiyla donduruyor; `item.title`
                         hicbir zaman dolu gelmiyordu ve alt baslik hep bostu. */}
                     <p className="text-xs text-slate-500 font-medium truncate mt-0.5">{item.listing_title}</p>

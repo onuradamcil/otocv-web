@@ -101,12 +101,17 @@ function BelgeKarti({ kayit, kaynak, demo }) {
             {kayit.durum.text}
           </span>
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="baslik-kart text-slate-900 block">{kayit.belge}</span>
+        {/* ⚠ BELGE ADI ARTIK GERÇEK BAŞLIK (h2) — `BakimEkrani` ile aynı
+            gerekçe: başlık listesinde yalnızca tekrar eden "BUGÜN
+            YAPABİLECEKLERİNİZ" etiketleri görünüyordu, kartın kendi adı
+            hiç görünmüyordu. Sarmalayıcı `<span>` → `<div>`, çünkü
+            `<span>` içinde `<h2>` geçersiz HTML. Görsel değişiklik yok. */}
+        <div className="min-w-0 flex-1">
+          <h2 className="baslik-kart text-slate-900">{kayit.belge}</h2>
           <span className="metin-yardimci text-slate-500 block">
             {kayit.arac} · {formatTrDate(kayit.tarih)} tarihinde doluyor
           </span>
-        </span>
+        </div>
       </div>
 
       {/* --- BUGÜN YAPABİLECEKLERİNİZ --- */}

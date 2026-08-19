@@ -70,14 +70,25 @@ function BakimKarti({ kayit, onKayitEkle }) {
             </span>
           )}
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="baslik-kart text-slate-900 block">{kayit.arac || 'Araç'}</span>
+        {/* ⚠ ARAÇ ADI ARTIK GERÇEK BAŞLIK (h2), ÖNCEDEN `<span>` İDİ.
+            Ölçüldü: bu ekranda başlık listesi 10 kez "BUGÜN
+            YAPABİLECEKLERİNİZ" gösteriyor ve HİÇ araç adı içermiyordu —
+            yani başlıkla içerik yer değiştirmişti. Ekran okuyucuyla
+            başlıklar arasında gezen kullanıcı hangi kartta olduğunu
+            anlayamıyordu.
+
+            ⚠ SARMALAYICI DA `<span>`DAN `<div>`E ÇEVRİLDİ: `<span>` içine
+            `<h2>` koymak geçersiz HTML (öbek öğe, satır içi öğenin
+            içinde). İkisi de flex öğesi olduğu için GÖRSEL DEĞİŞİKLİK YOK.
+            `block` sınıfı da düştü — `<h2>` zaten öbek. */}
+        <div className="min-w-0 flex-1">
+          <h2 className="baslik-kart text-slate-900">{kayit.arac || 'Araç'}</h2>
           {kmYaz(kayit.km) && (
             <span className="metin-yardimci text-slate-500 block">
               Güncel kilometre: {kmYaz(kayit.km)} km
             </span>
           )}
-        </span>
+        </div>
       </div>
 
       {/* --- DURUM: yalnızca bilinenler --- */}
