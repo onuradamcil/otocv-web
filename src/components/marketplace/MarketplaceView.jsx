@@ -33,10 +33,11 @@ import {
   fetchCatalogModels,
   fetchCatalogPackages,
 } from '../../services/catalogService';
-// DEMO — GEÇİCİ. Vitrin dolu hâlini görmek için; `?demo=N` yoksa hiç
-// çağrılmıyor. Kaldırmak için bu satırı, `loadLiveListings` içindeki dalı
-// ve demo şeridini sil (üçü de "DEMO" ile işaretli).
-import { demoVitrinUret, DEMO_EN_FAZLA } from '../../utils/demoVitrin';
+// DEMO importu KALDIRILDI: demo kartlar artık `demo_araclar` tablosunda ve
+// `arac_arama()` onları GERÇEK kartlarla AYNI SQL süzgecinden geçiriyor.
+// İstemcide birleştirilselerdi sunucu süzgecinin dışında kalırlardı:
+// marka seçilince listede durur ama sayaçlar onları saymazdı — sayaçlar
+// yalan söylerdi. Sunucu her satıra `demo: true/false` yazıyor.
 import { seckiUret } from '../../utils/secki';
 //  importu KALDIRILDI: tek kullanicisi "Ucretlerin tamami" bagi vardi.
 // `paketler` importu KALDIRILDI: "Ücretli işlemler" bölümü çıktı.
@@ -85,6 +86,10 @@ const SECKI_KART_SINIRI = 12;
 // `/vitrin` sayfasında bir seferde çizilen kart sayısı. Envanter bugün
 // küçük ama sınırsız `map` bir gün binlerce düğüm demek olurdu.
 const TAM_SAYFA_ADIM = 48;
+
+// Seçki havuzu: ızgarada gösterilenlerin DIŞINDAN öneri seçebilmek için
+// ana sayfadan daha geniş bir küme çekiliyor. RPC'nin sayfa tavanı 100.
+const SECKI_HAVUZ_BOYUTU = 60;
 
 /**
  * Bu aracın KARNESİ paylaşıma açık mı?
@@ -526,7 +531,17 @@ export default function MarketplaceView({
   // doğru davranış bu.
   const [acilisZamani] = useState(() => Date.now());
   // Yalnızca `/vitrin` sayfasında kullanılıyor: "Daha fazla göster" ile artıyor.
-  const [sayfaAdet, setSayfaAdet] = useState(TAM_SAYFA_ADIM);
+  // ⚠ SAYFALAMA ARTIK SUNUCUDA. Eskiden tüm envanter indirilip
+  // `slice(0, sayfaAdet)` ile kırpılıyordu. Artık her "daha fazla"
+  // bir sonraki sayfayı ÇEKİYOR ve biriktiriyor.
+  const [sayfa, setSayfa] = useState(0);
+  // Sunucudan gelen toplam eşleşme sayısı (sayfa değil, TÜM sonuç).
+  const [toplamSonuc, setToplamSonuc] = useState(0);
+  // Süzgeç sayaçları da sunucudan geliyor (kendi yüklemini hariç tutarak).
+  const [sunucuSecenek, setSunucuSecenek] = useState(null);
+  // ⚠ SEÇKİ HAVUZU AYRI ÇEKİLİYOR. Seçki bilerek süzgeçten BAĞIMSIZ bir
+  // öneri bloğu; ana sorgunun sonucundan beslenseydi süzgece bağlanırdı.
+  const [seckiHavuzu, setSeckiHavuzu] = useState([]);
 
   // =========================================================================
   // MARKA AĞACI — KATALOG GEZİNMESİ
@@ -632,9 +647,77 @@ export default function MarketplaceView({
     return () => { iptal = true; };
   }, [agacYolu]);
 
+  /**
+   * Sunucu tarafı arama. Süzgeç, sayfa ve arama metnini RPC'ye geçirir.
+   *
+   * ⚠ `ekle` BAYRAĞI: "daha fazla" tıklandığında yeni sayfa mevcut listeye
+   * EKLENİYOR; süzgeç değiştiğinde ise liste SIFIRDAN kuruluyor. Tek bir
+   * `setListings` ile ikisini de yapmak, süzgeç değişince eski kartların
+   * ekranda kalmasına yol açardı.
+   */
+  const aramaYap = useCallback(async (istekSuzgec, istekArama, istekSayfa, ekle) => {
+    try {
+      setLoading(true);
+      const boyut = tamSayfa ? TAM_SAYFA_ADIM : ANASAYFA_KART_SINIRI;
+      const yuk = {
+        arama: istekArama || '',
+        sehir: istekSuzgec.sehir, yakit: istekSuzgec.yakit,
+        vites: istekSuzgec.vites, tramer: istekSuzgec.tramer,
+        marka: istekSuzgec.marka, seri: istekSuzgec.seri,
+        model: istekSuzgec.model, donanim: istekSuzgec.donanim,
+        yilMin: String(istekSuzgec.yilMin ?? ''), yilMax: String(istekSuzgec.yilMax ?? ''),
+        kmMin: String(istekSuzgec.kmMin ?? ''), kmMax: String(istekSuzgec.kmMax ?? ''),
+        sicilEnAz: String(istekSuzgec.sicilEnAz ?? 0),
+        yalnizOneCikan: !!istekSuzgec.yalnizOneCikan,
+        yalnizYeni: !!istekSuzgec.yalnizYeni,
+      };
+      const sonuc = await fetchMarketplaceListings(yuk, boyut, istekSayfa * boyut);
+      if (sonuc.success) {
+        setListings((eski) => (ekle ? [...eski, ...sonuc.data] : sonuc.data));
+        setToplamSonuc(sonuc.toplam);
+        if (sonuc.secenekler) setSunucuSecenek(sonuc.secenekler);
+      }
+    } catch (error) {
+      console.error('Vitrin yüklenirken hata oluştu:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [tamSayfa]);
+
+  // ⚠ ARAMA METNİ GECİKTİRİLİYOR (300 ms). Her tuş vuruşunda sunucuya
+  // gitmek hem gereksiz yük hem de yarış durumu demek: hızlı yazan
+  // kullanıcıda geç dönen eski yanıt yenisinin üstüne yazabilir.
+  const [gecikmisArama, setGecikmisArama] = useState('');
   useEffect(() => {
-    loadLiveListings();
-  }, []);
+    const z = setTimeout(() => setGecikmisArama(searchQuery), 300);
+    return () => clearTimeout(z);
+  }, [searchQuery]);
+
+  // Süzgeç, arama ya da sayfa değişti -> sunucudan çek.
+  //
+  // ⚠ TEK ETKİ, İKİ DEĞİL. Önce "süzgeç değişti" ve "sayfa değişti" diye
+  // iki ayrı etki vardı ve ilki içinde `setSayfa(0)` çağrılıyordu; bu,
+  // React'in "etki gövdesinde setState" kuralını çiğniyor (cascading
+  // render) ve lint hata veriyor. Sayfa artık süzgecin GERÇEKTEN
+  // değiştiği yerde sıfırlanıyor (`sayfayiSifirla`), etki yalnızca veri
+  // çekiyor.
+  //
+  // `sayfa > 0` -> ekle; `sayfa === 0` -> listeyi sıfırdan kur.
+  useEffect(() => {
+    aramaYap(suzgec, gecikmisArama, sayfa, sayfa > 0);
+  }, [suzgec, gecikmisArama, sayfa, aramaYap]);
+
+  // ⚠ SEÇKİ HAVUZU SÜZGEÇSİZ ÇEKİLİYOR. Bölümün amacı "bunlara da bakın";
+  // kullanıcı 'Dizel' süzdüğünde önerilerin de dizele daralması o amacı
+  // ortadan kaldırırdı. Yalnızca anasayfada ve bir kez.
+  useEffect(() => {
+    if (tamSayfa) return;
+    let iptal = false;
+    fetchMarketplaceListings({}, SECKI_HAVUZ_BOYUTU, 0).then((r) => {
+      if (!iptal && r.success) setSeckiHavuzu(r.data || []);
+    });
+    return () => { iptal = true; };
+  }, [tamSayfa]);
 
   // Favoriler ayrı çekiliyor: vitrin listesi oturumsuz da görünüyor, favori
   // ise oturuma bağlı. İkisini tek sorguya bağlamak listeyi oturum
@@ -673,48 +756,10 @@ export default function MarketplaceView({
     if (hata) toast.hata(hata);
   };
 
-  const loadLiveListings = async () => {
-    try {
-      setLoading(true);
 
-      const result = await fetchMarketplaceListings();
-      if (result.success) {
-        const gercek = result.data || [];
-
-        // =================================================================
-        // DEMO — GEÇİCİ, SİLİNMEK ÜZERE YAZILDI
-        // =================================================================
-        // Sahte kartlar GERÇEK araçlarla aynı listeye ekleniyor. Ürün
-        // sahibinin kararı: vitrin, süzgeçler ve yeni bölümler ancak dolu
-        // envanterle değerlendirilebiliyor ve bunu iki ayrı adreste
-        // denemek iki kez iş demek.
-        //
-        // ⚠ VERİTABANINA HİÇBİR ŞEY YAZILMIYOR. Kayıtlar yalnızca bu
-        // tarayıcı oturumunda, bellekte var.
-        //
-        // ⚠ GERÇEK KAYITLAR ÖNDE. Sıralamayı zaten `suz` yapıyor
-        // (öne çıkanlar, sonra tarih) ama birleştirme sırası da gerçek
-        // veriyi öne alıyor: demo bir gün silindiğinde ızgaranın ilk
-        // kartları değişmesin.
-        //
-        // ⚠ `acilisZamani` DEĞİL `Date.now()`: `acilisZamani` bir state
-        // değeri ve buradan okunması `loadLiveListings`i ona bağlardı
-        // (lint "bayat kapanış" uyarısı verir). Bu fonksiyon render
-        // sırasında değil `useEffect` içinden çalışıyor.
-        //
-        // SİLMEK İÇİN: bu bloğu ve `demoVitrin.js` dosyasını kaldır.
-        // =================================================================
-        const demolar = demoVitrinUret(DEMO_EN_FAZLA, Date.now());
-        setListings([...gercek, ...demolar]);
-      }
-    } catch (error) {
-      console.error("Vitrin yüklenirken hata oluştu:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const suzgecDegistir = (alan, deger) => {
+    setSayfa(0);   // yeni süzgeç -> ilk sayfadan başla
     setSuzgec((onceki) => ({ ...onceki, [alan]: deger }));
   };
 
@@ -746,6 +791,7 @@ export default function MarketplaceView({
     setAgacYolu((y) => [...y.slice(0, derinlik), { id: dugum.id, ad: dugum.name }]);
     // Süzme ölçütü: katalogtan gelen AD normalize edilip yazılıyor. Araçtaki
     // metin de `agacUygun` içinde aynı işlemden geçiyor.
+    setSayfa(0);
     setSuzgec((onceki) => {
       const yeni = { ...onceki };
       KADEMELER.forEach((k, i) => {
@@ -759,6 +805,7 @@ export default function MarketplaceView({
   /** Kırıntıda `hedef` kademesine döner: o kademe ve altı boşalıyor. */
   const agacaGit = (hedef) => {
     setAgacYolu((y) => y.slice(0, hedef));
+    setSayfa(0);
     setSuzgec((onceki) => {
       const yeni = { ...onceki };
       KADEMELER.forEach((k, i) => {
@@ -769,10 +816,12 @@ export default function MarketplaceView({
   };
 
   const suzgecleriSifirla = () => {
+    setSayfa(0);
     setSearchQuery('');
     // Katalog gezinmesi de köke dönüyor; yalnızca `suzgec` temizlenseydi
     // ızgara sıfırlanır ama ağaç seçili dalda kalırdı.
     setAgacYolu([]);
+    setSayfa(0);
     setSuzgec({
       sehir: 'Tümü', yakit: 'Tümü', vites: 'Tümü', tramer: 'Tümü',
       yilMin: '', yilMax: '', kmMin: '', kmMax: '', sicilEnAz: 0, yalnizOneCikan: false,
@@ -815,136 +864,54 @@ export default function MarketplaceView({
   // =========================================================================
   const kucuk = (s) => String(s || '').toLocaleLowerCase('tr-TR');
 
-  const YUKLEMLER = useMemo(() => ({
-    arama: (i, s, q) => {
-      if (!q) return true;
-      // `package` EKLENDİ: marka ağacı donanımı birinci sınıf bir kademe
-      // yaptı, dolayısıyla "X-PACK" yazan kullanıcıya boş dönmek artık
-      // ağaçla tutarsızlık. Ağaç dört alanı kullanıyorsa arama da kullanmalı.
-      return [i.brand, i.model, i.series, i.package, i.listing_title, i.city, i.pin_code]
-        .some((alan) => kucuk(alan).includes(q));
-    },
-    sehir: (i, s) => s.sehir === 'Tümü' || i.city === s.sehir,
-    yakit: (i, s) => s.yakit === 'Tümü' || i.fuel_type === s.yakit,
-    vites: (i, s) => s.vites === 'Tümü' || i.transmission === s.vites,
-    // ⚠ 'Bilmiyorum' AYRI BİR SEÇENEK, 'Tramer Yok'a KATILMIYOR. Beyan
-    // etmeyen kullanıcının aracını hasarsız saymak, ürünün sihirbazda
-    // bilerek düzelttiği hatanın aynısı olurdu ('Hasarsız' varsayılanı
-    // kaldırılıp 'Bilmiyorum' konmuştu; `16-uydurma-veri` bunu bekçiliyor).
-    tramer: (i, s) => s.tramer === 'Tümü' || i.tramer_status === s.tramer,
-    // MARKA AĞACI — dört kademe TEK yüklemde.
-    //
-    // ⚠ NİYE DÖRT AYRI YÜKLEM DEĞİL: `haric` tek bir yüklem adını atlıyor,
-    // ağaç ise dört kademelik bir ZİNCİR. Dört ayrı adla "yalnızca markayı
-    // uygula, seriyi uygulama" gibi bir ara durumu ifade etmenin yolu yok.
-    // Sayım tarafı bu yüzden `haric` değil KIRPILMIŞ SÜZGEÇ kullanıyor
-    // (aşağıda `secenekler`, `agaciKirp`).
-    agac: agacUygun,
-    yil: (i, s) => {
-      const y = Number(i.year) || 0;
-      if (s.yilMin && y < Number(s.yilMin)) return false;
-      if (s.yilMax && y > Number(s.yilMax)) return false;
-      return true;
-    },
-    km: (i, s) => {
-      // ⚠ `km` 0 ya da boş olabiliyor. Aralık verilmişse kaydı ELEMEK yerine
-      // dahil etmek yanlış olurdu; ama "0 km" de meşru bir değer (sıfır araç).
-      // Bu yüzden yalnızca DEĞER YOKSA (null/undefined/boş) eleniyor.
-      const ham = i.km;
-      if (!s.kmMin && !s.kmMax) return true;
-      if (ham === null || ham === undefined || ham === '') return false;
-      const k = Number(ham);
-      if (!Number.isFinite(k)) return false;
-      if (s.kmMin && k < Number(s.kmMin)) return false;
-      if (s.kmMax && k > Number(s.kmMax)) return false;
-      return true;
-    },
-    sicil: (i, s) => (Number(i.trust_score) || 0) >= Number(s.sicilEnAz || 0),
-    oneCikan: (i, s) => !s.yalnizOneCikan || i.is_featured === true,
-    yeni: (i, s) => {
-      if (!s.yalnizYeni) return true;
-      const t = new Date(i.created_at || 0).getTime();
-      if (!Number.isFinite(t) || t === 0) return false;
-      return (s.__simdi - t) <= YENI_ESIGI_MS;
-    },
-  }), []);
-
-  /**
-   * Süzgeçleri uygular. `haric` verilen yüklem ATLANIR — faceted sayım için.
-   * Sıralama: öne çıkanlar önce (ücreti ödenmiş görünürlük), sonra yeni olan.
-   */
-  const suz = useCallback((liste, s, q, haric) => {
-    // Açılış zamanı yüklemlere süzgeç nesnesiyle taşınıyor: yüklemler saf
-    // kalıyor, zamanı kendileri okumuyor.
-    const sz = { ...s, __simdi: acilisZamani };
-    const gecenler = liste.filter((i) =>
-      Object.entries(YUKLEMLER).every(([ad, f]) => ad === haric || f(i, sz, q))
-    );
-    return gecenler.sort((a, b) => {
-      // ⚠ ÖNE ÇIKARMA SIRALAMAYI BELİRLİYOR, GÖRÜNÜRLÜĞÜ ENGELLEMİYOR.
-      // Eskiden `is_featured` kesin bir duvardı: öne çıkarma satın almamış
-      // araç hiçbir koşulda anasayfada görünmüyordu. Artık ödenmiş öne
-      // çıkarma sırada öne geçiriyor, ama süzgeç sonucundaki diğer araçlar
-      // da listeleniyor.
-      if (a.is_featured !== b.is_featured) return a.is_featured ? -1 : 1;
-      return new Date(b.created_at || 0) - new Date(a.created_at || 0);
-    });
-  }, [YUKLEMLER, acilisZamani]);
+  // =========================================================================
+  // ⚠ İSTEMCİ TARAFI SÜZME KALDIRILDI — ARTIK SUNUCUDA
+  // -------------------------------------------------------------------------
+  // Burada `YUKLEMLER` (11 yüklem), `suz()` ve `secenekler` vardı: tüm
+  // envanter indirilip tarayıcıda süzülüyor, sıralanıyor, kırpılıyor ve
+  // sayaçlar hesaplanıyordu. 11 araçta kusursuz çalışıyordu; yüz binlerce
+  // araçta her arama tüm tabloyu tel üzerinden çekerdi.
+  //
+  // Tüm yüklemler `arac_arama()` RPC'sine BİREBİR taşındı; korunan ürün
+  // kararları orada da yazılı:
+  //   • 'Bilmiyorum' tramer değeri 'Tramer Yok'a KATILMIYOR.
+  //   • Öne çıkarma SIRALAMAYI belirliyor, görünürlüğü ENGELLEMİYOR.
+  //   • Sayaçlar kendi yüklemini HARİÇ tutarak sayılıyor ("80+ (0)" dürüst).
+  //
+  // ⚠ SAYAÇLAR NİYE AYNI ÇAĞRIDA: kırpılmış bir listeden sayılan sayaç
+  // yalan söyler. Bu yüzden LIMIT ile sayaçlar aynı anda taşınmak zorundaydı.
+  // =========================================================================
 
   const aramaSorgusu = kucuk(searchQuery).trim();
 
-  /** Ekranda basılan liste. Artık TEK kaynak bu. */
-  const sonuclar = useMemo(
-    () => suz(listings, suzgec, aramaSorgusu),
-    [suz, listings, suzgec, aramaSorgusu]
-  );
+  /** Izgarada çizilen kartlar — sunucu zaten süzüp sayfaladı. */
+  const sonuclar = listings;
 
   /**
-   * Seçenek listeleri ve GERÇEK sayaçları.
-   * Her seçenek grubu kendi süzgeci hariç tutularak sayılıyor.
+   * Süzgeç sayaçları. Sunucu `[[ad, adet], ...]` döndürüyor; bileşenlerin
+   * beklediği şekil bu, ek eşleme gerekmiyor.
+   *
+   * ⚠ `tumu` ARTIK BOYUT BAŞINA. Eskiden tek bir `tumuAdet` vardı ve
+   * şehir/yakıt/vites gruplarının üçüne birden veriliyordu ('sehir' hariç
+   * tutularak); kodun kendi yorumu da bunu yaklaşık kabul ediyordu. Sunucu
+   * her boyutun "Tümü" satırını kendi hariç tutmasıyla hesaplıyor.
    */
   const secenekler = useMemo(() => {
-    const grupla = (haric, alanAdi) => {
-      const kume = suz(listings, suzgec, aramaSorgusu, haric);
-      const sayac = new Map();
-      for (const i of kume) {
-        const d = i[alanAdi];
-        if (d === null || d === undefined || String(d).trim() === '') continue;
-        sayac.set(d, (sayac.get(d) || 0) + 1);
-      }
-      return [...sayac.entries()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0]), 'tr'));
-    };
-
-    const sicilKumesi = suz(listings, suzgec, aramaSorgusu, 'sicil');
-    const oneCikanKumesi = suz(listings, suzgec, aramaSorgusu, 'oneCikan');
-
+    const g = sunucuSecenek;
     return {
-      sehirler: grupla('sehir', 'city'),
-      yakitlar: grupla('yakit', 'fuel_type'),
-      vitesler: grupla('vites', 'transmission'),
-      tramerler: grupla('tramer', 'tramer_status'),
-      // ⚠ BANTLAR SABİT DEĞİL, SAYILARI GERÇEK.
-      // Eskiden tek bir "Güven Skoru (%80+)" çipi vardı ve veritabanındaki en
-      // yüksek puan 72 olduğu için o çip bağlansa bile DAİMA 0 sonuç verirdi.
-      // Şimdi her bandın yanında kaç araç olduğu yazıyor: "80+ (0)" dürüst
-      // bir bilgi, sabit "%80+" ise yanıltmaydı.
-      sicilBantlari: [0, 40, 60, 80].map((esik) => ({
-        esik,
-        adet: sicilKumesi.filter((i) => (Number(i.trust_score) || 0) >= esik).length,
-      })),
-      oneCikanAdet: oneCikanKumesi.filter((i) => i.is_featured === true).length,
-      yeniAdet: suz(listings, suzgec, aramaSorgusu, 'yeni')
-        .filter((i) => {
-          const t = new Date(i.created_at || 0).getTime();
-          return Number.isFinite(t) && t !== 0 && (acilisZamani - t) <= YENI_ESIGI_MS;
-        }).length,
-      // Şehir/Yakıt/Vites gruplarındaki "Tümü" satırının sayısı. 'sehir'
-      // hariç tutuluyor çünkü üç grubun da en geniş kümesi bu: kendi süzgeci
-      // kaldırılmış hâl. (Eskiden burada 'marka' yazıyordu; düz marka
-      // listesi kaldırılınca o ad bir yükleme karşılık gelmez olmuştu.)
-      tumuAdet: suz(listings, suzgec, aramaSorgusu, 'sehir').length,
+      sehirler:  g?.sehirler  || [],
+      yakitlar:  g?.yakitlar  || [],
+      vitesler:  g?.vitesler  || [],
+      tramerler: g?.tramerler || [],
+      sicilBantlari: g?.sicilBantlari || [0, 40, 60, 80].map((esik) => ({ esik, adet: 0 })),
+      oneCikanAdet: g?.oneCikanAdet ?? 0,
+      yeniAdet: g?.yeniAdet ?? 0,
+      tumuSehir:  g?.tumu?.sehir  ?? 0,
+      tumuYakit:  g?.tumu?.yakit  ?? 0,
+      tumuVites:  g?.tumu?.vites  ?? 0,
+      tumuTramer: g?.tumu?.tramer ?? 0,
     };
-  }, [suz, listings, suzgec, aramaSorgusu, acilisZamani]);
+  }, [sunucuSecenek]);
 
   // Ağacın ekrana gereken hâli. `secenekler` memo'sunda DEĞİL: artık
   // envanterden hesaplanan bir şey yok, katalog state'inden doğrudan türüyor.
@@ -989,9 +956,9 @@ export default function MarketplaceView({
    * reddetti: anasayfa sınırsız uzayamaz. Artık sabit üst sınır var ve
    * fazlası `/vitrin` sayfasına gidiyor.
    */
-  const gosterilenler = tamSayfa
-    ? sonuclar.slice(0, sayfaAdet)
-    : sonuclar.slice(0, ANASAYFA_KART_SINIRI);
+  // ⚠ ARTIK KIRPILMIYOR. Sunucu zaten sayfa boyutu kadar döndürüyor ve
+  // "daha fazla" bir SONRAKİ sayfayı çekip listeye ekliyor.
+  const gosterilenler = sonuclar;
 
   /**
    * "Sizin için seçtiklerimiz" kartları.
@@ -1015,11 +982,14 @@ export default function MarketplaceView({
     // doğrudan yalanlıyor. Aktif bir aramada seçki, sonuçlarla yarışıyor.
     // Bölüm gezinme yardımı; arama sırasında değil, varsayılan görünümde işe yarıyor.
     if (suzgecEtkin) return [];
-    const gosterilen = new Set(gosterilenler.map((i) => i.listing_id || i.id));
-    const havuz = listings.filter((i) => !gosterilen.has(i.listing_id || i.id));
+    // ⚠ HAVUZ `listings` DEĞİL `seckiHavuzu`. `listings` artık yalnızca
+    // GEÇERLİ SAYFAYI ve süzülmüş hâli taşıyor; ondan öneri üretmek seçkiyi
+    // süzgece bağlardı. `seckiHavuzu` süzgeçsiz ve ayrı çekiliyor.
+    const gosterilen = new Set(gosterilenler.map((i) => i.kart_id || i.listing_id));
+    const havuz = seckiHavuzu.filter((i) => !gosterilen.has(i.kart_id || i.listing_id));
     // Dördüncü argüman (gezinme geçmişi) BUGÜN BOŞ — bkz. `utils/secki.js`.
     return seckiUret(havuz, SECKI_KART_SINIRI, acilisZamani);
-  }, [tamSayfa, suzgecEtkin, listings, gosterilenler, acilisZamani]);
+  }, [tamSayfa, suzgecEtkin, seckiHavuzu, gosterilenler, acilisZamani]);
 
   // =========================================================================
   // 3. BLOK: ARAYÜZ RENDER KATMANI (DESKTOP WEB ENTERPRISE)
@@ -1078,7 +1048,7 @@ export default function MarketplaceView({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSayfa(0); setSearchQuery(e.target.value); }}
               aria-label="Marka, model, şehir veya PIN ile ara"
               placeholder="Marka, model, şehir veya PIN kodu ile ara..."
               className="w-full bg-transparent border-none outline-none text-sm text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal pl-0.5"
@@ -1263,13 +1233,13 @@ export default function MarketplaceView({
                   Marka aramada kalıyor: kullanıcı yazarak süzebiliyor. */}
 
               {[
-                { baslik: 'Şehir', secenekler: secenekler.sehirler, alan: 'sehir' },
-                { baslik: 'Yakıt Tipi', secenekler: secenekler.yakitlar, alan: 'yakit' },
-                { baslik: 'Vites Tipi', secenekler: secenekler.vitesler, alan: 'vites' },
+                { baslik: 'Şehir', secenekler: secenekler.sehirler, alan: 'sehir', tumu: secenekler.tumuSehir },
+                { baslik: 'Yakıt Tipi', secenekler: secenekler.yakitlar, alan: 'yakit', tumu: secenekler.tumuYakit },
+                { baslik: 'Vites Tipi', secenekler: secenekler.vitesler, alan: 'vites', tumu: secenekler.tumuVites },
                 // Hasar beyanı EN SONDA: üç değerin ikisi ('Tramer Var',
                 // 'Bilmiyorum') alıcıyı caydırıcı bilgi ve listenin başında
                 // durması gereken bir şey değil.
-                { baslik: 'Tramer Kaydı', secenekler: secenekler.tramerler, alan: 'tramer' },
+                { baslik: 'Tramer Kaydı', secenekler: secenekler.tramerler, alan: 'tramer', tumu: secenekler.tumuTramer },
               ]
                 // Tek seçeneği olan bir süzgeç süzmüyor, yalnızca yer kaplıyor.
                 // Projede yerleşik kural: veri yoksa bölüm hiç çizilmiyor.
@@ -1282,7 +1252,7 @@ export default function MarketplaceView({
                 >
                   <SuzgecGrubu
                     secenekler={g.secenekler}
-                    tumuAdet={secenekler.tumuAdet}
+                    tumuAdet={g.tumu}
                     secili={suzgec[g.alan]}
                     sec={(deger) => suzgecDegistir(g.alan, deger)}
                   />
@@ -1439,10 +1409,10 @@ export default function MarketplaceView({
                   </SuzgecAkordiyon>
 
                   {[
-                    { baslik: 'Şehir', secenekler: secenekler.sehirler, alan: 'sehir' },
-                    { baslik: 'Yakıt Tipi', secenekler: secenekler.yakitlar, alan: 'yakit' },
-                    { baslik: 'Vites Tipi', secenekler: secenekler.vitesler, alan: 'vites' },
-                    { baslik: 'Tramer Kaydı', secenekler: secenekler.tramerler, alan: 'tramer' },
+                    { baslik: 'Şehir', secenekler: secenekler.sehirler, alan: 'sehir', tumu: secenekler.tumuSehir },
+                    { baslik: 'Yakıt Tipi', secenekler: secenekler.yakitlar, alan: 'yakit', tumu: secenekler.tumuYakit },
+                    { baslik: 'Vites Tipi', secenekler: secenekler.vitesler, alan: 'vites', tumu: secenekler.tumuVites },
+                    { baslik: 'Tramer Kaydı', secenekler: secenekler.tramerler, alan: 'tramer', tumu: secenekler.tumuTramer },
                   ]
                     .filter((g) => (g.secenekler || []).length >= 2)
                     .map((g) => (
@@ -1778,14 +1748,18 @@ export default function MarketplaceView({
                 binlerce DOM düğümü demek olurdu. Anasayfada bu düğme hiç
                 çizilmiyor, orada sınır sabit (24) ve fazlası zaten buraya
                 yönlendiriliyor. */}
-            {tamSayfa && sonuclar.length > gosterilenler.length && (
+            {/* ⚠ KIYAS ARTIK SUNUCUDAKİ TOPLAM İLE. Eskiden indirilen
+                listenin uzunluğuyla kırpılmış hâli kıyaslanıyordu; süzme
+                sunucuya taşınınca ikisi hep eşit olur ve düğme HİÇ
+                görünmezdi. */}
+            {tamSayfa && toplamSonuc > gosterilenler.length && (
               <div className="flex justify-center pt-2">
                 <button
                   type="button"
-                  onClick={() => setSayfaAdet((n) => n + TAM_SAYFA_ADIM)}
+                  onClick={() => setSayfa((n) => n + 1)}
                   className={dugme('ikincil')}
                 >
-                  Daha fazla göster ({sonuclar.length - gosterilenler.length} araç daha)
+                  Daha fazla göster ({toplamSonuc - gosterilenler.length} araç daha)
                 </button>
               </div>
             )}

@@ -153,33 +153,40 @@ export const unpublishVehicleListing = async (vehicle) => {
  * bilerek gizleniyor. Çözüm favori ve mesaj servislerindeki kalıbın aynısı:
  * güvenli izdüşüm döndüren `security definer` fonksiyon.
  */
-export const fetchMarketplaceListings = async (filters = {}) => {
+export const fetchMarketplaceListings = async (suzgec = {}, limit = 24, offset = 0) => {
   try {
-    // ⚠ KAYNAK DEĞİŞTİ: `vitrin_listesi` -> `arac_arama`.
+    // ⚠ SÜZME ARTIK SUNUCUDA. Eski hâli `arac_arama()`yı parametresiz
+    // çağırıp görünür envanterin TAMAMINI indiriyordu; süzme, sıralama,
+    // sayfalama ve süzgeç sayaçları tarayıcıda yapılıyordu. 11 araçta
+    // kusursuz, yüz binlerce araçta ürünü durduran bir tasarımdı.
     //
-    // `vitrin_listesi` YALNIZCA vitrin kaydı olan araçları veriyordu (2 araç),
-    // dolayısıyla anasayfadaki arama ve süzgeçler envanterin küçük bir
-    // dilimini süzüyordu. `arac_arama` görünürlüğü açık HER aracı döndürüyor
-    // ve `katman` alanıyla hangisinin vitrinde olduğunu söylüyor.
+    // ⚠ SAYAÇLAR DA AYNI ÇAĞRIDA GELİYOR. "Ankara (3)", "80+ (0)" gibi
+    // sayılar kendi yüklemini hariç tutarak hesaplanıyor; kırpılmış bir
+    // listeden sayılsalardı yalan söylerlerdi. Bu yüzden LIMIT ile
+    // sayaçlar aynı anda sunucuya taşındı — ikisini ayırmanın yolu yok.
     //
-    // ⚠ PIN yalnızca vitrin katmanında dolu geliyor: sadece listelenen bir
-    // aracın karnesi paylaşıma açık değil. Kart o yüzden `pin_code`a bakıp
-    // karneye gidip gitmeyeceğine karar veriyor.
-    //
-    // `vitrin_listesi` KALDIRILMADI: `MyListingsScreen` onu kullanıyor ve o
-    // ekranın işi zaten yalnızca kullanıcının kendi vitrin kayıtları.
-    const { data, error } = await supabase.rpc('arac_arama');
+    // Dönen şekil: { satirlar, toplam, secenekler }
+    const { data, error } = await supabase.rpc('arac_arama', {
+      p_suzgec: suzgec || {},
+      p_limit: limit,
+      p_offset: offset,
+    });
 
     if (error) throw error;
 
-    // RPC zaten düzleştirilmiş nesne döndürüyor; istemcide yeniden
-    // eşleme yapmak iki kopya demekti.
-    return { success: true, data: Array.isArray(data) ? data : [] };
+    const govde = data || {};
+    return {
+      success: true,
+      data: Array.isArray(govde.satirlar) ? govde.satirlar : [],
+      toplam: Number(govde.toplam) || 0,
+      secenekler: govde.secenekler || null,
+    };
   } catch (error) {
     console.error('❌ [Marketplace Service] Vitrin kartlarını çekme hatası:', error.message);
-    return { success: false, error: error.message, data: [] };
+    return { success: false, error: error.message, data: [], toplam: 0, secenekler: null };
   }
 };
+
 /**
  * Kullanıcının KENDİ vitrin kayıtlarını getirir.
  *
