@@ -421,13 +421,17 @@ function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, yukleniyor, git, s
         </div>
       )}
 
-      {/* Kademe adı BAŞLIK DEĞİL, etiket. `h4` yazmak `h2`den sonra atlama
-          üretir ve bu metin bir belge bölümü açmıyor. Kökte hiç basılmıyor:
-          akordiyon başlığı zaten "Marka". */}
-      {!kokte && kademeBasligi && (
-        <p className="etiket text-slate-500">{kademeBasligi}</p>
-      )}
+      {/* ⚠ KADEME BAŞLIĞI (SERİ / MODEL / DONANIM) EKRANDA GÖSTERİLMİYOR.
+          Ürün sahibinin kararı: "marka hariç alt başlıkları kaldır". Kırıntı
+          yolu zaten hangi kademede olunduğunu söylüyor — "Tüm markalar ›
+          McLaren › 540C" satırının altındaki listenin model listesi olduğu
+          bağlamdan anlaşılıyor; ayrıca bir "MODEL" etiketi basmak aynı
+          bilgiyi ikinci kez veriyordu.
 
+          ⚠ BİLGİ SİLİNMEDİ, TAŞINDI. Ekran okuyucu kullanıcısı kırıntıyı
+          "görsel olarak" tarayamıyor; kademe adı aşağıdaki listenin
+          erişilebilir adına geçti (`role="group"` + `aria-label`). Görsel
+          sadeleşme uğruna o kullanıcıyı bağlamsız bırakmak olmazdı. */}
       {yukleniyor ? (
         /* Katalog kademesi iniyor. Step1'de bu durumda hiçbir şey
            yazmıyordu ve sütun boş görünüyordu; burada söyleniyor. */
@@ -439,7 +443,11 @@ function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, yukleniyor, git, s
           Bu kademenin altında ayrım yok. Üst kademeye dönmek için yukarıdaki yolu kullanın.
         </p>
       ) : bicim === 'cip' ? (
-        <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto">
+        <div
+          role="group"
+          aria-label={kademeBasligi ? `${kademeBasligi} seçenekleri` : 'Marka seçenekleri'}
+          className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto"
+        >
           {cocuklar.map((c) => (
             <SuzgecCipi
               key={c.id}
@@ -455,7 +463,11 @@ function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, yukleniyor, git, s
            Katalogda 49 marka var ve BMW'nin altında 18 seri, onun altında
            274 model. Sınırsız uzayan bir liste kenar çubuğunu ekranlar boyu
            uzatır; ürün sahibinin istediği de "marka scroll menüsü". */
-        <div className="flex flex-col gap-0.5 max-h-72 overflow-y-auto pr-1">
+        <div
+          role="group"
+          aria-label={kademeBasligi ? `${kademeBasligi} seçenekleri` : 'Marka seçenekleri'}
+          className="flex flex-col gap-0.5 max-h-72 overflow-y-auto pr-1"
+        >
           {cocuklar.map((c) => (
             <SuzgecSatiri
               key={c.id}

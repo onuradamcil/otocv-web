@@ -6,6 +6,34 @@
 import { supabase } from '../lib/supabase';
 
 /**
+ * Aynı ADLI kayıtları eler.
+ *
+ * ⚠ KATALOGTA GERÇEK TEKRARLAR VAR — ölçüldü: McLaren'in 14 serisinin
+ * TAMAMI çift satır (540C, 570GT, 570S, 720S, Senna…), ayrıca 18 paket.
+ * Süzgeç ağacı araçlarla ADLA eşleştiği için iki "540C" satırı işlevsel
+ * olarak aynı: hangisine tıklanırsa tıklansın sonuç birebir aynı. Kullanıcı
+ * ise listede iki kez görüyor ve bunu bir hata sanıyor.
+ *
+ * ⚠ KATALOG SATIRLARI SİLİNMİYOR. Tekrarları veritabanından temizlemek
+ * cazip ama `car_series` silmek `car_models` ve `car_packages`'ı CASCADE ile
+ * götürüyor; üstelik sihirbaz (Step1) bu tabloları KİMLİKLE kullanıyor ve
+ * elenen kimliğe bağlı kayıtlar sessizce kaybolurdu. Ayıklama görüntüleme
+ * katmanında yapılıyor — geri alınabilir ve hiçbir veriye dokunmuyor.
+ *
+ * Karşılaştırma büyük/küçük harf ve boşluk duyarsız; ilk gelen korunuyor
+ * (sorgular `name` sırasıyla döndüğü için sonuç deterministik).
+ */
+const adaGoreAyikla = (liste) => {
+  const gorulen = new Set();
+  return (liste || []).filter((kayit) => {
+    const anahtar = String(kayit?.name ?? '').trim().toLowerCase();
+    if (!anahtar || gorulen.has(anahtar)) return false;
+    gorulen.add(anahtar);
+    return true;
+  });
+};
+
+/**
  * 1. Markaları Çek (Sayfa Açılışında - Sadece ~2KB)
  */
 export const fetchCatalogBrands = async () => {
@@ -16,7 +44,7 @@ export const fetchCatalogBrands = async () => {
       .order('name', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    return adaGoreAyikla(data);
   } catch (error) {
     console.error('❌ Marka çekme hatası:', error.message);
     return [];
@@ -36,7 +64,7 @@ export const fetchCatalogSeries = async (brandId) => {
       .order('name', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    return adaGoreAyikla(data);
   } catch (error) {
     console.error('❌ Seri çekme hatası:', error.message);
     return [];
@@ -56,7 +84,7 @@ export const fetchCatalogModels = async (seriesId) => {
       .order('name', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    return adaGoreAyikla(data);
   } catch (error) {
     console.error('❌ Alt model çekme hatası:', error.message);
     return [];
@@ -76,7 +104,7 @@ export const fetchCatalogPackages = async (modelId) => {
       .order('name', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    return adaGoreAyikla(data);
   } catch (error) {
     console.error('❌ Paket çekme hatası:', error.message);
     return [];
