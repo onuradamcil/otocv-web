@@ -13,6 +13,7 @@ import { useToast } from '../context/ToastContext';
 import Icon from './common/icons';
 import { tramerVarMi, tramerTutari, tramerDurumu, TRAMER_DURUM } from '../utils/tramerHelper';
 import { parseVehicleDate, formatTrDate } from '../utils/dateHelper';
+import { htmlTemizle } from '../utils/htmlTemizle';
 import useSicil from '../hooks/useSicil';
 import FaturaOnizleme from './common/FaturaOnizleme';
 import SicilPuaniKirilim from './common/SicilPuaniKirilim';
@@ -830,7 +831,12 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   <div className="bg-slate-50/50 border border-slate-100 rounded-md p-4 min-h-[120px] max-h-[350px] overflow-y-auto custom-scrollbar">
                     <div 
                       className="prose prose-slate max-w-none text-xs sm:text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-line"
-                      dangerouslySetInnerHTML={{ __html: vehicle.description || vehicle.details }}
+                      /* ⚠ Bu HERKESE AÇIK bir sayfa ve içerik BAŞKA bir
+                         kullanıcının yazdığı HTML. Ham basılırsa depolanmış
+                         XSS oluyor — 19 Ağustos 2026'da canlıda kanıtlandı.
+                         `htmlTemizle` basma anında çalışıyor ki veritabanında
+                         zaten duran eski kayıtlar da süzgeçten geçsin. */
+                      dangerouslySetInnerHTML={{ __html: htmlTemizle(vehicle.description || vehicle.details) }}
                     />
                   </div>
                 ) : (

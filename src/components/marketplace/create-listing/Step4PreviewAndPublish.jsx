@@ -16,6 +16,7 @@ import FaturaOnizleme from '../../common/FaturaOnizleme';
 import { CAR_PARTS, DAMAGE_STATUSES } from '../../../data/hasarKatalogu';
 import { tramerVarMi } from '../../../utils/tramerHelper';
 import { parseVehicleDate, formatTrDate } from '../../../utils/dateHelper';
+import { htmlTemizle } from '../../../utils/htmlTemizle';
 import { aracGorselleri, YER_TUTUCU_GORSEL } from '../../../utils/aracGorseli';
 import { tiklanabilir } from '../../../utils/tiklanabilir';
 
@@ -670,7 +671,10 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                   <div className="bg-slate-50/50 border border-slate-100 rounded-md p-4 h-[350px] overflow-y-auto custom-scrollbar">
                     <div 
                       className="prose prose-slate max-w-none text-xs sm:text-sm text-slate-700 leading-relaxed font-normal"
-                      dangerouslySetInnerHTML={{ __html: formData.description }}
+                      /* Önizleme de temizlikten geçiyor: kullanıcı yayınlamadan
+                         ÖNCE tam olarak yayınlanacak hâli görsün. Ham basmak
+                         ayrıca kendi sayfasında betik çalıştırmak demekti. */
+                      dangerouslySetInnerHTML={{ __html: htmlTemizle(formData.description) }}
                     />
                   </div>
                 ) : (

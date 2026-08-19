@@ -181,6 +181,50 @@ export const fetchMarketplaceListings = async (filters = {}) => {
   }
 };
 /**
+ * Kullanıcının KENDİ vitrin kayıtlarını getirir.
+ *
+ * -------------------------------------------------------------------------
+ * NİYE AYRI BİR FONKSİYON — ONARILAN HATA
+ * -------------------------------------------------------------------------
+ * `MyListingsScreen` bunu `fetchMarketplaceListings({ userId })` ile
+ * çağırıyordu. O fonksiyon `filters` parametresini HİÇ KULLANMIYOR ve
+ * `arac_arama()`'yı filtresiz çağırıyor. Sonuç: her kullanıcı, platformdaki
+ * görünür araçların TAMAMINI "Vitrindeki Araçlarım" başlığı altında
+ * görüyordu. 19 Ağustos 2026 taramasında sıfırdan açılmış boş bir hesap
+ * "Vitrindeki Araçlarım (11)" gördü — hiç aracı yokken.
+ *
+ * ⚠ YENİ RPC YAZILMADI. `vitrin_listesi(p_sehir, p_kullanici)` zaten vardı
+ * ve zaten sunucu tarafında kullanıcıya göre süzüyordu; yalnızca çağıran
+ * taraf yanlış fonksiyona bağlanmıştı. Ölçüldü: sahip 2, başka hesap 0,
+ * boş hesap 0.
+ *
+ * Bu ekran için doğru kaynak da zaten bu: ekranın konusu "vitrindeki"
+ * araçlar, yani `listings` kaydı olanlar. `arac_arama` ise vitrinde
+ * olmayan `listelenebilir` araçları da döndürüyor — bu ekranda onların
+ * işi yok.
+ *
+ * @param {string} userId
+ */
+export const fetchMyVitrinListings = async (userId) => {
+  try {
+    // ⚠ KULLANICI KİMLİĞİ YOKSA HİÇ SORGU ATILMIYOR. `p_kullanici` null
+    // geçilseydi fonksiyon SÜZMEDEN tüm vitrini döndürürdü — onarılan
+    // hatanın ta kendisi. Boş liste dönmek, yanlış liste dönmekten iyidir.
+    if (!userId) return { success: true, data: [] };
+
+    const { data, error } = await supabase.rpc('vitrin_listesi', {
+      p_sehir: null,
+      p_kullanici: userId,
+    });
+    if (error) throw error;
+    return { success: true, data: Array.isArray(data) ? data : [] };
+  } catch (error) {
+    console.error('❌ [Marketplace Service] Kendi vitrin kayıtları çekilemedi:', error.message);
+    return { success: false, error: error.message, data: [] };
+  }
+};
+
+/**
  * Vitrin görüntülenmesini kaydeder.
  *
  * "Kaç KEZ" değil "kaç FARKLI KİŞİ": sunucu oturum açmışsa `auth.uid()`,

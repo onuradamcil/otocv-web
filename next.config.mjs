@@ -65,6 +65,82 @@ const nextConfig = {
     // değer düşürülmeliydi.
     minimumCacheTTL: 2678400,
   },
+
+  // =======================================================================
+  // GÜVENLİK BAŞLIKLARI
+  //
+  // 19 Ağustos 2026 taramasında sınanan altı rotanın hiçbiri tek bir
+  // güvenlik başlığı döndürmüyordu: ne CSP, ne HSTS, ne X-Frame-Options.
+  //
+  // ⚠ BU KATMAN XSS'İ ÇÖZMÜYOR, İKİNCİ HATTI KURUYOR. Asıl onarım
+  // `src/utils/htmlTemizle.js` ile basma anındaki temizlik. Başlıklar,
+  // gözden kaçan bir enjeksiyonun ne kadar ilerleyebileceğini daraltıyor.
+  // =======================================================================
+  poweredByHeader: false,   // "X-Powered-By: Next.js" sürüm bilgisi sızdırıyordu
+
+  async headers() {
+    // Supabase hostu ortamdan türetiliyor; sabit yazmak ortam değişince
+    // sessizce CSP ihlali üretirdi (istekler engellenir, sebebi görünmez).
+    const sb = supabaseHost ? `https://${supabaseHost}` : '';
+    const sbWs = supabaseHost ? `wss://${supabaseHost}` : '';
+    const gelistirme = process.env.NODE_ENV !== 'production';
+
+    // ⚠ `'unsafe-inline'` ve `'unsafe-eval'` script-src'de DURUYOR ve bu
+    // bilinçli bir ödün. Next.js istemci tarafında satır içi başlatma
+    // betikleri basıyor; bunları nonce'a bağlamak middleware ister ve
+    // projede middleware YOK. Yani bu CSP betik enjeksiyonuna karşı
+    // ZAYIF — asıl korumayı sanitizasyon veriyor. Buradaki gerçek kazanç
+    // `frame-ancestors`, `object-src`, `base-uri` ve `form-action`.
+    const csp = [
+      "default-src 'self'",
+      `script-src 'self' 'unsafe-inline' 'unsafe-eval'`,
+      "style-src 'self' 'unsafe-inline'",
+      `img-src 'self' data: blob: ${sb}`.trim(),
+      "font-src 'self' data:",
+      // ⚠ `blob:` BURADA ŞART. Fotoğraf yükleme akışı sıkıştırdığı görseli
+      // `URL.createObjectURL` ile blob adresine çevirip `fetch(blobUrl)` ile
+      // geri okuyor (`CreateListingWizard.jsx:405`). `blob:` olmadan bu
+      // istek CSP'ye takılıyor ve araç fotoğrafı yükleme sessizce kırılıyor
+      // — ilk yazdığım CSP'de yoktu, `23-gorsel-sikistirma` testi yakaladı.
+      // Güvenlik ödünü yok: blob adresini yalnızca sayfanın kendisi üretir.
+      `connect-src 'self' blob: ${sb} ${sbWs}${gelistirme ? ' ws: http://localhost:*' : ''}`.trim(),
+      "media-src 'self' blob:",
+      // Tıklama hırsızlığını (clickjacking) kapatan asıl madde.
+      "frame-ancestors 'none'",
+      "object-src 'none'",
+      // Enjekte edilen bir <base> etiketiyle tüm göreli adreslerin
+      // saldırgana yönlendirilmesini engelliyor.
+      "base-uri 'self'",
+      // Form gönderimi dışarı kaçırılamasın.
+      "form-action 'self'",
+      "frame-src 'self'",
+    ].join('; ');
+
+    const basliklar = [
+      { key: 'Content-Security-Policy', value: csp },
+      // frame-ancestors'ın eski tarayıcılardaki karşılığı.
+      { key: 'X-Frame-Options', value: 'DENY' },
+      { key: 'X-Content-Type-Options', value: 'nosniff' },
+      // Plaka/PIN taşıyan adreslerin dış sitelere referrer olarak
+      // gitmemesi için: aynı köken tam adres, dışarıya yalnızca köken.
+      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+      // Ürünün kullanmadığı güçlü API'ler kapatılıyor.
+      { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()' },
+      { key: 'X-DNS-Prefetch-Control', value: 'on' },
+    ];
+
+    // ⚠ HSTS YALNIZCA ÜRETİMDE. Geliştirmede localhost'a HSTS yazmak,
+    // tarayıcıyı http://localhost'u https'e zorlamaya itip yerel ortamı
+    // günlerce kırabiliyor — üstelik temizlemesi elle yapılıyor.
+    if (!gelistirme) {
+      basliklar.push({
+        key: 'Strict-Transport-Security',
+        value: 'max-age=63072000; includeSubDomains; preload',
+      });
+    }
+
+    return [{ source: '/:path*', headers: basliklar }];
+  },
 };
 
 export default nextConfig;

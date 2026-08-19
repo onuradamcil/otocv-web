@@ -13,7 +13,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { fetchMarketplaceListings } from '../../services/marketplaceService';
+import { fetchMyVitrinListings } from '../../services/marketplaceService';
 import Icon from '../common/icons';
 import GlobalStepLoader from '../common/GlobalStepLoader';
 import TrPlaka from '../common/TrPlaka';
@@ -31,10 +31,13 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
     if (!user) return;
     try {
       setLoading(true);
-      // Süzgeç SUNUCUDA. Eskiden `fetchMarketplaceListings()` çağrılıp tüm
-      // aktif ilanlar indiriliyor, sonra istemcide `user_id` ile süzülüyordu:
-      // üç ilanı olan kullanıcı bütün pazaryerini indiriyordu.
-      const res = await fetchMarketplaceListings({ userId: user.id });
+      // Süzgeç SUNUCUDA — ve artık gerçekten öyle.
+      //
+      // ⚠ ÖNCEDEN `fetchMarketplaceListings({ userId })` çağrılıyordu ama o
+      // fonksiyon `filters`ı hiç okumuyor: süzgeç sessizce yok sayılıyor ve
+      // ekran platformdaki BÜTÜN görünür araçları "benim" diye listeliyordu.
+      // Yorumda "süzgeç sunucuda" yazıyordu, kodda değildi.
+      const res = await fetchMyVitrinListings(user.id);
       if (res.success) {
         setListings(res.data || []);
       }
@@ -90,7 +93,13 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
             const firstPhoto = item.image_url ? item.image_url.split(',')[0].trim() : null;
 
             return (
-              <div key={item.id || item.listing_id} className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs flex flex-col justify-between p-4 space-y-4">
+              /* ⚠ ANAHTAR `plate_number`A DA DÜŞÜYOR. Eskiden yalnızca
+                 `item.id || item.listing_id` vardı; kaynak RPC `id`
+                 döndürmediği ve vitrin kaydı olmayan satırlarda
+                 `listing_id` null geldiği için anahtar `undefined` oluyor
+                 ve React "aynı anahtarlı iki çocuk" uyarısını 16 kez
+                 basıyordu. Plaka birincil anahtar ve hiç boş kalmıyor. */
+              <div key={item.listing_id || item.plate_number || item.vehicle_plate} className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs flex flex-col justify-between p-4 space-y-4">
                 
                 <div className="space-y-3">
                   {/* FOTOĞRAF VE ROZETLER */}
@@ -103,7 +112,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                     {/* `sizes` ızgaradan: `grid-cols-1 md:2 lg:3` */}
                     <AracGorseli
                       src={firstPhoto}
-                      alt={item.title || `${item.brand || ''} ${item.model || ''}`.trim() || ''}
+                      alt={item.listing_title || `${item.brand || ''} ${item.model || ''}`.trim() || ''}
                       uyum="cover"
                       sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 390px"
                     />
@@ -127,7 +136,9 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                       )}
                     </div>
                     <h4 className="text-sm font-semibold text-slate-900 truncate">{item.brand} {item.model}</h4>
-                    <p className="text-xs text-slate-500 font-medium truncate mt-0.5">{item.title}</p>
+                    {/* Kaynak RPC alani `listing_title` adiyla donduruyor; `item.title`
+                        hicbir zaman dolu gelmiyordu ve alt baslik hep bostu. */}
+                    <p className="text-xs text-slate-500 font-medium truncate mt-0.5">{item.listing_title}</p>
                   </div>
 
                   {/* 📊 İSTATİSTİK BARI (GÖRÜNTÜLENME VE FAVORİ SAYISI) */}
