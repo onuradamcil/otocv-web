@@ -21,9 +21,33 @@ duruyor; Supabase hesabında bir sorun çıksa bile veri elinizde kalıyor.
 
 ---
 
-## Kurulum (bir kez, ~15 dakika)
+## Kurulum
 
-### 1 · Gizli depoyu açın
+### Hızlı yol — tek komut (~3 dakika)
+
+Proje kökünden:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File docs\yedekleme\kur.ps1
+```
+
+Betik sırayla: GitHub CLI'yi kurar, sizi bir kez giriş yaptırır, `otocv-yedek`
+gizli deposunu açar, iş akışını içine koyar, bağlantı dizenizi **gizli olarak**
+sorup secret'a yazar, yedek şifresini üretip gösterir ve ilk yedeği çalıştırır.
+
+⚠ **Bağlantı dizeniz bu makineden çıkmaz.** Gizli olarak sorulur, ekrana
+yazılmaz, dosyaya kaydedilmez; doğrudan GitHub secret'ına gider.
+
+⚠ Betik yedek şifresini **bir kez** gösterir. O an şifre yöneticinize
+kaydedin — kaybolursa yedekler açılamaz.
+
+Bittiğinde **geri yükleme provasını** yapın (aşağıda). Yeşil tik yeterli değil.
+
+---
+
+### Elle kurulum (betiği çalıştırmak istemezseniz)
+
+#### 1 · Gizli depoyu açın
 
 GitHub'da **New repository**:
 
@@ -31,7 +55,7 @@ GitHub'da **New repository**:
 - Görünürlük: **Private** ← bu şart
 - README eklemeyin, boş açın
 
-### 2 · Bağlantı dizesini alın
+#### 2 · Bağlantı dizesini alın
 
 Supabase panelinde: **Project Settings → Database → Connection string**
 
@@ -51,7 +75,7 @@ postgresql://postgres.zjfxwvmcouuyrebltmwz:<SIFRE>@aws-0-eu-central-1.pooler.sup
 
 ⚠ Bu dizeyi **hiçbir dosyaya yazmayın**, doğrudan GitHub secret'a yapıştırın.
 
-### 3 · Yedek parolası üretin
+#### 3 · Yedek parolası üretin
 
 Dökümler bu parolayla şifrelenecek. Rastgele ve uzun olsun:
 
@@ -63,7 +87,7 @@ openssl rand -base64 32
 parçası değil; şifre yöneticinize kaydedin. Kaybolursa elinizde açılamayan
 şifreli dosyalar kalır, yani yedeğiniz yok demektir.
 
-### 4 · Secret'ları ekleyin
+#### 4 · Secret'ları ekleyin
 
 `otocv-yedek` deposunda: **Settings → Secrets and variables → Actions →
 New repository secret**
@@ -73,12 +97,12 @@ New repository secret**
 | `VERITABANI_URL` | 2. adımdaki session pooler dizesi |
 | `YEDEK_SIFRESI` | 3. adımda ürettiğiniz parola |
 
-### 5 · İş akışını kopyalayın
+#### 5 · İş akışını kopyalayın
 
 Bu depodaki `docs/yedekleme/yedek-workflow.yml` dosyasını gizli depoya
 **`.github/workflows/yedek.yml`** adıyla koyun.
 
-### 6 · Elle çalıştırıp doğrulayın
+#### 6 · Elle çalıştırıp doğrulayın
 
 Gizli depoda **Actions → Günlük veritabanı yedeği → Run workflow**.
 
