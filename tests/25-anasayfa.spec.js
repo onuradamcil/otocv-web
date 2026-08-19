@@ -45,7 +45,18 @@ async function kartSayisi(page) {
   return page.locator('[role="button"][aria-label*="sicilini görüntüle"]').count();
 }
 
-test.describe('Anasayfa · süzgeçler', () => {
+// =========================================================================
+// ⚠ BU PAKET ARTIK `/arama` EKRANINDA KOŞUYOR — ANASAYFADA DEĞİL
+//
+// Ürün sahibinin kararıyla anasayfa bir TEŞHİR yüzeyi oldu: vitrin katmanını
+// gösteriyor ve SÜZÜLMÜYOR. Süzgeçten bir seçim yapmak kullanıcıyı `/arama`
+// ekranına götürüyor; süzme orada yapılıyor.
+//
+// Testler silinmedi, İDDİALAR TAŞINDI: aşağıdaki her iddia hâlâ geçerli,
+// yalnızca doğru yüzeyde sınanıyor. Anasayfanın kendi davranışı (seçim →
+// yönlendirme, ızgaranın süzülmemesi) ayrı bir pakette.
+// =========================================================================
+test.describe('Süzgeçler · /arama ekranı', () => {
   // ⚠ ESKİ HÂLİ "MARKA süzgeci" idi. Marka listesi kaldırıldı (ürün sahibinin
   // kararı; referans siteler de anasayfada marka listesi göstermiyor). Ama
   // eski testin seçicisi zaten KUSURLUYDU:
@@ -58,7 +69,7 @@ test.describe('Anasayfa · süzgeçler', () => {
   // dokunduğu belirsiz değil.
   test('ŞEHİR süzgeci ızgarayı gerçekten süzüyor', async ({ page }) => {
     test.setTimeout(120_000);
-    await page.goto('/');
+    await page.goto('/arama');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1500);
 
@@ -113,7 +124,7 @@ test.describe('Anasayfa · süzgeçler', () => {
   // kullanılmıyordu; bu test onun gerçekten bağlandığını kanıtlıyor.
   test('KİLOMETRE aralığı ızgarayı süzüyor', async ({ page }) => {
     test.setTimeout(120_000);
-    await page.goto('/');
+    await page.goto('/arama');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1500);
 
@@ -135,7 +146,7 @@ test.describe('Anasayfa · süzgeçler', () => {
 
   // AKORDİYON DAVRANIŞI — grup başlığı içeriği açıp kapatıyor.
   test('akordiyon başlığı grubu açıp kapatıyor', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/arama');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1200);
 
@@ -173,7 +184,7 @@ test.describe('Anasayfa · süzgeçler', () => {
   // =======================================================================
   test('MARKA ağacı katalogtan geliyor, kademe kademe süzüyor', async ({ page }) => {
     test.setTimeout(120_000);
-    await page.goto('/');
+    await page.goto('/arama');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
@@ -251,9 +262,9 @@ test.describe('Anasayfa · süzgeçler', () => {
     ).toBe(once);
   });
 
-  test('ARAMA yazmak listeyi süzüyor, Enter KARNEYE GÖTÜRMÜYOR', async ({ page }) => {
+  test('ARAMA `/arama` ekranında listeyi süzüyor', async ({ page }) => {
     test.setTimeout(120_000);
-    await page.goto('/');
+    await page.goto('/arama');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1500);
 
@@ -262,32 +273,21 @@ test.describe('Anasayfa · süzgeçler', () => {
 
     // Hiçbir araçla eşleşmeyecek bir metin: liste boşalmalı.
     await kutu.fill('zzzbulunmayanmarka');
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(1200);
     expect(
       await kartSayisi(page),
       'aramaya rağmen ızgara değişmedi — arama listeyi süzmüyor'
     ).toBe(0);
-
-    // ⚠ ASIL KORUMA: PIN OLMAYAN bir girdiyle Enter karneye gitmemeli.
-    await kutu.fill('bmw');
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(1500);
-
-    expect(
-      page.url(),
-      'marka yazıp Enter\'a basmak kullanıcıyı var olmayan bir karne sayfasına '
-      + 'götürüyor (pinNormalize her girdiye CV- öneki ekliyor)'
-    ).not.toContain('/karne/');
   });
 
   test('boş sonuçta SÜZGEÇ mesajı gösteriliyor, "vitrin boş" değil', async ({ page }) => {
     test.setTimeout(120_000);
-    await page.goto('/');
+    await page.goto('/arama');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1500);
 
     await page.getByLabel(/PIN ile ara/i).fill('zzzbulunmayanmarka');
-    await page.waitForTimeout(900);
+    await page.waitForTimeout(1200);
 
     // Boş durum iki ayrı şey olabilir ve ikisi aynı cümleyi hak etmiyor:
     // süzgeçle daraltıp sonuç bulamayan kullanıcıya "vitrinde araç yok"
@@ -295,6 +295,84 @@ test.describe('Anasayfa · süzgeçler', () => {
     await expect(page.getByText(/süzgeçlerle araç bulunamadı/i)).toBeVisible({ timeout: 15_000 });
   });
 });
+
+// =========================================================================
+// ANASAYFA · TEŞHİR YÜZEYİ VE YÖNLENDİRME
+//
+// Ürün sahibinin senaryosu:
+//   · Anasayfa vitrin katmanını gösteriyor ve SÜZÜLMÜYOR.
+//   · Arama kutusuna yazıp Enter -> `/arama?q=...`
+//   · Süzgeçten seçim -> `/arama?marka=...` (seçim orada işaretli)
+//
+// ⚠ ESKİ İDDİA KORUNUYOR: PIN OLMAYAN bir girdiyle Enter, var olmayan bir
+// karne sayfasına GÖTÜRMEMELİ (`pinNormalize` her girdiye `CV-` ekliyordu).
+// =========================================================================
+test.describe('Anasayfa · teşhir ve yönlendirme', () => {
+  test('arama kutusuna yazmak ANASAYFA ızgarasını DEĞİŞTİRMİYOR', async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1800);
+
+    const once = await kartSayisi(page);
+    test.skip(once === 0, 'vitrinde araç yok');
+
+    await page.getByLabel(/PIN ile ara/i).fill('zzzbulunmayanmarka');
+    await page.waitForTimeout(1200);
+
+    expect(
+      await kartSayisi(page),
+      'anasayfa ızgarası aramadan etkilendi — anasayfa teşhir yüzeyi, süzülmemeli'
+    ).toBe(once);
+  });
+
+  test('Enter `/arama` ekranına götürüyor, KARNEYE GÖTÜRMÜYOR', async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1500);
+
+    await page.getByLabel(/PIN ile ara/i).fill('bmw');
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(2000);
+
+    expect(
+      page.url(),
+      'marka yazıp Enter tuşuna basmak kullanıcıyı var olmayan bir karne '
+      + 'sayfasına götürüyor (pinNormalize her girdiye CV- öneki ekliyor)'
+    ).not.toContain('/karne/');
+
+    expect(page.url(), 'Enter sonuç ekranına götürmedi').toContain('/arama');
+    expect(decodeURIComponent(page.url()), 'arama metni adrese taşınmadı').toContain('q=bmw');
+  });
+
+  test('süzgeçten MARKA seçmek `/arama` ekranına götürüyor', async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1800);
+
+    const kutu = page.locator('aside').getByRole('button', { name: 'Marka' }).first();
+    test.skip(await kutu.count() === 0, 'marka grubu yok');
+    const govdeId = await kutu.getAttribute('aria-controls');
+    const govde = page.locator(`[id="${govdeId}"]`);
+
+    const satirlar = govde.locator('button').filter({ hasNotText: /^Tüm markalar$/ });
+    await expect.poll(() => satirlar.count(), { timeout: 20_000 }).toBeGreaterThan(0);
+
+    const ad = (await satirlar.first().innerText()).trim();
+    await satirlar.first().click();
+    await page.waitForTimeout(2500);
+
+    expect(page.url(), 'marka seçimi sonuç ekranına götürmedi').toContain('/arama');
+    expect(
+      decodeURIComponent(page.url()).toLowerCase(),
+      `seçilen marka (${ad}) adrese taşınmadı`
+    ).toContain('marka=');
+  });
+});
+
+
 
 test.describe('Anasayfa · yapı ve erişilebilirlik', () => {
   test('başlık sırası atlama yapmıyor (h1 -> h2 -> h3)', async ({ page }) => {

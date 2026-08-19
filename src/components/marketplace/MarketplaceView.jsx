@@ -22,7 +22,7 @@ import { dugme } from '../common/dugme';
 // Marka ağacının saf mantığı ayrı dosyada: React'e dokunmuyor ve bu dosya
 // zaten 1300+ satır. Normalize (Türkçe 'I' tuzağı) ve kanonik etiket seçimi
 // oradaki yorumlarda gerekçeli.
-import { KADEMELER, agacUygun, agacAnahtari } from '../../utils/markaAgaci';
+import { KADEMELER, agacAnahtari } from '../../utils/markaAgaci';
 // Marka ağacının dalları KATALOG tablolarından geliyor (49 marka / 822 seri /
 // 3.591 model / 23.138 paket). Bu servis dosyada zaten vardı ama hiç
 // çağrılmıyordu; yeni fonksiyon yazmak yerine canlandırıldı. Step1'in kaskad
@@ -32,6 +32,7 @@ import {
   fetchCatalogSeries,
   fetchCatalogModels,
   fetchCatalogPackages,
+  catalogYolunuCoz,
 } from '../../services/catalogService';
 // DEMO importu KALDIRILDI: demo kartlar artık `demo_araclar` tablosunda ve
 // `arac_arama()` onları GERÇEK kartlarla AYNI SQL süzgecinden geçiriyor.
@@ -39,6 +40,8 @@ import {
 // marka seçilince listede durur ama sayaçlar onları saymazdı — sayaçlar
 // yalan söylerdi. Sunucu her satıra `demo: true/false` yazıyor.
 import { seckiUret } from '../../utils/secki';
+import VitrinSatiri from './VitrinSatiri';
+import { useGenisEkran, useGorunumTercihi } from '../../hooks/useVitrinGorunum';
 //  importu KALDIRILDI: tek kullanicisi "Ucretlerin tamami" bagi vardi.
 // `paketler` importu KALDIRILDI: "Ücretli işlemler" bölümü çıktı.
 // ⚠ `ozetGetir` DEĞİL. O fonksiyon panel için tüm bakım kayıtlarını çekiyor;
@@ -112,7 +115,7 @@ const karneAcikMi = (item) => Boolean(item?.pin_code);
  * @param {boolean} [p.basili=true] `aria-pressed` basılsın mı.
  * @param {boolean} [p.derine=false] Satır bir ALT KADEMEYE iniyor mu.
  */
-function SuzgecSatiri({ etiket, adet, secili, sec, basili = true, derine = false }) {
+function SuzgecSatiri({ etiket, adet, secili, sec, basili = true, derine = false, girinti = '' }) {
   return (
     <button
       type="button"
@@ -122,7 +125,11 @@ function SuzgecSatiri({ etiket, adet, secili, sec, basili = true, derine = false
       // orada `aria-pressed="false"` asla değişmeyen bir durum bildirir,
       // yani ekran okuyucu kullanıcısına yanlış kontrol tipi anlatır.
       {...(basili ? { 'aria-pressed': secili } : {})}
-      className={`w-full min-h-[44px] px-2.5 rounded-md cursor-pointer flex justify-between items-center gap-2 text-left transition-colors ${
+      /* ⚠ `girinti` DIŞARIDAN GELİYOR ama sınıf dizesi burada kuruluyor:
+         bileşen `className` kabul etmiyor (tasarım dili tek yerde kalsın).
+         Girinti Tailwind'in birebir yazılmış `pl-*` sınıflarından geliyor —
+         hesaplanmış sınıf adını JIT taramıyor. */
+      className={`w-full min-h-[44px] px-2.5 ${girinti} rounded-md cursor-pointer flex justify-between items-center gap-2 text-left transition-colors ${
         secili ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700 hover:bg-slate-50'
       }`}
     >
@@ -363,10 +370,29 @@ function MobilGrup({ secenekler, secili, sec }) {
 // Kırıntı yolunun kademe girintileri. Dizi olarak yazılıyor çünkü Tailwind
 // JIT'i `pl-${i*3}` gibi hesaplanmış sınıf adlarını TARAYAMIYOR — sınıfın
 // kaynakta birebir geçmesi gerekiyor.
-const YOL_GIRINTISI = ['pl-0', 'pl-3', 'pl-6', 'pl-9', 'pl-12'];
+// ⚠ ALTINCI SEVİYE (`pl-15`) ÇOCUK SATIRLARI İÇİN. Kırıntı en fazla 5 halka
+// (kök + 4 kademe); çocuklar son halkadan BİR KADEME daha girintili
+// çizildiği için diziye bir eleman daha gerekiyor.
+const YOL_GIRINTISI = ['pl-0', 'pl-3', 'pl-6', 'pl-9', 'pl-12', 'pl-15'];
 
 function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, yukleniyor, git, sec, bicim = 'liste' }) {
   const kokte = yol.length === 0;
+
+  // ⚠ ÇOCUKLAR SON KIRINTI HALKASINDAN BİR KADEME DAHA İÇERİDE.
+  //
+  // Eskiden girinti YALNIZCA kırıntıya uygulanıyordu; çocuk satırları sola
+  // yaslı kalıyordu ve ağaç "kırıntı + düz liste" gibi görünüyordu: açılan
+  // alt veri, ebeveyninin içinde değil ayrı bir kök gibi duruyordu.
+  //
+  // Kırıntı `yol.length` halka çiziyor (kök dahil), yani çocuklar
+  // `yol.length` indisli girintiyi alıyor. Kökteyken (`yol` boş) çocuklar
+  // girintisiz — marka listesi panelin soluna yaslı başlıyor.
+  //
+  // ⚠ DOM DÜZ KALIYOR, İÇ İÇE DÜĞME ÜRETİLMİYOR. Görsel iç içelik sol
+  // dolgudan geliyor. Ata satırı çocuklarını SARAN bir düğme olsaydı
+  // erişilebilir adlar birleşir, testlerdeki `exact: true` eşleşmez ve
+  // paket sessizce atlanırdı (yanlış yeşil).
+  const cocukGirintisi = YOL_GIRINTISI[Math.min(yol.length, YOL_GIRINTISI.length - 1)];
 
   return (
     <div className="space-y-2">
@@ -486,6 +512,7 @@ function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, yukleniyor, git, s
               etiket={c.name}
               basili={false}
               derine
+              girinti={cocukGirintisi}
               sec={() => sec(derinlik, c)}
             />
           ))}
@@ -504,6 +531,11 @@ export default function MarketplaceView({
   // seçtiklerimiz", "Nasıl çalışır" ve "Tümünü göster" bağı. Kalan: hero
   // araması, süzgeç paneli ve ızgara — yani sayfanın var oluş sebebi.
   tamSayfa = false,
+  // Adresteki `?q=` ile gelen başlangıç araması. Yalnızca `/vitrin`
+  // kullanıyor; anasayfada arama yerinde süzmüyor, buraya yönlendiriyor.
+  baslangicAramasi = '',
+  // Adresten gelen başlangıç süzgeci (`/arama`). Anasayfa boş geçiyor.
+  baslangicSuzgeci = null,
   onSelectVehicle,
   onNavigateToGarage, 
   onNavigateToVerify, 
@@ -519,7 +551,22 @@ export default function MarketplaceView({
   // =========================================================================
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(baslangicAramasi);
+
+  // ⚠ GÖRÜNÜM SEÇİMİ HATIRLANIYOR. Kullanıcı listeyi seçtiyse her aramada
+  // yeniden seçmek zorunda kalmamalı. Sonuç ekranı LİSTE, göz atma ızgara
+  // varsayılanıyla açılıyor.
+  // ⚠ GÖRÜNÜM İKİ DIŞ KAYNAĞA BAĞLI: ekran genişliği ve hatırlanan tercih.
+  // İkisi de `useSyncExternalStore` ile okunuyor — gerekçesi
+  // `hooks/useVitrinGorunum.js` başlığında: state'e kopyalamak hidrasyon
+  // ayrışması, etki içinde setState ve çift DOM üretiyordu.
+  const genisEkran = useGenisEkran();
+  // Adreste arama varsa varsayılan LİSTE: arama yapan kullanıcı
+  // karşılaştırmak istiyor, karşılaştırılacak veri listede.
+  const [gorunum, gorunumSec] = useGorunumTercihi(baslangicAramasi ? 'liste' : 'izgara');
+  // Yatay satır dar ekranda okunmuyor (dört blok yan yana sığmıyor):
+  // orada tercih ne olursa olsun ızgara çiziliyor.
+  const listeGorunumu = tamSayfa && genisEkran && gorunum === 'liste';
   // `selectedBrand` ve `quickFilter` KALDIRILDI: ikisi de yalnızca hiç
   // çizilmeyen `filteredListings` içinde okunuyordu. Süzgeç durumu artık tek
   // bir `suzgec` nesnesinde (aşağıda).
@@ -579,7 +626,10 @@ export default function MarketplaceView({
   // kovaya atan bir süzgeç, beyan vermemiş aracı "hasarsız" göstermek
   // olurdu. Alan RPC'ye eklenene kadar bu süzgeç açılmıyor.
   // =========================================================================
-  const [suzgec, setSuzgec] = useState({
+  // ⚠ BAŞLANGIÇ ADRESTEN GELEBİLİR. `/arama?marka=bmw` ile açıldığında
+  // seçim ekranda İŞARETLİ gelmeli; aksi hâlde kullanıcı süzgeci uygulanmış
+  // ama panelde seçili görünmeyen bir liste görürdü.
+  const [suzgec, setSuzgec] = useState(() => ({
     sehir: 'Tümü',
     yakit: 'Tümü',
     vites: 'Tümü',
@@ -618,7 +668,30 @@ export default function MarketplaceView({
     seri: '',
     model: '',
     donanim: '',
-  });
+    ...(baslangicSuzgeci || {}),
+  }));
+
+  // ⚠ ADRESTEN GELEN AĞAÇ YOLUNU GERİ KUR — SAYFA AÇILIŞINDA BİR KEZ.
+  //
+  // Adres normalize AD taşıyor (`?marka=bmw&seri=3 serisi`) ama `agacYolu`
+  // katalog KİMLİĞİ istiyor. Bu adım olmadan `/arama?marka=bmw` ile açılan
+  // sayfada süzgeç uygulanıyor ama panel köke dönmüş görünüyordu: kullanıcı
+  // hangi dalda olduğunu göremiyor ve alt kademeye inemiyordu.
+  //
+  // ⚠ YALNIZCA BİR KEZ (`baslangicSuzgeci` mount değeri). Her `suzgec`
+  // değişiminde koşsaydı kullanıcının ağaçtaki her tıklaması katalog
+  // sorgusuna dönerdi — üstelik zaten elimizde olan id'yi yeniden çözerek.
+  useEffect(() => {
+    if (!tamSayfa || !baslangicSuzgeci) return;
+    const { marka, seri, model, donanim } = baslangicSuzgeci;
+    if (!marka) return;   // ağaçta seçim yok, çözecek bir şey de yok
+    let iptal = false;
+    catalogYolunuCoz({ marka, seri, model, donanim }).then((yol) => {
+      if (!iptal && yol.length) setAgacYolu(yol.map((d) => ({ id: d.id, ad: d.name })));
+    });
+    return () => { iptal = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tamSayfa]);
 
   // Bulunulan kademenin ÇOCUKLARINI çeker. Açılışta yalnızca 49 marka
   // iniyor; seri/model/paket ancak tıklandıkça. 23.138 paket hiçbir zaman
@@ -647,6 +720,10 @@ export default function MarketplaceView({
     return () => { iptal = true; };
   }, [agacYolu]);
 
+  // ⚠ YUKARI TAŞINDI: adres senkronu etkisi `router`ı kullanıyor ve
+  // aşağıda tanımlıyken geçici ölü bölgeye düşüyordu.
+  const router = useRouter();
+
   /**
    * Sunucu tarafı arama. Süzgeç, sayfa ve arama metnini RPC'ye geçirir.
    *
@@ -659,19 +736,32 @@ export default function MarketplaceView({
     try {
       setLoading(true);
       const boyut = tamSayfa ? TAM_SAYFA_ADIM : ANASAYFA_KART_SINIRI;
+
+      // ⚠ ANASAYFA SÜZGEÇTEN HİÇ ETKİLENMİYOR — TEŞHİR YÜZEYİ.
+      //
+      // Ürün sahibinin kararı: "vitrin kendine has bir ortam kalmalı".
+      // Anasayfadaki ızgara vitrini gösteriyor; süzgeç seçimi kullanıcıyı
+      // `/arama` ekranına götürüyor ve süzme ORADA yapılıyor. Burada boş
+      // süzgeç göndermek, ızgaranın sessizce daralmasını engelliyor.
+      const suz = tamSayfa ? istekSuzgec : {};
       const yuk = {
-        arama: istekArama || '',
-        sehir: istekSuzgec.sehir, yakit: istekSuzgec.yakit,
-        vites: istekSuzgec.vites, tramer: istekSuzgec.tramer,
-        marka: istekSuzgec.marka, seri: istekSuzgec.seri,
-        model: istekSuzgec.model, donanim: istekSuzgec.donanim,
-        yilMin: String(istekSuzgec.yilMin ?? ''), yilMax: String(istekSuzgec.yilMax ?? ''),
-        kmMin: String(istekSuzgec.kmMin ?? ''), kmMax: String(istekSuzgec.kmMax ?? ''),
-        sicilEnAz: String(istekSuzgec.sicilEnAz ?? 0),
-        yalnizOneCikan: !!istekSuzgec.yalnizOneCikan,
-        yalnizYeni: !!istekSuzgec.yalnizYeni,
+        arama: tamSayfa ? (istekArama || '') : '',
+        sehir: suz.sehir, yakit: suz.yakit,
+        vites: suz.vites, tramer: suz.tramer,
+        marka: suz.marka, seri: suz.seri,
+        model: suz.model, donanim: suz.donanim,
+        yilMin: String(suz.yilMin ?? ''), yilMax: String(suz.yilMax ?? ''),
+        kmMin: String(suz.kmMin ?? ''), kmMax: String(suz.kmMax ?? ''),
+        sicilEnAz: String(suz.sicilEnAz ?? 0),
+        yalnizOneCikan: !!suz.yalnizOneCikan,
+        yalnizYeni: !!suz.yalnizYeni,
       };
-      const sonuc = await fetchMarketplaceListings(yuk, boyut, istekSayfa * boyut);
+
+      // ⚠ KATMAN: anasayfa yalnızca VİTRİN katmanını istiyor. Ölçüldü —
+      // katman süzgeci olmadan "Vitrindeki Araçlar" başlığının altında
+      // aranabilir ama vitrinde OLMAYAN araçlar da görünüyordu.
+      const katman = tamSayfa ? null : 'vitrin';
+      const sonuc = await fetchMarketplaceListings(yuk, boyut, istekSayfa * boyut, katman);
       if (sonuc.success) {
         setListings((eski) => (ekle ? [...eski, ...sonuc.data] : sonuc.data));
         setToplamSonuc(sonuc.toplam);
@@ -687,11 +777,59 @@ export default function MarketplaceView({
   // ⚠ ARAMA METNİ GECİKTİRİLİYOR (300 ms). Her tuş vuruşunda sunucuya
   // gitmek hem gereksiz yük hem de yarış durumu demek: hızlı yazan
   // kullanıcıda geç dönen eski yanıt yenisinin üstüne yazabilir.
-  const [gecikmisArama, setGecikmisArama] = useState('');
+  const [gecikmisHam, setGecikmisHam] = useState(baslangicAramasi);
   useEffect(() => {
-    const z = setTimeout(() => setGecikmisArama(searchQuery), 300);
+    const z = setTimeout(() => setGecikmisHam(searchQuery), 300);
     return () => clearTimeout(z);
   }, [searchQuery]);
+
+  // ⚠ ANASAYFADA ARAMA IZGARAYI SÜZMÜYOR. Kutu bir "git" kutusu; Enter
+  // `/vitrin?q=`'ye götürüyor. Burada da süzseydik kullanıcı sonucu iki
+  // ayrı yerde görürdü ve "ayrı ekranda açılsın" kuralı delinirdi.
+  //
+  // ⚠ ETKİ İÇİNDE SIFIRLAMAK YERİNE TÜRETİLİYOR. Önce `if (!tamSayfa)
+  // setGecikmisArama('')` yazılmıştı; etki gövdesinde setState demek ve
+  // lint haklı olarak uyarıyor. Okuma anında karar vermek hem daha ucuz
+  // hem de fazladan bir render turu üretmiyor.
+  const gecikmisArama = tamSayfa ? gecikmisHam : '';
+
+  // ⚠ ADRES DURUMLA EŞİTLENİYOR — ARAMA **VE** SÜZGEÇLER.
+  //
+  // İlk hâli yalnızca `?q=` taşıyordu ve hedef adresi SIFIRDAN kuruyordu
+  // (`/vitrin?q=...`). Süzgeçler adrese girince o satır 300 ms sonra
+  // hepsini silerdi: kullanıcı marka seçiyor, bir an sonra seçim adresten
+  // kayboluyor olurdu.
+  //
+  // Artık adres, ekrandaki durumun tam karşılığı: paylaşılan bağlantı aynı
+  // sonucu açıyor, yenilemede süzgeç kaybolmuyor, tarayıcı geçmişi tutarlı.
+  //
+  // `replace` (push değil): her tuş vuruşu geçmişe kayıt bırakmamalı, yoksa
+  // geri tuşu harf harf geri sarardı.
+  useEffect(() => {
+    if (!tamSayfa || typeof window === 'undefined') return;
+
+    const p = new URLSearchParams();
+    if (gecikmisArama) p.set('q', gecikmisArama);
+    // 'Tümü' ve boş değerler adrese YAZILMIYOR: adres yalnızca gerçekten
+    // seçilmiş olanı taşısın, yoksa temiz bir aramada bile uzun bir kuyruk
+    // oluşurdu.
+    if (suzgec.sehir && suzgec.sehir !== 'Tümü') p.set('sehir', suzgec.sehir);
+    if (suzgec.yakit && suzgec.yakit !== 'Tümü') p.set('yakit', suzgec.yakit);
+    if (suzgec.vites && suzgec.vites !== 'Tümü') p.set('vites', suzgec.vites);
+    if (suzgec.tramer && suzgec.tramer !== 'Tümü') p.set('tramer', suzgec.tramer);
+    for (const alan of ['marka', 'seri', 'model', 'donanim', 'yilMin', 'yilMax', 'kmMin', 'kmMax']) {
+      if (suzgec[alan]) p.set(alan, String(suzgec[alan]));
+    }
+    if (Number(suzgec.sicilEnAz) > 0) p.set('sicilEnAz', String(suzgec.sicilEnAz));
+    if (suzgec.yalnizOneCikan) p.set('oneCikan', '1');
+    if (suzgec.yalnizYeni) p.set('yeni', '1');
+
+    const kuyruk = p.toString();
+    const hedef = kuyruk ? `/arama?${kuyruk}` : '/arama';
+    const suanki = window.location.pathname + window.location.search;
+    if (suanki === hedef) return;
+    router.replace(hedef, { scroll: false });
+  }, [tamSayfa, gecikmisArama, suzgec, router]);
 
   // Süzgeç, arama ya da sayfa değişti -> sunucudan çek.
   //
@@ -722,7 +860,6 @@ export default function MarketplaceView({
   // Favoriler ayrı çekiliyor: vitrin listesi oturumsuz da görünüyor, favori
   // ise oturuma bağlı. İkisini tek sorguya bağlamak listeyi oturum
   // gerektirir hâle getirirdi.
-  const router = useRouter();
   // Dar ekranda süzgeç panelinin açık/kapalı durumu.
   const [suzgecAcik, setSuzgecAcik] = useState(false);
   const [favoriler, setFavoriler] = useState(() => new Set());
@@ -758,7 +895,45 @@ export default function MarketplaceView({
 
 
 
+  /**
+   * ANASAYFADA SÜZGEÇ SEÇİMİ SONUÇ EKRANINA GÖTÜRÜR.
+   *
+   * Ürün sahibinin senaryosu: "süzgeçte ne seçildiyse otomatik olarak arama
+   * yapılmalı; arama çubuğunun çıkardığı sonuç ekranı bağlanmalı."
+   *
+   * Anasayfa teşhir yüzeyi (vitrin) ve süzülmüyor; bir seçim yapıldığı anda
+   * kullanıcı `/arama`ya taşınıyor ve seçim orada İŞARETLİ geliyor. Sektör
+   * liderlerinin sol menüsü de böyle çalışıyor: seçim listeleme sayfasını
+   * açıyor.
+   *
+   * ⚠ `/arama`DAYKEN HİÇBİR ŞEY YAPMIYOR (`tamSayfa` true): orada seçim
+   * zaten yerinde uygulanıyor ve adres senkron etkisi adresi güncelliyor.
+   * Burada da yönlendirseydik her tıklamada gereksiz bir gezinme olurdu.
+   *
+   * @returns {boolean} yönlendirme yapıldıysa true (çağıran state'i yazmasın)
+   */
+  const anasayfadanAramayaGit = useCallback((ekSuzgec) => {
+    if (tamSayfa) return false;
+    const p = new URLSearchParams();
+    const s2 = { ...suzgec, ...ekSuzgec };
+    if (s2.sehir && s2.sehir !== 'Tümü') p.set('sehir', s2.sehir);
+    if (s2.yakit && s2.yakit !== 'Tümü') p.set('yakit', s2.yakit);
+    if (s2.vites && s2.vites !== 'Tümü') p.set('vites', s2.vites);
+    if (s2.tramer && s2.tramer !== 'Tümü') p.set('tramer', s2.tramer);
+    for (const alan of ['marka', 'seri', 'model', 'donanim', 'yilMin', 'yilMax', 'kmMin', 'kmMax']) {
+      if (s2[alan]) p.set(alan, String(s2[alan]));
+    }
+    if (Number(s2.sicilEnAz) > 0) p.set('sicilEnAz', String(s2.sicilEnAz));
+    if (s2.yalnizOneCikan) p.set('oneCikan', '1');
+    if (s2.yalnizYeni) p.set('yeni', '1');
+    const kuyruk = p.toString();
+    router.push(kuyruk ? `/arama?${kuyruk}` : '/arama');
+    return true;
+  }, [tamSayfa, suzgec, router]);
+
   const suzgecDegistir = (alan, deger) => {
+    // Anasayfada seçim yerinde uygulanmıyor, sonuç ekranına taşınıyor.
+    if (anasayfadanAramayaGit({ [alan]: deger })) return;
     setSayfa(0);   // yeni süzgeç -> ilk sayfadan başla
     setSuzgec((onceki) => ({ ...onceki, [alan]: deger }));
   };
@@ -768,8 +943,8 @@ export default function MarketplaceView({
    *
    * ⚠ ALTINDAKİ KADEMELER SIFIRLANIYOR ve bu bir DEĞİŞMEZ: marka değişince
    * eski seri yeni markaya ait olmayabilir, sonuç kesin boş çıkardı. Bu
-   * sayede "marka boş ama seri dolu" durumu hiç oluşmuyor — `agacDerinligi`
-   * (ilk boş kademeyi arıyor) tam buna dayanıyor.
+   * sayede "marka boş ama seri dolu" durumu hiç oluşmuyor; gösterilecek
+   * kademe de `agacYolu.length`ten güvenle türetilebiliyor.
    */
   /**
    * Kart tıklaması. Karnesi kapalı araçta SESSİZ KALMIYOR.
@@ -787,10 +962,25 @@ export default function MarketplaceView({
   };
 
   const agacSec = (derinlik, dugum) => {
+    // ⚠ ANASAYFADA AĞAÇ SEÇİMİ DE SONUÇ EKRANINA GÖTÜRÜYOR.
+    // Kullanıcı markaya tıklayınca `/arama?marka=bmw` açılıyor; daha derine
+    // inme (seri → model → donanım) orada sürüyor. Referans sitede de akış
+    // bu: sol menüden bir kırılım seçmek listeleme sayfasını açıyor.
+    if (!tamSayfa) {
+      const ek = {};
+      KADEMELER.forEach((k, i) => {
+        if (i === derinlik) ek[k.alan] = agacAnahtari(dugum.name);
+        else if (i > derinlik) ek[k.alan] = '';
+      });
+      if (anasayfadanAramayaGit(ek)) return;
+    }
     // Katalog gezinmesi: yol bu kademeye kadar kırpılıp yeni düğüm ekleniyor.
     setAgacYolu((y) => [...y.slice(0, derinlik), { id: dugum.id, ad: dugum.name }]);
-    // Süzme ölçütü: katalogtan gelen AD normalize edilip yazılıyor. Araçtaki
-    // metin de `agacUygun` içinde aynı işlemden geçiyor.
+    // Süzme ölçütü: katalogtan gelen AD normalize edilip yazılıyor.
+    // ⚠ Karşı taraf SUNUCUDA: `arac_arama` yüklemi
+    // `arama_normalize(v.brand) = v_marka` diyor. `agacAnahtari` ile
+    // `arama_normalize` BİREBİR aynı katlamayı yapmak zorunda; aksi hâlde
+    // aksanlı dallar (Tofaş, Doğan, Şahin…) sessizce boş liste verir.
     setSayfa(0);
     setSuzgec((onceki) => {
       const yeni = { ...onceki };
@@ -936,8 +1126,15 @@ export default function MarketplaceView({
     ],
   };
 
-  /** Herhangi bir süzgeç etkin mi? "Sıfırla" ve boş durum metni için. */
-  const suzgecEtkin = aramaSorgusu !== ''
+  /**
+   * Herhangi bir süzgeç etkin mi? "Sıfırla" ve boş durum metni için.
+   *
+   * ⚠ ANASAYFADA DAİMA FALSE. Anasayfa artık hiç süzülmüyor (teşhir yüzeyi);
+   * bayrak orada true olsaydı "Sizin için seçtiklerimiz" sessizce kaybolur
+   * ama ızgara değişmezdi — kullanıcı hiçbir şey olmamış gibi görürken bir
+   * bölüm giderdi. Ölçülen tutarsızlık tam olarak buydu.
+   */
+  const suzgecEtkin = tamSayfa && (aramaSorgusu !== ''
     || suzgec.sehir !== 'Tümü'
     || suzgec.yakit !== 'Tümü' || suzgec.vites !== 'Tümü'
     || suzgec.tramer !== 'Tümü'
@@ -947,7 +1144,7 @@ export default function MarketplaceView({
     // Ağacın dört kademesi elle yazılıyor: dosyanın yerleşik üslubu bu ve
     // `agacSec`in değişmezi ileride kayarsa bu satır yine doğru kalır.
     || suzgec.marka !== '' || suzgec.seri !== ''
-    || suzgec.model !== '' || suzgec.donanim !== '';
+    || suzgec.model !== '' || suzgec.donanim !== '');
 
   /**
    * Izgarada çizilen kartlar.
@@ -1023,6 +1220,21 @@ export default function MarketplaceView({
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              // ⚠ ANASAYFADA ARAMA ARTIK YERİNDE SÜZMÜYOR, SONUÇ EKRANINA
+              // GÖTÜRÜYOR. Sektör lideri siteler de böyle çalışıyor: sonuç
+              // paylaşılabilir bir adreste açılıyor, kullanıcı geri tuşuyla
+              // aramasına dönebiliyor ve sonuç ekranı kendi düzenine
+              // (yatay liste) sahip oluyor.
+              if (!tamSayfa) {
+                const q = searchQuery.trim();
+                if (!q) return;
+                // PIN girildiyse doğrudan karneye — aşağıdaki dal bunu
+                // zaten yapıyor, o yüzden yalnızca PIN DEĞİLSE listeye.
+                if (!pinBicimiMi(q)) {
+                  router.push(`/vitrin?q=${encodeURIComponent(q)}`);
+                  return;
+                }
+              }
               // ⚠ ESKİDEN HER GİRDİ KARNEYE GİDİYORDU.
               //
               // `pinNormalize("bmw")` -> `CV-BMW` ve kod bunu geçerli sayıp
@@ -1600,20 +1812,104 @@ export default function MarketplaceView({
                   Sayaç GERÇEK sonuç sayısını gösteriyor: süzgeç uygulandığında
                   başlık da onu yansıtıyor, yoksa kullanıcı listenin süzülüp
                   süzülmediğini anlayamıyor. */}
+              {/* ⚠ ARAMA ÇİPİ — sonuç ekranının "ne aradım" hafızası.
+                  Adres `?q=` taşıyor ama kullanıcı adres çubuğunu okumaz;
+                  ne süzdüğünü ekranda görmeli ve tek tıkla kaldırabilmeli.
+                  ✕'e basınca ROTA DEĞİŞMİYOR: aynı sayfada tüm vitrine
+                  dönülüyor (referans sitedeki "Tümünü Temizle" davranışı). */}
+              {tamSayfa && aramaSorgusu !== '' && (
+                <div className="flex items-center gap-2 flex-wrap mb-3 select-none">
+                  <span className="etiket text-slate-500">ARAMA KELİMESİ</span>
+                  <span className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-md pl-2.5 pr-1 py-0.5">
+                    <span className="metin-yardimci font-semibold">{searchQuery}</span>
+                    <button
+                      type="button"
+                      onClick={() => { setSayfa(0); setSearchQuery(''); }}
+                      aria-label={`"${searchQuery}" aramasını kaldır`}
+                      className="w-6 h-6 grid place-items-center rounded hover:bg-indigo-100 text-indigo-700 cursor-pointer"
+                    >
+                      <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <path strokeLinecap="round" d="M2 2l8 8M10 2l-8 8" />
+                      </svg>
+                    </button>
+                  </span>
+                  <span className="metin-yardimci text-slate-500 tabular-nums">
+                    {toplamSonuc} sonuç
+                  </span>
+                </div>
+              )}
+
               <div className="flex justify-between items-baseline gap-3 pb-2 border-b border-slate-200 select-none mb-3">
                 <h2 className="baslik-bolum text-slate-900">
                   {/* ⚠ SAYAÇ KALDIRILDI — ürün sahibinin kararı: "sitemiz
                       çok büyüdüğünde yaparız, şuan göstermeyelim". Envanter
                       iki haneliyken sayı göstermek sitenin boyunu ilan
                       ediyordu. Geri geleceği yer burası. */}
-                  {suzgecEtkin ? 'Süzgeç sonuçları' : 'Vitrindeki Araçlar'}
+                  {/* ⚠ BAŞLIK ARTIK GİDİP GELMİYOR. Eskiden
+                      `suzgecEtkin ? 'Süzgeç sonuçları' : 'Vitrindeki Araçlar'`
+                      idi: aynı kutu bazen teşhir, bazen sonuç listesiydi.
+                      Ayrım artık yüzey düzeyinde — anasayfa teşhir (vitrin),
+                      süzme `/arama`nın işi. */}
+                  {tamSayfa ? 'Arama sonuçları' : 'Vitrindeki Araçlar'}
                 </h2>
+
+                {/* ⚠ GÖRÜNÜM DEĞİŞTİRİCİ YALNIZCA `/vitrin`DE VE GENİŞ
+                    EKRANDA. Anasayfa göz atma yüzeyi, orada tek düzen var;
+                    dar ekranda liste zaten çizilmiyor. */}
+                {tamSayfa && genisEkran && (
+                  <div className="flex items-center gap-1 shrink-0" role="group" aria-label="Görünüm">
+                    {[
+                      { deger: 'liste', etiket: 'Liste görünümü' },
+                      { deger: 'izgara', etiket: 'Izgara görünümü' },
+                    ].map((g) => (
+                      <button
+                        key={g.deger}
+                        type="button"
+                        onClick={() => gorunumSec(g.deger)}
+                        aria-pressed={gorunum === g.deger}
+                        aria-label={g.etiket}
+                        title={g.etiket}
+                        /* 44x44 dokunma hedefi. */
+                        className={`w-11 h-11 grid place-items-center rounded-md border transition-colors cursor-pointer ${
+                          gorunum === g.deger
+                            ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                            : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400'
+                        }`}
+                      >
+                        {/* Durum yalnızca renkle değil BİÇİMLE de anlatılıyor:
+                            simgeler iki düzeni doğrudan resmediyor. */}
+                        <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                          {g.deger === 'liste' ? (
+                            <>
+                              <rect x="1" y="2" width="14" height="3" rx="1" />
+                              <rect x="1" y="6.5" width="14" height="3" rx="1" />
+                              <rect x="1" y="11" width="14" height="3" rx="1" />
+                            </>
+                          ) : (
+                            <>
+                              <rect x="1" y="1" width="6" height="6" rx="1" />
+                              <rect x="9" y="1" width="6" height="6" rx="1" />
+                              <rect x="1" y="9" width="6" height="6" rx="1" />
+                              <rect x="9" y="9" width="6" height="6" rx="1" />
+                            </>
+                          )}
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 {/* ⚠ ESKİDEN YERİNDE AÇIYORDU (`showAllVitrin`), ARTIK
                     SAYFA DEĞİŞTİRİYOR. Ürün sahibi anasayfanın sınırsız
                     uzamasını reddetti; sığmayanların adresi `/vitrin`.
                     `/vitrin`in kendisinde bu bağ anlamsız, o yüzden gizli. */}
-                {!tamSayfa && sonuclar.length > ANASAYFA_KART_SINIRI && (
+                {/* ⚠ KIYAS SUNUCUDAKİ TOPLAM İLE. Eskiden `sonuclar.length` ile
+                    kıyaslanıyordu; süzme sunucuya taşınınca anasayfada sunucu
+                    zaten tam `ANASAYFA_KART_SINIRI` satır döndürüyor, yani
+                    `> 24` HİÇBİR ZAMAN doğru olamıyor ve düğme hiç
+                    çizilmiyordu. Anasayfadan `/vitrin`e giden tek bağ buydu.
+                    Aynı hata "Daha fazla göster"de fark edilip düzeltilmişti. */}
+                {!tamSayfa && toplamSonuc > gosterilenler.length && (
                   <button
                     type="button"
                     onClick={() => router.push('/vitrin')}
@@ -1721,6 +2017,29 @@ export default function MarketplaceView({
 
                    ⚠ Yalnızca `lg`: dar ekranda 938 px'lik boş bir kutu
                    hizalama değil, sadece boş kaydırma olurdu. */
+                /* ⚠ LİSTE YALNIZCA GENİŞ EKRANDA. Yatay satır dar ekranda
+                   okunmuyor: dört blok yan yana sığmıyor, sıkışıp kırılıyor.
+                   Mobilde ızgara kalıyor — `hidden lg:grid` / `lg:hidden`
+                   ikilisi bunu tek DOM'da çözüyor. */
+                /* ⚠ TEK LİSTE ÇİZİLİYOR. Önce `hidden lg:flex` + `lg:hidden`
+                   ikilisiyle iki liste birden basılmıştı: 8 sonuç için DOM'da
+                   16 öge, her biri aynı `aria-label` ile. Ekran okuyucu her
+                   aracı iki kez okuyor, testler iki kat sayıyordu. Karar
+                   artık `matchMedia` ile veriliyor. */
+                listeGorunumu ? (
+                  <div className="flex flex-col gap-2.5 lg:min-h-[938px]">
+                    {gosterilenler.map((item, sira) => (
+                      <VitrinSatiri
+                        key={item.kart_id || item.listing_id || item.id}
+                        item={item}
+                        sira={sira}
+                        onSec={kartTikla}
+                        favorili={karneAcikMi(item) && favoriler.has(item.pin_code)}
+                        onFavori={karneAcikMi(item) ? favoriTikla : undefined}
+                      />
+                    ))}
+                  </div>
+                ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(136px,1fr))] gap-3.5 lg:min-h-[938px] content-start">
                   {gosterilenler.map((item, sira) => (
                     <ArabamStyleVitrinCard
@@ -1741,6 +2060,7 @@ export default function MarketplaceView({
                     />
                   ))}
                 </div>
+                )
               )}
             </div>
 

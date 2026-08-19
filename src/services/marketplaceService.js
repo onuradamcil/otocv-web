@@ -153,7 +153,7 @@ export const unpublishVehicleListing = async (vehicle) => {
  * bilerek gizleniyor. Çözüm favori ve mesaj servislerindeki kalıbın aynısı:
  * güvenli izdüşüm döndüren `security definer` fonksiyon.
  */
-export const fetchMarketplaceListings = async (suzgec = {}, limit = 24, offset = 0) => {
+export const fetchMarketplaceListings = async (suzgec = {}, limit = 24, offset = 0, katman = null) => {
   try {
     // ⚠ SÜZME ARTIK SUNUCUDA. Eski hâli `arac_arama()`yı parametresiz
     // çağırıp görünür envanterin TAMAMINI indiriyordu; süzme, sıralama,
@@ -166,10 +166,16 @@ export const fetchMarketplaceListings = async (suzgec = {}, limit = 24, offset =
     // sayaçlar aynı anda sunucuya taşındı — ikisini ayırmanın yolu yok.
     //
     // Dönen şekil: { satirlar, toplam, secenekler }
+    // ⚠ `p_katman` KAVRAM AYRIMI İÇİN. Ölçüldü: "Vitrindeki Araçlar"
+    // başlığının altındaki 143 kartın yalnızca 2'si gerçekten vitrindeydi;
+    // kalanı `listelenebilir` (aranabilir ama vitrinde değil). Anasayfa
+    // teşhir yüzeyi olduğu için yalnızca 'vitrin' istiyor; arama ekranı
+    // katman geçmiyor (hepsini arıyor).
     const { data, error } = await supabase.rpc('arac_arama', {
       p_suzgec: suzgec || {},
       p_limit: limit,
       p_offset: offset,
+      p_katman: katman,
     });
 
     if (error) throw error;

@@ -19,7 +19,9 @@
 // istemci mantığı `VitrinIstemci`ye iniyor.
 // =========================================================================
 
+import { Suspense } from 'react';
 import VitrinIstemci from '@/components/marketplace/VitrinIstemci';
+import GlobalStepLoader from '@/components/common/GlobalStepLoader';
 
 export const metadata = {
   // ⚠ Düz metin: kök layout'ta `title.template = '%s | Oto.CV'` tanımlı.
@@ -39,5 +41,14 @@ export const metadata = {
 };
 
 export default function VitrinRotasi() {
-  return <VitrinIstemci />;
+  // ⚠ SUSPENSE ZORUNLU — SÜS DEĞİL.
+  // `VitrinIstemci` adres çubuğundaki `?q=` parametresini `useSearchParams`
+  // ile okuyor. Next 16'da bu kanca, ön işlenen bir rotada en yakın Suspense
+  // sınırına kadar olan istemci ağacını istemcide çizdiriyor; sınır YOKSA
+  // derleme hata veriyor. (`insurance-offer` rotasında da aynı kalıp var.)
+  return (
+    <Suspense fallback={<GlobalStepLoader mode="iskelet" varyant="kart" adet={6} />}>
+      <VitrinIstemci />
+    </Suspense>
+  );
 }

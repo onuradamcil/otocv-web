@@ -53,53 +53,77 @@ export const KADEMELER = [
  * ile araçtaki "BMW" eşleşmez.
  *
  * -----------------------------------------------------------------------
- * ⚠ TÜRKÇE 'I' TUZAĞI — `toLocaleLowerCase('tr')` BU İŞ İÇİN YANLIŞTIR
+ * ⚠ SUNUCUDAKİ `arama_normalize` İLE BİREBİR AYNI OLMAK ZORUNDA
  * -----------------------------------------------------------------------
- * Türkçe yerelinde noktalı/noktasız i ayrı harflerdir, dolayısıyla:
+ * Süzme sunucuya taşındığında (`arac_arama`) marka/seri/model/donanım
+ * karşılaştırması şu hâle geldi:
+ *
+ *     arama_normalize(v.brand) = v_marka        <- v_marka İSTEMCİDEN geliyor
+ *
+ * Yani SOL taraf SQL'in normalize edicisinden, SAĞ taraf buradan geçiyor.
+ * İkisi farklı katlarsa eşleşme sessizce başarısız olur.
+ *
+ * İlk yazımda burada yalnızca i-ailesi katlanıyordu; SQL tarafı ise Türkçe
+ * ve Avrupa aksanlarının tamamını ASCII'ye indiriyordu. Ölçüldü:
+ *
+ *     lower('Tofaş')            -> 'tofaş'
+ *     arama_normalize('Tofaş')  -> 'tofas'      -> EŞLEŞMİYOR
+ *
+ * Etkilenen katalog dalları: Tofaş (marka); Doğan, Şahin, Serçe, C-Elysée
+ * (seri); 43 paket. O dallara tıklayan kullanıcı sessizce BOŞ liste
+ * görüyordu. Bugün envanterde aksanlı dal taşıyan araç olmadığı için hata
+ * görünmüyordu — ilk Şahin/Doğan kaydında ortaya çıkacaktı.
+ *
+ * -----------------------------------------------------------------------
+ * ⚠ TÜRKÇE 'I' TUZAĞI — SIRA ÖNEMLİ
+ * -----------------------------------------------------------------------
+ * Türkçe yerelinde noktalı/noktasız i ayrı harflerdir:
  *     'FIAT'.toLocaleLowerCase('tr')  ->  'fıat'   (noktasız ı)
  *     'Fiat'.toLocaleLowerCase('tr')  ->  'fiat'   (noktalı i)
- * İki AYRI anahtar: aynı marka eşleşmezdi. Ölçüldü; FIAT, MINI, CITROEN ve
- * INFINITI'de bölünme oluyor — dördü de katalogda gerçek marka.
+ * İki AYRI anahtar: aynı marka eşleşmezdi.
  *
- * Locale'siz `toLowerCase()` da kurtarmıyor:
- *     'İSTANBUL'.toLowerCase()  ->  'i̇stanbul'  (i + BİRLEŞEN NOKTA)
+ * Locale'siz `toLowerCase()` tek başına da kurtarmıyor:
+ *     'İSTANBUL'.toLowerCase()  ->  'i̇stanbul'  (i + BİRLEŞEN NOKTA, 9 karakter)
  *
- * Çözüm: i-ailesinin dört biçimi ÖNCE tek harfe katlanıyor, küçültme ONDAN
- * SONRA ve locale'siz. Kalan Türkçe harfler (ç ğ ö ş ü) yerelden bağımsız
- * doğru küçülüyor.
+ * Çözüm ve SQL'deki sıranın aynısı: ÖNCE harfleri katla, SONRA küçült.
+ * Ters sırada `MİNİ` -> `mi̇ni̇` oluyor ve `Mini` ile eşleşmiyor.
+ *
+ * ⚠ HARİTA SQL İLE BİREBİR: 58 karakter, kaynak ve hedef HİZALI. Bir
+ * karakter kayarsa `translate` sessizce yanlış harf üretir. Değiştirilirse
+ * `supabase/migrations/20260819040000_arama_normalize_ve_indeks.sql`
+ * içindeki `arama_normalize` de AYNI ANDA güncellenmeli.
  */
-export function agacAnahtari(deger) {
-  return String(deger ?? '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/[İIıi]/g, 'i')
-    .toLowerCase();
-}
+const KAYNAK_HARFLER = 'ÇĞİIÖŞÜçğıiöşüÁÀÂÄÉÈÊËÍÌÎÏÓÒÔÚÙÛÑŠŽÝáàâäéèêëíìîïóòôúùûñšžý';
+const HEDEF_HARFLER  = 'cgiiosucgiiosuaaaaeeeeiiiiooouuunszyaaaaeeeeiiiiooouuunszy';
 
-/**
- * Ağaç kısıtı: kayıt seçili kırılıma uyuyor mu?
- * Boş kademe = kısıt yok. Ölçüt TEK yerde, burada.
- *
- * ⚠ `s[k.alan]` NORMALİZE ANAHTAR tutuyor (katalogtan seçilen adın
- * `agacAnahtari`den geçmiş hâli), araçtaki metin de burada normalize
- * ediliyor. İki taraf da aynı işlemden geçmeden karşılaştırılmıyor.
- */
-export function agacUygun(kayit, s) {
-  for (const k of KADEMELER) {
-    if (!s[k.alan]) continue;
-    if (agacAnahtari(kayit?.[k.veri]) !== s[k.alan]) return false;
+/** SQL `translate()` karşılığı: kaynak harfleri hedefteki eşine çevirir. */
+function harfleriKatla(metin) {
+  let cikti = '';
+  for (const harf of metin) {
+    const i = KAYNAK_HARFLER.indexOf(harf);
+    cikti += i === -1 ? harf : HEDEF_HARFLER[i];
   }
-  return true;
+  return cikti;
 }
 
-/**
- * Gösterilecek kademenin derinliği = ilk BOŞ kademe.
- * Hepsi doluysa `KADEMELER.length` (en derin: gösterilecek çocuk yok).
- *
- * Bu, `agacSec`in koruduğu değişmeze dayanıyor: bir kademe seçilince ALTI
- * sıfırlanır, dolayısıyla "marka boş ama seri dolu" durumu hiç oluşmaz.
- */
-export function agacDerinligi(s) {
-  const i = KADEMELER.findIndex((k) => !s[k.alan]);
-  return i === -1 ? KADEMELER.length : i;
+export function agacAnahtari(deger) {
+  // SQL'deki sıra birebir: çevir -> küçült -> boşlukları sadeleştir -> kırp.
+  return harfleriKatla(String(deger ?? ''))
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
 }
+
+/*
+ * ⚠ `agacUygun` ve `agacDerinligi` KALDIRILDI.
+ *
+ * İkisi de istemci tarafı süzmenin parçasıydı: `agacUygun` bir kaydın
+ * seçili kırılıma uyup uymadığına, `agacDerinligi` gösterilecek kademeye
+ * bakıyordu. Süzme sunucuya taşındığında (`arac_arama` RPC'si) bu mantık
+ * SQL'e geçti — `20260819050000_arac_arama_sunucu_tarafi.sql` içindeki
+ * `ok_agac` yüklemi ağacın dört kademesini tek yüklemde uyguluyor.
+ *
+ * Geride ölü kod olarak kalmışlardı: `agacUygun` import ediliyor ama hiç
+ * çağrılmıyordu, `agacDerinligi` hiç import edilmiyordu. Gösterilecek
+ * kademe artık `agacYolu.length`ten türetiliyor (`MarketplaceView`).
+ */

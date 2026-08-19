@@ -21,15 +21,22 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import MarketplaceView from './MarketplaceView';
 
 export default function VitrinIstemci() {
   const router = useRouter();
+  // ⚠ ARAMA ARTIK ADRESTE. Anasayfadaki kutu Enter'da `/vitrin?q=...`
+  // açıyor; sonuç ekranı paylaşılabilir ve yer imlenebilir oluyor.
+  // Parametre yalnızca BAŞLANGIÇ değeri: kullanıcı buradaki kutuda yazmaya
+  // devam edince adres değil, ekrandaki liste güncelleniyor.
+  const sorgu = useSearchParams();
+  const baslangicAramasi = sorgu.get('q') || '';
 
   return (
     <MarketplaceView
       tamSayfa
+      baslangicAramasi={baslangicAramasi}
       onSelectVehicle={(item) => router.push(`/details/${encodeURIComponent(item.pin_code)}`)}
       // ⚠ Bu dört yönlendirme `tamSayfa` kipinde ÇİZİLMEYEN bölümlere ait
       // (Hizmetler şeridi ve "Nasıl çalışır" CTA'sı). Yine de geçiliyor:

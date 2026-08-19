@@ -110,3 +110,64 @@ export const fetchCatalogPackages = async (modelId) => {
     return [];
   }
 };
+// =========================================================================
+// ADRESTEN AĞAÇ YOLUNU GERİ KURMA
+//
+// -------------------------------------------------------------------------
+// NİYE GEREKİYOR
+// -------------------------------------------------------------------------
+// Marka ağacı iki ayrı şey tutuyor:
+//   • `suzgec.marka/seri/model/donanim` -> NORMALİZE AD ('bmw', '3 serisi')
+//   • `agacYolu`                        -> katalog KİMLİKLERİ (id)
+//
+// Süzme sunucuya taşındığında adreste AD taşınmaya başladı (paylaşılan
+// bağlantı okunaklı olsun ve katalog kimlikleri değişirse bozulmasın diye).
+// Ama `agacYolu` id'ye muhtaç: alt kademeyi çekmek için ebeveynin id'si
+// gerekiyor. Yani `/arama?marka=bmw&seri=3 serisi` ile açılan sayfada ağaç
+// hangi dalda olduğunu BİLEMİYORDU — süzgeç uygulanıyor ama panel köke
+// dönmüş görünüyordu.
+//
+// Bu fonksiyon o boşluğu kapatıyor: kökten başlayıp her kademede normalize
+// ada göre eşleşen düğümü bulup id zincirini kuruyor.
+//
+// ⚠ EN FAZLA 4 ARDIŞIK İSTEK ve yalnızca sayfa açılışında. Kademeler
+// zincirleme olduğu için paralelleştirilemiyor: seriyi çekmek için markanın
+// id'si şart.
+//
+// ⚠ EŞLEŞMEYEN KADEME ZİNCİRİ KESİYOR, HATA ATMIYOR. Katalogdan kaldırılmış
+// bir dalın adresi paylaşılmış olabilir; o durumda ağaç bulunabildiği yere
+// kadar açılıyor. Boş dizi dönmek, kullanıcıyı hiç bilgilendirmeden köke
+// atmaktan iyi.
+// =========================================================================
+
+import { agacAnahtari } from '../utils/markaAgaci';
+
+/**
+ * Normalize adlardan katalog id zinciri kurar.
+ *
+ * @param {{marka?:string, seri?:string, model?:string, donanim?:string}} adlar
+ * @returns {Promise<Array<{id:number|string, name:string}>>} `agacYolu` biçimi
+ */
+export const catalogYolunuCoz = async (adlar) => {
+  const yol = [];
+  try {
+    const kademeler = [
+      { anahtar: adlar?.marka, getir: () => fetchCatalogBrands() },
+      { anahtar: adlar?.seri, getir: (ust) => fetchCatalogSeries(ust) },
+      { anahtar: adlar?.model, getir: (ust) => fetchCatalogModels(ust) },
+      { anahtar: adlar?.donanim, getir: (ust) => fetchCatalogPackages(ust) },
+    ];
+
+    for (const kademe of kademeler) {
+      if (!kademe.anahtar) break;           // bu kademe seçilmemiş -> zincir bitti
+      const ustId = yol.length ? yol[yol.length - 1].id : undefined;
+      const liste = await kademe.getir(ustId);
+      const bulunan = (liste || []).find((d) => agacAnahtari(d.name) === kademe.anahtar);
+      if (!bulunan) break;                  // katalogda yok -> bulunduğu yere kadar
+      yol.push({ id: bulunan.id, name: bulunan.name });
+    }
+  } catch (e) {
+    console.error('❌ [Catalog Service] Ağaç yolu çözülemedi:', e.message);
+  }
+  return yol;
+};
