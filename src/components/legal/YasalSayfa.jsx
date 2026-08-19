@@ -98,7 +98,10 @@ export default function YasalSayfa({ baslik, ozet, bolumler }) {
           <Link
             key={yol}
             href={yol}
-            className="text-yardimci font-bold text-indigo-600 hover:text-indigo-700 hover:underline rounded"
+            /* ⚠ Bu üç bağlantı bir cümlenin İÇİNDE DEĞİL; sayfanın altındaki
+                 bağımsız gezinme şeridi. WCAG 2.5.8'in "satır içi" istisnası
+                 bunlara uygulanmaz — bağımsız hedefler ve 20px idi. */
+                className="inline-flex items-center min-h-[44px] text-yardimci font-bold text-indigo-600 hover:text-indigo-700 hover:underline rounded"
           >
             {ad}
           </Link>

@@ -27,7 +27,14 @@ export default function AuthHeader() {
           <span>Anasayfa</span>
         </Link>
 
-        <Link href="/" className={`text-base font-display font-bold tracking-tight text-slate-900 rounded ${ODAK}`}>
+        {/* ⚠ `inline-flex items-center min-h-[44px]` — logo bağlantısı 52x24 idi.
+            Yanındaki "Anasayfa" bağlantısı zaten 44px taşıyor; ikisi aynı
+            şeritte olduğu için logonun daha küçük kalması hem hedef hem hiza
+            sorunuydu. */}
+        <Link
+          href="/"
+          className={`inline-flex items-center min-h-[44px] text-base font-display font-bold tracking-tight text-slate-900 rounded ${ODAK}`}
+        >
           OTO.CV
         </Link>
       </div>

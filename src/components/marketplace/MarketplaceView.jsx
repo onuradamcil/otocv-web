@@ -1263,7 +1263,11 @@ export default function MarketplaceView({
               onChange={(e) => { setSayfa(0); setSearchQuery(e.target.value); }}
               aria-label="Marka, model, şehir veya PIN ile ara"
               placeholder="Marka, model, şehir veya PIN kodu ile ara..."
-              className="w-full bg-transparent border-none outline-none text-sm text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal pl-0.5"
+              /* ⚠ `min-h-[44px]` — GİRDİ KUTUSU 20px İDİ. Çevresindeki beyaz form
+                 kutusu 54px görünüyor ama TIKLANABİLİR alan girdinin kendisi;
+                 dolgu bölgesine basmak odaklamıyordu. Bu, anasayfanın ana
+                 kontrolü — ürünün arama kapısı. */
+              className="w-full min-h-[44px] bg-transparent border-none outline-none text-sm text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal pl-0.5"
             />
             {searchQuery && (
               <button
