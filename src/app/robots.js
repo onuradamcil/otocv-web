@@ -36,6 +36,11 @@ export default function robots() {
           '/account',
           '/insurance-offer',
           '/maintenance-planner',
+          // ⚠ ARAMA SONUÇLARI İNDEKSLENMEMELİ. Aynı araçlar sayısız süzgeç
+          // kombinasyonunda tekrar tekrar listelenir; arama motorları bunu
+          // ince ve yinelenen içerik sayıyor ve tarama bütçesi boşa gider.
+          // İndekslenmesi gereken yüzeyler `/` ve `/vitrin`.
+          '/arama',
         ],
       },
     ],
