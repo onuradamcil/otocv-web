@@ -1,0 +1,173 @@
+# =========================================================================
+# OTO-CV GÜNLÜK VERİTABANI YEDEĞİ
+#
+# ⚠ BU DOSYA BURADA ÇALIŞMAZ. Ayrı, GİZLİ bir depoya kopyalanmak üzere
+# yazıldı (`otocv-yedek` gibi). Kurulum adımları: docs/yedekleme/README.md
+#
+# NİYE AYRI VE GİZLİ BİR DEPO:
+# `otocv-web` herkese açık. GitHub'da açık depoların Actions çıktılarını
+# (artifact) depoyu görebilen HERKES indirebiliyor. Yedek içinde plaka, PIN,
+# telefon ve adres var — şifreli olsa bile açık internete koymak doğru değil.
+# Gizli depoda artifact da gizli oluyor.
+#
+# NE YAPAR: Her gece veritabanının tam bir kopyasını alır, şifreler ve
+# GitHub'da saklar. Siz hiçbir şey yapmazsınız.
+#
+# NEREDEN GÖRÜRSÜNÜZ: Gizli deponun "Actions" sekmesi. Her koşumun altında
+# indirilebilir bir dosya durur.
+#
+# HATA OLURSA: GitHub size e-posta atar. Sessizce başarısız olmaz — aşağıda
+# dökümün gerçekten dolu olduğunu denetleyen bir adım var.
+# =========================================================================
+
+name: Günlük veritabanı yedeği
+
+on:
+  # 00:00 UTC = Türkiye saatiyle 03:00. Gece yarısı seçilmedi: o saatte
+  # GitHub'ın kuyruğu en yoğun ve koşum gecikiyor.
+  schedule:
+    - cron: '0 0 * * *'
+  # Elle de çalıştırabilmek için. Riskli bir işten önce buradan tetikleyin.
+  workflow_dispatch:
+
+# ⚠ `pull_request` TETİKLEYİCİSİ BİLEREK YOK. Olsaydı, dışarıdan gelen bir
+# PR bu iş akışını çalıştırıp gizli anahtarlara ulaşmayı deneyebilirdi.
+# Yalnızca zamanlanmış ve elle tetikleme var.
+
+jobs:
+  yedek:
+    runs-on: ubuntu-latest
+    # Bir sorun olursa 15 dakikada kesilsin; asılı kalan koşum dakika yakar.
+    timeout-minutes: 15
+
+    steps:
+      # ------------------------------------------------------------------
+      # 1. DOĞRU pg_dump SÜRÜMÜ
+      # ------------------------------------------------------------------
+      # ⚠ SÜRÜM UYUŞMASI ŞART. Supabase PostgreSQL 17 kullanıyor. Ubuntu'nun
+      # hazır gelen istemcisi daha eski ve `pg_dump` sunucudan yeni bir sürüm
+      # görünce "aborting because of server version mismatch" deyip çıkıyor.
+      # Bu yüzden PostgreSQL'in kendi deposu ekleniyor.
+      - name: PostgreSQL 17 istemcisini kur
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] \
+            https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          pg_dump --version
+
+      # ------------------------------------------------------------------
+      # 2. DÖKÜMÜ AL
+      # ------------------------------------------------------------------
+      # İki ayrı döküm alınıyor:
+      #
+      #   public.dump  Uygulamanın tüm verisi (araçlar, vitrin, bakım
+      #                kayıtları, katalog, bildirimler...). `custom` biçim
+      #                sıkıştırılmış ve `pg_restore` ile seçmeli geri
+      #                yüklemeye izin veriyor.
+      #
+      #   auth_users   Kullanıcı hesapları. AYRI çünkü `auth` şeması
+      #                Supabase'in yönetiminde; tamamını geri yüklemek
+      #                çakışma üretir. Yalnızca `auth.users` satırları
+      #                alınıyor ki hesap kimlikleri (`user_id`) kaybolmasın —
+      #                `vehicles.user_id` onlara bağlı.
+      #
+      # ⚠ `PGSSLMODE=require`: Supabase şifresiz bağlantı kabul etmiyor.
+      - name: Veritabanı dökümünü al
+        env:
+          VERITABANI_URL: ${{ secrets.VERITABANI_URL }}
+          PGSSLMODE: require
+        run: |
+          set -euo pipefail
+          mkdir -p cikti
+          TARIH=$(date -u +%Y%m%d-%H%M)
+          echo "TARIH=$TARIH" >> "$GITHUB_ENV"
+
+          pg_dump "$VERITABANI_URL" \
+            --schema=public \
+            --format=custom \
+            --no-owner --no-privileges \
+            --file="cikti/public-$TARIH.dump"
+
+          # Hesaplar. Başarısız olursa iş DURMASIN ama bunu açıkça yazalım:
+          # public dökümü zaten alınmış olur ve asıl veri odur.
+          if pg_dump "$VERITABANI_URL" \
+               --table=auth.users --data-only \
+               --format=custom \
+               --file="cikti/auth-users-$TARIH.dump"; then
+            echo "auth.users dökümü alındı"
+          else
+            echo "::warning::auth.users dökümü ALINAMADI (yetki?). public dökümü sağlam."
+            rm -f "cikti/auth-users-$TARIH.dump"
+          fi
+
+      # ------------------------------------------------------------------
+      # 3. DÖKÜM GERÇEKTEN DOLU MU
+      # ------------------------------------------------------------------
+      # ⚠ BU ADIM OLMAZSA YEDEK YALAN SÖYLER. Bağlantı koparsa ya da izin
+      # sorunu olursa `pg_dump` bazen 0 baytlık geçerli bir dosya bırakıyor.
+      # O dosya "yedeğim var" hissi verir ve geri yüklemeye kalkınca boş
+      # çıkar — yedeksizlikten daha kötüsü budur.
+      - name: Dökümü doğrula
+        run: |
+          set -euo pipefail
+          DOSYA="cikti/public-$TARIH.dump"
+          BOYUT=$(stat -c%s "$DOSYA")
+          echo "Döküm boyutu: $BOYUT bayt"
+
+          # 100 KB eşiği: bugünkü veritabanı ~24 MB, sıkıştırılmış dökümü
+          # birkaç MB. Bunun çok altı bir dosya bozuk demektir.
+          if [ "$BOYUT" -lt 102400 ]; then
+            echo "::error::Döküm şüpheli derecede küçük ($BOYUT bayt). Yedek GEÇERSİZ."
+            exit 1
+          fi
+
+          # İçindekiler okunabiliyor mu ve merkez tablolar orada mı?
+          pg_restore --list "$DOSYA" > icindekiler.txt
+          for TABLO in vehicles listings profiles maintenance_records car_brands; do
+            if ! grep -q "TABLE DATA public $TABLO" icindekiler.txt; then
+              echo "::error::Dökümde '$TABLO' tablosunun verisi YOK. Yedek eksik."
+              exit 1
+            fi
+          done
+          echo "Doğrulama tamam: beş merkez tablonun verisi dökümde."
+
+      # ------------------------------------------------------------------
+      # 4. ŞİFRELE
+      # ------------------------------------------------------------------
+      # Depo gizli ama şifreleme yine de var: depo bir gün yanlışlıkla açık
+      # yapılırsa ya da bir işbirlikçi eklenirse, ham veri korumasız kalmasın.
+      # Bedeli sıfıra yakın, faydası büyük.
+      - name: Dökümleri şifrele
+        env:
+          YEDEK_SIFRESI: ${{ secrets.YEDEK_SIFRESI }}
+        run: |
+          set -euo pipefail
+          for f in cikti/*.dump; do
+            gpg --batch --yes --symmetric --cipher-algo AES256 \
+                --passphrase "$YEDEK_SIFRESI" \
+                --output "$f.gpg" "$f"
+            rm -f "$f"
+          done
+          ls -lh cikti/
+
+      # ------------------------------------------------------------------
+      # 5. SAKLA
+      # ------------------------------------------------------------------
+      # ⚠ ARTIFACT KULLANILIYOR, DEPOYA COMMIT EDİLMİYOR. Günlük birkaç MB'lık
+      # ikili dosyayı git'e yazmak depoyu yılda ~1 GB şişirirdi ve git geçmişi
+      # silinmiyor — dosyayı sonradan kaldırsanız bile geçmişte kalır.
+      # Artifact süresi dolunca kendiliğinden siliniyor.
+      #
+      # Gizli depoda artifact'ı yalnızca depoya erişimi olanlar indirebilir.
+      - name: Yedeği sakla
+        uses: actions/upload-artifact@v4
+        with:
+          name: otocv-yedek-${{ env.TARIH }}
+          path: cikti/
+          retention-days: 90
+          if-no-files-found: error
