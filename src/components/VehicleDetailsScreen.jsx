@@ -783,7 +783,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   <div className="bg-white border border-slate-200/90 px-3.5 py-1.5 rounded-lg flex items-center gap-2 shadow-2xs">
                     <span className="text-etiket font-semibold text-slate-500 uppercase font-mono tracking-wider leading-none">KARNE PUANI</span>
                     <span className={`text-xs sm:text-sm font-semibold font-mono tabular-nums leading-none ${
-                      otocvScore >= 70 ? 'text-emerald-600' : otocvScore >= 40 ? 'text-amber-600' : 'text-slate-500'
+                      otocvScore >= 70 ? 'text-emerald-700' : otocvScore >= 40 ? 'text-amber-700' : 'text-slate-500'
                     }`}>{otocvScore}/100</span>
                   </div>
                 </div>
@@ -1254,7 +1254,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                                 dolu gelir; `invoice_path` yalnızca sahibe döner. Nişan
                                 için varlık bilgisi yeterli — görsel açığa çıkmıyor. */}
                             {item.faturali && (
-                              <span className="flex items-center justify-end gap-1 text-etiket font-bold text-emerald-600 mt-0.5">
+                              <span className="flex items-center justify-end gap-1 text-etiket font-bold text-emerald-700 mt-0.5">
                                 <Icon name="onay" size="xs" strokeWidth={2.5} />
                                 Mühürlü Evrak
                               </span>

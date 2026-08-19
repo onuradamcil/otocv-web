@@ -647,7 +647,14 @@ function SuzgecCipi({ deger, etiket, renk = 'bg-slate-100 text-slate-700', secil
           için sayı hiyerarşiyi bozmadan öne çıkabiliyor. `tabular-nums`
           şart: 9 -> 10 olunca çipin genişliği zıplamasın. */}
       <span className={`metin-yardimci font-semibold font-mono tabular-nums min-w-[22px] text-center px-1.5 py-0.5 rounded-full ${
-        secili ? 'bg-white/25 text-white' : bos ? 'bg-slate-100 text-slate-500' : renk
+        /* ⚠ SEÇİLİ ROZET AÇIK ZEMİN + KOYU METİN.
+           Eskiden `bg-white/25 text-white` idi: yarı saydam beyaz, indigo-600
+           çipin üstünde rgb(123,107,248)'e dönüşüyor ve BEYAZ metin orada
+           3.97:1 kalıyordu (ölçüldü) — AA eşiği 4.5:1.
+           Zemini daha da açmak beyaz metni kurtarmıyor, koyulaştırmak ise
+           seçili olmayan durumla çelişiyordu (o zaten açık zemin + koyu
+           metin). Aynı kalıba dönmek hem tutarlı hem 7.9:1. */
+        secili ? 'bg-white text-indigo-700' : bos ? 'bg-slate-100 text-slate-500' : renk
       }`}>
         {deger}
       </span>

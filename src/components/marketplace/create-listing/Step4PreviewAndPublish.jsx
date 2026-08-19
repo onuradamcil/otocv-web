@@ -1103,7 +1103,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                           <div className="text-right">
                             <span className="text-xs sm:text-sm font-bold font-mono text-slate-900">{costFormatted}</span>
                             {belgeVar && (
-                              <span className="flex items-center justify-end gap-1 text-etiket font-bold text-emerald-600 mt-0.5">
+                              <span className="flex items-center justify-end gap-1 text-etiket font-bold text-emerald-700 mt-0.5">
                                 <Icon name="onay" size="xs" strokeWidth={2.5} />
                                 Mühürlü Evrak
                               </span>
