@@ -561,6 +561,9 @@ export default function MarketplaceView({
     sehir: 'Tümü',
     yakit: 'Tümü',
     vites: 'Tümü',
+    // Hasar beyanı. Alan `vehicles.tramer_status`; canlıda tam üç değer
+    // taşıyor: 'Tramer Yok' / 'Tramer Var' / 'Bilmiyorum'.
+    tramer: 'Tümü',
     yilMin: '',
     yilMax: '',
     // `km` alanı `vitrin_listesi` RPC'sinden BUGÜN de geliyordu ama hiçbir
@@ -764,7 +767,7 @@ export default function MarketplaceView({
     // ızgara sıfırlanır ama ağaç seçili dalda kalırdı.
     setAgacYolu([]);
     setSuzgec({
-      sehir: 'Tümü', yakit: 'Tümü', vites: 'Tümü',
+      sehir: 'Tümü', yakit: 'Tümü', vites: 'Tümü', tramer: 'Tümü',
       yilMin: '', yilMax: '', kmMin: '', kmMax: '', sicilEnAz: 0, yalnizOneCikan: false,
       yalnizYeni: false,
       // ⚠ AĞAÇ DA SIFIRLANIYOR. Unutulsaydı "Süzgeçleri sıfırla" ızgarayı
@@ -817,6 +820,11 @@ export default function MarketplaceView({
     sehir: (i, s) => s.sehir === 'Tümü' || i.city === s.sehir,
     yakit: (i, s) => s.yakit === 'Tümü' || i.fuel_type === s.yakit,
     vites: (i, s) => s.vites === 'Tümü' || i.transmission === s.vites,
+    // ⚠ 'Bilmiyorum' AYRI BİR SEÇENEK, 'Tramer Yok'a KATILMIYOR. Beyan
+    // etmeyen kullanıcının aracını hasarsız saymak, ürünün sihirbazda
+    // bilerek düzelttiği hatanın aynısı olurdu ('Hasarsız' varsayılanı
+    // kaldırılıp 'Bilmiyorum' konmuştu; `16-uydurma-veri` bunu bekçiliyor).
+    tramer: (i, s) => s.tramer === 'Tümü' || i.tramer_status === s.tramer,
     // MARKA AĞACI — dört kademe TEK yüklemde.
     //
     // ⚠ NİYE DÖRT AYRI YÜKLEM DEĞİL: `haric` tek bir yüklem adını atlıyor,
@@ -907,6 +915,7 @@ export default function MarketplaceView({
       sehirler: grupla('sehir', 'city'),
       yakitlar: grupla('yakit', 'fuel_type'),
       vitesler: grupla('vites', 'transmission'),
+      tramerler: grupla('tramer', 'tramer_status'),
       // ⚠ BANTLAR SABİT DEĞİL, SAYILARI GERÇEK.
       // Eskiden tek bir "Güven Skoru (%80+)" çipi vardı ve veritabanındaki en
       // yüksek puan 72 olduğu için o çip bağlansa bile DAİMA 0 sonuç verirdi.
@@ -957,6 +966,7 @@ export default function MarketplaceView({
   const suzgecEtkin = aramaSorgusu !== ''
     || suzgec.sehir !== 'Tümü'
     || suzgec.yakit !== 'Tümü' || suzgec.vites !== 'Tümü'
+    || suzgec.tramer !== 'Tümü'
     || suzgec.yilMin !== '' || suzgec.yilMax !== ''
     || suzgec.kmMin !== '' || suzgec.kmMax !== ''
     || Number(suzgec.sicilEnAz) > 0 || suzgec.yalnizOneCikan || suzgec.yalnizYeni
@@ -1249,6 +1259,10 @@ export default function MarketplaceView({
                 { baslik: 'Şehir', secenekler: secenekler.sehirler, alan: 'sehir' },
                 { baslik: 'Yakıt Tipi', secenekler: secenekler.yakitlar, alan: 'yakit' },
                 { baslik: 'Vites Tipi', secenekler: secenekler.vitesler, alan: 'vites' },
+                // Hasar beyanı EN SONDA: üç değerin ikisi ('Tramer Var',
+                // 'Bilmiyorum') alıcıyı caydırıcı bilgi ve listenin başında
+                // durması gereken bir şey değil.
+                { baslik: 'Tramer Kaydı', secenekler: secenekler.tramerler, alan: 'tramer' },
               ]
                 // Tek seçeneği olan bir süzgeç süzmüyor, yalnızca yer kaplıyor.
                 // Projede yerleşik kural: veri yoksa bölüm hiç çizilmiyor.
@@ -1421,6 +1435,7 @@ export default function MarketplaceView({
                     { baslik: 'Şehir', secenekler: secenekler.sehirler, alan: 'sehir' },
                     { baslik: 'Yakıt Tipi', secenekler: secenekler.yakitlar, alan: 'yakit' },
                     { baslik: 'Vites Tipi', secenekler: secenekler.vitesler, alan: 'vites' },
+                    { baslik: 'Tramer Kaydı', secenekler: secenekler.tramerler, alan: 'tramer' },
                   ]
                     .filter((g) => (g.secenekler || []).length >= 2)
                     .map((g) => (

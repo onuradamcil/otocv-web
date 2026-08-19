@@ -108,6 +108,11 @@ const KOMBINASYONLAR = [
 const SEHIRLER = ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Konya', 'Adana', 'Kocaeli', 'Gaziantep', 'Kayseri', 'Mersin'];
 const YAKITLAR = ['Benzin', 'Dizel', 'LPG & Benzin', 'Hibrit', 'Elektrik', 'Benzin', 'Dizel'];
 const VITESLER = ['Otomatik', 'Manuel', 'Yarı Otomatik'];
+// ⚠ ÜÇ DEĞER DE `vehicles.tramer_status`ın canlıda taşıdığı gerçek
+// değerler. 'Bilmiyorum' = beyan edilmemiş; 'Tramer Yok'a katılmıyor.
+// Dizi 4 uzunlukta çünkü VARYANT 3: eşit uzunlukta olsalardı `(i+v) mod 3`
+// dejenere olur ve tek değer üretirdi (vites formülünde tam bu yaşandı).
+const TRAMERLER = ['Tramer Yok', 'Tramer Var', 'Bilmiyorum', 'Tramer Yok'];
 
 const GUN = 24 * 60 * 60 * 1000;
 
@@ -157,6 +162,7 @@ export function demoVitrinUret(adet, simdi) {
       // üçü gerçek araçlardan geliyordu). Katsayı toplamı 3'ün katı
       // olmamalı; (1+1)=2 üçünü de eşit dağıtıyor.
       transmission: VITESLER[(i + v) % VITESLER.length],
+      tramer_status: TRAMERLER[(i + v) % TRAMERLER.length],
       trust_score: 22 + ((i * 13 + v * 29) % 73),
       // ~9'da bir öne çıkan: "Yalnızca öne çıkanlar" süzgeci anlamlı bir alt
       // küme döndürsün ama ızgaranın çoğunu kaplamasın.
