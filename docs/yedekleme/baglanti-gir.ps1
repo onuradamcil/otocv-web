@@ -19,6 +19,16 @@ $DEPO = 'onuradamcil/otocv-yedek'
 $gh = $null
 $aday = Get-Command gh -ErrorAction SilentlyContinue
 if ($aday) { $gh = $aday.Source }
+# ⚠ ACIK BIR TERMINALDE PATH ESKI OLABILIR. gh kurulumdan sonra PATH'e
+# eklenir ama zaten acik olan pencereler bunu gormez; standart konum
+# dogrudan deneniyor.
+if (-not $gh -and (Test-Path "$env:ProgramFiles\GitHub CLI\gh.exe")) {
+    $gh = "$env:ProgramFiles\GitHub CLI\gh.exe"
+}
+if (-not $gh -and (Test-Path "$env:LOCALAPPDATA\Microsoft\WinGet\Links\gh.exe")) {
+    $gh = "$env:LOCALAPPDATA\Microsoft\WinGet\Links\gh.exe"
+}
+# Son care: kurulum sirasinda gecici klasore indirilmis bir kopya.
 if (-not $gh) {
     $gecici = Get-ChildItem -Path $env:TEMP -Filter gh.exe -Recurse -ErrorAction SilentlyContinue |
               Select-Object -First 1
