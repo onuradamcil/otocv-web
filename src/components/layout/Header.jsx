@@ -177,6 +177,32 @@ export default function Header() {
     ? tamAd.split(' ').filter(Boolean).slice(0, 2).map((p) => p.charAt(0).toLocaleUpperCase('tr-TR')).join('')
     : (user?.email?.charAt(0)?.toLocaleUpperCase('tr-TR') || '?');
 
+  // -----------------------------------------------------------------------
+  // SAĞLAYICI (OAuth) PROFİL FOTOĞRAFI
+  // -----------------------------------------------------------------------
+  // Google ile giren kullanıcı baş harf görüyordu: `profiles.avatar_yolu`
+  // yalnızca KULLANICININ KENDİ YÜKLEDİĞİ görseli tutuyor, sağlayıcıdan
+  // gelen fotoğrafa hiç bakılmıyordu.
+  //
+  // ⚠ ANAHTARLAR VARSAYILMADI, CANLI VERİTABANINDA ÖLÇÜLDÜ: Google hem
+  // `avatar_url` hem `picture` yazıyor ve ikisi BİREBİR AYNI. İkisi de
+  // okunuyor çünkü hangisini yazdığı sağlayıcıya göre değişiyor.
+  //
+  // ⚠ APPLE FOTOĞRAF GÖNDERMİYOR. "Sign in with Apple" yalnızca e-posta ve
+  // (yalnızca ilk izinde) ad döndürüyor; profil görseli KAPSAMINDA YOK.
+  // Yani Apple ile girenler baş harflerde kalıyor — bu bir eksik değil,
+  // sağlayıcının vermediği bir veriyi uydurmamak.
+  //
+  // Yeni state/istek YOK: `user` zaten oturumla geliyor, bu ondan türüyor.
+  const saglayiciAvatar = user?.user_metadata?.avatar_url
+    || user?.user_metadata?.picture
+    || null;
+
+  // ÖNCELİK: kullanıcının kendi yüklediği görsel > sağlayıcı fotoğrafı >
+  // baş harfler. Kendi yüklediği her zaman kazanıyor — bilinçli bir seçimi
+  // Google'dan gelen fotoğrafın ezmesi geri adım olurdu.
+  const gosterilenAvatar = avatarAdres || saglayiciAvatar;
+
   // ⚠ SIRALAMA: `/dashboard` EN ÜSTTEYDİ ama içeriği bir "yapım aşamasında"
   // yer tutucusu. Menünün ilk maddesi, kullanıcının en çok tıkladığı yerdir;
   // oraya boş bir ekran koymak ürünün çalışmadığı izlenimi veriyordu.
@@ -350,7 +376,7 @@ export default function Header() {
                         {/* Görsel varsa baş harflerin YERİNE geçiyor; yoksa
                             baş harfler duruyor. İkisini birden göstermek
                             aynı bilgiyi iki kez basmak olurdu. */}
-                        {avatarAdres
+                        {gosterilenAvatar
                           ? (
                             <>
                               {/* eslint-disable-next-line @next/next/no-img-element --
@@ -358,8 +384,18 @@ export default function Header() {
                           kısa ömürlü İMZALI URL ve her yüklemede değişiyor.
                           next/image bu adresleri kendi iyileştirme yolundan
                           geçirip önbelleğe alır; imza süresi dolunca da bozuk
-                          görsel gösterir. */}
-                      <img src={avatarAdres} alt="" className="w-full h-full object-cover" />
+                          görsel gösterir. Sağlayıcı fotoğrafı için de aynısı
+                          geçerli: adres bizim alan adımızda değil. */}
+                      <img
+                        src={gosterilenAvatar}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        /* ⚠ Google fotoğraf adresleri Referer başlığı
+                           gönderildiğinde 403 dönebiliyor; bu satır isteği
+                           referrer'sız yolluyor. Ayrıca profil adresimizi
+                           Google'a bildirmemiş oluyoruz. */
+                        referrerPolicy="no-referrer"
+                      />
                             </>
                           )
                           : basHarfler}
@@ -384,7 +420,25 @@ export default function Header() {
                           key={m.href}
                           href={m.href}
                           onClick={closeMenus}
-                          className={`px-4 py-2.5 hover:bg-slate-50 flex justify-between items-center transition-colors text-slate-700 font-semibold text-xs group ${ODAK}`}
+                          /* ⚠ TİPOGRAFİ ÖLÇEĞE BAĞLANDI. Eskiden ham
+                             `font-semibold text-xs` (12px) idi: menünün
+                             hemen üstündeki e-posta satırı `.metin-yardimci`
+                             (13px) olduğu için, ASIL EYLEMLER yardımcı
+                             metinden küçük kalıyordu. Artık ikisi de 13px;
+                             ayrım punto ile değil RENKLE kuruluyor: satırlar
+                             `slate-700`, e-posta `slate-500`.
+                             ⚠ `min-h-[44px]`: satır 36px'ti.
+
+                             ⚠ `font-medium` BİLEREK YOK. Denendi ve ÖLÇÜLDÜ:
+                             hesaplanan ağırlık yine 400 çıkıyor. Sebep cascade
+                             — `.metin-yardimci` globals.css'te KATMANSIZ
+                             tanımlı, Tailwind yardımcıları ise `@layer
+                             utilities` içinde; katmansız CSS katmanlıyı
+                             yeniyor. Yani sınıf yazılsa da hiçbir şey
+                             yapmıyordu; sessizce kaybeden bir sınıf bırakmak
+                             sonradan okuyanı yanıltır. Ağırlığın sahibi
+                             ölçek. */
+                          className={`px-4 min-h-[44px] hover:bg-slate-50 flex justify-between items-center gap-3 transition-colors text-slate-700 metin-yardimci ${ODAK}`}
                         >
                           <span>{m.label}</span>
                           <span className="flex items-center gap-2">
@@ -401,7 +455,13 @@ export default function Header() {
                                 {m.rozet > 99 ? '99+' : m.rozet}
                               </span>
                             )}
-                            <svg className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-400 transition-colors" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                            {/* ⚠ SATIR SONU CHEVRON'U KALDIRILDI (7 satırda 7 adet).
+                                Hiçbir bilgi taşımıyordu: menüdeki her satır zaten
+                                bir bağlantı, yani "buraya gidilir" oku her satırda
+                                aynı şeyi tekrarlıyordu. Üstelik `text-slate-300`
+                                ile beyaz üstünde 1.6:1 — görünür bile değildi.
+                                Sağ taraf artık YALNIZCA gerçek sinyali taşıyor:
+                                okunmamış sayısı ve "Yakında" rozeti. */}
                           </span>
                         </Link>
                       ))}
@@ -411,12 +471,28 @@ export default function Header() {
                       <button
                         type="button"
                         onClick={handleSignOut}
-                        className={`w-full px-3 py-2 text-left font-semibold text-rose-600 hover:bg-rose-50 rounded flex items-center justify-between transition-colors text-xs group ${ODAK}`}
+                        /* ⚠ İKON SOLA ALINDI. Sağa yaslı bir ok, üstündeki
+                           yedi gezinme satırıyla aynı "ileri git" işaretini
+                           taklit ediyordu — oysa çıkış bir yere GÖTÜRMÜYOR,
+                           oturumu kapatıyor. Baştaki ikon ise menünün tek
+                           yıkıcı eylemini bir bakışta ayırıyor.
+                           ⚠ `min-h-[44px]`: düğme 32px'ti. */
+                        /* `font-semibold` yok — yukarıdaki satırlarla aynı
+                           cascade sebebi. Çıkışı ayıran şey ağırlık değil:
+                           rose rengi, baştaki ikon ve üstündeki ayraç. */
+                        className={`w-full px-3 min-h-[44px] text-left metin-yardimci text-rose-600 hover:bg-rose-50 rounded flex items-center gap-2 transition-colors ${ODAK}`}
                       >
-                        <span>Çıkış Yap</span>
-                        <svg className="w-4 h-4 text-rose-400 group-hover:text-rose-600 transition-colors" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25V15M12 9l3 3m0 0l-3 3m3-3H8.25" />
+                        {/* ⚠ ÇİZİM YOLU EKSİKTİ: eski `d` değeri `...V15` deyip
+                            kapıyı yarıda bırakıyordu — dikdörtgenin alt ve sağ
+                            kenarı hiç çizilmiyordu, ikon "yarım kutu" gibi
+                            görünüyordu. Tam Heroicons yolu kullanılıyor.
+                            `currentColor`: düğmenin rengini miras alıyor, ayrı
+                            bir `rose-400` tonu tutmuyor (beyaz üstünde 3.7:1
+                            kalıyordu ve metinden soluk düşüyordu). */}
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
                         </svg>
+                        <span>Çıkış Yap</span>
                       </button>
                     </div>
                   </div>

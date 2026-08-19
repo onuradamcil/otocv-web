@@ -95,7 +95,14 @@ const nextConfig = {
       "default-src 'self'",
       `script-src 'self' 'unsafe-inline' 'unsafe-eval'`,
       "style-src 'self' 'unsafe-inline'",
-      `img-src 'self' data: blob: ${sb}`.trim(),
+      // ⚠ `lh3.googleusercontent.com` — Google ile giriş yapan kullanıcının
+      // profil fotoğrafı BU HOSTTAN geliyor. Canlı veritabanında ölçüldü:
+      // `raw_user_meta_data`'daki `avatar_url` ve `picture` alanlarının
+      // ikisi de bu alan adını taşıyor (ve birbirinin aynısı).
+      // Bu satır olmadan hesap menüsündeki fotoğraf CSP'ye takılır ve
+      // kullanıcı sebebini göremeden baş harflere düşerdi.
+      // Yalnızca `img-src` açılıyor: betik/bağlantı hakkı verilmiyor.
+      `img-src 'self' data: blob: https://lh3.googleusercontent.com ${sb}`.trim(),
       "font-src 'self' data:",
       // ⚠ `blob:` BURADA ŞART. Fotoğraf yükleme akışı sıkıştırdığı görseli
       // `URL.createObjectURL` ile blob adresine çevirip `fetch(blobUrl)` ile
