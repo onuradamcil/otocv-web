@@ -438,10 +438,17 @@ function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, yukleniyor, git, s
         <p className="metin-yardimci text-slate-500">Yükleniyor…</p>
       ) : cocuklar.length === 0 ? (
         /* EN DERİN KADEME (donanım seçili) ya da katalogda o dalın altı boş.
-           Çıkış yolu yukarıdaki kırıntı, yani ölü uç değil. */
-        <p className="metin-yardimci text-slate-500">
-          Bu kademenin altında ayrım yok. Üst kademeye dönmek için yukarıdaki yolu kullanın.
-        </p>
+           HİÇBİR ŞEY BASILMIYOR — ürün sahibinin kararı.
+
+           Burada bir açıklama metni vardı ("Bu kademenin altında ayrım yok…").
+           Kaldırıldı çünkü söylediği şey zaten ekranda: kırıntı yolu nerede
+           olunduğunu gösteriyor ve üst kademeler tıklanabilir duruyor, yani
+           çıkış yolu görünür. Metin her derin kırılımda tekrarlanıp paneli
+           şişiriyordu.
+
+           ⚠ ÖLÜ UÇ DEĞİL: kırıntının her halkası düğme, kullanıcı tek
+           tıklamayla üst kademeye dönüyor. */
+        null
       ) : bicim === 'cip' ? (
         <div
           role="group"
