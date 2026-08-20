@@ -164,8 +164,40 @@ Storage'da duruyor ve `pg_dump` kapsamı dışında. Ölçüldü (19 Ağustos 20
 
 Toplam ~42 MB / 48 dosya. Veritabanı dökümü bu dosyaların **adreslerini**
 içeriyor ama **kendilerini içermiyor**: bugün geri yükleme yapılsa kayıtlar
-döner, fotoğraflar kırık çıkar. Ayrı bir iş olarak konuşulmalı — bu belge
-onu çözmüyor.
+döner, fotoğraflar kırık çıkar.
+
+### Storage yedeği — `storage-yedek.ps1`
+
+Bu boşluk için ayrı bir betik var:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File docs\yedekleme\storage-yedek.ps1
+```
+
+Dört kovayı da özyinelemeli tarar, her dosyayı indirir, **boyutunu doğrular**
+ve SHA-256'sıyla birlikte `kunye.json`'a yazar. Çıktı `yedek/storage/<tarih>/`
+altına düşer — o klasör `.gitignore`'da, çünkü bu depo herkese açık ve
+dosyalar plaka/fatura taşıyor. Betik her koşumda bu kuralın yerinde olduğunu
+denetler; kalkmışsa çalışmayı reddeder.
+
+Aynı dosya ikinci kez indirilmez (boyutu tutuyorsa atlanır), yani yarıda
+kalan koşum tekrar başlatıldığında kaldığı yerden devam eder.
+
+⚠ **`service_role` anahtarı şart.** Kovaları listelemek için gerekiyor.
+"Herkese açık kova" yalnızca *bilinen bir yoldan okumayı* serbest bırakıyor;
+listeleme ayrı bir yetki. Ölçüldü: anon anahtarıyla `vehicle-images` kök
+listelemesi **0 kayıt** döndürüyor, oysa kovada 37 dosya var. Bu yüzden
+betik anahtarsız çalışmayı **reddediyor** — anon ile çalışsaydı sessizce boş
+bir yedek üretirdi, ki boş yedek hiç yedek olmamasından tehlikelidir:
+felaket anında elinizde bir şey olduğunu sanırsınız.
+
+Anahtar parametre olarak **geçilmiyor** (komut geçmişine düşerdi), dosyaya
+yazılmıyor, ekrana basılmıyor: ya `SUPABASE_SERVICE_KEY` ortam
+değişkeninden okunuyor ya da gizli olarak soruluyor.
+
+⚠ Bu betik şimdilik **elle** çalıştırılıyor. Gizli `otocv-yedek` deposu
+kurulduğunda oradaki iş akışına eklenip veritabanı yedeğiyle aynı gece
+koşacak şekilde otomatikleştirilmeli.
 
 ## Sınırları
 
