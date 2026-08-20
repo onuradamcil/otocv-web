@@ -25,7 +25,7 @@
 // `girisYap` ve `supabaseIstemcisi` KALDIRILDI: garaj şeridi testi çıktı
 // (bölüm ürün sahibinin kararıyla kaldırıldı) ve kalan testlerin hiçbiri
 // oturum gerektirmiyor — anasayfa ziyaretçiye açık.
-const { test, expect } = require('./yardimcilar');
+const { test, expect, izgaraYerlessin } = require('./yardimcilar');
 
 /**
  * Izgaradaki KART sayısı.
@@ -71,7 +71,7 @@ test.describe('Süzgeçler · /arama ekranı', () => {
     test.setTimeout(120_000);
     await page.goto('/arama');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
+    await izgaraYerlessin(page);
 
     const once = await kartSayisi(page);
     test.skip(once < 2, 'süzülecek kadar araç yok (en az 2 gerekiyor)');
@@ -126,7 +126,7 @@ test.describe('Süzgeçler · /arama ekranı', () => {
     test.setTimeout(120_000);
     await page.goto('/arama');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
+    await izgaraYerlessin(page);
 
     const once = await kartSayisi(page);
     test.skip(once < 1, 'araç yok');
@@ -148,7 +148,7 @@ test.describe('Süzgeçler · /arama ekranı', () => {
   test('akordiyon başlığı grubu açıp kapatıyor', async ({ page }) => {
     await page.goto('/arama');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1200);
+    await izgaraYerlessin(page);
 
     const baslik = page.getByRole('button', { name: 'Kilometre' }).first();
     // Kilometre KAPALI geliyor (yalnızca ilk iki grup açık).
@@ -186,7 +186,7 @@ test.describe('Süzgeçler · /arama ekranı', () => {
     test.setTimeout(120_000);
     await page.goto('/arama');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await izgaraYerlessin(page);
 
     const once = await kartSayisi(page);
     test.skip(once < 2, 'ağaç sınanacak kadar araç yok (en az 2 gerekiyor)');
@@ -266,7 +266,7 @@ test.describe('Süzgeçler · /arama ekranı', () => {
     test.setTimeout(120_000);
     await page.goto('/arama');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
+    await izgaraYerlessin(page);
 
     const kutu = page.getByLabel(/PIN ile ara/i);
     await expect(kutu).toBeVisible();
@@ -284,7 +284,7 @@ test.describe('Süzgeçler · /arama ekranı', () => {
     test.setTimeout(120_000);
     await page.goto('/arama');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
+    await izgaraYerlessin(page);
 
     await page.getByLabel(/PIN ile ara/i).fill('zzzbulunmayanmarka');
     await page.waitForTimeout(1200);
@@ -312,7 +312,7 @@ test.describe('Anasayfa · teşhir ve yönlendirme', () => {
     test.setTimeout(120_000);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1800);
+    await izgaraYerlessin(page);
 
     const once = await kartSayisi(page);
     test.skip(once === 0, 'vitrinde araç yok');
@@ -330,7 +330,7 @@ test.describe('Anasayfa · teşhir ve yönlendirme', () => {
     test.setTimeout(120_000);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
+    await izgaraYerlessin(page);
 
     await page.getByLabel(/PIN ile ara/i).fill('bmw');
     await page.keyboard.press('Enter');
@@ -350,7 +350,7 @@ test.describe('Anasayfa · teşhir ve yönlendirme', () => {
     test.setTimeout(120_000);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1800);
+    await izgaraYerlessin(page);
 
     const kutu = page.locator('aside').getByRole('button', { name: 'Marka' }).first();
     test.skip(await kutu.count() === 0, 'marka grubu yok');
@@ -378,7 +378,7 @@ test.describe('Anasayfa · yapı ve erişilebilirlik', () => {
   test('başlık sırası atlama yapmıyor (h1 -> h2 -> h3)', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1200);
+    await izgaraYerlessin(page);
 
     const seviyeler = await page.locator('h1,h2,h3,h4,h5,h6').evaluateAll(
       (ler) => ler.map((e) => Number(e.tagName[1]))
@@ -401,7 +401,7 @@ test.describe('Anasayfa · yapı ve erişilebilirlik', () => {
   test('dokunma hedefleri 44 px eşiğini geçiyor', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1200);
+    await izgaraYerlessin(page);
 
     // `dugme.js:41` 44 px'i WCAG dokunma alanı asgarisi olarak ilan ediyor.
     // Ölçülmüştü: anasayfada masaüstünde 24, mobilde 16 öge bunun altındaydı
@@ -465,7 +465,7 @@ test.describe('Anasayfa · yapı ve erişilebilirlik', () => {
 
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2500);
+    await izgaraYerlessin(page);
 
     await expect(
       page.getByText(/Garajınızda/),
@@ -483,7 +483,7 @@ test.describe('Anasayfa · yapı ve erişilebilirlik', () => {
   test('KALDIRILAN bölümler geri gelmedi', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1200);
+    await izgaraYerlessin(page);
 
     const metin = await page.locator('body').innerText();
 

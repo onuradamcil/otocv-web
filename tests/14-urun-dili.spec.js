@@ -24,7 +24,7 @@
 // HİÇBİR YAZMA YOK — CI'DA KOŞUYOR
 // =========================================================================
 
-const { test, expect, girisYap, hamMetin, ornekPin } = require('./yardimcilar');
+const { test, expect, girisYap, hamMetin, ornekPin, izgaraYerlessin } = require('./yardimcilar');
 
 // Araç tutarı olabilecek kalıplar. "₺450.000" ya da "450.000 TL".
 const TUTAR_KALIBI = /(₺\s?\d{1,3}(\.\d{3})+)|(\d{1,3}(\.\d{3})+\s?TL\b)/;
@@ -34,7 +34,7 @@ test.describe('Ürün dili', () => {
   test('pazaryerinde araç tutarı yok', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await izgaraYerlessin(page);
 
     const metin = await hamMetin(page);
     const eslesme = metin.match(TUTAR_KALIBI);
@@ -105,7 +105,7 @@ test.describe('Ürün dili', () => {
   test('pazaryerinde fiyat süzgeci ve değerleme kalmadı', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
+    await izgaraYerlessin(page);
 
     const metin = await hamMetin(page);
     // Bu üçü hem çalışmıyordu hem de satış sitesi izlenimi veriyordu.

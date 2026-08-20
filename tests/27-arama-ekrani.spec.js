@@ -21,7 +21,7 @@
 // kutu bazen teşhir bazen sonuç listesiydi.
 // =========================================================================
 
-const { test, expect } = require('./yardimcilar');
+const { test, expect, izgaraYerlessin } = require('./yardimcilar');
 
 /** Kart çıpası: `MarketplaceView`teki `aria-label`e bağlı, değiştirmeyin. */
 async function kartSayisi(page) {
@@ -33,13 +33,13 @@ test.describe('Arama ekranı · adresten süzgeç', () => {
     test.setTimeout(120_000);
     await page.goto('/arama');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1800);
+    await izgaraYerlessin(page);
     const hepsi = await kartSayisi(page);
     test.skip(hepsi < 2, 'süzülecek kadar araç yok');
 
     await page.goto('/arama?q=bmw');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await izgaraYerlessin(page);
 
     expect(
       await kartSayisi(page),
@@ -51,7 +51,7 @@ test.describe('Arama ekranı · adresten süzgeç', () => {
     test.setTimeout(120_000);
     await page.goto('/arama?marka=bmw');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2500);
+    await izgaraYerlessin(page);
 
     const kutu = page.locator('aside').getByRole('button', { name: 'Marka' }).first();
     test.skip(await kutu.count() === 0, 'marka grubu yok');
@@ -70,7 +70,7 @@ test.describe('Arama ekranı · adresten süzgeç', () => {
     test.setTimeout(120_000);
     await page.goto('/arama');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1800);
+    await izgaraYerlessin(page);
 
     const baslik = page.getByRole('button', { name: 'Kilometre' }).first();
     test.skip(await baslik.count() === 0, 'kilometre grubu yok');
@@ -99,7 +99,7 @@ test.describe('Arama ekranı · arama çipi', () => {
     test.setTimeout(120_000);
     await page.goto('/arama?q=bmw');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await izgaraYerlessin(page);
 
     const kaldir = page.getByRole('button', { name: /aramasını kaldır/i });
     test.skip(await kaldir.count() === 0, 'arama çipi çizilmedi');
@@ -118,7 +118,7 @@ test.describe('Arama ekranı · görünüm ve liste', () => {
     test.setTimeout(120_000);
     await page.goto('/arama');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await izgaraYerlessin(page);
 
     const izgara = page.getByRole('button', { name: 'Izgara görünümü' });
     const liste = page.getByRole('button', { name: 'Liste görünümü' });
@@ -144,7 +144,7 @@ test.describe('Arama ekranı · görünüm ve liste', () => {
     test.setTimeout(120_000);
     await page.goto('/arama');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await izgaraYerlessin(page);
 
     // -------------------------------------------------------------------
     // ⚠ NİYE VAR: liste ilk yazımda `hidden lg:flex` + `lg:hidden` ikilisiyle
@@ -177,7 +177,7 @@ test.describe('Vitrin ayrımı', () => {
     test.setTimeout(120_000);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await izgaraYerlessin(page);
 
     // Başlık artık gidip gelmiyor: anasayfa daima teşhir.
     await expect(
@@ -192,7 +192,7 @@ test.describe('Vitrin ayrımı', () => {
     // envanter. Ölçülen fark bugün 134 / 143.
     await page.goto('/arama');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await izgaraYerlessin(page);
     const aramaToplam = await page.locator('body').innerText();
 
     // "Daha fazla göster (N araç daha)" metninden toplam çıkarılıyor;
@@ -203,7 +203,7 @@ test.describe('Vitrin ayrımı', () => {
 
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await izgaraYerlessin(page);
     const anaKart = await kartSayisi(page);
 
     test.skip(aramaHepsi === 0, 'envanter boş');
@@ -219,7 +219,7 @@ test.describe('Marka ağacı · girinti', () => {
     test.setTimeout(120_000);
     await page.goto('/arama?marka=bmw');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2500);
+    await izgaraYerlessin(page);
 
     const kutu = page.locator('aside').getByRole('button', { name: 'Marka' }).first();
     test.skip(await kutu.count() === 0, 'marka grubu yok');
@@ -272,7 +272,7 @@ test.describe('Aksan normalizasyonu', () => {
     // -------------------------------------------------------------------
     await page.goto('/arama');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await izgaraYerlessin(page);
 
     const kutu = page.locator('aside').getByRole('button', { name: 'Marka' }).first();
     test.skip(await kutu.count() === 0, 'marka grubu yok');

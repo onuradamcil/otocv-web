@@ -343,10 +343,46 @@ async function puanOku(sb, plaka) {
   return data?.trust_score ?? null;
 }
 
+
+/**
+ * Vitrin/arama ızgarasının YERLEŞMESİNİ bekler.
+ *
+ * -------------------------------------------------------------------------
+ * NİYE VAR — `waitForTimeout` HEM YAVAŞ HEM GÜVENİLMEZ
+ * -------------------------------------------------------------------------
+ * Testlerin her yerinde şu kalıp vardı:
+ *
+ *     await page.goto('/arama?q=bmw');
+ *     await page.waitForLoadState('networkidle');
+ *     await page.waitForTimeout(2000);
+ *
+ * Sabit bekleme iki yönden de yanlış: makine hızlıysa boşuna bekliyor,
+ * yavaşsa YETMİYOR ve test rastgele kırılıyor. Ölçüldü: pakette 263 çağrı,
+ * toplam 368 saniye saf bekleme — suite süresinin yaklaşık üçte biri.
+ *
+ * -------------------------------------------------------------------------
+ * ⚠ "YÜKLEME BİTTİ" DEĞİL, "SONUÇ GELDİ" BEKLENİYOR
+ * -------------------------------------------------------------------------
+ * İlk aklıma gelen, iskeletin (`role="status"` + "İçerik yükleniyor")
+ * kaybolmasını beklemekti. O YANLIŞ olurdu: iskelet daha çizilmeden kontrol
+ * edilirse koşul anında sağlanır ve yarış geri gelir — üstelik sessizce.
+ *
+ * Bunun yerine ızgaranın İKİ NİHAİ DURUMUNDAN biri bekleniyor:
+ *   · en az bir araç kartı  (`aria-label` içinde "sicilini görüntüle")
+ *   · ya da "araç bulunamadı" boş durumu
+ * İkisi de ancak arama gerçekten tamamlandığında çiziliyor.
+ */
+async function izgaraYerlessin(page, { zamanAsimi = 25_000 } = {}) {
+  const kart = page.locator('[aria-label*="sicilini görüntüle"]').first();
+  const bosDurum = page.getByText(/araç bulunamadı|Vitrinde henüz araç yok/i).first();
+  await base.expect(kart.or(bosDurum)).toBeVisible({ timeout: zamanAsimi });
+}
+
 module.exports = {
   test,
   expect: base.expect,
   girisYap,
+  izgaraYerlessin,
   girisYapAlici,
   belgeSekmesiniAc,
   hamMetin,

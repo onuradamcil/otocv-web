@@ -18,7 +18,7 @@
 // gezen kullanıcı çekmeceyi kapattığında sayfanın en başına savruluyordu.
 // =========================================================================
 
-const { test, expect } = require('./yardimcilar');
+const { test, expect, izgaraYerlessin } = require('./yardimcilar');
 
 const ROTALAR = ['/', '/verify', '/login'];
 
@@ -92,7 +92,7 @@ test.describe('Mobil çekmece', () => {
   test('açılıyor, odağı tutuyor, Esc ile kapanıyor ve odağı geri veriyor', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
+    await izgaraYerlessin(page);
 
     // DİKKAT: 'button[aria-expanded]' seçicisi KULLANILMAZ. Sayfada birden
     // çok öğede aria-expanded var (hesap menüsü, hamburger, bildirim zili)
