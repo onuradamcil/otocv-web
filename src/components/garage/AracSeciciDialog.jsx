@@ -212,7 +212,7 @@ export default function AracSeciciDialog({
                   </span>
 
                   {sebep ? (
-                    <span className="text-etiket font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0">
+                    <span className="text-etiket font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded-lg shadow-sm shrink-0">
                       {sebep}
                     </span>
                   ) : (

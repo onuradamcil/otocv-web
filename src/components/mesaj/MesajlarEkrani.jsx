@@ -476,7 +476,7 @@ export default function MesajlarEkrani() {
                         mesajlaşma uygulamalarının yerleşik dili. Ayrı bir metin
                         eklenmiyor: baloncuğun içine "gönderiliyor" yazmak,
                         mesajın kendisiymiş gibi okunuyor. */}
-                    <div className={`max-w-[78%] rounded-lg px-3 py-2 transition-opacity ${
+                    <div className={`max-w-[78%] rounded-lg shadow-sm px-3 py-2 transition-opacity ${
                       m.bekliyor ? 'opacity-60' : 'opacity-100'
                     } ${
                       m.benim

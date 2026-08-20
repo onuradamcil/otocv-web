@@ -58,7 +58,7 @@ export default function FavorilerimPage() {
   if (durum === 'oturumyok') {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-4">
-        <div className="bg-white border border-slate-200 rounded-lg p-8 max-w-md w-full text-center space-y-4">
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-8 max-w-md w-full text-center space-y-4">
           <h1 className="baslik-bolum text-slate-900">Favorilerim</h1>
           <p className="metin-yardimci text-slate-500">
             Favorilerinizi görmek için oturum açmanız gerekiyor.
@@ -79,7 +79,7 @@ export default function FavorilerimPage() {
       </div>
 
       {liste.length === 0 ? (
-        <div className="py-20 flex flex-col items-center text-center space-y-3 bg-white rounded-lg border border-dashed border-slate-300">
+        <div className="py-20 flex flex-col items-center text-center space-y-3 bg-white rounded-lg shadow-sm border border-dashed border-slate-300">
           <span className="w-12 h-12 rounded-lg bg-slate-50 grid place-items-center text-slate-500">
             <Icon name="kalp" size="xl" />
           </span>
@@ -99,7 +99,7 @@ export default function FavorilerimPage() {
             return (
               <article
                 key={f.pin_code}
-                className="bg-white border border-slate-200 rounded-lg overflow-hidden flex flex-col p-2"
+                className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col p-2"
               >
                 <div className="h-36 w-full bg-slate-50 rounded-md overflow-hidden relative grid place-items-center p-1">
                   {/* İç sarmalayıcı kapsayıcının `p-1`ini korumak için:

@@ -74,7 +74,7 @@ export default function RootLayout({ children }) {
       lang="tr"
       className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#FFFDFB] text-[#0F172A]">
+      <body className="min-h-full flex flex-col bg-[#F2F4F7] text-[#0F172A]">
         
         {/* =========================================================================
             🚀 SİBER ENJEKSİYON: BİLDİRİM MOTORU GEÇİDİ

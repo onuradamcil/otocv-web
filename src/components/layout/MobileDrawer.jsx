@@ -193,7 +193,7 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
               <Link
                 href="/login"
                 onClick={onClose}
-                className="flex items-center justify-center min-h-[44px] bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-mini rounded-lg transition-colors"
+                className="flex items-center justify-center min-h-[44px] bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-mini rounded-lg shadow-sm transition-colors"
               >
                 Giriş Yap
               </Link>

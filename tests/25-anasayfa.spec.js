@@ -271,9 +271,17 @@ test.describe('Süzgeçler · /arama ekranı', () => {
     const kutu = page.getByLabel(/PIN ile ara/i);
     await expect(kutu).toBeVisible();
 
-    // Hiçbir araçla eşleşmeyecek bir metin: liste boşalmalı.
+    // ⚠ ARAMA ARTIK YERİNDE SÜZMÜYOR, GÖNDERİLİYOR.
+    // Kutu koyu kahraman bloğundan başlık şeridine taşındı (blok
+    // kaldırıldı). Şerit her sayfada olduğu için arama yazarken değil
+    // ENTER ile çalışıyor — büyük sitelerdeki ve bu projede örnek alınan
+    // iki rakipteki davranışın aynısı. İddia zayıflamadı: hiçbir araçla
+    // eşleşmeyen metin yine listeyi boşaltmalı.
     await kutu.fill('zzzbulunmayanmarka');
-    await page.waitForTimeout(1200);
+    await kutu.press('Enter');
+    await page.waitForURL(/q=zzzbulunmayanmarka/, { timeout: 15_000 });
+    await expect(page.getByText(/süzgeçlerle araç bulunamadı/i))
+      .toBeVisible({ timeout: 15_000 });
     expect(
       await kartSayisi(page),
       'aramaya rağmen ızgara değişmedi — arama listeyi süzmüyor'
@@ -286,7 +294,9 @@ test.describe('Süzgeçler · /arama ekranı', () => {
     await page.waitForLoadState('networkidle');
     await izgaraYerlessin(page);
 
-    await page.getByLabel(/PIN ile ara/i).fill('zzzbulunmayanmarka');
+    const kutu2 = page.getByLabel(/PIN ile ara/i);
+    await kutu2.fill('zzzbulunmayanmarka');
+    await kutu2.press('Enter');   // arama gönderiliyor, yerinde süzmüyor
 
     // Boş durum iki ayrı şey olabilir ve ikisi aynı cümleyi hak etmiyor:
     // süzgeçle daraltıp sonuç bulamayan kullanıcıya "vitrinde araç yok"

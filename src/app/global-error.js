@@ -28,7 +28,7 @@ export default function GlobalError({ error, reset }) {
 
   return (
     <html lang="tr">
-      <body style={{ margin: 0, fontFamily: 'system-ui, -apple-system, sans-serif', background: '#FFFDFB', color: '#0F172A' }}>
+      <body style={{ margin: 0, fontFamily: 'system-ui, -apple-system, sans-serif', background: '#F2F4F7', color: '#0F172A' }}>
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
           <div style={{ maxWidth: '28rem', width: '100%', textAlign: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '2rem' }}>
             <h1 style={{ fontSize: '1.125rem', fontWeight: 900, margin: '0 0 0.75rem', letterSpacing: '-0.02em' }}>

@@ -304,7 +304,7 @@ export default function HesabimEkrani() {
                   type="button"
                   onClick={() => dosyaRef.current?.click()}
                   disabled={avatarYukleniyor}
-                  className="min-h-[36px] px-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-mini rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                  className="min-h-[36px] px-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-mini rounded-lg shadow-sm transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {avatarYukleniyor ? 'Yükleniyor…' : avatarAdres ? 'Değiştir' : 'Görsel yükle'}
                 </button>
@@ -313,7 +313,7 @@ export default function HesabimEkrani() {
                     type="button"
                     onClick={gorselKaldir}
                     disabled={avatarYukleniyor}
-                    className="min-h-[36px] px-3 bg-white border border-rose-200 hover:bg-rose-50 text-rose-700 font-bold text-mini rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                    className="min-h-[36px] px-3 bg-white border border-rose-200 hover:bg-rose-50 text-rose-700 font-bold text-mini rounded-lg shadow-sm transition-colors cursor-pointer disabled:opacity-50"
                   >
                     Kaldır
                   </button>

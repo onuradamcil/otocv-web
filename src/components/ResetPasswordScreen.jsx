@@ -86,7 +86,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
             <div className="space-y-1 relative">
               <label htmlFor="alan-yeni-sifre" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Yeni Şifre</label>
               <div className="relative">
-                <input id="alan-yeni-sifre" type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-mini font-medium rounded-md focus:outline-none shadow-sm" />
+                <input id="alan-yeni-sifre" type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#F2F4F7] border border-slate-200 focus:border-[#0F172A] text-mini font-medium rounded-md focus:outline-none shadow-sm" />
                 {/* Etiket ikonda değil BUTONDA: içeriği tek başına ikon olan
                     butonun adını ekran okuyucu ancak buradan öğrenir. */}
                 <button
@@ -103,7 +103,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
 
             <div className="space-y-1">
               <label htmlFor="alan-sifreyi-tekrarla" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifreyi Tekrarla</label>
-              <input id="alan-sifreyi-tekrarla" type={showPassword ? 'text' : 'password'} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-mini font-medium rounded-md focus:outline-none shadow-sm" />
+              <input id="alan-sifreyi-tekrarla" type={showPassword ? 'text' : 'password'} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#F2F4F7] border border-slate-200 focus:border-[#0F172A] text-mini font-medium rounded-md focus:outline-none shadow-sm" />
             </div>
 
             <button type="submit" disabled={loading} className="w-full bg-[#0F172A] hover:bg-slate-800 text-white py-3 rounded-md font-semibold text-mini tracking-wide shadow-sm transition-colors mt-2">

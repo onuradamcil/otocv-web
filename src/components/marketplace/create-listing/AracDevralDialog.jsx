@@ -284,7 +284,7 @@ export default function AracDevralDialog({
                       ['Belgeli', onizleme.faturali],
                       ['Sicil puanı', `${onizleme.sicil_puani}/100`],
                     ].map(([etiket, deger]) => (
-                      <div key={etiket} className="bg-white border border-slate-200 rounded-lg py-2">
+                      <div key={etiket} className="bg-white border border-slate-200 rounded-lg shadow-sm py-2">
                         <p className="text-etiket font-bold uppercase tracking-wide text-slate-500">{etiket}</p>
                         <p className="text-govde font-semibold font-mono text-slate-900 tabular-nums">{deger}</p>
                       </div>

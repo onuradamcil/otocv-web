@@ -226,13 +226,13 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
             <form onSubmit={handleAuthSubmit} className="space-y-4 animate-fadeIn">
               <div className="space-y-1">
                 <label htmlFor="alan-e-posta-adresi" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
-                <input id="alan-e-posta-adresi" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@otocv.com" className="w-full min-h-[44px] py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-mini font-medium rounded-md focus:outline-none transition-colors shadow-sm" />
+                <input id="alan-e-posta-adresi" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@otocv.com" className="w-full min-h-[44px] py-2.5 px-3.5 bg-[#F2F4F7] border border-slate-200 focus:border-[#0F172A] text-mini font-medium rounded-md focus:outline-none transition-colors shadow-sm" />
               </div>
               
               <div className="space-y-1 relative">
                 <label htmlFor="alan-sifre" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifre</label>
                 <div className="relative">
-                  <input id="alan-sifre" type={showPassword ? 'text' : 'password'} required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full min-h-[44px] py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-mini font-medium rounded-md focus:outline-none transition-colors pr-12 shadow-sm" />
+                  <input id="alan-sifre" type={showPassword ? 'text' : 'password'} required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full min-h-[44px] py-2.5 px-3.5 bg-[#F2F4F7] border border-slate-200 focus:border-[#0F172A] text-mini font-medium rounded-md focus:outline-none transition-colors pr-12 shadow-sm" />
                   {/* Etiket BUTONDA: içeriği tek başına ikon olan butonun adını ekran
                       okuyucu ancak buradan öğrenir. aria-pressed açık/kapalı
                       durumunu bildirir. 44px dokunma alanı WCAG asgarisi. */}
@@ -309,7 +309,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
             <form onSubmit={handleRegisterStep1Submit} className="space-y-4 animate-fadeIn">
               <div className="space-y-1.5">
                 <label htmlFor="alan-e-posta-adresi" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
-                <input id="alan-e-posta-adresi" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@otocv.com" className="w-full min-h-[44px] py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-mini font-medium rounded-md focus:outline-none transition-colors shadow-sm" />
+                <input id="alan-e-posta-adresi" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@otocv.com" className="w-full min-h-[44px] py-2.5 px-3.5 bg-[#F2F4F7] border border-slate-200 focus:border-[#0F172A] text-mini font-medium rounded-md focus:outline-none transition-colors shadow-sm" />
               </div>
               <button type="submit" className="w-full min-h-[44px] bg-[#0F172A] hover:bg-slate-800 text-white py-3 rounded-md font-semibold text-mini tracking-wide shadow-sm transition-colors active:scale-[0.99] flex items-center justify-center gap-1 mt-2">
                 E-posta ile Devam Et
@@ -368,7 +368,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
             <form onSubmit={handlePasswordReset} className="space-y-4 animate-fadeIn">
               <div className="space-y-1.5">
                 <label htmlFor="alan-e-posta-adresi" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">E-posta Adresi</label>
-                <input id="alan-e-posta-adresi" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Kayıtlı e-posta adresinizi girin..." className="w-full min-h-[44px] py-2.5 px-3.5 bg-[#FFFDFB] border border-slate-200 focus:border-[#0F172A] text-mini font-medium rounded-md focus:outline-none transition-colors shadow-sm" />
+                <input id="alan-e-posta-adresi" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Kayıtlı e-posta adresinizi girin..." className="w-full min-h-[44px] py-2.5 px-3.5 bg-[#F2F4F7] border border-slate-200 focus:border-[#0F172A] text-mini font-medium rounded-md focus:outline-none transition-colors shadow-sm" />
               </div>
               <button type="submit" disabled={loading} className="w-full min-h-[44px] bg-[#0F172A] hover:bg-slate-800 text-white py-3 rounded-md font-semibold text-mini tracking-wide shadow-sm transition-colors active:scale-[0.99] mt-2 flex justify-center items-center gap-1.5">
                 {loading ? 'Gönderiliyor...' : 'Bağlantı Gönder'}
@@ -411,7 +411,13 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
             okumak isteyen biri için en kötü davranış. Artık gerçek sayfalar. */}
         {/* inline-flex + min-h: küçük punto olsalar da dokunma alanı 24
             pikselin altına inmemeli (WCAG AA). */}
-        <div className="text-yardimci text-slate-500 font-medium flex items-center gap-3 tracking-wide mt-8">
+        {/* ⚠ `slate-500` -> `slate-600`: ZEMİN KOYULAŞTIĞI İÇİN.
+            Sayfa zemini `#FFFDFB`den `#F2F4F7`ye çekilince bu bağlantılar
+            4.69:1'den 4.32:1'e düştü — AA eşiğinin (4.5) altına.
+            Zemin değiştirmek, o zemin üzerindeki HER metni yeniden
+            ölçmeyi gerektiriyor; alt bilgi koyulaştırılırken de aynı
+            ders çıkmıştı. Yeni değer 6.24:1. */}
+        <div className="text-yardimci text-slate-600 font-medium flex items-center gap-3 tracking-wide mt-8">
           <Link href="/kullanim-sartlari" className="inline-flex items-center min-h-[44px] hover:text-[#0F172A] transition-colors rounded">
             Kullanım Şartları
           </Link>

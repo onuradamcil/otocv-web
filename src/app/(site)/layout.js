@@ -18,7 +18,7 @@ import Footer from '@/components/layout/Footer';
 
 export default function SiteLayout({ children }) {
   return (
-    <div className="min-h-screen flex flex-col bg-[#FFFDFB] text-[#0F172A] font-sans antialiased tracking-tight">
+    <div className="min-h-screen flex flex-col bg-[#F2F4F7] text-[#0F172A] font-sans antialiased tracking-tight">
       <SkipLink />
       <Header />
       <Breadcrumb />

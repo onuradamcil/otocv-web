@@ -242,7 +242,7 @@ export default function VitrinKartiEkrani({ pin }) {
         </div>
 
         {/* ARAÇ ÖZETİ — DÜZENLENMİYOR, GÖSTERİLİYOR */}
-        <section className="bg-white border border-slate-200 rounded-lg p-5 space-y-4">
+        <section className="bg-white border border-slate-200 rounded-lg shadow-sm p-5 space-y-4">
           <div className="flex items-start gap-4">
             <TrPlaka plaka={arac.plate_number} boyut="md" />
             <div className="min-w-0 flex-1">
@@ -300,7 +300,7 @@ export default function VitrinKartiEkrani({ pin }) {
           </div>
         </section>
 
-        <section className="bg-white border border-slate-200 rounded-lg p-5 space-y-4">
+        <section className="bg-white border border-slate-200 rounded-lg shadow-sm p-5 space-y-4">
           <h2 className="baslik-bolum text-slate-900">Vitrin ayarları</h2>
 
           {/* ⚠ BEDEL ALANI YOK VE BU BİLİNÇLİ.
@@ -391,7 +391,7 @@ export default function VitrinKartiEkrani({ pin }) {
 function Kutu({ baslik, aciklama, children }) {
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-200 rounded-lg p-8 max-w-md w-full text-center space-y-4">
+      <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-8 max-w-md w-full text-center space-y-4">
         <h1 className="baslik-bolum text-slate-900">{baslik}</h1>
         <p className="metin-yardimci text-slate-500">{aciklama}</p>
         <div className="flex flex-col sm:flex-row gap-2">{children}</div>

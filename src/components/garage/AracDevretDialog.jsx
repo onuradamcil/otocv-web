@@ -405,7 +405,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                           type="button"
                           onClick={() => talepKarari(t.id, false)}
                           disabled={islemde}
-                          className="bg-white border border-gray-200 hover:bg-slate-50 text-slate-700 font-bold text-mini py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5"
+                          className="bg-white border border-gray-200 hover:bg-slate-50 text-slate-700 font-bold text-mini py-2.5 rounded-lg shadow-sm transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5"
                         >
                           <Icon name="kapat" size="sm" />
                           Reddet

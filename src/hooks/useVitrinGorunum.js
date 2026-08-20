@@ -33,16 +33,32 @@ const ANAHTAR = 'otocv_vitrin_gorunum';
 // -------------------------------------------------------------------------
 // EKRAN GENİŞLİĞİ
 // -------------------------------------------------------------------------
-function genislikAbone(geriCagir) {
-  if (typeof window === 'undefined' || !window.matchMedia) return () => {};
-  const m = window.matchMedia(KIRILIM);
-  m.addEventListener('change', geriCagir);
-  return () => m.removeEventListener('change', geriCagir);
+// ⚠ ABONE FONKSİYONLARI SORGU BAŞINA ÖNBELLEKLENİYOR. `useSyncExternalStore`
+// abone fonksiyonunun KİMLİĞİNİN sabit kalmasını istiyor; her render'da yeni
+// bir kapanış üretilirse React aboneliği söküp yeniden kuruyor ve sonsuz
+// döngüye girebiliyor. Bu yüzden her medya sorgusu için tek bir çift
+// (abone + oku) üretilip saklanıyor.
+const kirilimOnbellek = new Map();
+
+function kirilimAraclari(sorgu) {
+  let araclar = kirilimOnbellek.get(sorgu);
+  if (araclar) return araclar;
+
+  araclar = {
+    abone: (geriCagir) => {
+      if (typeof window === 'undefined' || !window.matchMedia) return () => {};
+      const m = window.matchMedia(sorgu);
+      m.addEventListener('change', geriCagir);
+      return () => m.removeEventListener('change', geriCagir);
+    },
+    oku: () =>
+      (typeof window !== 'undefined' && window.matchMedia
+        ? window.matchMedia(sorgu).matches
+        : false),
+  };
+  kirilimOnbellek.set(sorgu, araclar);
+  return araclar;
 }
-const genislikOku = () =>
-  typeof window !== 'undefined' && window.matchMedia
-    ? window.matchMedia(KIRILIM).matches
-    : false;
 
 // ⚠ SUNUCU ANLIK GÖRÜNTÜSÜ HEP `false` (dar ekran). Sunucu ekran genişliğini
 // bilemez; "dar" varsaymak güvenli tarafta kalmak demek — ilk boyada ızgara
@@ -50,9 +66,20 @@ const genislikOku = () =>
 // ekranda bir an okunamayan yatay liste görünürdü.
 const genislikSunucu = () => false;
 
-export function useGenisEkran() {
-  return useSyncExternalStore(genislikAbone, genislikOku, genislikSunucu);
+/**
+ * Ekran verilen kırılımdan geniş mi?
+ *
+ * Varsayılan `lg` (1024px) — vitrin liste/ızgara seçimi bunu kullanıyor.
+ * Başlık şeridi araması `md` (768px) veriyor, çünkü şeridin masaüstü
+ * yerleşimi orada başlıyor.
+ */
+export function useGenisEkran(sorgu = KIRILIM) {
+  const { abone, oku } = kirilimAraclari(sorgu);
+  return useSyncExternalStore(abone, oku, genislikSunucu);
 }
+
+/** Tailwind `md` kırılımı — başlık şeridi için. */
+export const KIRILIM_MD = '(min-width: 768px)';
 
 // -------------------------------------------------------------------------
 // HATIRLANAN GÖRÜNÜM TERCİHİ

@@ -74,7 +74,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
         /* Ilan kartlari bekleniyor -> kart iskeleti. */
         <GlobalStepLoader mode="iskelet" varyant="kart" kapsayici={false} baslik={false} adet={3} />
       ) : listings.length === 0 ? (
-        <div className="py-20 flex flex-col items-center justify-center text-center space-y-3 bg-white rounded-lg border border-dashed border-slate-200">
+        <div className="py-20 flex flex-col items-center justify-center text-center space-y-3 bg-white rounded-lg shadow-sm border border-dashed border-slate-200">
           <div className="w-12 h-12 bg-slate-50 rounded-lg flex items-center justify-center text-slate-500">
             <Icon name="arac" size="xl" />
           </div>

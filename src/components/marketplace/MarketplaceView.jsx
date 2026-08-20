@@ -12,7 +12,6 @@ import { fetchMarketplaceListings } from '../../services/marketplaceService';
 import { useToast } from '../../context/ToastContext';
 import { useRouter } from 'next/navigation';
 import Icon from '../common/icons';
-import { pinNormalize, pinBicimiMi } from '../../utils/pinUretici';
 import GlobalStepLoader from '../common/GlobalStepLoader';
 import AracGorseli from '../common/AracGorseli';
 // Düğme sınıfları elle yazılmıyor: `dugme.js` dört seviyeyi ve 44 px dokunma
@@ -1195,113 +1194,22 @@ export default function MarketplaceView({
     <div className="animate-fadeIn min-h-screen bg-[#F8FAFC] pb-16">
       
       {/* 3.1 HERO BANNER */}
-      <div className="bg-[#0F172A] text-white py-8 px-4 border-b border-slate-800 select-none">
-        <div className="max-w-7xl mx-auto text-center space-y-3">
-          {/* "Güvenle Satın Alın" KALKTI: satış sitesi başlığıydı. Ürünün
-              vaadi aracı satmak değil, geçmişini belgelemek. */}
-          {/* `/vitrin` kendi sayfası ve kendi `h1`ine sahip olmalı: aynı
-              başlığı iki rotada kullanmak hem SEO'da hem ekran okuyucuda
-              "aynı sayfa" izlenimi verir. */}
-          <h1 className="text-vurgu md:text-buyuk font-semibold tracking-tight text-slate-100">
-            {tamSayfa
-              ? 'Vitrindeki Tüm Araçlar'
-              : 'Aracın Geçmişini Bilin, Kararınızı Belgeyle Verin'}
-          </h1>
-          
-          {/* ARAMA — PIN ARTIK GERÇEKTEN İŞLENİYOR.
-              Yer tutucu "PIN kodu ile ara" diyordu ama girdi yalnızca vitrin
-              listesini süzüyordu: PIN yazan kullanıcı hiçbir sonuç almıyor ve
-              sitenin çalışmadığını sanıyordu. Vaat edip yapmamak, hiç
-              vaat etmemekten kötü.
+      {/* ⚠ KOYU KAHRAMAN BLOĞU KALDIRILDI (ürün sahibinin kararı).
+          `#0F172A` zeminli blok ekranın üst üçte birini kaplıyor, sayfanın
+          asıl işi olan araç ızgarasını aşağı itiyordu. İçindeki arama formu
+          `layout/HeaderArama.jsx`e taşındı ve artık HER SAYFADA erişilebilir.
 
-              Artık girdi PIN desenine uyuyorsa doğrudan karneye gidiliyor;
-              uymuyorsa liste süzülüyor. `pinNormalize` alfabe dışı karakteri
-              zaten reddediyor, yani marka adı yanlışlıkla PIN sanılmıyor. */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              // ⚠ ANASAYFADA ARAMA ARTIK YERİNDE SÜZMÜYOR, SONUÇ EKRANINA
-              // GÖTÜRÜYOR. Sektör lideri siteler de böyle çalışıyor: sonuç
-              // paylaşılabilir bir adreste açılıyor, kullanıcı geri tuşuyla
-              // aramasına dönebiliyor ve sonuç ekranı kendi düzenine
-              // (yatay liste) sahip oluyor.
-              if (!tamSayfa) {
-                const q = searchQuery.trim();
-                if (!q) return;
-                // PIN girildiyse doğrudan karneye — aşağıdaki dal bunu
-                // zaten yapıyor, o yüzden yalnızca PIN DEĞİLSE listeye.
-                if (!pinBicimiMi(q)) {
-                  router.push(`/vitrin?q=${encodeURIComponent(q)}`);
-                  return;
-                }
-              }
-              // ⚠ ESKİDEN HER GİRDİ KARNEYE GİDİYORDU.
-              //
-              // `pinNormalize("bmw")` -> `CV-BMW` ve kod bunu geçerli sayıp
-              // `/karne/CV-BMW`'ye yönlendiriyordu: marka arayan kullanıcı
-              // VAR OLMAYAN bir karne sayfasına düşüyordu. Türkçe karakter
-              // girildiğinde ise boş dönüyor ve Enter hiçbir şey yapmıyordu.
-              //
-              // Artık soru ayrı soruluyor: girdi gerçekten PIN biçiminde mi?
-              // Değilse liste zaten yazarken süzülüyor (`sonuclar`), yani
-              // Enter'ın yapacak işi yok — kullanıcı sonucu önünde görüyor.
-              if (pinBicimiMi(searchQuery)) {
-                const pin = pinNormalize(searchQuery);
-                if (pin) router.push(`/karne/${encodeURIComponent(pin)}`);
-              }
-            }}
-            className="max-w-2xl mx-auto bg-white p-1 rounded-md border border-slate-700 shadow-lg flex items-center gap-2"
-          >
-            <div className="text-slate-500 pl-3">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-              </svg>
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => { setSayfa(0); setSearchQuery(e.target.value); }}
-              aria-label="Marka, model, şehir veya PIN ile ara"
-              placeholder="Marka, model, şehir veya PIN kodu ile ara..."
-              /* ⚠ `min-h-[44px]` — GİRDİ KUTUSU 20px İDİ. Çevresindeki beyaz form
-                 kutusu 54px görünüyor ama TIKLANABİLİR alan girdinin kendisi;
-                 dolgu bölgesine basmak odaklamıyordu. Bu, anasayfanın ana
-                 kontrolü — ürünün arama kapısı. */
-              className="w-full min-h-[44px] bg-transparent border-none outline-none text-govde text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal pl-0.5"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                aria-label="Aramayı temizle"
-                className="w-8 h-8 grid place-items-center rounded-md text-slate-500 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-              >
-                <Icon name="kapat" size="sm" />
-              </button>
-            )}
-            {/* `min-h-[44px]`: eskiden 40 px idi, `dugme.js`'in ilan ettiği
-                WCAG dokunma alanı asgarisinin altındaydı. */}
-            {/* ⚠ BURAYA `odak-acik` EKLENDİ VE GERİ ALINDI — NOT DURUYOR Kİ
-                AYNI HATA TEKRAR YAPILMASIN.
-                Ölçümde "odak halkası (indigo #4f46e5) koyu hero zemininde
-                2.84:1" çıkmıştı ve eşik 3.0 olduğu için düzeltilmesi gerektiği
-                düşünülmüştü. Yanlış çıkarımdı:
-
-                · Koyu hero zemininde ODAKLANABİLİR HİÇBİR ÖGE YOK. Koyu alanda
-                  yalnızca `h1` duruyor; arama formu BEYAZ bir kutu.
-                · `outline-offset: 2px` halkayı ögenin DIŞINA taşıyor. Bu koyu
-                  düğmenin dışı, formun beyaz dolgusu — yani halka beyaz zemine
-                  düşüyor. Beyaz halka orada 1.00:1 ölçüldü, yani GÖRÜNMEZ.
-
-                Doğru davranış varsayılanı bırakmak: indigo halka beyaz zeminde
-                6.29:1. `odak-acik` yalnızca gerçekten koyu bir zemin ÜZERİNDE
-                duran odaklanabilir öge çıkarsa kullanılmalı. */}
-            <button type="submit" className="bg-[#0F172A] hover:bg-slate-800 text-white text-yardimci font-semibold px-5 min-h-[44px] rounded-md transition-colors shrink-0 cursor-pointer">
-              Ara
-            </button>
-          </form>
-        </div>
-      </div>
+          ⚠ BAŞLIK GÖRÜNMEZ AMA KALDI. Blok gidince sayfanın `h1`i de
+          gidiyordu; altındaki `h2 Süzgeçler`, `h2 Hizmetler`, `h2 Vitrindeki
+          Araçlar` sahipsiz kalır, başlık hiyerarşisi kırılır (bkz.
+          `29-baslik-hiyerarsisi`) ve sayfanın SEO'daki adı kaybolurdu.
+          `sr-only` ikisini de çözüyor: ekran okuyucu ve arama motoru
+          başlığı görüyor, gözle görünmüyor. Metin BİREBİR korundu. */}
+      <h1 className="sr-only">
+        {tamSayfa
+          ? 'Vitrindeki Tüm Araçlar'
+          : 'Aracın Geçmişini Bilin, Kararınızı Belgeyle Verin'}
+      </h1>
 
       {/* 3.2 ANA MİZANPAJ (ÇİFT SÜTUN LU) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -1562,7 +1470,7 @@ export default function MarketplaceView({
                    paketi mobil çekmeceyi tam o seçiciyle buluyor (satır 112)
                    ve anasayfada ikinci bir eşleşme o testi kırar. Panelin
                    modal olması da gerekmiyor — sayfa akışını kesmiyor. */
-                <div className="bg-white border border-slate-200 rounded-lg px-4 py-3 motion-safe:animate-fadeIn">
+                <div className="bg-white border border-slate-200 rounded-lg shadow-sm px-4 py-3 motion-safe:animate-fadeIn">
                   {/* Masaüstüyle AYNI grup sırası ve aynı bileşenler.
                       İki ekranın süzgeç sırası ayrışırsa kullanıcı cihaz
                       değiştirdiğinde yeniden öğrenmek zorunda kalıyor. */}
@@ -1933,7 +1841,7 @@ export default function MarketplaceView({
                    HAK ETMİYOR. Eskiden tek metin vardı ve "vitrinde araç yok"
                    diyordu — süzgeçle daraltıp sonuç bulamayan kullanıcı da
                    bunu görüyor, vitrinin boş olduğunu sanıyordu. */
-                <div className="py-16 flex flex-col items-center justify-center text-center gap-2 bg-white rounded-lg border border-dashed border-slate-200 p-6">
+                <div className="py-16 flex flex-col items-center justify-center text-center gap-2 bg-white rounded-lg shadow-sm border border-dashed border-slate-200 p-6">
                   <span className="text-slate-400" aria-hidden="true">
                     <Icon name="arac" size="2xl" />
                   </span>

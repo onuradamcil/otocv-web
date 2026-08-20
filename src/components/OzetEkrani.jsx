@@ -45,7 +45,7 @@ import { formatTrDate } from '../utils/dateHelper';
 /** Sayı + etiket taşıyan küçük kart. Ölçekteki `.sayi-vurgu` kullanılıyor. */
 function SayiKarti({ sayi, etiket, ikon, vurgu = false }) {
   return (
-    <div className={`rounded-lg border p-4 flex items-center gap-3 ${
+    <div className={`rounded-lg shadow-sm border p-4 flex items-center gap-3 ${
       vurgu ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'
     }`}>
       <div className={`w-10 h-10 rounded-md grid place-items-center shrink-0 ${
@@ -112,7 +112,7 @@ function TarihSatiri({ kayit, onAc }) {
 /** Bölüm sarmalayıcı — kart kalıbı garaj ve vitrin ekranlarıyla aynı. */
 function Bolum({ baslik, aciklama, children, sag }) {
   return (
-    <section className="bg-white border border-slate-200 rounded-lg p-5 space-y-4">
+    <section className="bg-white border border-slate-200 rounded-lg shadow-sm p-5 space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="baslik-bolum text-slate-900">{baslik}</h2>
@@ -150,7 +150,7 @@ export default function OzetEkrani() {
   if (hata) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16">
-        <div className="bg-white border border-rose-200 rounded-lg p-6 text-center space-y-2">
+        <div className="bg-white border border-rose-200 rounded-lg shadow-sm p-6 text-center space-y-2">
           <h1 className="baslik-bolum text-slate-900">Özet açılamadı</h1>
           <p className="metin-govde text-slate-600">{hata}</p>
         </div>
@@ -163,7 +163,7 @@ export default function OzetEkrani() {
   if (!veri || veri.aracSayisi === 0) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 animate-fadeIn">
-        <div className="bg-white border border-slate-200 rounded-lg p-8 text-center space-y-4">
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-8 text-center space-y-4">
           <div className="w-12 h-12 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center mx-auto">
             <Icon name="arac" size="xl" />
           </div>

@@ -18,7 +18,7 @@ import SkipLink from '@/components/layout/SkipLink';
 
 export default function WizardLayout({ children }) {
   return (
-    <div className="min-h-screen flex flex-col bg-[#FFFDFB] text-[#0F172A] font-sans antialiased tracking-tight">
+    <div className="min-h-screen flex flex-col bg-[#F2F4F7] text-[#0F172A] font-sans antialiased tracking-tight">
       <SkipLink />
       <main id="icerik" className="flex-1 flex flex-col">
         {children}

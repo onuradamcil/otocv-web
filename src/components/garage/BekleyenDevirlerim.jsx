@@ -238,7 +238,7 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
           kaydiCagiranUretir
           detay={
             <div className="flex items-center gap-3">
-              <span className="w-10 h-10 rounded-lg bg-white border border-slate-200 overflow-hidden shrink-0 grid place-items-center relative">
+              <span className="w-10 h-10 rounded-lg shadow-sm bg-white border border-slate-200 overflow-hidden shrink-0 grid place-items-center relative">
                 <AracGorseli
                   src={aracKapakGorseli(paywallIstek.image_url)}
                   alt=""

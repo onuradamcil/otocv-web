@@ -91,7 +91,17 @@
 /* 🎨 HIGH-CONTRAST STANDART CSS3 PREMIUM TASARIM MOTORU */
 :root {
   /* Renk Paletimiz (AI Tasarım Kimliği) */
-  --color-canvas: #FFFDFB;         /* Premium Sıcak Fildişi */
+  /* ⚠ ZEMİN KOYULAŞTIRILDI: #FFFDFB -> #F2F4F7.
+     Eski zemin beyaza o kadar yakındı ki (beyaz panelle kontrast 1.01)
+     süzgeç paneli, hizmet kartları ve araç kartları zeminden AYRILMIYORDU
+     — ekranın tamamı tek bir beyaz düzlem gibi görünüyordu.
+     Yeni değer beyazla 1.10 kontrast veriyor, yani yüzeyler gerçekten
+     kalkıyor. Bu renk İCAT DEĞİL: araç kayıt sihirbazı zaten bu zemini
+     kullanıyordu (`bg-[#F2F4F7]`), ürünün içinden geliyor.
+     Serin gri, başlık ve alt bilgideki lacivertle aynı aileden; eski sıcak
+     fildişi o lacivertle çekişiyordu ve beyaza bu kadar yakınken sıcaklığı
+     zaten görünmüyordu. */
+  --color-canvas: #F2F4F7;         /* Serin Açık Gri — yüzeylerin zemini */
   --color-darkslate: #0F172A;      /* Lüks Gece Mavisi / Slate */
   --color-premium-amber: #D97706;  /* Tescilli Altın / Kehribar */
   --color-verified-green: #059669; /* Doğrulanmış Yeşil / Mint */
@@ -365,6 +375,29 @@ body {
   outline: 2px solid #4f46e5;   /* indigo-600 */
   outline-offset: 2px;
   border-radius: 2px;
+}
+
+/* =========================================================================
+   HALKAYI KAPSAYICI ÇİZDİĞİNDE
+   -------------------------------------------------------------------------
+   Arama kutusu gibi bileşenlerde halka KAPSAYICIYA çiziliyor (ikon dahil
+   bütün alanı çevrelesin diye). Girdinin kendi `:focus-visible` halkası da
+   çizilince İÇ İÇE İKİ MAVİ ÇERÇEVE oluşuyordu — ekran görüntüsünde
+   görülen buydu.
+
+   ⚠ NİYE TAILWIND'İN `focus-visible:outline-none` SINIFI YETMİYOR:
+   yukarıdaki `:focus-visible` kuralı KATMANSIZ, Tailwind yardımcıları ise
+   `@layer utilities` içinde. Katmansız CSS katmanlıyı yener, yani o sınıf
+   yazılsa da hiçbir şey yapmıyor (ölçüldü: outline hâlâ `solid 2px`).
+   Bu, projede daha önce `metin-yardimci font-medium` ile yaşanan tuzağın
+   aynısı.
+
+   ⚠ YALNIZCA kapsayıcı GÖRÜNÜR bir halka çizdiğinde kullanılmalı. Halkayı
+   kaldırıp yerine bir şey koymamak, yukarıda "FELAKET" diye anlatılan
+   durumun ta kendisi.
+   ========================================================================= */
+.odak-kapsayicida:focus-visible {
+  outline: none;
 }
 
 /* Koyu zeminlerde indigo okunmuyor; oralarda beyaz halka kullanılıyor. */

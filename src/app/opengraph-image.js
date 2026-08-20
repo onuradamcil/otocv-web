@@ -23,7 +23,7 @@ export default function OpengraphImage() {
           justifyContent: 'center',
           padding: '80px',
           background: '#0F172A',
-          color: '#FFFDFB',
+          color: '#F2F4F7',
           fontFamily: 'sans-serif',
         }}
       >

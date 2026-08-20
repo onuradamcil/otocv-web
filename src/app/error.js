@@ -20,7 +20,7 @@ export default function Error({ error, reset }) {
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-[#FFFDFB] text-[#0F172A] font-sans antialiased flex flex-col">
+    <div className="min-h-screen bg-[#F2F4F7] text-[#0F172A] font-sans antialiased flex flex-col">
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center">
           <Link href="/" className={`text-base font-semibold tracking-tight text-slate-900 rounded ${ODAK}`}>

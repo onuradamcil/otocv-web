@@ -202,8 +202,14 @@ test.describe('Üst menü', () => {
       await dugme.click();
       await expect(page.locator("text=Tescilli Taşıtlarım (Garaj)").first()).toBeVisible();
 
-      // Menünün DIŞINDA bir yere tıkla: sayfa başlığı.
-      await page.locator('h1').first().click({ force: true });
+      // Menünün DIŞINDA bir yere tıkla.
+      // ⚠ ESKİDEN `h1`E TIKLANIYORDU. Koyu kahraman bloğu kaldırılınca
+      // anasayfanın `h1`i `sr-only` oldu (görünmez ama hiyerarşi için
+      // duruyor) ve tıklanamaz hâle geldi: "Element is outside of the
+      // viewport". Testin niyeti belirli bir öge değil, MENÜ DIŞI bir
+      // nokta; o yüzden artık koordinata tıklanıyor — sol kenar, başlık
+      // şeridinin altı, hesap menüsü ise sağ üstte.
+      await page.mouse.click(20, 400);
 
       await expect(
         page.locator("text=Tescilli Taşıtlarım (Garaj)"),

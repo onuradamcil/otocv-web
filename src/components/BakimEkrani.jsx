@@ -58,7 +58,7 @@ function BakimKarti({ kayit, onKayitEkle }) {
   const kayitsiz = kayit.kayitSayisi === 0;
 
   return (
-    <article className={`border rounded-lg p-5 space-y-4 ${
+    <article className={`border rounded-lg shadow-sm p-5 space-y-4 ${
       kayitsiz ? 'bg-amber-50/50 border-amber-200' : 'bg-white border-slate-200'
     }`}>
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
@@ -190,7 +190,7 @@ export default function BakimEkrani() {
   if (oturumsuz) {
     return (
       <Cerceve>
-        <div className="bg-white border border-slate-200 rounded-lg p-8 text-center space-y-4">
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-8 text-center space-y-4">
           <div className="w-12 h-12 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center mx-auto">
             <Icon name="anahtar" size="xl" />
           </div>
@@ -215,7 +215,7 @@ export default function BakimEkrani() {
   if (hata) {
     return (
       <Cerceve>
-        <div className="bg-white border border-rose-200 rounded-lg p-6 text-center space-y-2">
+        <div className="bg-white border border-rose-200 rounded-lg shadow-sm p-6 text-center space-y-2">
           <h1 className="baslik-bolum text-slate-900">Ekran açılamadı</h1>
           <p className="metin-govde text-slate-600">{hata}</p>
         </div>
@@ -226,7 +226,7 @@ export default function BakimEkrani() {
   if (!veri || veri.aracSayisi === 0) {
     return (
       <Cerceve>
-        <div className="bg-white border border-slate-200 rounded-lg p-8 text-center space-y-4">
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-8 text-center space-y-4">
           <div className="w-12 h-12 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 grid place-items-center mx-auto">
             <Icon name="arac" size="xl" />
           </div>
@@ -312,7 +312,7 @@ export default function BakimEkrani() {
 
         {/* --- SERVİS ORTAKLARI --- */}
         {servisOrtaklari.length > 0 && (
-          <section className="bg-white border border-slate-200 rounded-lg p-5 space-y-3">
+          <section className="bg-white border border-slate-200 rounded-lg shadow-sm p-5 space-y-3">
             <h2 className="baslik-bolum text-slate-900">Çalıştığımız servisler</h2>
             <ul className="space-y-2">
               {servisOrtaklari.map((o) => (

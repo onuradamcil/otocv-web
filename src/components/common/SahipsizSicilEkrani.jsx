@@ -34,7 +34,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
   const o = ozet || {};
 
   return (
-    <div className="min-h-screen bg-[#FFFDFB] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F2F4F7] flex items-center justify-center p-4">
       <div className="bg-white border border-amber-200 rounded-lg p-8 max-w-md w-full text-center space-y-5 shadow-sm">
 
         <div className="space-y-2">
@@ -64,7 +64,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
                 ['Belgeli', o.faturali],
                 ['Sicil puanı', o.sicil_puani],
               ].map(([etiket, deger]) => (
-                <div key={etiket} className="bg-white border border-slate-200 rounded-lg py-2">
+                <div key={etiket} className="bg-white border border-slate-200 rounded-lg shadow-sm py-2">
                   <div className="text-bolum font-semibold text-slate-900 tabular-nums">
                     {deger ?? '—'}
                   </div>

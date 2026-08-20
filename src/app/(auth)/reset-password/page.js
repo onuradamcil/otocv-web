@@ -65,7 +65,7 @@ export default function ResetPasswordPage() {
 
   if (status === 'invalid') {
     return (
-      <div className="min-h-screen bg-[#FFFDFB] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#F2F4F7] flex items-center justify-center p-4">
         <div className="bg-white border border-gray-200 rounded-lg p-8 max-w-md w-full text-center space-y-4 shadow-sm">
           <h1 className="text-bolum font-semibold text-slate-900 tracking-tight">Bağlantı geçerli değil</h1>
           <p className="text-mini text-slate-500 font-medium leading-relaxed">

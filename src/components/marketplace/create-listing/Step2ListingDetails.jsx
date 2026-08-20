@@ -1553,7 +1553,7 @@ useEffect(() => {
                   value={featureSearch}
                   onChange={(e) => setFeatureSearch(e.target.value)}
                   placeholder="Donanım ara (Örn: Isıtma)..."
-                  className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-lg py-2 pl-8.5 pr-3 text-mini font-semibold text-slate-900 bg-slate-100/70 focus:bg-white outline-none transition-all placeholder:font-normal placeholder:text-slate-400 h-[40px]"
+                  className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-lg shadow-sm py-2 pl-8.5 pr-3 text-mini font-semibold text-slate-900 bg-slate-100/70 focus:bg-white outline-none transition-all placeholder:font-normal placeholder:text-slate-400 h-[40px]"
                 />
                 <svg className="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />

@@ -15,7 +15,7 @@ export default function AuthLayout({ children }) {
   const yil = new Date().getFullYear();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FFFDFB] text-[#0F172A] font-sans antialiased tracking-tight">
+    <div className="min-h-screen flex flex-col bg-[#F2F4F7] text-[#0F172A] font-sans antialiased tracking-tight">
       <SkipLink />
       <AuthHeader />
 

@@ -504,7 +504,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
             <span>Veritabanı bağlantı hatası: {error}</span>
           </div>
         ) : gorunenAraclar.length === 0 ? (
-          <div className="py-20 flex flex-col items-center text-center space-y-3 bg-white rounded-lg border border-dashed border-slate-300">
+          <div className="py-20 flex flex-col items-center text-center space-y-3 bg-white rounded-lg shadow-sm border border-dashed border-slate-300">
             <Icon name="klasor" size="2xl" className="text-slate-300" />
             <div>
               {/* Süzgeç yüzünden boşsa bunu SÖYLÜYORUZ. "Garajınız boş"

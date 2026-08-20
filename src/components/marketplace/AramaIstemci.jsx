@@ -67,8 +67,24 @@ export default function AramaIstemci() {
     };
   }, [anahtar]);
 
+  // ⚠ `key` ARAMA KELİMESİNE BAĞLI — ÖLÇÜLMÜŞ BİR HATANIN ONARIMI.
+  // `baslangicAramasi`/`baslangicSuzgeci` `MarketplaceView` içinde YALNIZCA
+  // ilk bağlanmada okunuyor. Aynı rotada kalıp adresi değiştirmek (başlık
+  // şeridinden yeni arama yapmak) sonuçları TAZELEMİYORDU: adres
+  // `?q=zzzbulunmayanmarka` oluyor ama ızgarada eski 48 kart duruyordu ve
+  // yalnızca tam yenilemede düzeliyordu. Kullanıcı için bu "arama çalışmıyor"
+  // demek. Yeni arama = yeni sorgu, dolayısıyla bileşenin yeniden
+  // bağlanması doğru davranış.
+  //
+  // ⚠ ANAHTAR YALNIZCA `q`, TÜM SORGU DİZESİ DEĞİL. Süzgeç seçimleri de
+  // adrese yazılıyor (adres senkronu); tüm dizeye bağlansaydı her süzgeç
+  // tıklamasında bileşen yeniden bağlanır, açık ağaç/kaydırma konumu
+  // sıfırlanır ve state -> adres -> yeniden bağlanma döngüsü riski doğardı.
+  const aramaAnahtari = `q:${baslangic.arama}`;
+
   return (
     <MarketplaceView
+      key={aramaAnahtari}
       tamSayfa
       baslangicAramasi={baslangic.arama}
       baslangicSuzgeci={baslangic.suzgec}

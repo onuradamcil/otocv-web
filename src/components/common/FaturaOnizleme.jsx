@@ -119,7 +119,7 @@ export default function FaturaOnizleme({ yol, onBuyut }) {
         type="button"
         onClick={buyut}
         disabled={durum !== 'hazir' || buyutuluyor}
-        className="flex items-center gap-2 bg-white border border-slate-200 hover:border-indigo-300 p-1.5 pr-3 rounded-lg text-mini font-bold text-indigo-600 transition-colors group disabled:opacity-60 disabled:cursor-wait"
+        className="flex items-center gap-2 bg-white border border-slate-200 hover:border-indigo-300 p-1.5 pr-3 rounded-lg shadow-sm text-mini font-bold text-indigo-600 transition-colors group disabled:opacity-60 disabled:cursor-wait"
       >
         {/* next/image kullanılmıyor: imzalı bağlantı her istekte değişiyor,
             dolayısıyla optimizasyon önbelleği hiç isabet etmez; üstelik uzak

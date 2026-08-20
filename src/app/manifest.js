@@ -1,7 +1,7 @@
 // =========================================================================
 // OTO-CV PWA MANIFEST (manifest.js)
 // İşlev: Telefonda "ana ekrana ekle" desteği ve tarayıcı tema rengi.
-//        Renkler tasarım diliyle aynı: zemin #FFFDFB, tema #0F172A.
+//        Renkler tasarım diliyle aynı: zemin #F2F4F7, tema #0F172A.
 // =========================================================================
 
 export default function manifest() {
@@ -12,7 +12,7 @@ export default function manifest() {
       'Aracınızın bakım geçmişini dijital sicil olarak tutun, sigorta ve muayene tarihlerini kaçırmayın.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#FFFDFB',
+    background_color: '#F2F4F7',
     theme_color: '#0F172A',
     lang: 'tr',
     icons: [

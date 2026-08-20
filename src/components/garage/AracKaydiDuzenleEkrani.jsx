@@ -145,7 +145,7 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
   if (durum === 'yok' || durum === 'hata') {
     return (
       <div className="min-h-screen bg-[#F8FAFC] grid place-items-center p-4">
-        <div className="bg-white border border-slate-200 rounded-lg p-8 max-w-md w-full text-center space-y-4">
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-8 max-w-md w-full text-center space-y-4">
           <h1 className="baslik-bolum text-slate-900">
             {durum === 'yok' ? 'Araç bulunamadı' : 'Kayıt yüklenemedi'}
           </h1>
@@ -171,7 +171,7 @@ export default function AracKaydiDuzenleEkrani({ pin }) {
           </p>
         </div>
 
-        <section className="bg-white border border-slate-200 rounded-lg p-5 space-y-4">
+        <section className="bg-white border border-slate-200 rounded-lg shadow-sm p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label className="block">
               <span className="etiket text-slate-500">İl</span>

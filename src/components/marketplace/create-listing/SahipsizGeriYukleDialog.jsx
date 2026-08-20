@@ -336,7 +336,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                     ['Belgeli', onizleme.faturali],
                     ['Sicil puanı', onizleme.sicil_puani],
                   ].map(([etiket, deger]) => (
-                    <div key={etiket} className="bg-white border border-slate-200 rounded-lg py-2">
+                    <div key={etiket} className="bg-white border border-slate-200 rounded-lg shadow-sm py-2">
                       <div className="text-bolum font-semibold text-slate-900 tabular-nums">{deger}</div>
                       <div className="text-etiket text-slate-500 font-bold uppercase tracking-wide">{etiket}</div>
                     </div>

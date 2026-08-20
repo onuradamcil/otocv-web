@@ -1220,7 +1220,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                   return (
                     <div 
                       key={item.id || item.idx || index}
-                      className="border border-slate-200 rounded-lg overflow-hidden bg-white transition-all duration-150 hover:border-slate-300"
+                      className="border border-slate-200 rounded-lg shadow-sm overflow-hidden bg-white transition-all duration-150 hover:border-slate-300"
                     >
                       <div 
                         {...tiklanabilir(() => setExpandedTileIndex(isExpanded ? null : index))}

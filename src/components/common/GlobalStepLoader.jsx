@@ -195,7 +195,7 @@ function ListeIskeleti({ adet = 4 }) {
   return (
     <div className="space-y-2.5">
       {Array.from({ length: adet }).map((_, i) => (
-        <div key={i} className="bg-white border border-slate-200 rounded-lg p-3.5 flex items-center gap-3">
+        <div key={i} className="bg-white border border-slate-200 rounded-lg shadow-sm p-3.5 flex items-center gap-3">
           <div className={`w-10 h-10 ${ACIK} rounded-lg shrink-0`} />
           <div className="flex-1 space-y-2">
             <Cizgi w="w-1/3" h="h-4" ton={KOYU} />

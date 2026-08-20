@@ -67,7 +67,7 @@ export default function Page() {
           return (
             <div
               key={urun.kod}
-              className="bg-white border border-slate-200 rounded-lg p-5 space-y-3"
+              className="bg-white border border-slate-200 rounded-lg shadow-sm p-5 space-y-3"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-0.5 min-w-0">
@@ -126,7 +126,7 @@ export default function Page() {
       {/* ÖDEME GEÇMİŞİ. Boş ama gizlenmiyor. */}
       <div className="space-y-3">
         <h2 className="text-govde font-semibold text-slate-900">Ödeme geçmişi</h2>
-        <div className="bg-white border border-dashed border-slate-300 rounded-lg p-8 text-center space-y-1">
+        <div className="bg-white border border-dashed border-slate-300 rounded-lg shadow-sm p-8 text-center space-y-1">
           <p className="text-mini font-bold text-slate-600">Henüz ödeme kaydınız yok</p>
           <p className="text-yardimci text-slate-500 font-medium leading-relaxed">
             Tahsilat başladığında ödemeleriniz ve faturalarınız burada listelenecek.

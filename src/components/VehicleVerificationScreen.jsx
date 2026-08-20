@@ -304,7 +304,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
               </div>
             </div>
             <div className="w-full h-px bg-white/5" />
-            <span className="text-etiket font-mono font-bold tracking-widest text-indigo-400 block text-center bg-white/5 py-1.5 rounded-lg border border-white/5">KAYNAĞI İŞARETLİ VERİ</span>
+            <span className="text-etiket font-mono font-bold tracking-widest text-indigo-400 block text-center bg-white/5 py-1.5 rounded-lg shadow-sm border border-white/5">KAYNAĞI İŞARETLİ VERİ</span>
           </div>
 
           <div className="bg-white border border-gray-200/80 p-6 rounded-lg space-y-4 shadow-sm">

@@ -9,7 +9,7 @@
 // -------------------------------------------------------------------------
 // NİYE KOYU ZEMİN
 // -------------------------------------------------------------------------
-// Alt bilgi `bg-white` idi, sayfa zemini ise `--color-canvas` (#FFFDFB).
+// Alt bilgi `bg-white` idi, sayfa zemini ise `--color-canvas` (#F2F4F7).
 // Aradaki fark ölçülebilir bir sınır değil — alt bilgi sayfanın devamı gibi
 // görünüyor, nerede bittiği okunmuyordu.
 //

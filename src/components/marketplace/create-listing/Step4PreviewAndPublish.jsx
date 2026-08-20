@@ -1072,7 +1072,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                   return (
                     <div 
                       key={item.id || index}
-                      className="border border-slate-200 rounded-lg overflow-hidden bg-white transition-all duration-150 hover:border-slate-300"
+                      className="border border-slate-200 rounded-lg shadow-sm overflow-hidden bg-white transition-all duration-150 hover:border-slate-300"
                     >
                       <div 
                         {...tiklanabilir(() => setExpandedTileIndex(isExpanded ? null : index))}
@@ -1149,7 +1149,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                               <button
                                 type="button"
                                 onClick={() => setInvoiceModalUrl(invoiceUrl)}
-                                className="flex items-center gap-2 bg-white border border-slate-200 hover:border-indigo-300 p-1.5 pr-3 rounded-lg text-mini font-bold text-indigo-600 transition-colors group"
+                                className="flex items-center gap-2 bg-white border border-slate-200 hover:border-indigo-300 p-1.5 pr-3 rounded-lg shadow-sm text-mini font-bold text-indigo-600 transition-colors group"
                               >
                                 {/* Yerel dosya önizlemesi (blob:). Henüz yüklenmedi,
                                     imzalı bağlantı gerekmez. */}
