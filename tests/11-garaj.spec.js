@@ -131,11 +131,9 @@ test.describe('Garaj ekranı', () => {
       .getByRole('group', { name: 'Araç süzgeci' })
       .getByRole('button', { name: /Süresi kritik/ });
     await sayac.click();
-    await page.waitForTimeout(500);
     await expect(sayac).toHaveAttribute('aria-pressed', 'true');
 
     await sayac.click();
-    await page.waitForTimeout(500);
     await expect(sayac).toHaveAttribute('aria-pressed', 'false');
     expect(await kartSay()).toBe(oncekiAdet);
   });
@@ -174,11 +172,9 @@ test.describe('Garaj ekranı', () => {
   test('⋯ menüsü dışarı tıklayınca kapanıyor', async ({ page }) => {
     const kart = page.locator('.grid > div').filter({ hasText: 'Skor:' }).first();
     await kart.locator("button[aria-label*='diğer işlemler']").click();
-    await page.waitForTimeout(400);
     await expect(page.getByRole('menu').first()).toBeVisible();
 
     await page.locator('h1').first().click({ force: true });
-    await page.waitForTimeout(400);
     await expect(page.getByRole('menu'), 'menü açık kaldı').toHaveCount(0);
   });
 
@@ -197,7 +193,6 @@ test.describe('Garaj ekranı', () => {
     await expect(secici.getByText('Zaten vitrinde').first()).toBeVisible();
 
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(400);
     await expect(page.getByRole('dialog'), 'Esc seçiciyi kapatmadı').toHaveCount(0);
   });
 
@@ -210,7 +205,6 @@ test.describe('Garaj ekranı', () => {
 
     // Boşluksuz ve küçük harfle yazılıyor: kullanıcı plakayı böyle yazar.
     await secici.getByLabel('Araç ara').fill('bulunmayanplaka');
-    await page.waitForTimeout(400);
     await expect(secici.getByText(/eşleşen araç yok/)).toBeVisible();
 
     await secici.getByLabel('Araç ara').fill('');

@@ -86,7 +86,6 @@ test.describe('Arama ekranı · adresten süzgeç', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
     await page.getByRole('button', { name: 'Kilometre' }).first().click();
-    await page.waitForTimeout(400);
     await expect(
       page.getByLabel('En az kilometre'),
       'yenilemeden sonra süzgeç kayboldu — adres okunmuyor'
@@ -125,12 +124,10 @@ test.describe('Arama ekranı · görünüm ve liste', () => {
     test.skip(await izgara.count() === 0, 'görünüm değiştirici yok (dar ekran)');
 
     await izgara.click();
-    await page.waitForTimeout(600);
     await expect(izgara, 'ızgaraya geçilmedi').toHaveAttribute('aria-pressed', 'true');
 
     await page.reload();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
     await expect(
       page.getByRole('button', { name: 'Izgara görünümü' }),
       'görünüm tercihi yenilemede korunmadı'

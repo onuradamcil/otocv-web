@@ -12,14 +12,14 @@
 // öncesindeki değerine geri alınır (form her kayıtta +5 yapıyor).
 // =========================================================================
 
-const { test, expect, girisYap, TEST_ISARETI, ORNEK_PLAKA } = require('./yardimcilar');
+const { test, expect, girisYap, TEST_ISARETI, ORNEK_PLAKA, garajYerlessin } = require('./yardimcilar');
 
 test.describe('Bakım kaydı formu', () => {
   test('form doldurulup kaydediliyor ve veritabanına doğru düşüyor', async ({ page, sb, temizlik }) => {
     await girisYap(page);
     await page.goto('/garage');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await garajYerlessin(page);
 
     // ARAÇ KARTINDAKİ bakım düğmesi. `hasText: /Bakım|Servis/` KULLANILMAZ:
     // Araç Merkezi'nde de "Bakım işle" adında bir düğme var ve sayfada
@@ -29,7 +29,6 @@ test.describe('Bakım kaydı formu', () => {
     const bakimButonu = page.getByRole('button', { name: 'Bakım', exact: true }).first();
     await expect(bakimButonu, 'garaj kartında bakım butonu bulunamadı').toBeVisible({ timeout: 20_000 });
     await bakimButonu.click();
-    await page.waitForTimeout(1200);
 
     // Modal açıldı mı?
     await expect(page.locator('text=Servis & Bakım Kaydı İşle')).toBeVisible({ timeout: 15_000 });

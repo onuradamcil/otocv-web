@@ -149,7 +149,6 @@ test.describe('Hesabım ekranı', () => {
 
       // GÖNDERİLMİYOR: bu paket veritabanına yazmıyor.
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(400);
       await expect(page.getByRole('dialog')).toHaveCount(0);
     });
   });

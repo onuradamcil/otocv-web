@@ -31,6 +31,7 @@
 const {
   test, expect, girisYap, hamMetin,
   supabaseIstemcisi, anonIstemcisi, aliciIstemcisi,
+  garajYerlessin, basligiBekle,
 } = require('./yardimcilar');
 
 // -------------------------------------------------------------------------
@@ -144,7 +145,7 @@ test.describe('Teklif ekranı · uydurma veri yok', () => {
     await girisYap(page);
     await page.goto('/insurance-offer');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await basligiBekle(page);
   });
 
   test('ekran yer tutucu DEĞİL', async ({ page }) => {
@@ -233,7 +234,7 @@ test.describe('Teklif ekranı · uydurma veri yok', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await basligiBekle(page);
 
     const kesikler = await page.evaluate(() => {
       const c = [];
@@ -260,7 +261,7 @@ test.describe('Teklif akışı · kapılar gerçekten açılıyor', () => {
     await girisYap(page);
     await page.goto('/garage');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2500);
+    await garajYerlessin(page);
 
     const kart = page.getByRole('button', { name: /Süreleri yönet/i }).first();
     await expect(kart, 'Araç Merkezi\'nde "Süreleri yönet" kartı yok').toBeVisible({ timeout: 15_000 });
@@ -277,7 +278,7 @@ test.describe('Teklif akışı · kapılar gerçekten açılıyor', () => {
     await girisYap(page);
     await page.goto('/garage');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2500);
+    await garajYerlessin(page);
 
     const kaskoCipi = page.getByRole('button', { name: /KASKO/ }).first();
     test.skip(await kaskoCipi.count() === 0, 'garajda araç kartı yok');
@@ -310,7 +311,7 @@ test.describe('Teklif akışı · kapılar gerçekten açılıyor', () => {
     await girisYap(page);
     await page.goto('/garage');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2500);
+    await garajYerlessin(page);
 
     const cip = page.getByRole('button', { name: /MUAYENE/ }).first();
     test.skip(await cip.count() === 0, 'garajda araç kartı yok');
@@ -336,7 +337,7 @@ test.describe('Teklif akışı · kapılar gerçekten açılıyor', () => {
     await girisYap(page);
     await page.goto('/garage');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2500);
+    await garajYerlessin(page);
 
     const cip = page.getByRole('button', { name: /KASKO/ }).first();
     test.skip(await cip.count() === 0, 'garajda araç kartı yok');
@@ -349,7 +350,6 @@ test.describe('Teklif akışı · kapılar gerçekten açılıyor', () => {
 
     // Esc kapatmalı — bu da yoktu.
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(500);
     await expect(diyalog, 'Esc modalı kapatmıyor').toHaveCount(0);
   });
 
@@ -357,7 +357,7 @@ test.describe('Teklif akışı · kapılar gerçekten açılıyor', () => {
     await girisYap(page);
     await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2500);
+    await basligiBekle(page);
 
     const kart = page.getByRole('button', { name: /Yenileme adımlarını görün/i }).first();
     // Kart yalnızca kritik belge VARKEN çiziliyor — bu kasıtlı.
@@ -376,7 +376,7 @@ test.describe('Poliçe bildirimi · hedefe gidiyor', () => {
     await girisYap(page);
     await page.goto('/garage');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(4000);
+    await garajYerlessin(page);
 
     const sb = await supabaseIstemcisi();
     const { data: { user } } = await sb.auth.getUser();
@@ -421,7 +421,7 @@ test.describe('Teklif ekranı · demo görünümü', () => {
     await girisYap(page);
     await page.goto('/insurance-offer?demo=1');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await basligiBekle(page);
   });
 
   test('ÖRNEK ortaklar görünüyor', async ({ page }) => {

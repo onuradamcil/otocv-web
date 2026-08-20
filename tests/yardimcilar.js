@@ -378,11 +378,51 @@ async function izgaraYerlessin(page, { zamanAsimi = 25_000 } = {}) {
   await base.expect(kart.or(bosDurum)).toBeVisible({ timeout: zamanAsimi });
 }
 
+
+/**
+ * Garaj ızgarasının YERLEŞMESİNİ bekler.
+ *
+ * `/garage` sayfa başlığını (`h1 Garajım`) veri gelmeden ÖNCE çiziyor —
+ * yani h1 burada "yüklendi" sinyali DEĞİL. Izgaranın kendisinin üç nihai
+ * durumundan biri bekleniyor: araç kartı, boş durum ya da hata.
+ */
+async function garajYerlessin(page, { zamanAsimi = 25_000 } = {}) {
+  const kart = page.locator("button[aria-label*='diğer işlemler']").first();
+  const bos = page.getByRole('heading', {
+    name: /Garajınız henüz boş|Bu süzgeçte araç yok/,
+  });
+  // ⚠ ÇIPLAK `[role="alert"]` KULLANILAMAZ. Next.js her sayfaya kalıcı bir
+  // yönlendirme duyurucusu koyuyor:
+  //     <div role="alert" aria-live="assertive" id="__next-route-announcer__">
+  // O da eşleştiği için `or()` birleşimi İKİ öğeye çözülüyor ve Playwright
+  // strict mode ihlali veriyor — yani yardımcı her garaj testini kırıyordu.
+  // Hata çapası bu yüzden METNE göre daraltıldı.
+  const hata = page.locator('[role="alert"]')
+    .filter({ hasText: /Veritabanı bağlantı hatası/ });
+  await base.expect(kart.or(bos).or(hata).first())
+    .toBeVisible({ timeout: zamanAsimi });
+}
+
+/**
+ * Verisi gelmeden BAŞLIĞINI BASMAYAN ekranlar için (`/insurance-offer`,
+ * `/dashboard`). Bu ekranlar yüklenirken `GlobalStepLoader` döndürüyor ve
+ * `h1` ancak veri çözüldükten sonra çiziliyor; dolayısıyla h1'i beklemek
+ * gerçekten veriyi beklemek oluyor.
+ *
+ * ⚠ Her sayfa için geçerli DEĞİL: `/garage` başlığını hemen basıyor, orada
+ * `garajYerlessin` kullanılmalı.
+ */
+async function basligiBekle(page, { zamanAsimi = 25_000 } = {}) {
+  await base.expect(page.locator('h1').first()).toBeVisible({ timeout: zamanAsimi });
+}
+
 module.exports = {
   test,
   expect: base.expect,
   girisYap,
   izgaraYerlessin,
+  garajYerlessin,
+  basligiBekle,
   girisYapAlici,
   belgeSekmesiniAc,
   hamMetin,

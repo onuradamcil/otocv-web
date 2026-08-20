@@ -59,7 +59,6 @@ test.describe('Üst menü', () => {
     // değil, bir yönlendirmeydi. Üstelik yalnızca fareyle ulaşılabiliyordu:
     // klavye ve dokunmatik kullanıcı o karta hiç erişemiyordu.
     await dugme.hover();
-    await page.waitForTimeout(500);
 
     await expect(page.locator('text=Aracımı Satışa Çıkar')).toHaveCount(0);
     await expect(page.locator('text=Garaja Git')).toHaveCount(0);
@@ -162,7 +161,6 @@ test.describe('Üst menü', () => {
 
       await page.locator('#devir-kodu').fill('ABC');
       await page.getByRole('button', { name: 'Kodu Kullan' }).click();
-      await page.waitForTimeout(1200);
 
       await expect(page.getByText(/8 karakter olmalı/)).toBeVisible();
       expect(istekGitti, 'bozuk kod sunucuya gönderildi — deneme sayacını boşa harcıyor').toBe(false);
@@ -202,12 +200,10 @@ test.describe('Üst menü', () => {
     test('dışarı tıklayınca kapanıyor', async ({ page }) => {
       const dugme = page.locator('button[aria-controls="hesap-menusu"]');
       await dugme.click();
-      await page.waitForTimeout(300);
       await expect(page.locator("text=Tescilli Taşıtlarım (Garaj)").first()).toBeVisible();
 
       // Menünün DIŞINDA bir yere tıkla: sayfa başlığı.
       await page.locator('h1').first().click({ force: true });
-      await page.waitForTimeout(400);
 
       await expect(
         page.locator("text=Tescilli Taşıtlarım (Garaj)"),
@@ -218,11 +214,9 @@ test.describe('Üst menü', () => {
     test('Esc ile kapanıyor', async ({ page }) => {
       const dugme = page.locator('button[aria-controls="hesap-menusu"]');
       await dugme.click();
-      await page.waitForTimeout(300);
       await expect(page.locator("text=Tescilli Taşıtlarım (Garaj)").first()).toBeVisible();
 
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(400);
 
       await expect(
         page.locator("text=Tescilli Taşıtlarım (Garaj)"),

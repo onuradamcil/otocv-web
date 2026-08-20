@@ -287,7 +287,6 @@ test.describe('Süzgeçler · /arama ekranı', () => {
     await izgaraYerlessin(page);
 
     await page.getByLabel(/PIN ile ara/i).fill('zzzbulunmayanmarka');
-    await page.waitForTimeout(1200);
 
     // Boş durum iki ayrı şey olabilir ve ikisi aynı cümleyi hak etmiyor:
     // süzgeçle daraltıp sonuç bulamayan kullanıcıya "vitrinde araç yok"

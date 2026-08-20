@@ -127,7 +127,6 @@ test.describe('Mobil çekmece', () => {
     }
 
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(600);
     await expect(cekmece, 'Esc ile kapanmalı').toHaveCount(0);
 
     // Kapanışta odak hamburger'a dönmeli. Dönmezse klavyeyle gezen kullanıcı
