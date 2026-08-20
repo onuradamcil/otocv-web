@@ -1,4 +1,4 @@
-# =========================================================================
+﻿# =========================================================================
 # SON ADIM — VERITABANI BAGLANTI DIZESINI SECRET'A YAZ
 #
 # Depo, is akisi ve yedek sifresi kuruldu. Geriye yalnizca bu kaldi:
