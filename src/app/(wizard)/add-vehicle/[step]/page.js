@@ -7,8 +7,22 @@
 //         tamamen kaldırıldı — garajdaki "araç ekle" butonu artık
 //         bu route'a geliyor.
 //
-// Not: Adım ilerlemesi şu an sihirbazın kendi içinde yönetiliyor;
-//      URL ile adım eşlemesi ayrı bir iş kalemi (plan Görev 7).
+// -------------------------------------------------------------------------
+// `[step]` PARAMETRESİ BURADA BİLEREK OKUNMUYOR
+// -------------------------------------------------------------------------
+// Adres ↔ adım eşlemesi `CreateListingWizard` içinde, `history.pushState`
+// ile yapılıyor. Sebebi: sihirbazın 4 adımlık form verisinin tamamı o
+// bileşenin state'inde duruyor ve rotayı yeniden çalıştırmak (dinamik
+// parçayı `router.push` ile değiştirmek) o veriyi uçurma riski taşıyor.
+//
+// ⚠ ADRES ADIMI BELİRLEMİYOR, YANSITIYOR. Adres çubuğuna `step4` yazan
+// kullanıcı 4. adıma GİTMİYOR: sihirbaz ulaşılmış adımda kalıyor ve adresi
+// sessizce düzeltiyor. İleri geçişin tek yolu `handleNextStep` ve oradaki
+// kapılar (zorunlu alanlar + plaka tescil sorgusu) atlanamıyor.
+//
+// Kaldığı yerden devam etme işini `vehicle_drafts` tablosu görüyor
+// (kullanıcı başına tek satır, `form_data` + `current_step`); o mekanizma
+// cihazdan bağımsız çalışıyor ve buradaki adres katmanı ona karışmıyor.
 // =========================================================================
 
 'use client';

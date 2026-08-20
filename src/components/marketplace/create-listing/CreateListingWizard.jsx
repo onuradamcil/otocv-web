@@ -1281,6 +1281,116 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
     return !!rec.service_type && rec.shop_name?.trim().length > 0 && !!rec.km && !!rec.cost && rec.summary?.trim().length > 0 && rec.service_date?.trim().length === 10 && !rec.date_error;
   });
 
+  // =========================================================================
+  // 🔗 ADRES ↔ ADIM EŞLEMESİ
+  // =========================================================================
+  // ÖLÇÜLEN ÜÇ KUSUR:
+  //   1. Adres hiç değişmiyordu. Kullanıcı 3. adımdayken adres
+  //      `/add-vehicle/step1` diyordu — `[step]` parametresi HİÇ okunmuyordu.
+  //   2. Adım geçişleri yalnızca `setCurrentStep` çağırdığı için geçmişe
+  //      kayıt düşmüyordu: 3. adımda geri tuşuna basan kullanıcı 2. adıma
+  //      değil, DOĞRUDAN GARAJA çıkıyordu. 4 adımlık formun ortasında bu,
+  //      "girdiğim her şey gitti" hissi veriyor.
+  //   3. `[step]` doğrulanmıyordu: `step99` da `muz` da 200 dönüp Adım 1
+  //      çiziyordu.
+  //
+  // -------------------------------------------------------------------------
+  // ⚠ ADRES AYNA, SÜRÜCÜ DEĞİL — EN ÖNEMLİ KURAL
+  // -------------------------------------------------------------------------
+  // Adres adımı YANSITIYOR, adımı BELİRLEMİYOR. Adres çubuğuna `step4`
+  // yazmak ya da ileri tuşuna basmak kimseyi ileri taşımıyor; ulaşılmış
+  // adımdan öteye geçilemiyor ve adres sessizce gerçeğe düzeltiliyor.
+  //
+  // Niye böyle: ileri geçişler yalnızca `handleNextStep` üzerinden oluyor ve
+  // orada atlanmaması gereken kapılar var — `isStep1Valid`, PLAKA TESCİL
+  // SORGUSU (aynı plaka sistemde var mı), `isStep2Valid`, `isStep3Valid`.
+  // Adrese ilerletme yetkisi vermek bu kapıların hepsini delerdi.
+  //
+  // -------------------------------------------------------------------------
+  // ⚠ TASLAK SİSTEMİNE DOKUNULMUYOR
+  // -------------------------------------------------------------------------
+  // "Kullanıcı nerede kaldı" sorusunun sahibi `vehicle_drafts` tablosu:
+  // kullanıcı başına tek satır (`upsert`/`onConflict: user_id`), içinde
+  // `form_data` (JSONB) ve `current_step`. Tarayıcı kapansa da, kullanıcı
+  // başka bir cihazdan girse de kaldığı yerden devam etmesini SAĞLAYAN bu.
+  // Adres o mekanizmanın yerine geçmiyor, yanına ekleniyor.
+  //
+  // Bu yüzden taslak modalı AÇIKKEN adrese hiç dokunulmuyor: konum henüz
+  // kullanıcı tarafından kararlaştırılmadı. Kullanıcı "devam et" deyince
+  // `handleResumeDraft` adımı kuruyor, adres de onu takip ediyor.
+  //
+  // -------------------------------------------------------------------------
+  // ⚠ NİYE `router.push` DEĞİL, `history.pushState`
+  // -------------------------------------------------------------------------
+  // Sihirbazın 4 adımlık form verisinin TAMAMI bu bileşenin state'inde.
+  // `router.push` ile dinamik parçayı değiştirmek rotayı yeniden çalıştırıp
+  // bu state'i uçurma riski taşıyor — yani tam da "bir tane bile form
+  // çalışmasın istemiyorum" denen yerde veri kaybı. `history.pushState`
+  // adresi değiştirirken bileşeni bağlı bırakıyor (Next 16 bunu destekliyor).
+  // =========================================================================
+  const adimYolu = (adim) => `/add-vehicle/step${adim}`;
+  const oncekiAdimRef = useRef(currentStep);
+
+  // ADIM -> ADRES. İleri giderken geçmişe kayıt düşüyor (geri tuşu bir adım
+  // geri alsın diye); geri gelirken düşmüyor, yoksa geri tuşu kendi kendini
+  // besleyen bir yığın kurardı.
+  useEffect(() => {
+    if (showDraftModal) return;          // taslak kararı bekleniyor
+    const hedef = adimYolu(currentStep);
+    const ileri = currentStep > oncekiAdimRef.current;
+    oncekiAdimRef.current = currentStep;
+    if (window.location.pathname === hedef) return;
+    const durum = { otocvAdim: currentStep };
+    if (ileri) window.history.pushState(durum, '', hedef);
+    else window.history.replaceState(durum, '', hedef);
+  }, [currentStep, showDraftModal]);
+
+  // ⚠ GÜNCEL DEĞERLER REF ÜZERİNDEN OKUNUYOR.
+  // Dinleyici her render'da yeniden bağlanmasın diye efektin bağımlılığı
+  // boş; ama o zaman kapanış (closure) ilk render'ın `currentStep`ini
+  // hatırlar ve kullanıcı 3. adımdayken geri tuşu 1. adımı görür.
+  // Ref her render'da tazelendiği için dinleyici hep GÜNCEL değeri okuyor.
+  // ⚠ REF RENDER SIRASINDA DEĞİL, EFEKTTE TAZELENİYOR. Render içinde
+  // `ref.current` yazmak bu projenin lint kuralında HATA (`react-hooks/refs`)
+  // ve haklı: render saf kalmalı. Bağımlılık dizisi YOK — her render'dan
+  // sonra çalışıp değerleri güncelliyor. `popstate` her zaman kullanıcı
+  // etkileşimiyle, yani render+efektlerden sonra tetiklendiği için dinleyici
+  // hep tazelenmiş değeri okuyor.
+  const adimDurumRef = useRef({ currentStep, formData, saveDraftToDatabase });
+  useEffect(() => {
+    adimDurumRef.current = { currentStep, formData, saveDraftToDatabase };
+  });
+
+  // ADRES -> ADIM, YALNIZCA GERİYE. Tarayıcının geri/ileri tuşu.
+  useEffect(() => {
+    const adresDegisti = () => {
+      const { currentStep: simdiki, formData: veri, saveDraftToDatabase: kaydet } =
+        adimDurumRef.current;
+
+      const eslesme = window.location.pathname.match(/step(\d+)/i);
+      // Sihirbazdan tamamen çıkılıyorsa (`/garage`) karışmıyoruz: eşleşme
+      // olmaz, güvenli değer mevcut adıma eşitlenir ve Next kendi
+      // yönlendirmesini yapar.
+      const istenen = eslesme ? Number(eslesme[1]) : simdiki;
+      const guvenli = Math.min(Math.max(istenen, 1), simdiki);
+
+      if (guvenli !== simdiki) {
+        setCurrentStep(guvenli);
+        // Taslak da geri alınıyor: ekrandaki "Geri" düğmesi de aynısını
+        // yapıyor (`handlePrevStep`). İki yol arasında fark kalmamalı,
+        // yoksa kullanıcı başka cihazdan yanlış adımda devam eder.
+        kaydet(guvenli, veri);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      // Adres ulaşılmamış bir adım istediyse gerçeğe düzeltiliyor.
+      if (guvenli !== istenen) {
+        window.history.replaceState({ otocvAdim: guvenli }, '', adimYolu(guvenli));
+      }
+    };
+    window.addEventListener('popstate', adresDegisti);
+    return () => window.removeEventListener('popstate', adresDegisti);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#F2F4F7] text-slate-900 select-none font-sans antialiased relative">
       
