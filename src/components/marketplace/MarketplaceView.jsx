@@ -128,8 +128,21 @@ function SuzgecSatiri({ etiket, adet, secili, sec, basili = true, derine = false
          bileşen `className` kabul etmiyor (tasarım dili tek yerde kalsın).
          Girinti Tailwind'in birebir yazılmış `pl-*` sınıflarından geliyor —
          hesaplanmış sınıf adını JIT taramıyor. */
+      /* ⚠ `slate-700` -> `slate-900`: SÜZGEÇ SATIRLARI KENDİNİ BELLİ ETSİN.
+           Ürün sahibi "soluk griye yakın" dedi ve haklıydı — ama sebep
+           kontrast DEĞİLDİ: ölçüldü, slate-700 beyaz üstünde 10.36:1,
+           yani zaten çok güçlü. Zayıf duran şey, panelde her satırın
+           AYNI ağırlıkta (400) ve aynı tonda olması; hiçbir şey çapa
+           kurmuyordu.
+           Saf siyah (#000) ISTENMEDI: 21:1 ile teknik olarak sorunsuz
+           ama beyaz üstünde sert durur (halation) ve tipografiyi
+           ucuzlatır. `slate-900` markanın kendi koyusu, 17.85:1 —
+           gözle siyah ama sert değil ve başlıklarla aynı aile.
+           Sayaçlar `slate-600`da BIRAKILDI: ikisi de koyulaşsaydı
+           hiyerarşi düzleşir, satır adı ile sayısı eşit ağırlık
+           kazanırdı. */
       className={`w-full min-h-[44px] px-2.5 ${girinti} rounded-md cursor-pointer flex justify-between items-center gap-2 text-left transition-colors ${
-        secili ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700 hover:bg-slate-50'
+        secili ? 'bg-indigo-50 text-indigo-700' : 'text-slate-900 hover:bg-slate-50'
       }`}
     >
       <span className="metin-yardimci truncate">{etiket}</span>
@@ -158,7 +171,7 @@ function SuzgecAnahtari({ etiket, adet, acik, degistir }) {
       onClick={degistir}
       aria-pressed={acik}
       className={`w-full min-h-[44px] px-2.5 rounded-md cursor-pointer flex items-center gap-2 text-left transition-colors ${
-        acik ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700 hover:bg-slate-50'
+        acik ? 'bg-indigo-50 text-indigo-700' : 'text-slate-900 hover:bg-slate-50'
       }`}
     >
       {/* ⚠ Kutu, durumu RENKTEN BAĞIMSIZ anlatıyor: renk körü kullanıcı ve

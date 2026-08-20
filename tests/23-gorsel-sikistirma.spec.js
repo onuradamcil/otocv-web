@@ -13,7 +13,7 @@
 // İddia değil ölçüm.
 // =========================================================================
 
-const { test, expect, girisYap } = require('./yardimcilar');
+const { test, expect, girisYap, girisYapAlici } = require('./yardimcilar');
 
 /**
  * Tarayıcıda gerçek bir telefon fotoğrafını temsil eden JPEG üretir.
@@ -141,7 +141,17 @@ test.describe('Yükleme öncesi görsel sıkıştırma', () => {
   // =======================================================================
   test('2 MB üstü profil görseli artık reddedilmiyor', async ({ page }) => {
     test.setTimeout(180_000);
-    await girisYap(page);
+
+    // ⚠ İKİNCİ (ATILABİLİR) HESAP — BU BİR VERİ KAYBI ONARIMI.
+    // Bu test `girisYap` ile BİRİNCİ hesaba giriyordu ve o hesap ürün
+    // sahibinin GERÇEK hesabı. Aşağıda üretilen şey rastgele RGB gürültüsü;
+    // yani suit her koştuğunda gerçek profil fotoğrafı gürültüyle
+    // DEĞİŞTİRİLİYORDU. `avatarYukle` yeni yolu yazdıktan sonra eskisini
+    // sildiği için orijinal geri getirilemiyor.
+    // Kanıtlandı: hesabın avatarı 512x375 WebP ve içeriği gri gürültü.
+    // Kullanıcıya görünen belirti "görseli değiştiriyorum ama kaydedilmiyor"
+    // idi — kayıt çalışıyordu, üstüne bu test yazıyordu.
+    await girisYapAlici(page);
     await page.goto('/account');
     await page.waitForLoadState('networkidle');
 
@@ -169,5 +179,12 @@ test.describe('Yükleme öncesi görsel sıkıştırma', () => {
     // varken beliriyor (yoksa "Görsel yükle" yazıyor).
     await expect(page.getByRole('button', { name: 'Değiştir' })).toBeVisible({ timeout: 60_000 });
     console.log('  profil görseli kabul edildi\n');
+
+    // ⚠ TEST KENDİ ÇÖPÜNÜ TOPLUYOR. Yüklenen gürültü bırakılırsa hesapta
+    // kalıcı olarak duruyor ve kovada yetim dosya birikiyor. Projenin
+    // yerleşik kuralı: test ne yarattıysa geri alır.
+    await page.getByRole('button', { name: 'Kaldır' }).click();
+    await expect(page.getByRole('button', { name: 'Görsel yükle' }))
+      .toBeVisible({ timeout: 30_000 });
   });
 });
