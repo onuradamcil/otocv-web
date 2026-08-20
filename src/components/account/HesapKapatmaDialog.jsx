@@ -93,7 +93,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
             <Icon name="uyari" size="lg" />
           </div>
           <div className="min-w-0 flex-1">
-            <h2 id="kapatma-baslik" className="text-sm font-semibold text-slate-900 tracking-tight">
+            <h2 id="kapatma-baslik" className="text-govde font-semibold text-slate-900 tracking-tight">
               {adim === 'araclar' ? 'Önce araçlarınıza bakalım' : 'Hesap kapatma talebi'}
             </h2>
             <p className="text-yardimci text-slate-500 font-semibold mt-0.5 leading-relaxed">
@@ -117,7 +117,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
           {adim === 'araclar' ? (
             <>
               <div className="bg-amber-50 border border-amber-200/80 rounded-lg p-4 space-y-2">
-                <p className="text-xs font-semibold text-amber-900">Araçlarınızın sicili silinmiyor</p>
+                <p className="text-mini font-semibold text-amber-900">Araçlarınızın sicili silinmiyor</p>
                 <p className="text-yardimci text-amber-900/80 font-semibold leading-relaxed">
                   Hesabınız kapansa bile bakım geçmişi ve belgeler araç kaydıyla birlikte
                   kalıyor. Ancak araç <strong>sahipsiz havuza</strong> düşüyor: aracı sizden
@@ -138,7 +138,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
                   {araclar.map((a) => (
                     <li key={a.plate_number} className="flex items-center gap-3 p-2.5 rounded-md border border-slate-200 bg-slate-50/60">
                       <TrPlaka plaka={a.plate_number} boyut="sm" />
-                      <span className="text-xs font-bold text-slate-700 truncate">{a.brand} {a.model}</span>
+                      <span className="text-mini font-bold text-slate-700 truncate">{a.brand} {a.model}</span>
                     </li>
                   ))}
                 </ul>
@@ -146,7 +146,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
 
               <Link
                 href="/devir"
-                className="flex items-center justify-center gap-2 w-full min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-md transition-colors"
+                className="flex items-center justify-center gap-2 w-full min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-mini rounded-md transition-colors"
               >
                 <Icon name="anahtar" size="sm" />
                 Önce araçlarımı devredeyim
@@ -155,7 +155,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
           ) : (
             <>
               <div className="bg-rose-50 border border-rose-200/80 rounded-lg p-4 space-y-2">
-                <p className="text-xs font-semibold text-rose-900">Bu işlem geri alınamıyor</p>
+                <p className="text-mini font-semibold text-rose-900">Bu işlem geri alınamıyor</p>
                 <ul className="text-yardimci text-rose-900/80 font-semibold leading-relaxed space-y-1 list-disc pl-4">
                   <li>Profiliniz, vitrin kartlarınız ve bildirimleriniz silinecek.</li>
                   <li>Araç kayıtları ve bakım geçmişi silinmeyecek; sahipsiz havuza geçecek.</li>
@@ -173,7 +173,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
                   rows={2}
                   maxLength={500}
                   placeholder="Ürünü geliştirmemize yardımcı olur."
-                  className="mt-1.5 w-full px-3 py-2.5 rounded-md border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition-colors resize-none"
+                  className="mt-1.5 w-full px-3 py-2.5 rounded-md border border-slate-200 bg-slate-50 text-mini font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition-colors resize-none"
                 />
               </label>
 
@@ -187,7 +187,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
                   onChange={(e) => setOnayMetni(e.target.value)}
                   aria-label="Onay metni"
                   autoComplete="off"
-                  className="mt-1.5 w-full h-11 px-3 rounded-md border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-800 tracking-wide focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition-colors"
+                  className="mt-1.5 w-full h-11 px-3 rounded-md border border-slate-200 bg-slate-50 text-mini font-semibold text-slate-800 tracking-wide focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition-colors"
                 />
               </label>
             </>
@@ -199,7 +199,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
             type="button"
             onClick={onKapat}
             disabled={gonderiliyor}
-            className="flex-1 min-h-[44px] bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-md transition-colors cursor-pointer disabled:opacity-50"
+            className="flex-1 min-h-[44px] bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-mini rounded-md transition-colors cursor-pointer disabled:opacity-50"
           >
             Vazgeç
           </button>
@@ -208,7 +208,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
             <button
               type="button"
               onClick={() => setAdim('onay')}
-              className="flex-1 min-h-[44px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-md transition-colors cursor-pointer"
+              className="flex-1 min-h-[44px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-mini rounded-md transition-colors cursor-pointer"
             >
               Yine de devam et
             </button>
@@ -217,7 +217,7 @@ export default function HesapKapatmaDialog({ araclar = [], onKapat, onTalepEt, g
               type="button"
               onClick={() => onTalepEt(notMetni)}
               disabled={!onayVerildi || gonderiliyor}
-              className="flex-1 min-h-[44px] bg-rose-600 hover:bg-rose-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold text-xs rounded-md transition-colors cursor-pointer disabled:cursor-not-allowed"
+              className="flex-1 min-h-[44px] bg-rose-600 hover:bg-rose-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold text-mini rounded-md transition-colors cursor-pointer disabled:cursor-not-allowed"
             >
               {gonderiliyor ? 'Gönderiliyor…' : 'Kapatma talebi gönder'}
             </button>

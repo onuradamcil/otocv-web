@@ -403,7 +403,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
 
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
-                <h4 className="text-xs font-extrabold text-slate-900 tracking-tight">
+                <h4 className="text-mini font-extrabold text-slate-900 tracking-tight">
                   Bireysel Yayınlama Kotası
                 </h4>
                 <span className="bg-emerald-50 text-emerald-700 text-[11px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200/80">
@@ -418,8 +418,8 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
 
           <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
             <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-lg">
-              <span className="text-xs font-semibold text-slate-500">Kalan Ücretsiz Hak:</span>
-              <span className="text-xs font-black text-indigo-600 bg-white px-2 py-0.5 rounded border border-slate-200/60 shadow-2xs font-mono">
+              <span className="text-mini font-semibold text-slate-500">Kalan Ücretsiz Hak:</span>
+              <span className="text-mini font-black text-indigo-600 bg-white px-2 py-0.5 rounded border border-slate-200/60 shadow-2xs font-mono">
                 {userPackage?.remainingQuota === null ? 'Sınırsız' : `${userPackage?.remainingQuota ?? 1} Adet`}
               </span>
             </div>
@@ -431,7 +431,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
               // ekran. Yani ürün, var olan kendi ödeme sayfasını kullanıcıdan
               // saklıyordu.
               onClick={() => router.push('/packages')}
-              className="bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-950 font-black text-xs px-3 py-1.5 rounded-lg transition-all shadow-2xs border border-amber-500/40 flex items-center gap-1 cursor-pointer"
+              className="bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-950 font-black text-mini px-3 py-1.5 rounded-lg transition-all shadow-2xs border border-amber-500/40 flex items-center gap-1 cursor-pointer"
             >
               <span>Paketi Yükselt</span>
               <Icon name="simsek" size="sm" />
@@ -444,11 +444,11 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
            --------------------------------------------------------------------- */}
         <div className="bg-white border border-slate-200/90 rounded-md p-6 shadow-sm space-y-4">
           <div className="flex items-center gap-1.5">
-            <span className="text-rose-600 font-black text-lg">*</span>
+            <span className="text-rose-600 font-black text-bolum">*</span>
             <h3 className="text-base font-extrabold text-slate-900 tracking-tight">Fotoğraf</h3>
           </div>
           
-          <div className="flex items-start gap-2 text-xs text-slate-600 pb-1">
+          <div className="flex items-start gap-2 text-mini text-slate-600 pb-1">
             <span className="w-5 h-5 rounded-full border border-rose-600 text-rose-700 font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">
               i
             </span>
@@ -479,7 +479,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574v9.176c0 1.222.98 2.222 2.222 2.222h15.056c1.222 0 2.222-1 2.222-2.222V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
                   </svg>
-                  <span className="text-xs font-bold text-rose-700">Fotoğraf Ekle</span>
+                  <span className="text-mini font-bold text-rose-700">Fotoğraf Ekle</span>
                   <span className="text-[13px] text-slate-600 font-semibold mt-0.5">veya Sürükle Bırak</span>
                 </label>
 
@@ -493,7 +493,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                       bir kart gibi duruyordu; arkasında hiçbir işlev yok.
                       Kullanıcı tıklıyor, hiçbir şey olmuyor ve bunu kendi
                       hatası sanıyor. Etiket artık durumu söylüyor. */}
-                  <span className="text-xs font-bold text-slate-500">Telefondan Ekle</span>
+                  <span className="text-mini font-bold text-slate-500">Telefondan Ekle</span>
                   <span className="etiket text-slate-500 border border-slate-300 rounded px-1.5 py-0.5 mt-1">Yakında</span>
                 </div>
 
@@ -503,13 +503,13 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 14.25h1.5v1.5h-1.5v-1.5zM16.5 14.25h1.5v1.5h-1.5v-1.5zM13.5 17.25h1.5v1.5h-1.5v-1.5zM18 17.25h1.5v1.5H18v-1.5z" />
                   </svg>
                   {/* Yukarıdakiyle aynı: işlevi olmayan ikinci ölü kart. */}
-                  <span className="text-xs font-bold text-slate-500">Telefondan Ekle</span>
+                  <span className="text-mini font-bold text-slate-500">Telefondan Ekle</span>
                   <span className="etiket text-slate-500 border border-slate-300 rounded px-1.5 py-0.5 mt-1">Yakında</span>
                 </div>
               </div>
 
               <div className="pt-1">
-                <span className="text-xs font-bold text-slate-800 block mb-3">
+                <span className="text-mini font-bold text-slate-800 block mb-3">
                   Eklenen Fotoğraflar: <span className="font-mono text-indigo-600 font-extrabold">{photos.length} / 15</span>
                 </span>
 
@@ -558,7 +558,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
           {/* 1. KATMAN: EN DIŞ BEYAZ PANEL BAŞLIĞI */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-rose-600 font-black text-2xl sm:text-3xl leading-none">*</span>
+              <span className="text-rose-600 font-black text-2xl sm:text-sayfa leading-none">*</span>
               <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                 Tescil & Poliçe Bilgileri
               </h3>
@@ -568,7 +568,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
             </span>
           </div>
 
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="text-mini text-slate-500 font-medium">
             Plaka, güncel kilometre ve muayene/sigorta geçerlilik tarihlerini girin.
           </p>
 
@@ -583,7 +583,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                 
                 {/* STEP 1 İÇİN ŞIK PLAKA INPUT TASARIMI */}
 <div className="space-y-1.5">
-  <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+  <label className="text-mini font-bold text-slate-700 flex items-center gap-1">
     <span className="text-rose-600 font-bold">*</span>
     <span>Araç Plakası</span>
   </label>
@@ -594,7 +594,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
       : 'border-slate-200/80 focus-within:border-indigo-600 focus-within:ring-1 focus-within:ring-indigo-600 focus-within:bg-white bg-slate-100/70'
   }`}>
     <div className="bg-[#003399] text-white w-9 h-full flex items-center justify-center shrink-0 select-none">
-      <span className="text-xs font-black font-mono tracking-tight">TR</span>
+      <span className="text-mini font-black font-mono tracking-tight">TR</span>
     </div>
 
     <input
@@ -606,7 +606,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
         updateFormData({ plate: formatted, plate_number: formatted });
       }}
       placeholder="34 ABC 123"
-      className="w-full bg-transparent border-none outline-none text-sm font-mono font-bold text-slate-900 tracking-widest pl-3 uppercase placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400"
+      className="w-full bg-transparent border-none outline-none text-govde font-mono font-bold text-slate-900 tracking-widest pl-3 uppercase placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400"
     />
   </div>
 
@@ -636,7 +636,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                         updateFormData({ mileage: formatted, km: formatted });
                       }}
                       placeholder="Örn: 42.500"
-                      className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 font-mono tracking-wide"
+                      className="w-full bg-transparent border-none outline-none text-mini font-bold text-slate-800 font-mono tracking-wide"
                     />
                   </div>
                   {touchedFields.mileage && !isKmValid && (
@@ -668,7 +668,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                         onBlur={() => handleBlur('traffic')}
                         onChange={(e) => updateFormData({ traffic_insurance_end_date: formatDateInput(e.target.value, 2027) })}
                         placeholder="GG/AA/YYYY"
-                        className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 font-mono tracking-wider"
+                        className="w-full bg-transparent border-none outline-none text-mini font-bold text-slate-800 font-mono tracking-wider"
                       />
                     </div>
                     {touchedFields.traffic && !isTrafficDateValid && (
@@ -690,7 +690,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                         onBlur={() => handleBlur('kasko')}
                         onChange={(e) => updateFormData({ kasko_end_date: formatDateInput(e.target.value, 2027) })}
                         placeholder="GG/AA/YYYY"
-                        className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 font-mono tracking-wider"
+                        className="w-full bg-transparent border-none outline-none text-mini font-bold text-slate-800 font-mono tracking-wider"
                       />
                     </div>
                   </div>
@@ -709,7 +709,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                         onBlur={() => handleBlur('inspection')}
                         onChange={(e) => updateFormData({ inspection_end_date: formatDateInput(e.target.value, 2029) })}
                         placeholder="GG/AA/YYYY"
-                        className="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-800 font-mono tracking-wider"
+                        className="w-full bg-transparent border-none outline-none text-mini font-bold text-slate-800 font-mono tracking-wider"
                       />
                     </div>
                     {touchedFields.inspection && !isInspectionDateValid && (
@@ -760,7 +760,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
         <div className="bg-white border border-slate-200/90 rounded-md p-6 shadow-sm space-y-4 font-sans antialiased">
           
           <div className="flex items-center gap-2">
-            <span className="text-rose-600 font-black text-2xl sm:text-3xl leading-none">*</span>
+            <span className="text-rose-600 font-black text-2xl sm:text-sayfa leading-none">*</span>
             <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
               Araç Seçimi
             </h3>
@@ -769,11 +769,11 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
           <div className="bg-[#F2F4F7] border border-slate-200/80 rounded-md p-4 sm:p-5 space-y-3">
             
             {/* RAHATLATILMIŞ BREADCRUMB */}
-            <div className="text-xs sm:text-sm font-semibold text-slate-800 px-1 min-h-[26px] flex items-center">
+            <div className="text-mini sm:text-govde font-semibold text-slate-800 px-1 min-h-[26px] flex items-center">
               {!selectedCategory ? (
-                <span className="text-slate-800 font-bold text-xs sm:text-sm">Kategori Seçerek Başlayın</span>
+                <span className="text-slate-800 font-bold text-mini sm:text-govde">Kategori Seçerek Başlayın</span>
               ) : (
-                <div className="text-rose-600 font-bold flex flex-wrap items-center gap-2 text-xs sm:text-sm tracking-normal">
+                <div className="text-rose-600 font-bold flex flex-wrap items-center gap-2 text-mini sm:text-govde tracking-normal">
                   <span>{selectedCategory}</span>
                   {selectedYear && <><span className="text-slate-500 font-normal">&gt;</span><span>{selectedYear}</span></>}
                   {selectedFuel && <><span className="text-slate-500 font-normal">&gt;</span><span>{selectedFuel}</span></>}
@@ -813,7 +813,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                         isFinalConfirmed: false 
                       })}
                       style={isSelected ? arrowTabStyle : {}}
-                      className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
+                      className={`w-full text-left px-3 py-2 text-mini font-semibold cursor-pointer transition-all flex items-center rounded ${
                         isSelected 
                           ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                           : 'hover:bg-slate-50 text-slate-700 rounded'
@@ -848,7 +848,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                           isFinalConfirmed: false 
                         })}
                         style={isSelected ? arrowTabStyle : {}}
-                        className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
+                        className={`w-full text-left px-3 py-2 text-mini font-semibold cursor-pointer transition-all flex items-center rounded ${
                           isSelected 
                             ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                             : 'hover:bg-slate-50 text-slate-700 rounded'
@@ -883,7 +883,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                           isFinalConfirmed: false 
                         })}
                         style={isSelected ? arrowTabStyle : {}}
-                        className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
+                        className={`w-full text-left px-3 py-2 text-mini font-semibold cursor-pointer transition-all flex items-center rounded ${
                           isSelected 
                             ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                             : 'hover:bg-slate-50 text-slate-700 rounded'
@@ -911,7 +911,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                         key={b.id}
                         onClick={() => handleBrandClick(b)}
                         style={isSelected ? arrowTabStyle : {}}
-                        className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
+                        className={`w-full text-left px-3 py-2 text-mini font-semibold cursor-pointer transition-all flex items-center rounded ${
                           isSelected 
                             ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                             : 'hover:bg-slate-50 text-slate-700 rounded'
@@ -939,7 +939,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                         key={s.id}
                         onClick={() => handleSeriesClick(s)}
                         style={isSelected ? arrowTabStyle : {}}
-                        className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
+                        className={`w-full text-left px-3 py-2 text-mini font-semibold cursor-pointer transition-all flex items-center rounded ${
                           isSelected 
                             ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                             : 'hover:bg-slate-50 text-slate-700 rounded'
@@ -967,7 +967,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                         key={m.id}
                         onClick={() => handleModelClick(m)}
                         style={isSelected ? arrowTabStyle : {}}
-                        className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
+                        className={`w-full text-left px-3 py-2 text-mini font-semibold cursor-pointer transition-all flex items-center rounded ${
                           isSelected 
                             ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                             : 'hover:bg-slate-50 text-slate-700 rounded'
@@ -995,7 +995,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                         key={p.id}
                         onClick={() => updateFormData({ selectedPackage: p, isFinalConfirmed: false })}
                         style={isSelected ? arrowTabStyle : {}}
-                        className={`w-full text-left px-3 py-2 text-xs font-semibold cursor-pointer transition-all flex items-center rounded ${
+                        className={`w-full text-left px-3 py-2 text-mini font-semibold cursor-pointer transition-all flex items-center rounded ${
                           isSelected 
                             ? 'bg-[#EEF1F6] text-slate-900 font-bold pr-4' 
                             : 'hover:bg-slate-50 text-slate-700 rounded'
@@ -1030,7 +1030,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                         <input type="radio" checked={isFinalConfirmed} onChange={() => updateFormData({ isFinalConfirmed: true })} className="mt-0.5" />
                         <div>
                           <span className="text-[11px] font-bold text-rose-600 block">{selectedYear}</span>
-                          <h4 className="text-xs font-extrabold text-slate-900 leading-snug mt-0.5">
+                          <h4 className="text-mini font-extrabold text-slate-900 leading-snug mt-0.5">
                             {selectedSeries?.name} {selectedModel?.name} {selectedPackage?.name}
                           </h4>
                           <p className="text-[13px] text-slate-500 font-medium mt-1">
@@ -1052,7 +1052,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
 
           {/* PANEL İÇİNE ENTEGRE EDİLMİŞ BİLGİ METNİ VE YAYINLAMA BUTONU */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2">
-            <p className="text-xs text-slate-500 font-medium">
+            <p className="text-mini text-slate-500 font-medium">
               Tüm zorunlu alanları (Fotoğraf, Araç Künyesi, Plaka, KM, Sigorta ve Muayene) doldurduktan sonra devam edebilirsiniz.
             </p>
 
@@ -1060,7 +1060,7 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
               type="button"
               disabled={!isFormValid}
               onClick={onNext}
-              className="bg-rose-500 hover:bg-rose-600 disabled:bg-rose-50 disabled:text-rose-300 text-white font-extrabold text-xs px-8 py-3 rounded transition-all shadow-2xs disabled:cursor-not-allowed cursor-pointer self-end sm:self-auto active:scale-98"
+              className="bg-rose-500 hover:bg-rose-600 disabled:bg-rose-50 disabled:text-rose-300 text-white font-extrabold text-mini px-8 py-3 rounded transition-all shadow-2xs disabled:cursor-not-allowed cursor-pointer self-end sm:self-auto active:scale-98"
             >
               Devam Et: Vitrin Bilgileri ›
             </button>

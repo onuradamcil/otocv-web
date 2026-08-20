@@ -100,7 +100,7 @@ export default function SikayetDialog({ sebepler, onKapat, onGonder }) {
                   onChange={() => setSebep(s.kod)}
                   className="accent-indigo-600"
                 />
-                <span className="metin-govde font-semibold text-slate-800">{s.ad}</span>
+                <span className="metin-govde text-slate-800">{s.ad}</span>
               </label>
             ))}
           </fieldset>

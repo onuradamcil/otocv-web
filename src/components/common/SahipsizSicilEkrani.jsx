@@ -38,10 +38,10 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
       <div className="bg-white border border-amber-200 rounded-lg p-8 max-w-md w-full text-center space-y-5 shadow-sm">
 
         <div className="space-y-2">
-          <h1 className="text-lg font-semibold text-slate-900 tracking-tight">
+          <h1 className="text-bolum font-semibold text-slate-900 tracking-tight">
             Bu aracın kayıtlı sahibi yok
           </h1>
-          <p className="text-xs text-slate-500 font-medium leading-relaxed">
+          <p className="text-mini text-slate-500 font-medium leading-relaxed">
             Aracın önceki sahibi hesabını kapattı. <strong className="text-slate-700">Servis
             geçmişi silinmedi</strong> — sicil duruyor, ancak sahibi belirlenene
             kadar ayrıntıları kapalı.
@@ -54,7 +54,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
         {(o.kayit !== undefined || o.marka) && (
           <div className="bg-slate-50 border border-slate-200 rounded-md p-4 space-y-3">
             {o.marka && (
-              <p className="text-sm font-semibold text-slate-900">
+              <p className="text-govde font-semibold text-slate-900">
                 {o.yil} {o.marka} {o.model}
               </p>
             )}
@@ -65,7 +65,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
                 ['Sicil puanı', o.sicil_puani],
               ].map(([etiket, deger]) => (
                 <div key={etiket} className="bg-white border border-slate-200 rounded-lg py-2">
-                  <div className="text-lg font-semibold text-slate-900 tabular-nums">
+                  <div className="text-bolum font-semibold text-slate-900 tabular-nums">
                     {deger ?? '—'}
                   </div>
                   <div className="text-etiket text-slate-500 font-bold uppercase tracking-wide">
@@ -86,7 +86,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
           <button
             type="button"
             onClick={() => router.push('/')}
-            className="w-full bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs py-3 rounded-md transition-colors cursor-pointer"
+            className="w-full bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-mini py-3 rounded-md transition-colors cursor-pointer"
           >
             Anasayfa
           </button>
@@ -96,7 +96,7 @@ export default function SahipsizSicilEkrani({ ozet, pin }) {
           <button
             type="button"
             onClick={() => router.push('/add-vehicle/step1')}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-md transition-colors cursor-pointer"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-mini py-3 rounded-md transition-colors cursor-pointer"
           >
             Sicili Devral
           </button>

@@ -43,8 +43,8 @@ export default function SiteError({ error, reset }) {
         </span>
 
         <div className="space-y-2">
-          <h1 className="text-lg font-semibold text-slate-900 tracking-tight">Bu sayfa açılamadı</h1>
-          <p className="text-xs text-slate-500 font-medium leading-relaxed">
+          <h1 className="text-bolum font-semibold text-slate-900 tracking-tight">Bu sayfa açılamadı</h1>
+          <p className="text-mini text-slate-500 font-medium leading-relaxed">
             Beklenmedik bir sorun oluştu. Verileriniz etkilenmedi — araç
             kayıtlarınız ve sicil geçmişiniz yerinde duruyor.
           </p>
@@ -54,13 +54,13 @@ export default function SiteError({ error, reset }) {
           <button
             type="button"
             onClick={reset}
-            className="flex-1 inline-flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-md transition-colors cursor-pointer focus-visible:ring-offset-2"
+            className="flex-1 inline-flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-mini rounded-md transition-colors cursor-pointer focus-visible:ring-offset-2"
           >
             Tekrar Dene
           </button>
           <Link
             href="/garage"
-            className="flex-1 inline-flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-xs rounded-md transition-colors"
+            className="flex-1 inline-flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-mini rounded-md transition-colors"
           >
             Garajıma Dön
           </Link>

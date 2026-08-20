@@ -116,8 +116,8 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
           <Icon name="kalkan" size="sm" />
           GÜVENLİ SİCİL SORGULAMA
         </span>
-        <h1 className="text-3xl font-semibold text-slate-900 tracking-tight">Oto-Karne Doğrula</h1>
-        <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed">
+        <h1 className="text-sayfa font-semibold text-slate-900 tracking-tight">Oto-Karne Doğrula</h1>
+        <p className="text-mini md:text-govde text-slate-500 font-medium leading-relaxed">
           Araç sahibinin paylaştığı PIN kodunu girerek, o aracın bakım geçmişine ve beyanlarına anında ulaşın.
         </p>
       </div>
@@ -129,7 +129,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
             type="button"
             onClick={() => setVerifyTab('pin')}
                 aria-pressed={verifyTab === 'pin'}
-            className={`flex-1 py-2.5 px-4 rounded-md text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2.5 px-4 rounded-md text-mini font-bold transition-all flex items-center justify-center gap-2 ${
               verifyTab === 'pin' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -140,7 +140,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
             type="button"
             onClick={() => setVerifyTab('qr')}
                 aria-pressed={verifyTab === 'qr'}
-            className={`flex-1 py-2.5 px-4 rounded-md text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2.5 px-4 rounded-md text-mini font-bold transition-all flex items-center justify-center gap-2 ${
               verifyTab === 'qr' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -159,7 +159,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
             <div className="space-y-6 animate-fadeIn flex-1 flex flex-col justify-between">
               <div className="space-y-1">
                 <h2 className="text-xl font-semibold text-slate-900">Dijital PIN Sorgulama</h2>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                <p className="text-mini text-slate-500 font-medium leading-relaxed">
                   Ruhsat sahibinin size ilettiği benzersiz OTO.CV kodunu girin. Bu kod, aracın kilometresini, kaza geçmişini ve servis kayıtlarını tesciller.
                 </p>
               </div>
@@ -199,7 +199,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
               <button 
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#4F46E5] hover:bg-indigo-700 active:scale-98 text-white py-4 rounded-md font-bold text-xs shadow-lg shadow-indigo-600/10 flex items-center justify-center gap-2 transition-all mt-4"
+                className="w-full bg-[#4F46E5] hover:bg-indigo-700 active:scale-98 text-white py-4 rounded-md font-bold text-mini shadow-lg shadow-indigo-600/10 flex items-center justify-center gap-2 transition-all mt-4"
               >
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -216,7 +216,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
             <div className="space-y-5 animate-fadeIn flex-1 flex flex-col justify-between">
               <div className="space-y-1">
                 <h2 className="text-xl font-semibold text-slate-900">Akıllı Barkod & QR Tarama</h2>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                <p className="text-mini text-slate-500 font-medium leading-relaxed">
                   Sistemimizdeki resmi belgede basılı olan QR kodunu cihaz kameranız ile taratın. Kimlik eşleşmesi yapılıp rapor otomatik getirilir.
                 </p>
               </div>
@@ -226,7 +226,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                   <>
                     <div className="w-full h-0.5 bg-emerald-500 shadow-[0_0_15px_#10b981] absolute top-0 left-0 animate-scannerLine z-20" />
                     <div className="absolute inset-0 bg-emerald-950/20 animate-pulse z-10" />
-                    <div className="w-16 h-16 border-2 border-dashed border-emerald-400 rounded-md flex items-center justify-center text-emerald-400 animate-spin text-xs font-semibold z-30">QR</div>
+                    <div className="w-16 h-16 border-2 border-dashed border-emerald-400 rounded-md flex items-center justify-center text-emerald-400 animate-spin text-mini font-semibold z-30">QR</div>
                     <span className="text-etiket font-mono font-bold text-emerald-400 tracking-widest mt-3 animate-pulse z-30">LAZER RADAR TARANIYOR...</span>
                   </>
                 ) : (
@@ -243,7 +243,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                 type="button"
                 onClick={triggerQrScannerSimulation}
                 disabled={isQrScanning || loading}
-                className={`w-full py-4 rounded-md font-bold text-xs shadow-lg flex items-center justify-center gap-2 transition-all ${
+                className={`w-full py-4 rounded-md font-bold text-mini shadow-lg flex items-center justify-center gap-2 transition-all ${
                   isQrScanning 
                     ? 'bg-emerald-500 text-white cursor-wait shadow-emerald-500/10' 
                     : 'bg-[#4F46E5] hover:bg-indigo-700 text-white active:scale-98 shadow-indigo-600/10'
@@ -265,7 +265,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286z" /></svg>
               </div>
               <div className="space-y-1">
-                <h3 className="text-sm font-semibold tracking-wide text-slate-100">Araç Sahibinin Tuttuğu Sicil</h3>
+                <h3 className="text-govde font-semibold tracking-wide text-slate-100">Araç Sahibinin Tuttuğu Sicil</h3>
                 {/* ⚠ KOYU ZEMİN: bu kart `bg-[#0B1329]` üzerinde. Toplu slate-400 ->
                     slate-500 taramasında burası da koyulaştırılmış ve kontrast
                     7:1'den 3.87:1'e DÜŞMÜŞTÜ. Koyu zeminde yön terstir:
@@ -282,9 +282,9 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
           <div className="bg-white border border-gray-200/80 p-6 rounded-lg space-y-4 shadow-sm">
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 11.513 1.293l-.041.02a.75.75 0 01-.513-1.293zM11.25 15.75l.041-.02a.75.75 0 11.513 1.293l-.041.02a.75.75 0 01-.513-1.293zM12 21a9 9 0 100-18 9 9 0 000 18z" /></svg>
-              <h3 className="text-xs font-semibold text-slate-900 tracking-wider uppercase">SORGULAMA NE SAĞLAR?</h3>
+              <h3 className="text-mini font-semibold text-slate-900 tracking-wider uppercase">SORGULAMA NE SAĞLAR?</h3>
             </div>
-            <ul className="space-y-3.5 text-yardimci md:text-xs font-semibold text-slate-600">
+            <ul className="space-y-3.5 text-yardimci md:text-mini font-semibold text-slate-600">
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full shrink-0 mt-1.5" />
                 <div><span className="text-slate-900 font-semibold">Kilometre Tutarlılığı:</span> Girilen servis kayıtlarının kilometreleri sırayla gösterilir; geriye giden bir kayıt varsa görünür olur.</div>

@@ -163,7 +163,7 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
                   />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="metin-govde font-semibold text-slate-900 truncate">
+                  <p className="metin-govde text-slate-900 truncate">
                     {d.year} {d.brand} {d.model}
                   </p>
                   {/* PLAKA DEĞİL PIN: araç kimliği hep PIN ile gösteriliyor. */}
@@ -178,7 +178,7 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
                   }`}>
                     <div className="flex items-center gap-1.5">
                       <Icon name="onay" size="sm" className={acil ? 'text-amber-600' : 'text-emerald-600'} />
-                      <p className={`metin-govde font-semibold ${acil ? 'text-amber-900' : 'text-emerald-900'}`}>
+                      <p className={`metin-govde ${acil ? 'text-amber-900' : 'text-emerald-900'}`}>
                         Araç üzerinize geçmeye hazır
                       </p>
                     </div>
@@ -188,7 +188,7 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
                     </p>
                     {/* Süre dolduğunda İSTEK DE KOD DA düşüyor; kullanıcı
                         bunu ödeme yapmadan önce bilmeli. */}
-                    <p className={`metin-yardimci font-bold ${acil ? 'text-amber-900' : 'text-emerald-900'}`}>
+                    <p className={`metin-yardimci ${acil ? 'text-amber-900' : 'text-emerald-900'}`}>
                       {sure
                         ? `Ödeme için ${sure.metin} kaldı. Süre dolarsa işlem sıfırlanır ve yeni kod gerekir.`
                         : 'Ödeme süresi doldu. Araç sahibinden yeni bir devir kodu isteyin.'}
@@ -247,7 +247,7 @@ export default function BekleyenDevirlerim({ kart, onDevralindi }) {
                 />
               </span>
               <span className="min-w-0">
-                <span className="block metin-govde font-bold text-slate-900 truncate">
+                <span className="block metin-govde text-slate-900 truncate">
                   {paywallIstek.year} {paywallIstek.brand} {paywallIstek.model}
                 </span>
                 <span className="block metin-yardimci font-mono text-indigo-600">

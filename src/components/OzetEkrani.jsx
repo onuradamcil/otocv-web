@@ -175,7 +175,7 @@ export default function OzetEkrani() {
           <button
             type="button"
             onClick={() => router.push('/add-vehicle/step1')}
-            className="inline-flex items-center gap-2 min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-md transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-mini rounded-md transition-colors cursor-pointer"
           >
             <Icon name="arti" size="sm" />
             Yeni Araç Kaydet

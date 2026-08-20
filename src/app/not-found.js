@@ -36,7 +36,7 @@ export default function NotFound() {
 
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Sayfa bulunamadı</h1>
-            <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed">
+            <p className="text-mini md:text-govde text-slate-500 font-medium leading-relaxed">
               Aradığınız sayfa taşınmış ya da hiç var olmamış olabilir. Aşağıdaki yollardan
               devam edebilirsiniz.
             </p>
@@ -45,13 +45,13 @@ export default function NotFound() {
           <div className="flex flex-col sm:flex-row gap-2 justify-center pt-1">
             <Link
               href="/verify"
-              className={`flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-6 rounded-md transition-colors ${ODAK}`}
+              className={`flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-mini px-6 rounded-md transition-colors ${ODAK}`}
             >
               PIN ile Araç Sorgula
             </Link>
             <Link
               href="/"
-              className={`flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs px-6 rounded-md transition-colors ${ODAK}`}
+              className={`flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-mini px-6 rounded-md transition-colors ${ODAK}`}
             >
               Anasayfa
             </Link>

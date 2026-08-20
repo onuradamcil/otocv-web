@@ -21,7 +21,7 @@ export default function ComingSoon({ title, description }) {
 
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">{title}</h1>
-          <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed max-w-md mx-auto">
+          <p className="text-mini md:text-govde text-slate-500 font-medium leading-relaxed max-w-md mx-auto">
             {description}
           </p>
         </div>
@@ -30,14 +30,14 @@ export default function ComingSoon({ title, description }) {
           <button
             type="button"
             onClick={() => router.push('/garage')}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-6 py-3 rounded-md transition-colors cursor-pointer"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-mini px-6 py-3 rounded-md transition-colors cursor-pointer"
           >
             Garajıma Dön
           </button>
           <button
             type="button"
             onClick={() => router.push('/')}
-            className="bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-xs px-6 py-3 rounded-md transition-colors cursor-pointer"
+            className="bg-white hover:bg-slate-50 text-slate-800 border border-gray-200 font-bold text-mini px-6 py-3 rounded-md transition-colors cursor-pointer"
           >
             Anasayfa
           </button>

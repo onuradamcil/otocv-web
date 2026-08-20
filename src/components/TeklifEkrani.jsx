@@ -127,7 +127,7 @@ function BelgeKarti({ kayit, kaynak, demo }) {
             rel="noreferrer"
             className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-md
               border border-slate-200 bg-white text-slate-700 hover:bg-slate-50
-              metin-yardimci font-semibold transition-colors"
+              metin-yardimci transition-colors"
           >
             <Icon name="takvim" size="sm" />
             Takvimime hatırlatma ekle
@@ -139,7 +139,7 @@ function BelgeKarti({ kayit, kaynak, demo }) {
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-md
-                bg-slate-900 hover:bg-slate-800 text-white metin-yardimci font-semibold transition-colors"
+                bg-slate-900 hover:bg-slate-800 text-white metin-yardimci transition-colors"
             >
               TÜVTÜRK randevusu al
             </a>
@@ -203,7 +203,7 @@ function BelgeKarti({ kayit, kaynak, demo }) {
                       {o.not && <span className="metin-yardimci text-slate-600 block mt-1">{o.not}</span>}
                     </span>
 
-                    <span className="inline-flex items-center gap-1.5 shrink-0 metin-yardimci font-semibold
+                    <span className="inline-flex items-center gap-1.5 shrink-0 metin-yardimci
                       text-indigo-700 group-hover:text-indigo-800">
                       Teklif al
                       <Icon name="kure" size="sm" />
@@ -251,7 +251,7 @@ function BelgeKarti({ kayit, kaynak, demo }) {
               disabled={gonderiliyor}
               className="inline-flex items-center justify-center gap-2 min-h-[44px] px-5 rounded-md
                 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed
-                text-white metin-yardimci font-semibold transition-colors cursor-pointer"
+                text-white metin-yardimci transition-colors cursor-pointer"
             >
               <Icon name="zil" size="sm" />
               {gonderiliyor ? 'Kaydediliyor...' : 'Hazır olunca haber verin'}
@@ -344,7 +344,7 @@ export default function TeklifEkrani() {
             type="button"
             onClick={() => router.push('/login')}
             className="inline-flex items-center gap-2 min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700
-              text-white font-semibold text-xs rounded-md transition-colors cursor-pointer"
+              text-white font-semibold text-mini rounded-md transition-colors cursor-pointer"
           >
             Oturum aç
           </button>
@@ -380,7 +380,7 @@ export default function TeklifEkrani() {
             type="button"
             onClick={() => router.push('/add-vehicle/step1')}
             className="inline-flex items-center gap-2 min-h-[44px] px-5 bg-indigo-600 hover:bg-indigo-700
-              text-white font-semibold text-xs rounded-md transition-colors cursor-pointer"
+              text-white font-semibold text-mini rounded-md transition-colors cursor-pointer"
           >
             <Icon name="arti" size="sm" />
             Yeni Araç Kaydet
@@ -447,7 +447,7 @@ export default function TeklifEkrani() {
           <button
             type="button"
             onClick={() => router.push('/insurance-offer')}
-            className="inline-flex items-center gap-2 metin-yardimci font-semibold
+            className="inline-flex items-center gap-2 metin-yardimci
               text-indigo-700 hover:text-indigo-800 cursor-pointer"
           >
             <Icon name="geri" size="sm" />

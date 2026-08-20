@@ -193,7 +193,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
   };
 
   const sekmeSinifi = (ad) =>
-    `flex-1 text-xs font-bold py-2.5 rounded-lg transition-colors cursor-pointer ${
+    `flex-1 text-mini font-bold py-2.5 rounded-lg transition-colors cursor-pointer ${
       sekme === ad ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
     }`;
 
@@ -249,14 +249,14 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
 
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {hata && (
-            <div role="alert" className="bg-rose-50 border border-rose-200/80 text-rose-700 text-xs font-bold rounded-md p-3 flex items-start gap-2">
+            <div role="alert" className="bg-rose-50 border border-rose-200/80 text-rose-700 text-mini font-bold rounded-md p-3 flex items-start gap-2">
               <Icon name="uyari" size="sm" className="shrink-0 mt-0.5" />
               <span>{hata}</span>
             </div>
           )}
 
           {yukleniyor ? (
-            <div className="py-10 flex items-center justify-center gap-2 text-xs font-semibold text-slate-500">
+            <div className="py-10 flex items-center justify-center gap-2 text-mini font-semibold text-slate-500">
               <span className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
               Devir durumu okunuyor...
             </div>
@@ -268,7 +268,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   <p className="text-yardimci font-bold uppercase tracking-wider text-emerald-800">
                     Devir Kodu
                   </p>
-                  <p className="text-2xl sm:text-3xl font-semibold font-mono tracking-widest text-slate-900 select-all break-all">
+                  <p className="text-2xl sm:text-sayfa font-semibold font-mono tracking-widest text-slate-900 select-all break-all">
                     {kod.kod}
                   </p>
                   <p className="flex items-center justify-center gap-1.5 text-yardimci font-semibold text-emerald-700">
@@ -281,7 +281,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   <button
                     type="button"
                     onClick={kodKopyala}
-                    className="bg-white border border-gray-200 hover:bg-slate-50 text-slate-800 font-bold text-xs py-3 rounded-md transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    className="bg-white border border-gray-200 hover:bg-slate-50 text-slate-800 font-bold text-mini py-3 rounded-md transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Icon name={kopyalandi ? 'onay' : 'pinKod'} size="sm" />
                     {kopyalandi ? 'Kopyalandı' : 'Kodu Kopyala'}
@@ -289,7 +289,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   <button
                     type="button"
                     onClick={kodPaylas}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-md transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-mini py-3 rounded-md transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Icon name="indir" size="sm" />
                     Alıcıya Gönder
@@ -309,7 +309,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   type="button"
                   onClick={kodIptal}
                   disabled={islemde}
-                  className="w-full text-rose-600 hover:bg-rose-50 font-bold text-xs py-3 rounded-md transition-colors cursor-pointer disabled:opacity-60"
+                  className="w-full text-rose-600 hover:bg-rose-50 font-bold text-mini py-3 rounded-md transition-colors cursor-pointer disabled:opacity-60"
                 >
                   Kodu iptal et
                 </button>
@@ -335,7 +335,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                     onChange={(e) => { setOnayVerildi(e.target.checked); setHata(''); }}
                     className="mt-0.5 w-4 h-4 accent-indigo-600 shrink-0 cursor-pointer"
                   />
-                  <span className="text-xs font-semibold text-slate-800 leading-relaxed">
+                  <span className="text-mini font-semibold text-slate-800 leading-relaxed">
                     Yukarıdaki maddeleri okudum ve aracın sicilini devretmeyi onaylıyorum.
                   </span>
                 </label>
@@ -349,7 +349,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   type="button"
                   onClick={kodUret}
                   disabled={islemde}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-xs py-3.5 rounded-md transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-mini py-3.5 rounded-md transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   {islemde ? (
                     <>
@@ -365,7 +365,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
             <div className="space-y-3">
               {talepler.length === 0 ? (
                 <div className="py-8 text-center space-y-2">
-                  <p className="text-xs font-bold text-slate-700">Bekleyen talep yok</p>
+                  <p className="text-mini font-bold text-slate-700">Bekleyen talep yok</p>
                   <p className="text-yardimci text-slate-500 leading-relaxed max-w-xs mx-auto">
                     Aracı satın alan kişi OTO.CV&apos;den devir talebi gönderirse burada görünür.
                     Ya da yukarıdaki sekmeden kod üretip doğrudan iletebilirsiniz.
@@ -385,7 +385,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   {talepler.map((t) => (
                     <div key={t.id} className="border border-slate-200 rounded-md p-4 space-y-3">
                       <div className="flex items-baseline justify-between gap-2">
-                        <p className="text-xs font-semibold text-slate-900 truncate">
+                        <p className="text-mini font-semibold text-slate-900 truncate">
                           {t.isteyen || 'İsim belirtilmemiş'}
                         </p>
                         <span className="text-etiket font-semibold text-slate-500 shrink-0 tabular-nums">
@@ -405,7 +405,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                           type="button"
                           onClick={() => talepKarari(t.id, false)}
                           disabled={islemde}
-                          className="bg-white border border-gray-200 hover:bg-slate-50 text-slate-700 font-bold text-xs py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5"
+                          className="bg-white border border-gray-200 hover:bg-slate-50 text-slate-700 font-bold text-mini py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5"
                         >
                           <Icon name="kapat" size="sm" />
                           Reddet
@@ -414,7 +414,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                           type="button"
                           onClick={() => talepKarari(t.id, true)}
                           disabled={islemde}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-mini py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5"
                         >
                           <Icon name="onay" size="sm" strokeWidth={2.5} />
                           Onayla ve Devret

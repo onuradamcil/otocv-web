@@ -44,7 +44,7 @@ const UYE_MENU = [
   { href: '/account', label: 'Hesabım' },
 ];
 
-const SATIR = 'flex items-center min-h-[44px] px-4 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:bg-indigo-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-600';
+const SATIR = 'flex items-center min-h-[44px] px-4 text-mini font-bold transition-colors focus-visible:outline-none focus-visible:bg-indigo-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-600';
 
 export default function MobileDrawer({ open, onClose, user, onSignOut }) {
   const panelRef = useRef(null);
@@ -126,7 +126,7 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
         className="absolute right-0 top-0 h-full w-[82%] max-w-[320px] bg-white shadow-2xl flex flex-col animate-drawerIn"
       >
         <div className="h-14 pl-4 pr-2 flex items-center justify-between border-b border-slate-200 shrink-0">
-          <span className="text-sm font-display font-bold tracking-tight text-slate-900">OTO.CV</span>
+          <span className="text-govde font-display font-bold tracking-tight text-slate-900">OTO.CV</span>
           <button
             type="button"
             onClick={onClose}
@@ -172,7 +172,7 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
           <Link
             href={user ? '/add-vehicle/step1' : '/login'}
             onClick={onClose}
-            className="flex items-center justify-center min-h-[44px] w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-semibold text-xs rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600"
+            className="flex items-center justify-center min-h-[44px] w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-semibold text-mini rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600"
           >
             {/* Masaüstü başlığıyla aynı: ürün önce sicil, ilan ikincil.
                 "Ücretsiz" de artık yanlış olurdu — ilk araç ücretsiz, sonrası
@@ -184,7 +184,7 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
             <button
               type="button"
               onClick={async () => { onClose(); await onSignOut(); }}
-              className="flex items-center justify-center min-h-[44px] w-full text-rose-600 hover:bg-rose-50 font-bold text-xs rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+              className="flex items-center justify-center min-h-[44px] w-full text-rose-600 hover:bg-rose-50 font-bold text-mini rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
             >
               Çıkış Yap
             </button>
@@ -193,14 +193,14 @@ export default function MobileDrawer({ open, onClose, user, onSignOut }) {
               <Link
                 href="/login"
                 onClick={onClose}
-                className="flex items-center justify-center min-h-[44px] bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-lg transition-colors"
+                className="flex items-center justify-center min-h-[44px] bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-mini rounded-lg transition-colors"
               >
                 Giriş Yap
               </Link>
               <Link
                 href="/register"
                 onClick={onClose}
-                className="flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition-colors"
+                className="flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-mini rounded-lg transition-colors"
               >
                 Hesap Aç
               </Link>

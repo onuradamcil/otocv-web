@@ -45,7 +45,7 @@ const ODAK = 'focus-visible:ring-offset-2';
 // `min-h-[44px]` WCAG dokunma alanı asgarisi — mobilde teste bağlı.
 const TABAN =
   'inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 ' +
-  // Düğme metni ölçeğe bağlı: 13px/600. Eskiden `text-xs font-bold`
+  // Düğme metni ölçeğe bağlı: 13px/600. Eskiden `text-mini font-bold`
   // (12px/700) idi — ölçek 400 tabanına geçince düğmeler gövdeden iki kademe
   // ağır kalıyordu ve ekrandaki en koyu metin düğme etiketi oluyordu.
   'rounded-md text-[0.8125rem] font-semibold tracking-tight transition-colors ' +

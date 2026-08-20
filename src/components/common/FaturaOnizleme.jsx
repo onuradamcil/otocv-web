@@ -102,7 +102,7 @@ export default function FaturaOnizleme({ yol, onBuyut }) {
         <span className="text-etiket font-bold text-slate-500 tracking-wider block uppercase">
           Servis Faturası / Evrak
         </span>
-        <p className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+        <p className="flex items-center gap-2 text-mini text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
           <Icon name="uyari" size="sm" className="text-amber-500 shrink-0" />
           Belge kayıtlı, şu an açılamıyor.
         </p>
@@ -119,7 +119,7 @@ export default function FaturaOnizleme({ yol, onBuyut }) {
         type="button"
         onClick={buyut}
         disabled={durum !== 'hazir' || buyutuluyor}
-        className="flex items-center gap-2 bg-white border border-slate-200 hover:border-indigo-300 p-1.5 pr-3 rounded-lg text-xs font-bold text-indigo-600 transition-colors group disabled:opacity-60 disabled:cursor-wait"
+        className="flex items-center gap-2 bg-white border border-slate-200 hover:border-indigo-300 p-1.5 pr-3 rounded-lg text-mini font-bold text-indigo-600 transition-colors group disabled:opacity-60 disabled:cursor-wait"
       >
         {/* next/image kullanılmıyor: imzalı bağlantı her istekte değişiyor,
             dolayısıyla optimizasyon önbelleği hiç isabet etmez; üstelik uzak

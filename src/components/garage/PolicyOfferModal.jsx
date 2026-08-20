@@ -154,7 +154,7 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
 
         {/* ARAÇ KÜNYE VE NET TARİH ÖZET KARTI */}
         <div className="bg-slate-50 border border-slate-100 p-4 rounded-lg space-y-2.5">
-          <div className="flex justify-between items-center text-xs font-bold text-slate-800">
+          <div className="flex justify-between items-center text-mini font-bold text-slate-800">
             <span>{vehicle.brand} {vehicle.model} ({vehicle.year})</span>
             <TrPlaka plaka={vehicle.plate_number} boyut="sm" />
           </div>
@@ -165,7 +165,7 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
           <div className="grid grid-cols-2 gap-2 text-yardimci font-semibold text-slate-600">
             <div>
               <span className="block text-etiket text-slate-500 font-bold uppercase">Son Geçerlilik Tarihi</span>
-              <span className="text-slate-900 font-mono font-bold text-xs">{formattedEndDate}</span>
+              <span className="text-slate-900 font-mono font-bold text-mini">{formattedEndDate}</span>
             </div>
             <div className="text-right">
               <span className="block text-etiket text-slate-500 font-bold uppercase">Durum / Kalan Süre</span>
@@ -177,7 +177,7 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
         </div>
 
         {/* BİLGİLENDİRME METNİ */}
-        <p className="text-xs text-slate-600 font-medium leading-relaxed">
+        <p className="text-mini text-slate-600 font-medium leading-relaxed">
           {statusInfo.status === 'expired'
             ? `Aracınızın ${titleText.toLowerCase()} süresi ${formattedEndDate} tarihinde dolmuştur. Cezai işlem ve teminatsız kalma riskine karşı yenileme adımlarını görebilirsiniz.`
             : `Aracınızın ${titleText.toLowerCase()} süresi ${formattedEndDate} tarihinde dolacak. Yenileme adımlarını görebilir, hatırlatma kurabilirsiniz.`
@@ -204,7 +204,7 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
               // vardığı listede hangi satır için geldiğini yeniden arardı.
               router.push(teklifYolu(vehicle.plate_number, MODAL_TURU[policyType], 'police_modal'));
             }}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-md font-bold text-xs shadow-lg shadow-indigo-600/20 transition-all active:scale-98 flex items-center justify-center gap-2"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-md font-bold text-mini shadow-lg shadow-indigo-600/20 transition-all active:scale-98 flex items-center justify-center gap-2"
           >
             <span>{isInspection ? 'Randevu ve hatırlatma seçenekleri' : 'Yenileme seçeneklerini gör'}</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
@@ -216,7 +216,7 @@ export default function PolicyOfferModal({ isOpen, onClose, vehicle, policyType,
             href={calendarUrl}
             target="_blank"
             rel="noreferrer"
-            className="w-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 py-2.5 rounded-md font-bold text-xs transition-all flex items-center justify-center gap-2 block text-center"
+            className="w-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 py-2.5 rounded-md font-bold text-mini transition-all flex items-center justify-center gap-2 block text-center"
           >
             <Icon name="takvim" size="sm" />
             <span>Google Takvimime Ekle</span>

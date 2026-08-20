@@ -1410,7 +1410,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
           </button>
 
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">
-            <span className="text-xs font-semibold text-slate-500">Adım {currentStep} / 4</span>
+            <span className="text-mini font-semibold text-slate-500">Adım {currentStep} / 4</span>
             <div className="flex gap-1">
               {[1, 2, 3, 4].map(step => (
                 <div 
@@ -1436,7 +1436,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               {currentStep === 3 && "Servis & Bakım Geçmişi"}
               {currentStep === 4 && "OTO.CV Karne Ön İzleme & Tescil"}
             </h1>
-            <p className="text-xs text-slate-600 font-medium">
+            <p className="text-mini text-slate-600 font-medium">
               <span className="text-rose-600 font-bold">*</span> ile işaretli zorunlu alanları doldurarak dijital karnenizi oluşturun.
             </p>
           </div>
@@ -1452,7 +1452,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                   (currentStep === 3 && !isStep3Valid)
                 }
                 onClick={handleNextStep}
-                className="w-64 sm:w-72 bg-rose-500 hover:bg-rose-600 disabled:bg-[#FFF5F7] disabled:text-[#FFC2CB] text-white font-semibold text-xs sm:text-sm py-2.5 sm:py-3 px-5 rounded-md transition-all shadow-xs disabled:cursor-not-allowed text-center cursor-pointer active:scale-98 flex items-center justify-center gap-2"
+                className="w-64 sm:w-72 bg-rose-500 hover:bg-rose-600 disabled:bg-[#FFF5F7] disabled:text-[#FFC2CB] text-white font-semibold text-mini sm:text-govde py-2.5 sm:py-3 px-5 rounded-md transition-all shadow-xs disabled:cursor-not-allowed text-center cursor-pointer active:scale-98 flex items-center justify-center gap-2"
               >
                 {isUploadingPhotos || stepLoader.isLoading ? (
                   <>
@@ -1473,7 +1473,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 type="button"
                 disabled={stepLoader.isLoading}
                 onClick={handleFinalPublish}
-                className="w-64 sm:w-72 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-semibold text-xs sm:text-sm py-2.5 sm:py-3 px-5 rounded-md transition-all shadow-xs text-center cursor-pointer flex items-center justify-center gap-2"
+                className="w-64 sm:w-72 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-semibold text-mini sm:text-govde py-2.5 sm:py-3 px-5 rounded-md transition-all shadow-xs text-center cursor-pointer flex items-center justify-center gap-2"
               >
                 {stepLoader.isLoading ? (
                   <>
@@ -1567,7 +1567,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
                   Yarım kalan kaydınız var
                 </h3>
-                <p className="text-sm text-slate-500 font-normal leading-relaxed">
+                <p className="text-govde text-slate-500 font-normal leading-relaxed">
                   Araç karnenizi oluşturmaya kaldığınız yerden devam etmek ister misiniz?
                 </p>
               </div>
@@ -1582,10 +1582,10 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 </div>
 
                 <div className="space-y-0.5 overflow-hidden">
-                  <h4 className="text-sm font-bold text-slate-900 tracking-tight truncate">
+                  <h4 className="text-govde font-bold text-slate-900 tracking-tight truncate">
                     {draftData.formData?.selectedBrand?.name} {draftData.formData?.selectedSeries?.name} {draftData.formData?.selectedModel?.name} {draftData.formData?.selectedPackage?.name}
                   </h4>
-                  <p className="text-xs text-slate-500 font-medium">
+                  <p className="text-mini text-slate-500 font-medium">
                     {draftData.formData?.selectedYear} • {draftData.formData?.selectedFuel}
                   </p>
                 </div>
@@ -1596,7 +1596,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               <button
                 type="button"
                 onClick={() => handleDiscardDraft(true)}
-                className="w-full bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center"
+                className="w-full bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-bold text-govde py-3.5 px-4 rounded-md transition-all cursor-pointer text-center"
               >
                 Sıfırdan Başla
               </button>
@@ -1604,7 +1604,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               <button
                 type="button"
                 onClick={handleResumeDraft}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center shadow-sm"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-govde py-3.5 px-4 rounded-md transition-all cursor-pointer text-center shadow-sm"
               >
                 Bu kayıtla devam et
               </button>
@@ -1638,7 +1638,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
                   {mukerrerMetin.baslik}
                 </h3>
-                <p className="text-sm text-slate-500 font-normal leading-relaxed">
+                <p className="text-govde text-slate-500 font-normal leading-relaxed">
                   {mukerrerMetin.aciklama}
                 </p>
               </div>
@@ -1654,7 +1654,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
                 </svg>
               </div>
-              <div className="space-y-0.5 text-xs text-left">
+              <div className="space-y-0.5 text-mini text-left">
                 {/* ESKİ METİN: "devir işlemleri için destek ekibiyle iletişime
                     geçebilirsiniz." Devir mekanizması ürünleştiği için o metin
                     ARTIK YANLIŞ — kullanıcı işlemi kendisi yapabiliyor.
@@ -1670,7 +1670,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 verirken ne aldığını gerçek sayılarla görmeli. */}
             {duplicateSahipsiz && duplicateOzet && (
               <div className="bg-slate-50 border border-slate-200 rounded-md p-4 space-y-2.5">
-                <p className="text-sm font-semibold text-slate-900">
+                <p className="text-govde font-semibold text-slate-900">
                   {duplicateOzet.yil} {duplicateOzet.marka} {duplicateOzet.model}
                 </p>
                 <div className="grid grid-cols-3 gap-2 text-center">
@@ -1680,7 +1680,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                     ['Sicil puanı', duplicateOzet.sicil_puani],
                   ].map(([etiket, deger]) => (
                     <div key={etiket} className="bg-white border border-slate-200 rounded-lg py-2">
-                      <div className="text-lg font-semibold text-slate-900 tabular-nums">{deger}</div>
+                      <div className="text-bolum font-semibold text-slate-900 tabular-nums">{deger}</div>
                       <div className="text-etiket text-slate-500 font-bold uppercase tracking-wide">{etiket}</div>
                     </div>
                   ))}
@@ -1696,7 +1696,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               <button
                 type="button"
                 onClick={() => setShowDuplicatePlateModal(false)}
-                className="w-full bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-800 font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center"
+                className="w-full bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-800 font-bold text-govde py-3.5 px-4 rounded-md transition-all cursor-pointer text-center"
               >
                 Plakayı Düzelt
               </button>
@@ -1707,7 +1707,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                     setShowDuplicatePlateModal(false);
                     router.push(duplicatePin ? `/details/${encodeURIComponent(duplicatePin)}` : '/garage');
                   }}
-                  className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center shadow-xs"
+                  className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-govde py-3.5 px-4 rounded-md transition-all cursor-pointer text-center shadow-xs"
                 >
                   Aracıma Git
                 </button>
@@ -1716,7 +1716,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 <button
                   type="button"
                   onClick={() => { setShowDuplicatePlateModal(false); setDevralDialogOpen(true); }}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center shadow-xs"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-govde py-3.5 px-4 rounded-md transition-all cursor-pointer text-center shadow-xs"
                 >
                   Bu Aracı Devral
                 </button>
@@ -1728,7 +1728,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
                 <button
                   type="button"
                   onClick={() => { setShowDuplicatePlateModal(false); setSahipsizDialogOpen(true); }}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 px-4 rounded-md transition-all cursor-pointer text-center shadow-xs"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-govde py-3.5 px-4 rounded-md transition-all cursor-pointer text-center shadow-xs"
                 >
                   Sicili Devral
                 </button>
@@ -1786,7 +1786,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
           }}
           detay={
             <div className="bg-slate-50 border border-slate-200 rounded-md p-3 space-y-1">
-              <p className="text-xs font-bold text-slate-700">
+              <p className="text-mini font-bold text-slate-700">
                 İlk aracınız ücretsizdi; bu ikinci ve sonraki araç kaydınız.
               </p>
               <p className="text-yardimci text-slate-500 font-medium leading-relaxed">

@@ -42,8 +42,8 @@ export default function YasalSayfa({ baslik, ozet, bolumler }) {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
 
       <div className="space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">{baslik}</h1>
-        <p className="text-sm text-slate-500 font-medium leading-relaxed">{ozet}</p>
+        <h1 className="text-2xl sm:text-sayfa font-semibold text-slate-900 tracking-tight">{baslik}</h1>
+        <p className="text-govde text-slate-500 font-medium leading-relaxed">{ozet}</p>
       </div>
 
       {/* Sayfanın durumu gizlenmiyor. "Yakında" demek yerine ne olduğunu ve
@@ -53,7 +53,7 @@ export default function YasalSayfa({ baslik, ozet, bolumler }) {
           <Icon name="uyari" size="sm" strokeWidth={2.5} />
         </span>
         <div className="space-y-0.5">
-          <p className="text-xs font-semibold text-amber-950">Nihai metin hazırlanıyor</p>
+          <p className="text-mini font-semibold text-amber-950">Nihai metin hazırlanıyor</p>
           <p className="text-yardimci text-amber-900/80 font-medium leading-relaxed">
             Hukuk danışmanı onayından geçmiş nihai metin yayımlanana kadar
             aşağıda sistemin fiilen nasıl çalıştığını bulabilirsiniz. Bu döküm
@@ -64,11 +64,11 @@ export default function YasalSayfa({ baslik, ozet, bolumler }) {
 
       {bolumler.map((bolum) => (
         <section key={bolum.baslik} className="space-y-3">
-          <h2 className="text-sm font-semibold text-slate-900">{bolum.baslik}</h2>
+          <h2 className="text-govde font-semibold text-slate-900">{bolum.baslik}</h2>
           <div className="space-y-2.5">
             {bolum.satirlar.map((satir, i) =>
               typeof satir === 'string' ? (
-                <p key={i} className="text-xs text-slate-600 font-medium leading-relaxed">
+                <p key={i} className="text-mini text-slate-600 font-medium leading-relaxed">
                   {satir}
                 </p>
               ) : (
@@ -76,10 +76,10 @@ export default function YasalSayfa({ baslik, ozet, bolumler }) {
                   key={satir.ad}
                   className="bg-white border border-slate-200 rounded-md p-3.5 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4"
                 >
-                  <span className="text-xs font-semibold text-slate-900 sm:w-44 shrink-0">
+                  <span className="text-mini font-semibold text-slate-900 sm:w-44 shrink-0">
                     {satir.ad}
                   </span>
-                  <span className="text-xs text-slate-600 font-medium leading-relaxed">
+                  <span className="text-mini text-slate-600 font-medium leading-relaxed">
                     {satir.deger}
                   </span>
                 </div>

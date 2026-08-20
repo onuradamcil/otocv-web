@@ -88,7 +88,7 @@ export default function Footer() {
             {/* Keyfi 11px yerine ölçekteki `.metin-yardimci` (12px). Bu bir
                 cümle, etiket değil; alt bilgi her sayfada olduğu için ölçek
                 dışı kalması tipografiyi her ekranda deliyordu. */}
-            <p className="metin-yardimci text-slate-400 font-medium leading-relaxed max-w-[240px]">
+            <p className="metin-yardimci text-slate-400 leading-relaxed max-w-[240px]">
               Aracınızın bakım geçmişini dijital sicil olarak tutun, sigorta ve muayene
               tarihlerini kaçırmayın, karnenizi tek bağlantıyla paylaşın.
             </p>

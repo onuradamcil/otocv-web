@@ -132,7 +132,7 @@ export default function AracDevralDialog({
               <h3 className="text-xl font-semibold text-slate-900 tracking-tight">
                 {sonuc.zatenVar ? 'Talebiniz zaten iletilmişti' : 'Talebiniz iletildi'}
               </h3>
-              <p className="text-sm text-slate-500 font-normal leading-relaxed">
+              <p className="text-govde text-slate-500 font-normal leading-relaxed">
                 Araç sahibinin onayı bekleniyor. Onaylandığında bildirim alacak ve
                 devir ücretini ödeyerek işlemi tamamlayabileceksiniz.
               </p>
@@ -176,7 +176,7 @@ export default function AracDevralDialog({
             <button
               type="button"
               onClick={onClose}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer"
             >
               Anladım
             </button>
@@ -188,7 +188,7 @@ export default function AracDevralDialog({
             </div>
             <div className="space-y-1">
               <h3 className="text-xl font-semibold text-slate-900 tracking-tight">Araç sizin oldu</h3>
-              <p className="text-sm text-slate-500 font-normal leading-relaxed">
+              <p className="text-govde text-slate-500 font-normal leading-relaxed">
                 Bakım kayıtları ve belgeler araçla birlikte devredildi. Araç artık garajınızda.
               </p>
             </div>
@@ -196,7 +196,7 @@ export default function AracDevralDialog({
               <p className="text-yardimci font-bold uppercase tracking-wider text-slate-500">
                 Yeni sicil kodu
               </p>
-              <p className="text-lg font-semibold font-mono tracking-widest text-slate-900 select-all">
+              <p className="text-bolum font-semibold font-mono tracking-widest text-slate-900 select-all">
                 {sonuc.yeni_pin}
               </p>
               <p className="text-yardimci text-slate-500 leading-relaxed">
@@ -207,7 +207,7 @@ export default function AracDevralDialog({
             <button
               type="button"
               onClick={() => onDevralindi?.(sonuc)}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer"
             >
               Garajıma Git
             </button>
@@ -219,7 +219,7 @@ export default function AracDevralDialog({
             </div>
             <div className="space-y-1">
               <h3 className="text-xl font-semibold text-slate-900 tracking-tight">Talebiniz gönderildi</h3>
-              <p className="text-sm text-slate-500 font-normal leading-relaxed">
+              <p className="text-govde text-slate-500 font-normal leading-relaxed">
                 Araç sahibine bildirim gitti. Onayladığında araç garajınıza geçecek ve size
                 bildirim göndereceğiz.
               </p>
@@ -231,7 +231,7 @@ export default function AracDevralDialog({
             <button
               type="button"
               onClick={onClose}
-              className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
+              className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer"
             >
               Kapat
             </button>
@@ -247,7 +247,7 @@ export default function AracDevralDialog({
                 <h3 className="text-xl font-semibold text-slate-900 tracking-tight">
                   {onizleme ? 'Devralacağınız sicil' : 'Bu aracı devral'}
                 </h3>
-                <p className="text-sm text-slate-500 font-normal leading-relaxed">
+                <p className="text-govde text-slate-500 font-normal leading-relaxed">
                   {onizleme
                     ? 'Onayladığınızda bu araç ve tüm sicili size geçecek. Bu işlem geri alınamaz.'
                     : 'Bu araç başka bir kullanıcının garajında kayıtlı. Satın aldıysanız sicili devralabilirsiniz.'}
@@ -256,7 +256,7 @@ export default function AracDevralDialog({
             </div>
 
             {hata && (
-              <div role="alert" className="bg-rose-50 border border-rose-200/80 text-rose-700 text-xs font-bold rounded-md p-3 flex items-start gap-2">
+              <div role="alert" className="bg-rose-50 border border-rose-200/80 text-rose-700 text-mini font-bold rounded-md p-3 flex items-start gap-2">
                 <Icon name="uyari" size="sm" className="shrink-0 mt-0.5" />
                 <span>{hata}</span>
               </div>
@@ -267,7 +267,7 @@ export default function AracDevralDialog({
               <div className="space-y-4">
                 <div className="bg-slate-50/80 border border-slate-200 rounded-lg p-4 space-y-3">
                   <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-sm font-semibold text-slate-900">
+                    <p className="text-govde font-semibold text-slate-900">
                       {[onizleme.marka, onizleme.model].filter(Boolean).join(' ')}
                       {onizleme.yil ? ` · ${onizleme.yil}` : ''}
                     </p>
@@ -286,7 +286,7 @@ export default function AracDevralDialog({
                     ].map(([etiket, deger]) => (
                       <div key={etiket} className="bg-white border border-slate-200 rounded-lg py-2">
                         <p className="text-etiket font-bold uppercase tracking-wide text-slate-500">{etiket}</p>
-                        <p className="text-sm font-semibold font-mono text-slate-900 tabular-nums">{deger}</p>
+                        <p className="text-govde font-semibold font-mono text-slate-900 tabular-nums">{deger}</p>
                       </div>
                     ))}
                   </div>
@@ -314,7 +314,7 @@ export default function AracDevralDialog({
                   <button
                     type="button"
                     onClick={() => { setOnizleme(null); setHata(''); }}
-                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3.5 rounded-md transition-colors cursor-pointer"
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-govde py-3.5 rounded-md transition-colors cursor-pointer"
                   >
                     Geri
                   </button>
@@ -322,7 +322,7 @@ export default function AracDevralDialog({
                     type="button"
                     onClick={talepGonder}
                     disabled={islemde}
-                    className="bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+                    className="bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
                   >
                     {islemde ? (
                       <>
@@ -348,7 +348,7 @@ export default function AracDevralDialog({
                     placeholder="ÖRN: DV-4G8W-K2GS"
                     maxLength={13}
                     autoComplete="off"
-                    className="w-full py-4 px-5 bg-slate-50 border-2 border-gray-200 focus:border-indigo-500 rounded-md text-center font-mono font-semibold text-lg tracking-widest uppercase text-slate-900 outline-none transition-colors placeholder:text-slate-300 placeholder:tracking-normal placeholder:text-sm placeholder:font-bold"
+                    className="w-full py-4 px-5 bg-slate-50 border-2 border-gray-200 focus:border-indigo-500 rounded-md text-center font-mono font-semibold text-bolum tracking-widest uppercase text-slate-900 outline-none transition-colors placeholder:text-slate-300 placeholder:tracking-normal placeholder:text-govde placeholder:font-bold"
                   />
                   <p className="text-yardimci text-slate-500">
                     Kod 48 saat geçerlidir ve yalnızca bir kez kullanılabilir.
@@ -359,14 +359,14 @@ export default function AracDevralDialog({
                   <button
                     type="button"
                     onClick={() => { setYol(null); setHata(''); }}
-                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3.5 rounded-md transition-colors cursor-pointer"
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-govde py-3.5 rounded-md transition-colors cursor-pointer"
                   >
                     Geri
                   </button>
                   <button
                     type="submit"
                     disabled={islemde}
-                    className="bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+                    className="bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
                   >
                     {islemde ? (
                       <>
@@ -390,7 +390,7 @@ export default function AracDevralDialog({
                 <button
                   type="button"
                   onClick={() => setYol('kod')}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Icon name="pinKod" size="sm" />
                   Devir kodum var

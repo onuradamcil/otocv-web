@@ -213,7 +213,7 @@ export default function DevirPage() {
   if (yukleniyor) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
-        <p className="text-sm text-slate-500 font-medium text-center py-16">Yükleniyor…</p>
+        <p className="text-govde text-slate-500 font-medium text-center py-16">Yükleniyor…</p>
       </div>
     );
   }
@@ -222,8 +222,8 @@ export default function DevirPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
 
       <div className="space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">Araç Devir</h1>
-        <p className="text-sm text-slate-500 font-medium leading-relaxed">
+        <h1 className="text-2xl sm:text-sayfa font-semibold text-slate-900 tracking-tight">Araç Devir</h1>
+        <p className="text-govde text-slate-500 font-medium leading-relaxed">
           Aracınızı sattığınızda sicili yeni sahibine aktarın; satın aldığınız
           aracın sicilini de buradan devralın. Bakım geçmişi, sicil puanı ve
           belgeler araçla birlikte geçer.
@@ -232,21 +232,21 @@ export default function DevirPage() {
 
       {!kullanici ? (
         <div className={kart}>
-          <p className="text-sm text-slate-600 font-medium">
+          <p className="text-govde text-slate-600 font-medium">
             Devir işlemleri için oturum açmanız gerekiyor.
           </p>
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={() => router.push('/login')}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-6 py-3 rounded-md transition-colors cursor-pointer"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-mini px-6 py-3 rounded-md transition-colors cursor-pointer"
             >
               Giriş Yap
             </button>
             <button
               type="button"
               onClick={() => router.push('/register')}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-6 py-3 rounded-md transition-colors cursor-pointer"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-mini px-6 py-3 rounded-md transition-colors cursor-pointer"
             >
               Hesap Aç
             </button>
@@ -280,8 +280,8 @@ export default function DevirPage() {
           {/* ---------------- SATICI TARAFI ---------------- */}
           <section className={kart}>
             <div className="space-y-1">
-              <h2 className="text-sm font-semibold text-slate-900">Aracımı devretmek istiyorum</h2>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              <h2 className="text-govde font-semibold text-slate-900">Aracımı devretmek istiyorum</h2>
+              <p className="text-mini text-slate-500 font-medium leading-relaxed">
                 Aracı seçin, devir kodu üretin ve aracı alan kişiye verin. Kodu
                 giren kişi size talep gönderir; araç ancak siz onayladıktan ve
                 devir ücreti ödendikten sonra geçer.
@@ -298,16 +298,16 @@ export default function DevirPage() {
                 onChange={(e) => setAracFiltresi(e.target.value)}
                 placeholder="Plaka ya da model ara…"
                 aria-label="Araçlarım içinde ara"
-                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-md text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-md text-mini font-medium text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
               />
             )}
 
             {araclar.length === 0 ? (
-              <p className="text-xs text-slate-500 font-medium bg-slate-50 border border-slate-200 rounded-md p-4">
+              <p className="text-mini text-slate-500 font-medium bg-slate-50 border border-slate-200 rounded-md p-4">
                 Garajınızda devredilebilecek araç yok.
               </p>
             ) : suzulmusAraclar.length === 0 ? (
-              <p className="text-xs text-slate-500 font-medium bg-slate-50 border border-slate-200 rounded-md p-4">
+              <p className="text-mini text-slate-500 font-medium bg-slate-50 border border-slate-200 rounded-md p-4">
                 Aramanıza uyan araç yok.
               </p>
             ) : (
@@ -320,7 +320,7 @@ export default function DevirPage() {
                       className="w-full flex items-center gap-3 p-3 rounded-md border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition-all text-left cursor-pointer"
                     >
                       <TrPlaka plaka={a.plate_number} boyut="md" />
-                      <span className="text-xs font-bold text-slate-700 truncate min-w-0">
+                      <span className="text-mini font-bold text-slate-700 truncate min-w-0">
                         {a.brand} {a.model}
                       </span>
                       {/* Satır içi SVG: ikon kütüphanesinde sağ ok yok ve
@@ -340,8 +340,8 @@ export default function DevirPage() {
           {/* ---------------- ALICI TARAFI ---------------- */}
           <section className={kart}>
             <div className="space-y-1">
-              <h2 className="text-sm font-semibold text-slate-900">Aracı devralacağım</h2>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              <h2 className="text-govde font-semibold text-slate-900">Aracı devralacağım</h2>
+              <p className="text-mini text-slate-500 font-medium leading-relaxed">
                 Elinizde devir kodu varsa girin. Kod, aracı devreden kişiyle
                 gerçekten temas kurduğunuzun kanıtı; sicil yine de yalnızca
                 onun onayıyla ve devir ücreti ödendikten sonra geçer.
@@ -355,7 +355,7 @@ export default function DevirPage() {
                 Kullanıcı önce plakayı yazmak, sonra açılan diyalogda "Devir
                 kodum var" seçeneğini bulmak zorundaydı. */}
             <form onSubmit={kodulAra} className="space-y-3 bg-indigo-50/50 border border-indigo-100 rounded-md p-4">
-              <label htmlFor="devir-kodu" className="block text-xs font-bold text-slate-700">
+              <label htmlFor="devir-kodu" className="block text-mini font-bold text-slate-700">
                 Devir kodum var
               </label>
               <input
@@ -366,11 +366,11 @@ export default function DevirPage() {
                 placeholder="DV-A4B7-C2D9"
                 autoComplete="off"
                 spellCheck={false}
-                className="w-full px-3.5 py-3 border border-slate-200 bg-white rounded-md text-sm font-mono font-semibold tracking-widest text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
+                className="w-full px-3.5 py-3 border border-slate-200 bg-white rounded-md text-govde font-mono font-semibold tracking-widest text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
               />
 
               {kodHatasi && (
-                <p role="alert" className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3 leading-relaxed">
+                <p role="alert" className="text-mini font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3 leading-relaxed">
                   {kodHatasi}
                 </p>
               )}
@@ -378,7 +378,7 @@ export default function DevirPage() {
               <button
                 type="submit"
                 disabled={kodAraniyor || !kodGirdi.trim()}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer"
               >
                 {kodAraniyor ? 'Kod kontrol ediliyor…' : 'Kodu Kullan'}
               </button>
@@ -392,7 +392,7 @@ export default function DevirPage() {
 
             <form onSubmit={plakayiAra} className="space-y-3">
               <div>
-                <label htmlFor="devir-plaka" className="block text-xs font-bold text-slate-700 mb-1.5">
+                <label htmlFor="devir-plaka" className="block text-mini font-bold text-slate-700 mb-1.5">
                   Kodum yok — aracın durumunu sorgula
                 </label>
                 {/* Bu alan araç sahibine HİÇBİR ŞEY GÖNDERMİYOR; yalnızca
@@ -408,12 +408,12 @@ export default function DevirPage() {
                   onChange={(e) => { setPlakaGirdi(e.target.value.toUpperCase()); setAramaHatasi(''); }}
                   placeholder="34 ABC 123"
                   autoComplete="off"
-                  className="w-full px-3.5 py-3 border border-slate-200 rounded-md text-sm font-mono font-semibold tracking-wider text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
+                  className="w-full px-3.5 py-3 border border-slate-200 rounded-md text-govde font-mono font-semibold tracking-wider text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 transition-all"
                 />
               </div>
 
               {aramaHatasi && (
-                <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3 leading-relaxed">
+                <p className="text-mini font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3 leading-relaxed">
                   {aramaHatasi}
                 </p>
               )}
@@ -421,7 +421,7 @@ export default function DevirPage() {
               <button
                 type="submit"
                 disabled={aranıyor}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer"
               >
                 {aranıyor ? 'Kontrol ediliyor…' : 'Devam'}
               </button>

@@ -133,7 +133,7 @@ function SuzgecSatiri({ etiket, adet, secili, sec, basili = true, derine = false
         secili ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700 hover:bg-slate-50'
       }`}
     >
-      <span className="metin-yardimci font-semibold truncate">{etiket}</span>
+      <span className="metin-yardimci truncate">{etiket}</span>
       <span className="metin-yardimci text-slate-600 tabular-nums shrink-0 flex items-center gap-1">
         {/* ⚠ SAYAÇ İSTEĞE BAĞLI. Marka ağacı katalogtan besleniyor ve
             katalogda "kaç araç var" bilgisi yok; ürün sahibi de sayaç
@@ -172,7 +172,7 @@ function SuzgecAnahtari({ etiket, adet, acik, degistir }) {
       >
         {acik && <Icon name="onay" size="xs" strokeWidth={3} />}
       </span>
-      <span className="metin-yardimci font-semibold flex-1 truncate">{etiket}</span>
+      <span className="metin-yardimci flex-1 truncate">{etiket}</span>
       <span className="metin-yardimci text-slate-600 tabular-nums shrink-0">({adet})</span>
     </button>
   );
@@ -244,7 +244,7 @@ function SuzgecAkordiyon({ baslik, baslangictaAcik = false, ozet, children }) {
           {/* Kapalıyken seçili değeri başlıkta göstermek, grubu açmadan
               "burada bir süzgeç etkin" bilgisini veriyor. */}
           {!acik && ozet && (
-            <span className="metin-yardimci text-indigo-600 font-semibold truncate max-w-[110px]">
+            <span className="metin-yardimci text-indigo-600 truncate max-w-[110px]">
               {ozet}
             </span>
           )}
@@ -422,7 +422,7 @@ function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, yukleniyor, git, s
               <span
                 key={`${halka.hedef}-${halka.etiket}`}
                 aria-current="true"
-                className={`${girinti} flex items-center gap-1 py-1 metin-yardimci font-semibold text-slate-900 min-w-0`}
+                className={`${girinti} flex items-center gap-1 py-1 metin-yardimci text-slate-900 min-w-0`}
               >
                 {i > 0 && (
                   <span aria-hidden="true" className="text-slate-400 shrink-0">
@@ -438,7 +438,7 @@ function MarkaAgaci({ yol, kademeBasligi, cocuklar, derinlik, yukleniyor, git, s
                 onClick={() => git(halka.hedef)}
                 /* Satır tam genişlik olduğu için `min-w-[44px]` derdi
                    kalmadı; yalnızca yükseklik korunuyor. */
-                className={`${girinti} w-full min-h-[44px] flex items-center gap-1 rounded-md px-1 metin-yardimci font-semibold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 transition-colors cursor-pointer text-left min-w-0`}
+                className={`${girinti} w-full min-h-[44px] flex items-center gap-1 rounded-md px-1 metin-yardimci text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 transition-colors cursor-pointer text-left min-w-0`}
               >
                 {i > 0 && (
                   <span aria-hidden="true" className="text-slate-400 shrink-0">
@@ -1267,7 +1267,7 @@ export default function MarketplaceView({
                  kutusu 54px görünüyor ama TIKLANABİLİR alan girdinin kendisi;
                  dolgu bölgesine basmak odaklamıyordu. Bu, anasayfanın ana
                  kontrolü — ürünün arama kapısı. */
-              className="w-full min-h-[44px] bg-transparent border-none outline-none text-sm text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal pl-0.5"
+              className="w-full min-h-[44px] bg-transparent border-none outline-none text-govde text-slate-900 font-semibold placeholder:text-slate-500 placeholder:font-normal pl-0.5"
             />
             {searchQuery && (
               <button
@@ -1768,7 +1768,7 @@ export default function MarketplaceView({
                           harfli kısa etiketler için. Arada 11px denendi ama o
                           da ölçeğin dışında kalıyordu: keyfi değerler zaten
                           tipografi ölçeğinin çözmek için var olduğu sorun. */}
-                      <p className="metin-yardimci text-slate-500 font-normal leading-snug mt-0.5">
+                      <p className="metin-yardimci text-slate-500 leading-snug mt-0.5">
                         {k.ozet}
                       </p>
                     </div>
@@ -1825,7 +1825,7 @@ export default function MarketplaceView({
                 <div className="flex items-center gap-2 flex-wrap mb-3 select-none">
                   <span className="etiket text-slate-500">ARAMA KELİMESİ</span>
                   <span className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-md pl-2.5 pr-1 py-0.5">
-                    <span className="metin-yardimci font-semibold">{searchQuery}</span>
+                    <span className="metin-yardimci">{searchQuery}</span>
                     <button
                       type="button"
                       onClick={() => { setSayfa(0); setSearchQuery(''); }}
@@ -2343,7 +2343,7 @@ function ArabamStyleVitrinCard({ item, sira = 0, onSelectVehicle, favorili = fal
 
               Kural: veri yoksa alan çizilmiyor. Boş bir yer, uydurma bir
               yerden iyidir. */}
-          <div className="flex justify-between items-center gap-2 metin-yardimci font-semibold text-slate-900">
+          <div className="flex justify-between items-center gap-2 metin-yardimci text-slate-900">
             <span className="truncate">{item.city || ''}</span>
             {item.year && <span className="tabular-nums shrink-0">{item.year}</span>}
           </div>

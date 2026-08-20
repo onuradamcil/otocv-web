@@ -682,7 +682,7 @@ useEffect(() => {
               <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 font-mono">
                 Eşleşen Araç
               </span>
-              <h3 className="text-sm font-black text-slate-900 truncate">
+              <h3 className="text-govde font-black text-slate-900 truncate">
                 {formData.selectedYear} {formData.selectedBrand?.name} {formData.selectedSeries?.name} {formData.selectedModel?.name} {formData.selectedPackage?.name}
               </h3>
             </div>
@@ -690,7 +690,7 @@ useEffect(() => {
 
           <button
             onClick={onBack}
-            className="text-xs font-bold text-indigo-600 hover:text-indigo-800 shrink-0 cursor-pointer"
+            className="text-mini font-bold text-indigo-600 hover:text-indigo-800 shrink-0 cursor-pointer"
           >
             Düzenle
           </button>
@@ -710,7 +710,7 @@ useEffect(() => {
           {/* 📌 PANEL 2.1: VİTRİN & ARAÇ BAŞLIĞI */}
           <div className="space-y-1.5 w-full">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-slate-800 flex items-center gap-1">
+              <label className="text-mini font-bold text-slate-800 flex items-center gap-1">
                 <span className="text-rose-600 font-bold">*</span>
                 <span>Vitrin & Araç Başlığı</span>
               </label>
@@ -726,7 +726,7 @@ useEffect(() => {
               onBlur={() => handleBlur('title')}
               onChange={(e) => { setTitle(e.target.value); handleFieldChange('title', e.target.value); }}
               placeholder="Örn: Temiz Boyasız Düşük Kilometre Araç Karnesi"
-              className={`w-full border rounded-md px-3.5 text-sm font-semibold text-slate-900 outline-none transition-all h-[42px] shadow-2xs ${
+              className={`w-full border rounded-md px-3.5 text-govde font-semibold text-slate-900 outline-none transition-all h-[42px] shadow-2xs ${
                 isFieldInvalid('title')
                   ? 'border-rose-500 bg-rose-50/70 text-rose-900 focus:border-rose-600 focus:ring-1 focus:ring-rose-600 placeholder:text-rose-300'
                   : 'border-slate-200/80 bg-slate-100/70 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 placeholder:text-slate-400'
@@ -742,7 +742,7 @@ useEffect(() => {
 
             {/* 1. VİTES TİPİ */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+              <label className="text-mini font-bold text-slate-700 flex items-center gap-1">
                 <span className="text-rose-600 font-bold">*</span>
                 <span>Vites Tipi</span>
               </label>
@@ -750,7 +750,7 @@ useEffect(() => {
                 value={transmission || ''}
                 onBlur={() => handleBlur('transmission')}
                 onChange={(e) => { setTransmission(e.target.value); handleFieldChange('transmission', e.target.value); }}
-                className={`w-full border rounded-md px-3 text-sm font-semibold outline-none cursor-pointer h-[42px] transition-all ${
+                className={`w-full border rounded-md px-3 text-govde font-semibold outline-none cursor-pointer h-[42px] transition-all ${
                   isFieldInvalid('transmission')
                     ? 'border-rose-500 bg-rose-50/70 text-rose-900 focus:border-rose-600'
                     : 'border-slate-200/80 bg-slate-100/70 focus:bg-white text-slate-800 focus:border-indigo-600'
@@ -766,7 +766,7 @@ useEffect(() => {
 
             {/* 2. KASA TİPİ */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+              <label className="text-mini font-bold text-slate-700 flex items-center gap-1">
                 <span className="text-rose-600 font-bold">*</span>
                 <span>Kasa Tipi</span>
               </label>
@@ -774,7 +774,7 @@ useEffect(() => {
                 value={bodyType || ''}
                 onBlur={() => handleBlur('bodyType')}
                 onChange={(e) => { setBodyType(e.target.value); handleFieldChange('bodyType', e.target.value); }}
-                className={`w-full border rounded-md px-3 text-sm font-semibold outline-none cursor-pointer h-[42px] transition-all ${
+                className={`w-full border rounded-md px-3 text-govde font-semibold outline-none cursor-pointer h-[42px] transition-all ${
                   isFieldInvalid('bodyType')
                     ? 'border-rose-500 bg-rose-50/70 text-rose-900 focus:border-rose-600'
                     : 'border-slate-200/80 bg-slate-100/70 focus:bg-white text-slate-800 focus:border-indigo-600'
@@ -790,14 +790,14 @@ useEffect(() => {
 
             {/* 3. RENK SEÇİMİ */}
             <div className="space-y-1.5 relative">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+              <label className="text-mini font-bold text-slate-700 flex items-center gap-1">
                 <span className="text-rose-600 font-bold">*</span>
                 <span>Renk</span>
               </label>
               
               <button type="button"
                 onClick={() => setColorDropdownOpen(!colorDropdownOpen)}
-                className={`w-full text-left w-full border rounded-md px-3 text-sm font-semibold outline-none cursor-pointer flex items-center justify-between shadow-2xs h-[42px] transition-all ${
+                className={`w-full text-left w-full border rounded-md px-3 text-govde font-semibold outline-none cursor-pointer flex items-center justify-between shadow-2xs h-[42px] transition-all ${
                   isFieldInvalid('color')
                     ? 'border-rose-500 bg-rose-50/70 text-rose-900'
                     : 'border-slate-200/80 hover:border-slate-300 focus:border-indigo-600 bg-slate-100/70 hover:bg-slate-100 text-slate-800'
@@ -816,7 +816,7 @@ useEffect(() => {
                     <span className="text-slate-500 font-normal">Renk Seçiniz</span>
                   )}
                 </div>
-                <span className="text-xs text-slate-500">▼</span>
+                <span className="text-mini text-slate-500">▼</span>
               </button>
 
               {colorDropdownOpen && (
@@ -829,7 +829,7 @@ useEffect(() => {
                         handleFieldChange('color', c);
                         setColorDropdownOpen(false);
                       }}
-                      className={`w-full text-left flex items-center gap-2.5 px-3 py-2 text-xs font-bold rounded-md cursor-pointer transition-colors ${
+                      className={`w-full text-left flex items-center gap-2.5 px-3 py-2 text-mini font-bold rounded-md cursor-pointer transition-colors ${
                         (selectedColor?.name || selectedColor) === c.name ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-50 text-slate-700'
                       }`}
                     >
@@ -849,7 +849,7 @@ useEffect(() => {
 
             {/* 4. ARAÇ DURUMU */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+              <label className="text-mini font-bold text-slate-700 flex items-center gap-1">
                 <span className="text-rose-600 font-bold">*</span>
                 <span>Araç Durumu</span>
               </label>
@@ -857,7 +857,7 @@ useEffect(() => {
                 value={vehicleStatus || ''}
                 onBlur={() => handleBlur('vehicleStatus')}
                 onChange={(e) => { setVehicleStatus(e.target.value); handleFieldChange('vehicleStatus', e.target.value); }}
-                className={`w-full border rounded-md px-3 text-sm font-semibold outline-none cursor-pointer h-[42px] transition-all ${
+                className={`w-full border rounded-md px-3 text-govde font-semibold outline-none cursor-pointer h-[42px] transition-all ${
                   isFieldInvalid('vehicleStatus')
                     ? 'border-rose-500 bg-rose-50/70 text-rose-900 focus:border-rose-600'
                     : 'border-slate-200/80 bg-slate-100/70 focus:bg-white text-slate-800 focus:border-indigo-600'
@@ -873,11 +873,11 @@ useEffect(() => {
 
             {/* 4. GARANTİ DURUMU */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Garanti Durumu</label>
+              <label className="text-mini font-bold text-slate-700">Garanti Durumu</label>
               <select
                 value={warranty || ''}
                 onChange={(e) => { setWarranty(e.target.value); handleFieldChange('warranty', e.target.value); }}
-                className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-sm font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
+                className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-govde font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
               >
                 <option value="">Seçiniz</option>
                 {WARRANTY_OPTIONS.map(w => (
@@ -921,7 +921,7 @@ useEffect(() => {
               </svg>
               <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-1.5">
                 <span>Araç Detayları</span>
-                <span className="text-xs font-semibold text-slate-500 font-sans font-normal">(Opsiyonel)</span>
+                <span className="text-mini font-semibold text-slate-500 font-sans font-normal">(Opsiyonel)</span>
               </h3>
             </div>
           </div>
@@ -930,11 +930,11 @@ useEffect(() => {
             
             {/* 1. MOTOR HACMİ */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Motor Hacmi</label>
+              <label className="text-mini font-bold text-slate-700">Motor Hacmi</label>
               <select
                 value={engineCapacity || ''}
                 onChange={(e) => { setEngineCapacity(e.target.value); handleFieldChange('engineCapacity', e.target.value); }}
-                className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-sm font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
+                className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-govde font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
               >
                 <option value="">Seçiniz</option>
                 {ENGINE_CAPACITIES.map(cap => (
@@ -945,11 +945,11 @@ useEffect(() => {
 
             {/* 2. ARAÇ TÜRÜ */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Araç Türü</label>
+              <label className="text-mini font-bold text-slate-700">Araç Türü</label>
               <select
                 value={vehicleType || ''}
                 onChange={(e) => { setVehicleType(e.target.value); handleFieldChange('vehicleType', e.target.value); }}
-                className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-sm font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
+                className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-govde font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
               >
                 <option value="">Seçiniz</option>
                 {VEHICLE_TYPES.map(vt => (
@@ -960,11 +960,11 @@ useEffect(() => {
 
             {/* 3. PLAKA UYRUĞU */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Plaka Uyruğu</label>
+              <label className="text-mini font-bold text-slate-700">Plaka Uyruğu</label>
               <select
                 value={plateNationality || ''}
                 onChange={(e) => { setPlateNationality(e.target.value); handleFieldChange('plateNationality', e.target.value); }}
-                className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-sm font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
+                className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-govde font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
               >
                 <option value="">Seçiniz</option>
                 {PLATE_NATIONALITIES.map(pn => (
@@ -975,11 +975,11 @@ useEffect(() => {
 
             {/* 5. ARACIN İLK SAHİBİYİM */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Aracın İlk Sahibiyim</label>
+              <label className="text-mini font-bold text-slate-700">Aracın İlk Sahibiyim</label>
               <select
                 value={isFirstOwner || ''}
                 onChange={(e) => { setIsFirstOwner(e.target.value); handleFieldChange('isFirstOwner', e.target.value); }}
-                className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-sm font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
+                className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md px-3 text-govde font-semibold text-slate-800 bg-slate-100/70 focus:bg-white outline-none cursor-pointer h-[42px] transition-all"
               >
                 <option value="">Seçiniz</option>
                 {FIRST_OWNER_OPTIONS.map(fo => (
@@ -1009,7 +1009,7 @@ useEffect(() => {
             
             {/* 📌 İL SEÇİMİ */}
             <div className={`space-y-1.5 relative w-full ${isCityOpen ? 'z-20' : ''}`} ref={cityDropdownRef}>
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+              <label className="text-mini font-bold text-slate-700 flex items-center gap-1">
                 <span className="text-rose-600 font-bold">*</span>
                 <span>Bulunduğu İl</span>
               </label>
@@ -1020,7 +1020,7 @@ useEffect(() => {
                   setIsDistrictOpen(false);
                   if (isCityOpen) handleBlur('city');
                 }}
-                className={`w-full text-left w-full px-3.5 py-2.5 border rounded-md text-sm font-semibold flex justify-between items-center cursor-pointer transition-all shadow-2xs h-[42px] ${
+                className={`w-full text-left w-full px-3.5 py-2.5 border rounded-md text-govde font-semibold flex justify-between items-center cursor-pointer transition-all shadow-2xs h-[42px] ${
                   isFieldInvalid('city')
                     ? 'border-rose-500 bg-rose-50/70 text-rose-900'
                     : isCityOpen 
@@ -1043,12 +1043,12 @@ useEffect(() => {
                       value={citySearch}
                       onChange={(e) => setCitySearch(e.target.value)}
                       placeholder="İl ara..."
-                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-600 placeholder:font-normal"
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-md text-mini font-semibold text-slate-900 focus:outline-none focus:border-indigo-600 placeholder:font-normal"
                     />
                   </div>
                   <div className="max-h-52 overflow-y-auto divide-y divide-slate-50 scrollbar-thin">
                     {filteredCities.length === 0 ? (
-                      <div className="p-3 text-center text-xs font-medium text-slate-500">İl bulunamadı</div>
+                      <div className="p-3 text-center text-mini font-medium text-slate-500">İl bulunamadı</div>
                     ) : (
                       filteredCities.map(cityName => (
                         <button type="button"
@@ -1057,7 +1057,7 @@ useEffect(() => {
                             handleSelectCity(cityName);
                             handleBlur('city');
                           }}
-                          className={`w-full text-left px-3.5 py-2.5 text-xs font-semibold cursor-pointer transition-colors flex justify-between items-center ${
+                          className={`w-full text-left px-3.5 py-2.5 text-mini font-semibold cursor-pointer transition-colors flex justify-between items-center ${
                             city === cityName ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-800 hover:bg-slate-50'
                           }`}
                         >
@@ -1078,7 +1078,7 @@ useEffect(() => {
 
             {/* 📌 İLÇE SEÇİMİ */}
             <div className={`space-y-1.5 relative w-full ${isDistrictOpen ? 'z-20' : ''}`} ref={districtDropdownRef}>
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+              <label className="text-mini font-bold text-slate-700 flex items-center gap-1">
                 <span className="text-rose-600 font-bold">*</span>
                 <span>İlçe</span>
               </label>
@@ -1089,7 +1089,7 @@ useEffect(() => {
                   setIsCityOpen(false);
                   if (isDistrictOpen) handleBlur('district');
                 }}
-                className={`w-full text-left w-full px-3.5 py-2.5 border rounded-md text-sm font-semibold flex justify-between items-center cursor-pointer transition-all shadow-2xs h-[42px] ${
+                className={`w-full text-left w-full px-3.5 py-2.5 border rounded-md text-govde font-semibold flex justify-between items-center cursor-pointer transition-all shadow-2xs h-[42px] ${
                   isFieldInvalid('district')
                     ? 'border-rose-500 bg-rose-50/70 text-rose-900'
                     : isDistrictOpen 
@@ -1112,12 +1112,12 @@ useEffect(() => {
                       value={districtSearch}
                       onChange={(e) => setDistrictSearch(e.target.value)}
                       placeholder="İlçe ara..."
-                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-600 placeholder:font-normal"
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-md text-mini font-semibold text-slate-900 focus:outline-none focus:border-indigo-600 placeholder:font-normal"
                     />
                   </div>
                   <div className="max-h-52 overflow-y-auto divide-y divide-slate-50 scrollbar-thin">
                     {filteredDistricts.length === 0 ? (
-                      <div className="p-3 text-center text-xs font-medium text-slate-500">İlçe bulunamadı</div>
+                      <div className="p-3 text-center text-mini font-medium text-slate-500">İlçe bulunamadı</div>
                     ) : (
                       filteredDistricts.map(distName => (
                         <button type="button"
@@ -1126,7 +1126,7 @@ useEffect(() => {
                             handleSelectDistrict(distName);
                             handleBlur('district');
                           }}
-                          className={`w-full text-left px-3.5 py-2.5 text-xs font-semibold cursor-pointer transition-colors flex justify-between items-center ${
+                          className={`w-full text-left px-3.5 py-2.5 text-mini font-semibold cursor-pointer transition-colors flex justify-between items-center ${
                             district === distName ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-800 hover:bg-slate-50'
                           }`}
                         >
@@ -1162,12 +1162,12 @@ useEffect(() => {
                 </svg>
                 <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-1.5">
                   <span>Boya, Değişen ve Tramer Bilgisi</span>
-                  <span className="text-xs font-semibold text-slate-500 font-sans font-normal">(Opsiyonel)</span>
+                  <span className="text-mini font-semibold text-slate-500 font-sans font-normal">(Opsiyonel)</span>
                 </h3>
               </div>
             </div>
             
-            <p className="text-xs text-slate-500 font-medium pl-7">
+            <p className="text-mini text-slate-500 font-medium pl-7">
               Araç şeffaflık puanı için bu bilginin doğru ve eksiksiz belirtilmesi önerilir.
             </p>
           </div>
@@ -1176,7 +1176,7 @@ useEffect(() => {
 
             {/* 🥪 BEYAZ İÇ KART 1: TRAMER BİLGİSİ */}
             <div className="bg-white border border-slate-200/80 rounded-md p-5 shadow-2xs space-y-4">
-              <h4 className="text-xs font-bold text-slate-800 tracking-tight border-b border-slate-100 pb-2">
+              <h4 className="text-mini font-bold text-slate-800 tracking-tight border-b border-slate-100 pb-2">
                 Tramer Bilgisi
               </h4>
 
@@ -1201,7 +1201,7 @@ useEffect(() => {
                       }}
                       className="w-4 h-4 text-indigo-600 border-slate-300 focus:ring-indigo-600 cursor-pointer accent-indigo-600"
                     />
-                    <span className={`text-xs font-semibold transition-colors ${
+                    <span className={`text-mini font-semibold transition-colors ${
                       tramerStatus === opt ? 'text-indigo-900 font-bold' : 'text-slate-700 group-hover:text-slate-900'
                     }`}>
                       {opt}
@@ -1211,7 +1211,7 @@ useEffect(() => {
               </div>
 
               <div className="space-y-1.5 pt-1 max-w-xs">
-                <label className={`text-xs font-bold transition-colors ${
+                <label className={`text-mini font-bold transition-colors ${
                   tramerStatus === 'Tramer Var' ? 'text-slate-700' : 'text-slate-500'
                 }`}>
                   Tramer Tutarı
@@ -1223,13 +1223,13 @@ useEffect(() => {
                     value={tramerAmount}
                     onChange={(e) => handleTramerAmountInput(e.target.value)}
                     placeholder={tramerStatus === 'Tramer Var' ? '0' : 'Tramer tutarı girilmez'}
-                    className={`w-full border border-slate-200/80 rounded-md py-2.5 pl-3.5 pr-10 text-sm font-mono font-bold outline-none transition-all h-full ${
+                    className={`w-full border border-slate-200/80 rounded-md py-2.5 pl-3.5 pr-10 text-govde font-mono font-bold outline-none transition-all h-full ${
                       tramerStatus === 'Tramer Var'
                         ? 'bg-slate-100/70 focus:bg-white text-slate-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 cursor-text'
                         : 'bg-slate-100/40 text-slate-400 cursor-not-allowed placeholder:text-slate-300'
                     }`}
                   />
-                  <span className={`absolute right-3 text-xs font-bold font-mono transition-colors ${
+                  <span className={`absolute right-3 text-mini font-bold font-mono transition-colors ${
                     tramerStatus === 'Tramer Var' ? 'text-slate-500' : 'text-slate-500'
                   }`}>
                     TL
@@ -1242,7 +1242,7 @@ useEffect(() => {
             <div className="bg-white border border-slate-200/80 rounded-md p-5 shadow-2xs space-y-4">
               
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                <h4 className="text-xs font-bold text-slate-800 tracking-tight">
+                <h4 className="text-mini font-bold text-slate-800 tracking-tight">
                   Boya ve Değişen Bilgisi
                 </h4>
 
@@ -1262,13 +1262,13 @@ useEffect(() => {
                     onChange={(e) => handleToggleFullyOriginal(e.target.checked)}
                     className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer accent-indigo-600"
                   />
-                  <span className="text-xs font-bold text-slate-800">Tamamı Orijinal (Hasarsız / Boyasız)</span>
+                  <span className="text-mini font-bold text-slate-800">Tamamı Orijinal (Hasarsız / Boyasız)</span>
                 </label>
               </div>
 
               <div className="relative border border-slate-200/70 rounded-md bg-slate-50/60 p-4 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-6 min-h-[420px]">
                 
-                <div className="absolute top-3 left-4 bg-white/90 backdrop-blur border border-slate-200 px-3 py-1 rounded-md text-xs font-bold text-slate-700 shadow-2xs z-10">
+                <div className="absolute top-3 left-4 bg-white/90 backdrop-blur border border-slate-200 px-3 py-1 rounded-md text-mini font-bold text-slate-700 shadow-2xs z-10">
                   {hoveredPart ? CAR_PARTS.find(p => p.id === hoveredPart)?.name : 'Durumunu değiştirmek için parçaya tıklayın'}
                 </div>
 
@@ -1463,16 +1463,16 @@ useEffect(() => {
 
                 </div>
 
-                <div className="space-y-4 w-full md:w-80 text-xs text-slate-600 bg-white p-5 sm:p-6 rounded-md border border-slate-200/90 shadow-2xs">
+                <div className="space-y-4 w-full md:w-80 text-mini text-slate-600 bg-white p-5 sm:p-6 rounded-md border border-slate-200/90 shadow-2xs">
                   
                   <div className="border-b border-slate-100 pb-2.5 space-y-1">
-                    <p className="font-black text-slate-900 tracking-tight text-sm">Nasıl Kullanılır?</p>
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                    <p className="font-black text-slate-900 tracking-tight text-govde">Nasıl Kullanılır?</p>
+                    <p className="text-mini text-slate-500 font-medium leading-relaxed">
                       Araç parçalarının üzerine tıklayarak ekspertiz durumunu seçebilirsiniz:
                     </p>
                   </div>
 
-                  <div className="space-y-3 text-xs">
+                  <div className="space-y-3 text-mini">
                     <div className="flex items-start gap-2.5">
                       <span className="w-3 h-3 rounded-full bg-emerald-500 shrink-0 mt-0.5 border border-emerald-600/30 shadow-2xs"></span>
                       <div className="leading-snug">
@@ -1540,9 +1540,9 @@ useEffect(() => {
               <div>
                 <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-1.5">
                   <span>Araç Donanım Özellikleri</span>
-                  <span className="text-xs font-semibold text-slate-500 font-sans font-normal">(Opsiyonel)</span>
+                  <span className="text-mini font-semibold text-slate-500 font-sans font-normal">(Opsiyonel)</span>
                 </h3>
-                <p className="text-xs text-slate-500 font-medium">Donanım kategorilerine tıklayarak detayları inceleyin ve seçim yapın.</p>
+                <p className="text-mini text-slate-500 font-medium">Donanım kategorilerine tıklayarak detayları inceleyin ve seçim yapın.</p>
               </div>
             </div>
 
@@ -1553,14 +1553,14 @@ useEffect(() => {
                   value={featureSearch}
                   onChange={(e) => setFeatureSearch(e.target.value)}
                   placeholder="Donanım ara (Örn: Isıtma)..."
-                  className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-lg py-2 pl-8.5 pr-3 text-xs font-semibold text-slate-900 bg-slate-100/70 focus:bg-white outline-none transition-all placeholder:font-normal placeholder:text-slate-400 h-[40px]"
+                  className="w-full border border-slate-200/80 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-lg py-2 pl-8.5 pr-3 text-mini font-semibold text-slate-900 bg-slate-100/70 focus:bg-white outline-none transition-all placeholder:font-normal placeholder:text-slate-400 h-[40px]"
                 />
                 <svg className="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
               </div>
 
-              <span className="text-xs font-mono font-bold text-indigo-700 bg-indigo-50 px-3.5 py-2 rounded-lg border border-indigo-100 shrink-0 h-[40px] flex items-center shadow-2xs">
+              <span className="text-mini font-mono font-bold text-indigo-700 bg-indigo-50 px-3.5 py-2 rounded-lg border border-indigo-100 shrink-0 h-[40px] flex items-center shadow-2xs">
                 {selectedFeatures.length} Seçildi
               </span>
             </div>
@@ -1597,13 +1597,13 @@ useEffect(() => {
                       <span className={`w-3 h-3 rounded-full transition-all shrink-0 ${
                         categorySelectedCount > 0 ? 'bg-indigo-600 ring-4 ring-indigo-100' : 'bg-slate-300'
                       }`} />
-                      <span className="text-sm font-extrabold text-slate-900 tracking-tight">
+                      <span className="text-govde font-extrabold text-slate-900 tracking-tight">
                         {cat.title}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-3.5">
-                      <span className={`text-xs font-mono font-bold px-3 py-1 rounded-full transition-all border ${
+                      <span className={`text-mini font-mono font-bold px-3 py-1 rounded-full transition-all border ${
                         categorySelectedCount > 0 
                           ? 'bg-indigo-600 border-indigo-600 text-white shadow-2xs' 
                           : 'bg-slate-200/70 border-slate-300/60 text-slate-600'
@@ -1640,7 +1640,7 @@ useEffect(() => {
                               e.stopPropagation();
                               handleToggleSelectAllCategory(cat.items);
                             }}
-                            className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 cursor-pointer bg-indigo-50/60 px-2.5 py-1 rounded-md border border-indigo-100/60"
+                            className="text-mini font-bold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 cursor-pointer bg-indigo-50/60 px-2.5 py-1 rounded-md border border-indigo-100/60"
                           >
                             <Icon name={isAllCatSelected ? 'onay' : 'arti'} size="xs" strokeWidth={3} />
                             <span>{isAllCatSelected ? 'Tümünü Kaldır' : 'Tümünü Seç'}</span>
@@ -1666,7 +1666,7 @@ useEffect(() => {
                             return (
                               <label
                                 key={item}
-                                className={`p-3 rounded-md border text-xs font-bold flex items-center justify-between cursor-pointer transition-all select-none h-[46px] shadow-2xs focus-within:ring-2 focus-within:ring-indigo-600 ${
+                                className={`p-3 rounded-md border text-mini font-bold flex items-center justify-between cursor-pointer transition-all select-none h-[46px] shadow-2xs focus-within:ring-2 focus-within:ring-indigo-600 ${
                                   isChecked
                                     ? 'bg-indigo-50/90 border-indigo-600 text-indigo-950 shadow-xs'
                                     : 'bg-slate-50/70 border-slate-200/80 text-slate-700 hover:bg-slate-100/80 hover:border-slate-300'
@@ -1715,7 +1715,7 @@ useEffect(() => {
               </h3>
             </div>
             
-            <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/60">
+            <span className="text-mini font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/60">
               {getCleanText(description).length} / 10000
             </span>
           </div>
@@ -1957,7 +1957,7 @@ useEffect(() => {
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={handleGenerateAiDescription}
-                className="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-bold px-3.5 py-1.5 rounded-md shadow-xs hover:shadow transition-all flex items-center gap-1.5 cursor-pointer shrink-0 border border-indigo-500/30"
+                className="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-mini font-bold px-3.5 py-1.5 rounded-md shadow-xs hover:shadow transition-all flex items-center gap-1.5 cursor-pointer shrink-0 border border-indigo-500/30"
               >
                 <svg className="w-3.5 h-3.5 text-indigo-200" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
@@ -1973,7 +1973,7 @@ useEffect(() => {
               onBlur={() => handleBlur('description')}
               onInput={handleEditorInput}
               suppressContentEditableWarning
-              className="w-full p-4 text-xs sm:text-sm font-medium text-slate-800 outline-none min-h-[180px] max-h-[400px] overflow-y-auto leading-relaxed focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-slate-500 empty:before:font-normal [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1"
+              className="w-full p-4 text-mini sm:text-govde font-medium text-slate-800 outline-none min-h-[180px] max-h-[400px] overflow-y-auto leading-relaxed focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-slate-500 empty:before:font-normal [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1"
               data-placeholder="Aracın ek özellikleri, genel durumu ve bilmesi gereken detayları bu alana yazabilirsin..."
             />
 
@@ -1997,7 +1997,7 @@ useEffect(() => {
           <button
             type="button"
             onClick={onBack}
-            className="bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 font-bold text-xs sm:text-sm px-6 py-3.5 rounded-lg transition-all cursor-pointer select-none"
+            className="bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 font-bold text-mini sm:text-govde px-6 py-3.5 rounded-lg transition-all cursor-pointer select-none"
           >
             ‹ 1. Adıma Dön
           </button>
@@ -2009,7 +2009,7 @@ useEffect(() => {
               const isValid = handleNextWithValidation();
               if (isValid && onNext) onNext();
             }}
-            className="bg-rose-500 hover:bg-rose-600 disabled:bg-[#FFF5F7] disabled:text-[#FFC2CB] text-white font-extrabold text-xs sm:text-sm py-3.5 px-8 rounded-lg transition-all shadow-sm disabled:cursor-not-allowed cursor-pointer select-none active:scale-98"
+            className="bg-rose-500 hover:bg-rose-600 disabled:bg-[#FFF5F7] disabled:text-[#FFC2CB] text-white font-extrabold text-mini sm:text-govde py-3.5 px-8 rounded-lg transition-all shadow-sm disabled:cursor-not-allowed cursor-pointer select-none active:scale-98"
           >
             Devam Et: Ön İzleme ve Yayınla ›
           </button>

@@ -63,7 +63,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
         </div>
         <button 
           onClick={onNavigateToGarage}
-          className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-md transition-all shadow-xs cursor-pointer"
+          className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-mini font-bold rounded-md transition-all shadow-xs cursor-pointer"
         >
           ← Garajıma Dön
         </button>
@@ -78,11 +78,11 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
           <div className="w-12 h-12 bg-slate-50 rounded-lg flex items-center justify-center text-slate-500">
             <Icon name="arac" size="xl" />
           </div>
-          <h2 className="text-sm font-semibold text-slate-900">Vitrinde aracınız yok</h2>
-          <p className="text-xs text-slate-500 max-w-sm">Garajınızdaki araçları vitrine çıkarınca buradan yönetebilirsiniz.</p>
+          <h2 className="text-govde font-semibold text-slate-900">Vitrinde aracınız yok</h2>
+          <p className="text-mini text-slate-500 max-w-sm">Garajınızdaki araçları vitrine çıkarınca buradan yönetebilirsiniz.</p>
           <button 
             onClick={onNavigateToGarage}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-md transition-all shadow-sm cursor-pointer"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-mini px-5 py-2.5 rounded-md transition-all shadow-sm cursor-pointer"
           >
             Garajıma Git
           </button>
@@ -135,14 +135,14 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                         <span className="text-etiket font-semibold text-slate-500 tabular-nums">{item.year}</span>
                       )}
                     </div>
-                    <h2 className="text-sm font-semibold text-slate-900 truncate">{item.brand} {item.model}</h2>
+                    <h2 className="text-govde font-semibold text-slate-900 truncate">{item.brand} {item.model}</h2>
                     {/* Kaynak RPC alani `listing_title` adiyla donduruyor; `item.title`
                         hicbir zaman dolu gelmiyordu ve alt baslik hep bostu. */}
-                    <p className="text-xs text-slate-500 font-medium truncate mt-0.5">{item.listing_title}</p>
+                    <p className="text-mini text-slate-500 font-medium truncate mt-0.5">{item.listing_title}</p>
                   </div>
 
                   {/* 📊 İSTATİSTİK BARI (GÖRÜNTÜLENME VE FAVORİ SAYISI) */}
-                  <div className="bg-slate-50 p-2.5 rounded-md flex justify-between items-center text-xs font-semibold text-slate-600 border border-slate-100">
+                  <div className="bg-slate-50 p-2.5 rounded-md flex justify-between items-center text-mini font-semibold text-slate-600 border border-slate-100">
                     <div className="flex items-center gap-1.5" title="Görüntülenme Sayısı">
                       <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 123.572M12 20.25c4.97 0 9.185-3.223 10.675-7.69a1.75 1.75 0 000-1.12C21.185 6.973 16.97 3.75 12 3.75s-9.185 3.223-10.675 7.69a1.75 1.75 0 000 1.12C2.815 17.027 7.03 20.25 12 20.25z" />
@@ -160,7 +160,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                   </div>
 
                   {/* FİYAT VE KONUM */}
-                  <div className="flex justify-between items-center text-xs font-mono font-bold pt-1">
+                  <div className="flex justify-between items-center text-mini font-mono font-bold pt-1">
                     <span className="text-slate-500">{item.city} / {item.district}</span>
                     {/* Tutar gösterilmiyor: araca ait fiyat platformu satış sitesi
                         konumuna sokuyor. */}
@@ -179,7 +179,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
                     kurma ve alan adı eşleme sorunu tamamen kalktı. */}
                 <Link
                   href={`/garage/${encodeURIComponent(item.pin_code || '')}/vitrin`}
-                  className="w-full inline-flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 font-bold text-xs rounded-md transition-colors"
+                  className="w-full inline-flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 font-bold text-mini rounded-md transition-colors"
                 >
                   Vitrin Kartını Düzenle
                 </Link>

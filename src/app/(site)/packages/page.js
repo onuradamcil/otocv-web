@@ -33,10 +33,10 @@ export default function Page() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
 
       <div className="space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
+        <h1 className="text-2xl sm:text-sayfa font-semibold text-slate-900 tracking-tight">
           Ücretler
         </h1>
-        <p className="text-sm text-slate-500 font-medium leading-relaxed">
+        <p className="text-govde text-slate-500 font-medium leading-relaxed">
           Bireysel kullanımda abonelik yok. Her işlem kendi ekranında, tek
           seferlik ödenir; kullanılmayan bakiye ya da tekrar eden ödeme
           bulunmuyor.
@@ -49,7 +49,7 @@ export default function Page() {
             <Icon name="uyari" size="sm" strokeWidth={2.5} />
           </span>
           <div className="space-y-0.5">
-            <p className="text-xs font-semibold text-amber-950">
+            <p className="text-mini font-semibold text-amber-950">
               Ödeme altyapısı henüz bağlı değil
             </p>
             <p className="text-yardimci text-amber-900/80 font-medium leading-relaxed">
@@ -71,8 +71,8 @@ export default function Page() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-0.5 min-w-0">
-                  <h2 className="text-sm font-semibold text-slate-900">{urun.ad}</h2>
-                  <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                  <h2 className="text-govde font-semibold text-slate-900">{urun.ad}</h2>
+                  <p className="text-mini text-slate-500 font-medium leading-relaxed">
                     {urun.ozet}
                   </p>
                 </div>
@@ -106,7 +106,7 @@ export default function Page() {
       {/* ÜCRETSİZ OLANLAR. Ne için para alınmadığını söylemek, ne için
           alındığı kadar önemli — kullanıcı belge yüklerken tereddüt etmesin. */}
       <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 space-y-2.5">
-        <h2 className="text-sm font-semibold text-slate-900">Her zaman ücretsiz</h2>
+        <h2 className="text-govde font-semibold text-slate-900">Her zaman ücretsiz</h2>
         {[
           'İlk aracınızın kaydı ve dijital karnesi',
           'Sınırsız bakım kaydı ve fatura yükleme',
@@ -118,16 +118,16 @@ export default function Page() {
             <span className="text-slate-500 shrink-0 mt-0.5">
               <Icon name="onay" size="xs" strokeWidth={3} />
             </span>
-            <span className="text-xs text-slate-600 font-medium leading-relaxed">{k}</span>
+            <span className="text-mini text-slate-600 font-medium leading-relaxed">{k}</span>
           </div>
         ))}
       </div>
 
       {/* ÖDEME GEÇMİŞİ. Boş ama gizlenmiyor. */}
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-slate-900">Ödeme geçmişi</h2>
+        <h2 className="text-govde font-semibold text-slate-900">Ödeme geçmişi</h2>
         <div className="bg-white border border-dashed border-slate-300 rounded-lg p-8 text-center space-y-1">
-          <p className="text-xs font-bold text-slate-600">Henüz ödeme kaydınız yok</p>
+          <p className="text-mini font-bold text-slate-600">Henüz ödeme kaydınız yok</p>
           <p className="text-yardimci text-slate-500 font-medium leading-relaxed">
             Tahsilat başladığında ödemeleriniz ve faturalarınız burada listelenecek.
           </p>
@@ -137,8 +137,8 @@ export default function Page() {
       {/* Kurumsal fiyatlandırma henüz belirlenmedi — "yakında" demek yerine
           ne olduğunu ve ne olmadığını söylüyoruz. */}
       <div className="border-t border-slate-100 pt-6 space-y-2">
-        <h2 className="text-sm font-semibold text-slate-900">Galeri ve filo kullanımı</h2>
-        <p className="text-xs text-slate-500 font-medium leading-relaxed">
+        <h2 className="text-govde font-semibold text-slate-900">Galeri ve filo kullanımı</h2>
+        <p className="text-mini text-slate-500 font-medium leading-relaxed">
           Çok sayıda araç yöneten galeri ve filo sahipleri için ayrı bir
           fiyatlandırma hazırlanıyor. Yukarıdaki tutarlar bireysel kullanım
           içindir.
@@ -148,7 +148,7 @@ export default function Page() {
       <button
         type="button"
         onClick={() => router.push('/garage')}
-        className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-6 py-3 rounded-md transition-colors cursor-pointer"
+        className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-mini px-6 py-3 rounded-md transition-colors cursor-pointer"
       >
         Garajıma Dön
       </button>

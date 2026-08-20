@@ -122,7 +122,7 @@ export default function MesajBaslatDialog({ arac, onKapat, onGonder }) {
           {/* Beklentiyi baştan doğru kurmak: kullanıcı telefon numarası
               bekliyordu, artık öyle çalışmıyor. */}
           <div className="bg-slate-50 border border-slate-200/80 rounded-md p-3 space-y-1.5">
-            <div className="flex items-center gap-1.5 text-indigo-700 font-bold metin-govde">
+            <div className="flex items-center gap-1.5 text-indigo-700 metin-govde">
               <Icon name="kalkan" size="sm" />
               <span>Nasıl çalışıyor</span>
             </div>

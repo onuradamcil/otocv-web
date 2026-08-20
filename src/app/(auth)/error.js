@@ -58,7 +58,7 @@ export default function AuthError({ error, reset }) {
           <button
             type="button"
             onClick={reset}
-            className="flex-1 inline-flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-md transition-colors cursor-pointer focus-visible:ring-offset-2"
+            className="flex-1 inline-flex items-center justify-center min-h-[44px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-mini rounded-md transition-colors cursor-pointer focus-visible:ring-offset-2"
           >
             Tekrar Dene
           </button>
@@ -66,7 +66,7 @@ export default function AuthError({ error, reset }) {
               olurdu, kullanıcı zaten giriş yapmaya çalışıyor. */}
           <Link
             href="/"
-            className="flex-1 inline-flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-xs rounded-md transition-colors"
+            className="flex-1 inline-flex items-center justify-center min-h-[44px] bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-mini rounded-md transition-colors"
           >
             Anasayfaya Dön
           </Link>

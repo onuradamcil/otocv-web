@@ -148,7 +148,7 @@ export default function AracSeciciDialog({
             <Icon name={ikon} size="lg" />
           </div>
           <div className="min-w-0 flex-1">
-            <h2 id="arac-secici-baslik" className="text-sm font-semibold text-slate-900 tracking-tight">
+            <h2 id="arac-secici-baslik" className="text-govde font-semibold text-slate-900 tracking-tight">
               {baslik}
             </h2>
             <p className="text-yardimci text-slate-500 font-semibold mt-0.5 leading-relaxed">{aciklama}</p>
@@ -172,14 +172,14 @@ export default function AracSeciciDialog({
               onChange={(e) => setArama(e.target.value)}
               placeholder="Plaka, marka veya model ara"
               aria-label="Araç ara"
-              className="w-full h-11 px-3.5 rounded-md border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 placeholder:text-slate-400 placeholder:font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:bg-white transition-colors"
+              className="w-full h-11 px-3.5 rounded-md border border-slate-200 bg-slate-50 text-mini font-bold text-slate-800 placeholder:text-slate-400 placeholder:font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:bg-white transition-colors"
             />
           </div>
         )}
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-2">
           {listelenen.length === 0 ? (
-            <p className="text-xs text-slate-500 font-semibold text-center py-8">
+            <p className="text-mini text-slate-500 font-semibold text-center py-8">
               {anahtar ? `"${arama}" ile eşleşen araç yok.` : 'Garajınızda araç yok.'}
             </p>
           ) : (
@@ -203,7 +203,7 @@ export default function AracSeciciDialog({
                   <TrPlaka plaka={v.plate_number} boyut="sm" />
 
                   <span className="min-w-0 flex-1">
-                    <span className="block text-xs font-semibold text-slate-900 truncate">
+                    <span className="block text-mini font-semibold text-slate-900 truncate">
                       {v.brand} {v.model}
                     </span>
                     <span className="block text-etiket text-slate-500 font-bold font-mono">

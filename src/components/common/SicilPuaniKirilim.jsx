@@ -175,7 +175,7 @@ export default function SicilPuaniKirilim({ kirilim, puan, className = '' }) {
               >
                 <span className="flex items-center gap-2 sm:w-52 shrink-0">
                   <Icon name={b.ikon} size="sm" className={`${b.ikonRenk} shrink-0`} />
-                  <span className="text-xs font-bold text-slate-800">{kalem.ad}</span>
+                  <span className="text-mini font-bold text-slate-800">{kalem.ad}</span>
                   {bilgi && (
                     <Icon
                       name="asagi"
@@ -189,7 +189,7 @@ export default function SicilPuaniKirilim({ kirilim, puan, className = '' }) {
                   {kalem.aciklama}
                 </span>
 
-                <span className={`text-xs font-semibold font-mono tabular-nums shrink-0 sm:w-14 sm:text-right pl-5 sm:pl-0 ${b.puan}`}>
+                <span className={`text-mini font-semibold font-mono tabular-nums shrink-0 sm:w-14 sm:text-right pl-5 sm:pl-0 ${b.puan}`}>
                   {kalem.puan}/{kalem.tavan}
                 </span>
               </button>

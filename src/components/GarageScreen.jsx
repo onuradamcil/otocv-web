@@ -344,7 +344,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
                   ayrıldı (bkz. TODO — üyelik tipi). Bireysel kullanıcının
                   üç aracına filo demek, ileride iki farklı şeyin aynı adı
                   taşıması demekti. */}
-              <p className="text-xs sm:text-sm font-bold tracking-tight truncate">
+              <p className="text-mini sm:text-govde font-bold tracking-tight truncate">
                 Süre Uyarısı: <span className="underline underline-offset-2 font-semibold">{criticalVehicles.length} aracınızın</span> sigorta, kasko veya muayene süresi kritik seviyede!
               </p>
             </div>
@@ -361,7 +361,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
                   sayıyla vardığı ekranı çelişkiye düşürürdü. */}
               <button
                 onClick={() => router.push(teklifYolu(null, null, 'garaj_serit'))}
-                className="bg-rose-600 hover:bg-rose-700 text-white metin-yardimci font-semibold px-4 py-2 rounded-md transition-colors active:scale-95 cursor-pointer shrink-0"
+                className="bg-rose-600 hover:bg-rose-700 text-white metin-yardimci px-4 py-2 rounded-md transition-colors active:scale-95 cursor-pointer shrink-0"
               >
                 Hemen Teklif Al
               </button>
@@ -480,7 +480,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
             <button
               type="button"
               onClick={() => setSuzgec('tumu')}
-              className="inline-flex items-center gap-1.5 min-h-[28px] px-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 metin-yardimci font-semibold hover:bg-indigo-100 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 min-h-[28px] px-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 metin-yardimci hover:bg-indigo-100 transition-colors cursor-pointer"
             >
               {SUZGEC_ADI[suzgec]}
               <Icon name="kapat" size="xs" />
@@ -498,7 +498,7 @@ export default function GarageScreen({ onViewDetails, onViewKarne, onOpenMainten
         ) : error ? (
           <div
             role="alert"
-            className="py-10 px-4 bg-red-50 border border-red-200 rounded-md text-red-600 metin-yardimci font-semibold flex items-center justify-center gap-2"
+            className="py-10 px-4 bg-red-50 border border-red-200 rounded-md text-red-600 metin-yardimci flex items-center justify-center gap-2"
           >
             <Icon name="uyari" size="md" />
             <span>Veritabanı bağlantı hatası: {error}</span>
@@ -641,7 +641,7 @@ function SuzgecCipi({ deger, etiket, renk = 'bg-slate-100 text-slate-700', secil
             : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 cursor-pointer'
       }`}
     >
-      <span className="metin-yardimci font-medium whitespace-nowrap">{etiket}</span>
+      <span className="metin-yardimci whitespace-nowrap">{etiket}</span>
       {/* Sayı rozeti etiketten BİR KADEME İLERİDE: 13px, yarı kalın, tabular.
           Çip artık sayfa başlığıyla yarışmadığı (bölüm başlığının yanında)
           için sayı hiyerarşiyi bozmadan öne çıkabiliyor. `tabular-nums`
@@ -834,7 +834,7 @@ function VehicleCard({ vehicle, onViewDetails, onViewKarne, onOpenMaintenance, o
           )}
         </div>
 
-        {/* Skor rozeti: eskiden `text-xs sm:text-sm` idi — aynı bilgi ekran
+        {/* Skor rozeti: eskiden `text-mini sm:text-govde` idi — aynı bilgi ekran
             genişliğine göre boyut değiştiriyordu, oysa önemi değişmiyor. */}
         <div className="ml-auto sm:ml-0 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-md text-right shrink-0 select-none">
           <span className="metin-yardimci text-indigo-700 block font-mono">
@@ -1034,7 +1034,7 @@ function PoliceCipi({ etiket, durum, onAc }) {
           yükseltiyor, yani hiza bozulmuyor. */}
       <span className="flex items-start gap-1.5 w-full min-w-0">
         <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1 ${durum.dotClass}`} />
-        <span className="metin-yardimci font-semibold leading-tight">{durum.text}</span>
+        <span className="metin-yardimci leading-tight">{durum.text}</span>
       </span>
     </button>
   );
@@ -1052,7 +1052,7 @@ function MenuOgesi({ ikon, etiket, ipucu, onSec }) {
         <Icon name={ikon} size="sm" />
       </span>
       <span className="min-w-0">
-        <span className="block metin-govde font-semibold text-slate-800">{etiket}</span>
+        <span className="block metin-govde text-slate-800">{etiket}</span>
         <span className="block metin-yardimci text-slate-500">{ipucu}</span>
       </span>
     </button>

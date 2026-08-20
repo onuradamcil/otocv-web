@@ -134,7 +134,7 @@ export default function NotificationDropdown({ onNavigate }) {
 
           <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100 scrollbar-thin">
             {loading ? (
-              <div className="p-8 text-center text-xs font-medium text-slate-500">
+              <div className="p-8 text-center text-mini font-medium text-slate-500">
                 Bildirim havuzu kontrol ediliyor...
               </div>
             ) : notifications.length === 0 ? (
@@ -142,7 +142,7 @@ export default function NotificationDropdown({ onNavigate }) {
                 <div className="p-3 bg-slate-50 text-slate-500 rounded-full">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 </div>
-                <p className="text-xs font-bold text-slate-700">Güncel bildiriminiz bulunmuyor</p>
+                <p className="text-mini font-bold text-slate-700">Güncel bildiriminiz bulunmuyor</p>
                 <p className="text-yardimci text-slate-500 leading-relaxed max-w-[200px]">Aracınızın sigorta, kasko ve muayene periyotları yaklaştığında burada listelenir.</p>
               </div>
             ) : (
@@ -168,7 +168,7 @@ export default function NotificationDropdown({ onNavigate }) {
 
                     <div className="space-y-0.5 flex-1 min-w-0">
                       <div className="flex justify-between items-baseline gap-2">
-                        <p className={`metin-govde truncate ${item.is_read ? 'text-slate-500' : 'font-semibold text-slate-900'}`}>
+                        <p className={`metin-govde truncate ${item.is_read ? 'text-slate-500' : ' text-slate-900'}`}>
                           {item.title}
                         </p>
                         <span className="etiket text-slate-500 shrink-0 font-mono">

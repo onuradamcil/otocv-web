@@ -144,7 +144,7 @@ export default function GelenDevirTalepleri({ kart, onDegisti }) {
                   />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="metin-govde font-semibold text-slate-900 truncate">
+                  <p className="metin-govde text-slate-900 truncate">
                     {t.year} {t.brand} {t.model}
                   </p>
                   {/* PLAKA DEĞİL PIN: araç kimliği hep PIN ile gösteriliyor. */}
@@ -158,7 +158,7 @@ export default function GelenDevirTalepleri({ kart, onDegisti }) {
               <div className="bg-slate-50 border border-slate-200/80 rounded-md p-3">
                 <p className="metin-yardimci text-slate-500">Talep eden</p>
                 {/* YALNIZCA AD: soyadı, e-posta ve telefon gösterilmiyor. */}
-                <p className="metin-govde font-bold text-slate-900">{t.talep_eden}</p>
+                <p className="metin-govde text-slate-900">{t.talep_eden}</p>
               </div>
 
               {onaylandi ? (

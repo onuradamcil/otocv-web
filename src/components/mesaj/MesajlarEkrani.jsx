@@ -328,7 +328,7 @@ export default function MesajlarEkrani() {
           {listeDurum === 'bos' && (
             <div className="p-6 text-center space-y-2">
               <Icon name="zil" size="xl" className="text-slate-300 mx-auto" />
-              <p className="metin-govde font-bold text-slate-700">Henüz mesajınız yok</p>
+              <p className="metin-govde text-slate-700">Henüz mesajınız yok</p>
               <p className="metin-yardimci text-slate-500 leading-relaxed">
                 Bir aracın sicil sayfasından araç sahibine mesaj gönderdiğinizde
                 konuşmalarınız burada listelenir.
@@ -364,7 +364,7 @@ export default function MesajlarEkrani() {
 
                     <span className="min-w-0 flex-1">
                       <span className="flex items-baseline justify-between gap-2">
-                        <span className="metin-govde font-bold text-slate-900 truncate">
+                        <span className="metin-govde text-slate-900 truncate">
                           {k.karsi_taraf}
                         </span>
                         <span className="metin-yardimci text-slate-500 shrink-0 font-mono">
@@ -432,7 +432,7 @@ export default function MesajlarEkrani() {
                 </button>
 
                 <div className="min-w-0 flex-1">
-                  <p className="metin-govde font-semibold text-slate-900 truncate">{konusma.karsi_taraf}</p>
+                  <p className="metin-govde text-slate-900 truncate">{konusma.karsi_taraf}</p>
                   <p className="metin-yardimci text-slate-500 truncate">
                     {konusma.year} {konusma.brand} {konusma.model}
                     <span className="font-mono text-indigo-600 ml-1.5">{konusma.pin_code}</span>
@@ -460,7 +460,7 @@ export default function MesajlarEkrani() {
               </header>
 
               {konusma.engelledim && (
-                <p className="px-3 py-2 bg-rose-50 border-b border-rose-100 metin-yardimci text-rose-800 font-semibold">
+                <p className="px-3 py-2 bg-rose-50 border-b border-rose-100 metin-yardimci text-rose-800">
                   Bu kullanıcıyı engellediniz. Gönderdiği mesajlar size ulaşmıyor.
                 </p>
               )}

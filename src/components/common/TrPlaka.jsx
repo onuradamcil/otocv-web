@@ -77,12 +77,12 @@ const BOYUTLAR = {
   md: {
     cerceve: 'h-7 border',
     tr: 'px-1.5 text-[11px]',
-    plaka: 'px-2.5 text-sm',
+    plaka: 'px-2.5 text-govde',
   },
   lg: {
     cerceve: 'h-11 border-2',
-    tr: 'px-3 text-sm',
-    plaka: 'px-4 text-lg',
+    tr: 'px-3 text-govde',
+    plaka: 'px-4 text-bolum',
   },
 };
 

@@ -164,7 +164,7 @@ export default function PaywallDialog({
             <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
               {baslik || urun.ad}
             </h3>
-            <p className="text-sm text-slate-500 font-normal leading-relaxed">
+            <p className="text-govde text-slate-500 font-normal leading-relaxed">
               {urun.ozet}
             </p>
           </div>
@@ -178,7 +178,7 @@ export default function PaywallDialog({
                 <span className="text-emerald-600 shrink-0 mt-0.5">
                   <Icon name="onay" size="xs" strokeWidth={3} />
                 </span>
-                <span className="text-xs text-slate-700 font-medium leading-relaxed">{k}</span>
+                <span className="text-mini text-slate-700 font-medium leading-relaxed">{k}</span>
               </div>
             ))}
           </div>
@@ -188,7 +188,7 @@ export default function PaywallDialog({
               <p className="text-etiket font-bold uppercase tracking-wide text-slate-500">
                 Tek seferlik
               </p>
-              <p className="text-3xl font-semibold text-slate-900 tabular-nums leading-none mt-0.5">
+              <p className="text-sayfa font-semibold text-slate-900 tabular-nums leading-none mt-0.5">
                 {fiyatYaz(urun.fiyat)}
               </p>
               {urun.sureGun && (
@@ -205,7 +205,7 @@ export default function PaywallDialog({
           </div>
 
           {hata && (
-            <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3">
+            <p className="text-mini font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3">
               {hata}
             </p>
           )}
@@ -215,7 +215,7 @@ export default function PaywallDialog({
               type="button"
               onClick={onKapat}
               disabled={islemde}
-              className="w-full bg-slate-100 hover:bg-slate-200 disabled:opacity-60 text-slate-800 font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
+              className="w-full bg-slate-100 hover:bg-slate-200 disabled:opacity-60 text-slate-800 font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer"
             >
               Vazgeç
             </button>
@@ -223,7 +223,7 @@ export default function PaywallDialog({
               type="button"
               onClick={satinAl}
               disabled={islemde}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer shadow-xs"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer shadow-xs"
             >
               {islemde
                 ? 'İşleniyor…'

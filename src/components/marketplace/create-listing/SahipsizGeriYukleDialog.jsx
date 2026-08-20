@@ -216,7 +216,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
         </button>
 
         {yukleniyor ? (
-          <p className="text-sm text-slate-500 font-medium py-8 text-center">Araç bilgileri getiriliyor…</p>
+          <p className="text-govde text-slate-500 font-medium py-8 text-center">Araç bilgileri getiriliyor…</p>
 
         ) : gonderildi ? (
           /* ---------- BAŞVURU GÖNDERİLDİ ---------- */
@@ -225,7 +225,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
               <Icon name="onay" size="md" />
             </div>
             <h3 className="text-xl font-semibold text-slate-900 tracking-tight">Başvurunuz alındı</h3>
-            <p className="text-sm text-slate-500 font-normal leading-relaxed">
+            <p className="text-govde text-slate-500 font-normal leading-relaxed">
               {gonderildi.yol === 'otomatik'
                 ? 'Yedi günlük bekleme süresi başladı. Süre dolduğunda bu ekrandan ödemeyi yapıp sicili garajınıza alabilirsiniz.'
                 : 'Ruhsatınız kontrol edilecek. Onaylandığında bildirim alacaksınız.'}
@@ -233,7 +233,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
             <button
               type="button"
               onClick={onClose}
-              className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
+              className="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer"
             >
               Tamam
             </button>
@@ -249,11 +249,11 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
             {talep.yol === 'otomatik' ? (
               talep.bekleme_bitti ? (
                 <>
-                  <p className="text-sm text-slate-500 font-normal leading-relaxed text-center">
+                  <p className="text-govde text-slate-500 font-normal leading-relaxed text-center">
                     Bekleme süresi doldu. Ödemeyi tamamladığınızda araç ve geçmiş
                     servis kayıtları garajınıza eklenecek.
                   </p>
-                  <div className="bg-amber-50/70 border border-amber-100 p-3.5 rounded-md text-xs">
+                  <div className="bg-amber-50/70 border border-amber-100 p-3.5 rounded-md text-mini">
                     <p className="font-bold text-amber-950">Fatura belgeleri kapalı gelecek</p>
                     <p className="text-amber-900/80 font-medium leading-relaxed">
                       Belgeler önceki sahibin kişisel bilgilerini taşıyabilir. Bakım
@@ -265,7 +265,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                     type="button"
                     onClick={() => setPaywallAcik(true)}
                     disabled={islemde}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 text-white font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer"
                   >
                     {islemde ? 'İşleniyor…' : 'Ödemeyi Tamamla ve Devral'}
                   </button>
@@ -273,14 +273,14 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
               ) : (
                 <>
                   <div className="bg-slate-50 border border-slate-200 rounded-md p-5 text-center">
-                    <p className="text-3xl font-semibold text-slate-900 tabular-nums leading-none">
+                    <p className="text-sayfa font-semibold text-slate-900 tabular-nums leading-none">
                       {kalanGun(talep.tamamlanabilir_at)}
                     </p>
                     <p className="text-yardimci text-slate-500 font-bold uppercase tracking-wide mt-1">
                       gün kaldı
                     </p>
                   </div>
-                  <p className="text-xs text-slate-500 font-medium leading-relaxed text-center">
+                  <p className="text-mini text-slate-500 font-medium leading-relaxed text-center">
                     Hızlı yolda yedi günlük bir bekleme süresi var. Süre dolduğunda
                     buradan devralmayı tamamlayabilirsiniz. Şu ana kadar hiçbir
                     ücret alınmadı.
@@ -288,7 +288,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                 </>
               )
             ) : (
-              <p className="text-sm text-slate-500 font-normal leading-relaxed text-center">
+              <p className="text-govde text-slate-500 font-normal leading-relaxed text-center">
                 Yüklediğiniz ruhsat kontrol ediliyor. Onaylandığında bildirim
                 alacaksınız ve bakım kayıtları ile fatura belgelerinin tamamı
                 garajınıza aktarılacak.
@@ -296,13 +296,13 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
             )}
 
             {hata && (
-              <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3">{hata}</p>
+              <p className="text-mini font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3">{hata}</p>
             )}
 
             <button
               type="button"
               onClick={onClose}
-              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer"
             >
               Kapat
             </button>
@@ -318,7 +318,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
               <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
                 Bu aracın sicili sistemde kayıtlı
               </h3>
-              <p className="text-sm text-slate-500 font-normal leading-relaxed">
+              <p className="text-govde text-slate-500 font-normal leading-relaxed">
                 Aracın kayıtlı sahibi hesabını kapatmış. Servis geçmişi silinmedi —
                 aracın sicili duruyor ve size aktarılabilir.
               </p>
@@ -327,7 +327,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
             {/* Sayılar GERÇEK: veritabanından sayılıyor, tahmin değil. */}
             {onizleme && (
               <div className="bg-slate-50 border border-slate-200 rounded-md p-4 space-y-2.5">
-                <p className="text-sm font-semibold text-slate-900">
+                <p className="text-govde font-semibold text-slate-900">
                   {onizleme.yil} {onizleme.marka} {onizleme.model}
                 </p>
                 <div className="grid grid-cols-3 gap-2 text-center">
@@ -337,7 +337,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                     ['Sicil puanı', onizleme.sicil_puani],
                   ].map(([etiket, deger]) => (
                     <div key={etiket} className="bg-white border border-slate-200 rounded-lg py-2">
-                      <div className="text-lg font-semibold text-slate-900 tabular-nums">{deger}</div>
+                      <div className="text-bolum font-semibold text-slate-900 tabular-nums">{deger}</div>
                       <div className="text-etiket text-slate-500 font-bold uppercase tracking-wide">{etiket}</div>
                     </div>
                   ))}
@@ -348,7 +348,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
             {/* YOL SEÇİMİ. Farkı gizlemiyoruz: hızlı yolda belgelerin
                 gelmeyeceği seçim anında yazıyor, sonradan sürpriz olmuyor. */}
             <div className="space-y-2.5">
-              <p className="text-xs font-semibold text-slate-700">Nasıl devralmak istersiniz?</p>
+              <p className="text-mini font-semibold text-slate-700">Nasıl devralmak istersiniz?</p>
 
               {[
                 {
@@ -377,7 +377,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                   }`}
                 >
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-sm font-semibold text-slate-900">{s.baslik}</span>
+                    <span className="text-govde font-semibold text-slate-900">{s.baslik}</span>
                     <span className="text-yardimci text-slate-500 font-bold">{s.ozet}</span>
                   </div>
                   <p className="text-yardimci text-emerald-700 font-medium mt-1.5">+ {s.artilar}</p>
@@ -404,7 +404,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
 
             {yol === 'belgeli' && (
               <div className="space-y-2">
-                <label htmlFor="ruhsat-dosya" className="block text-xs font-bold text-slate-700">
+                <label htmlFor="ruhsat-dosya" className="block text-mini font-bold text-slate-700">
                   Araç ruhsatı <span className="text-rose-600">*</span>
                 </label>
                 <input
@@ -414,7 +414,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                   onChange={dosyaSec}
                   disabled={hazirlaniyor}
                   aria-busy={hazirlaniyor || undefined}
-                  className="block w-full text-xs text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 file:cursor-pointer cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+                  className="block w-full text-mini text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-mini file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 file:cursor-pointer cursor-pointer disabled:opacity-60 disabled:cursor-wait"
                 />
                 <p className="text-yardimci text-slate-500 leading-relaxed" aria-live="polite">
                   {hazirlaniyor
@@ -425,14 +425,14 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
             )}
 
             {hata && (
-              <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3">{hata}</p>
+              <p className="text-mini font-bold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3">{hata}</p>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer"
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer"
               >
                 Vazgeç
               </button>
@@ -440,7 +440,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
                 type="button"
                 onClick={basvuruGonder}
                 disabled={islemde || !yol}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-sm py-3.5 rounded-md transition-all cursor-pointer shadow-xs"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-govde py-3.5 rounded-md transition-all cursor-pointer shadow-xs"
               >
                 {islemde ? 'Gönderiliyor…' : 'Başvuruyu Gönder'}
               </button>

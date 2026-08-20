@@ -163,7 +163,7 @@ export default function VitrinSatiri({ item, sira = 0, favorili, onFavori, onSec
             <div className="etiket text-slate-500">SİCİL PUANI</div>
             <div className="baslik-sayfa text-indigo-600 tabular-nums leading-none mt-0.5">
               {item.trust_score ?? 0}
-              <span className="metin-yardimci text-slate-400 font-normal">/100</span>
+              <span className="metin-yardimci text-slate-400">/100</span>
             </div>
           </div>
 
