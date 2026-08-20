@@ -252,12 +252,28 @@ function AramaFormu({ baslangic, mobil }) {
           id={`${kimlik}-oneriler`}
           role="listbox"
           aria-label="Arama önerileri"
-          className="absolute top-full left-0 right-0 mt-1 z-20 bg-white border border-slate-200 rounded-md shadow-xl overflow-hidden max-h-[380px] overflow-y-auto divide-y divide-slate-100 motion-safe:animate-fadeIn"
+          className="absolute top-full left-0 right-0 mt-1 z-20 bg-white border border-slate-200 rounded-md shadow-xl overflow-hidden max-h-[380px] overflow-y-auto divide-y divide-slate-100 animate-panelAcilis"
         >
           {gosterilen.map((o, i) => {
             const ilkBolum = i === 0 || BOLUM[gosterilen[i - 1].tur] !== BOLUM[o.tur];
             return (
-              <li key={`${o.tur}-${o.adres}`}>
+              <li
+                key={`${o.tur}-${o.adres}`}
+                /* ⚠ GECİKME SATIR SIRASINA BAĞLI. Hepsi aynı anda belirirse
+                   hareket fark edilmiyor; 28 ms aralıkla liste "doluyor"
+                   hissi veriyor. Üst sınır var: 10. satırdan sonra gecikme
+                   büyümüyor, yoksa uzun listede son satır yarım saniye
+                   sonra gelir ve tıklanacak şey yokmuş gibi görünür. */
+                style={{ animationDelay: `${Math.min(i, 9) * 28}ms` }}
+                /* ⚠ `motion-safe:` ÖNEKİ YOK VE OLMAMALI. O bir Tailwind
+                   varyantı; `animate-oneriGirisi` ise globals.css'te tanımlı
+                   ÖZEL bir sınıf. Tailwind sahibi olmadığı bir sınıfın
+                   varyantını üretemiyor — ölçüldü: `animationName: none`,
+                   yani animasyon sessizce hiç çalışmıyordu.
+                   Hareket duyarlılığı zaten globals.css'teki
+                   `prefers-reduced-motion` bloğuyla karşılanıyor. */
+                className="animate-oneriGirisi"
+              >
                 {ilkBolum && (
                   <span className="block px-3 pt-2.5 pb-1 etiket text-slate-500 select-none">
                     {BOLUM[o.tur]}

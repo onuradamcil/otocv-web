@@ -115,6 +115,81 @@ test.describe('Arama önerileri · içerik ve yönlendirme', () => {
     await expect(page.locator(PANEL)).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('option', { name: /Kadıköy/ })).toBeVisible();
   });
+
+  test('MARKA yazınca o markanın serileri de geliyor (en az 5 öneri)',
+    async ({ page }) => {
+      // ⚠ İLK SÜRÜM TEK SATIR VERİYORDU. Eşleşme yalnızca YAPRAK ADINA
+      // bakıyordu: "bmw" seri adında ("3 Serisi") geçmediği için hiçbir seri
+      // eşleşmiyordu. Artık marka+seri(+model) YOLU üzerinde aranıyor.
+      await yaz(page, 'bmw');
+      await expect(page.locator(PANEL)).toBeVisible({ timeout: 15_000 });
+
+      const metinler = await page.locator(SATIR).allInnerTexts();
+      expect(metinler.length, 'marka aramasında öneri sayısı çok az')
+        .toBeGreaterThanOrEqual(5);
+      // Yalnızca markanın kendisi değil, ALTINDAKİ kademeler de olmalı.
+      expect(metinler.filter((m) => m.includes('›')).length,
+        'marka altındaki seri/model önerileri gelmiyor').toBeGreaterThan(0);
+    });
+
+  test('animasyonlar GERÇEKTEN bağlı ve satırlar sırayla geliyor',
+    async ({ page }) => {
+      // ⚠ BU TEST BİR SESSİZ HATANIN BEKÇİSİ. Sınıflar önce
+      // `motion-safe:animate-panelAcilis` diye yazılmıştı ve HİÇ
+      // çalışmıyordu: `motion-safe:` bir Tailwind varyantı, `animate-panelAcilis`
+      // ise globals.css'te tanımlı ÖZEL bir sınıf — Tailwind sahibi olmadığı
+      // bir sınıfın varyantını üretmiyor. Ölçüm olmasa fark edilmezdi.
+      await yaz(page, 'bmw');
+      await expect(page.locator(PANEL)).toBeVisible({ timeout: 15_000 });
+
+      const olcum = await page.evaluate(() => {
+        const p = document.querySelector('[role="listbox"]');
+        const satirlar = Array.from(document.querySelectorAll('[role="option"]'))
+          .map((o) => o.closest('li'));
+        return {
+          panel: getComputedStyle(p).animationName,
+          satir: getComputedStyle(satirlar[0]).animationName,
+          gecikmeler: satirlar.slice(0, 4).map((l) => getComputedStyle(l).animationDelay),
+        };
+      });
+      expect(olcum.panel, 'panel animasyonu bağlı değil').toBe('panelAcilis');
+      expect(olcum.satir, 'satır animasyonu bağlı değil').toBe('oneriGirisi');
+      // Gecikmeler artan olmalı — hepsi aynıysa "sırayla gelme" yok demektir.
+      expect(new Set(olcum.gecikmeler).size,
+        'satırlar aynı anda beliriyor, sırayla gelmiyor').toBeGreaterThan(1);
+    });
+});
+
+test.describe('Arama önerileri · hareket duyarlılığı', () => {
+  test('prefers-reduced-motion açıkken animasyon YOK ama liste görünür',
+    async ({ page }) => {
+      // ⚠ `test.use({ reducedMotion })` DENENDİ, ETKİ ETMEDİ: ölçümde panel
+      // hâlâ `panelAcilis` döndürdü. Açık çağrı ölçülerek doğrulandı, o
+      // yüzden burada o kullanılıyor — "ayar verildi" varsaymak yerine
+      // etkisini görmek gerekiyordu.
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await yaz(page, 'bmw');
+      await expect(page.locator(PANEL)).toBeVisible({ timeout: 15_000 });
+
+      const olcum = await page.evaluate(() => {
+        const p = document.querySelector('[role="listbox"]');
+        const l = document.querySelector('[role="option"]').closest('li');
+        return {
+          panel: getComputedStyle(p).animationName,
+          satir: getComputedStyle(l).animationName,
+          // ⚠ EN KRİTİK: animasyon durunca satırlar GÖRÜNMEZ KALMAMALI.
+          // `oneriGirisi` ilk karesi `opacity: 0`; `animation: none` onu
+          // uygulamadığı için satır görünür olmalı. Bu ters giderse liste
+          // hareket duyarlı kullanıcıda tamamen boş görünürdü.
+          gorunurluk: getComputedStyle(l).opacity,
+        };
+      });
+      expect(olcum.panel).toBe('none');
+      expect(olcum.satir).toBe('none');
+      expect(olcum.gorunurluk, 'animasyon durunca satırlar görünmez kaldı').toBe('1');
+      expect(await page.locator(SATIR).count()).toBeGreaterThan(0);
+    });
+
 });
 
 test.describe('Arama önerileri · klavye', () => {

@@ -338,12 +338,43 @@ body {
 .animate-slideIn  { animation: slideIn  200ms ease-out; }
 .animate-drawerIn { animation: drawerIn 220ms cubic-bezier(0.32, 0.72, 0, 1); }
 
+/* =========================================================================
+   ARAMA ÖNERİ PANELİ
+   -------------------------------------------------------------------------
+   Panel bir anda "yapışıp" kalıyordu; ürün sahibinin deyimiyle robotik
+   duruyordu. İki ayrı hareket var:
+
+   · `panelAcilis` — kutunun altından açılıyor. `transform-origin: top`
+     olmadan kutu merkezden büyür ve arama çubuğunun içinden çıkıyormuş
+     hissi kaybolur.
+   · `oneriGirisi` — satırlar SIRAYLA geliyor. Gecikme bileşende
+     `animationDelay` ile veriliyor (satır başına 28 ms); hepsi aynı anda
+     belirirse hareket fark edilmiyor, tek tek gelince liste "doluyor".
+     `both` şart: gecikme boyunca satır ilk kareyi (opacity 0) tutmalı,
+     yoksa önce görünüp sonra kaybolup tekrar gelir.
+
+   ⚠ İkisi de aşağıdaki `prefers-reduced-motion` bloğuna EKLENDİ. Eklenmezse
+   hareket duyarlılığı olan kullanıcıda durmazlar — projede yerleşik kural.
+   ========================================================================= */
+@keyframes panelAcilis {
+  from { opacity: 0; transform: translateY(-6px) scaleY(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes oneriGirisi {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: none; }
+}
+.animate-panelAcilis { animation: panelAcilis 170ms cubic-bezier(0.32, 0.72, 0, 1); transform-origin: top center; }
+.animate-oneriGirisi { animation: oneriGirisi 190ms ease-out both; }
+
 /* ♿ Hareket azaltma tercihi olan kullanıcılar için tüm animasyonlar durur */
 @media (prefers-reduced-motion: reduce) {
   .animate-fadeIn,
   .animate-scaleIn,
   .animate-slideIn,
   .animate-drawerIn,
+  .animate-panelAcilis,
+  .animate-oneriGirisi,
   .animate-scannerLine {
     animation: none !important;
   }
