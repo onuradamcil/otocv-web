@@ -78,7 +78,12 @@ function AramaFormu({ baslangic, mobil }) {
     <form
       onSubmit={gonder}
       role="search"
-      /* ⚠ TEK ODAK HALKASI — ÖNCEDEN İKİ TANE ÇİZİLİYORDU.
+      /* ⚠ GENİŞLİK 576px'TEN 512px'E ÇEKİLDİ. Şeridin %40'ını kaplıyordu
+         ve logoyla eylemleri kenara itiyordu; arama önemli ama şeridin
+         sahibi değil. Yer tutucu da kısaltıldı ki dar kutuda kırpılmasın —
+         `aria-label` DEĞİŞMEDİ, testler onu arıyor.
+
+         ⚠ TEK ODAK HALKASI — ÖNCEDEN İKİ TANE ÇİZİLİYORDU.
          Ölçüldü: girdi global `:focus-visible` kuralından
          `outline: 2px solid #4f46e5` alıyor, form da `focus-within` ile
          kenarlığını indigoya çeviriyordu. Sonuç iç içe iki mavi çerçeveydi.
@@ -93,7 +98,7 @@ function AramaFormu({ baslangic, mobil }) {
          yapıyor — kutuyu şeride taşıma kararının amacı buydu. */
       className={`flex items-center gap-2 bg-white border border-slate-300 rounded-md px-3 h-11 w-full transition-shadow
         focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400
-        ${mobil ? '' : 'max-w-xl'}`}
+        ${mobil ? '' : 'max-w-lg'}`}
     >
       <span className="text-slate-500 shrink-0" aria-hidden="true">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -107,13 +112,13 @@ function AramaFormu({ baslangic, mobil }) {
         value={sorgu}
         onChange={(e) => setSorgu(e.target.value)}
         aria-label="Marka, model, şehir veya PIN ile ara"
-        placeholder="Marka, model, şehir veya PIN kodu ile ara..."
+        placeholder="Marka, model veya PIN ile ara"
         autoComplete="off"
         /* `min-h-[44px]` HER İKİ YERLEŞİMDE: masaüstünde de tıklanabilir
            alan yazı boyu kadar kalmamalı (WCAG 2.5.8).
            `focus-visible:outline-none`: halkayı kapsayıcı çiziyor (yukarı
            bak) — iki çerçeve üst üste binmesin diye. */
-        className="odak-kapsayicida w-full min-h-[44px] bg-transparent border-none outline-none text-mini text-slate-900 placeholder:text-slate-500"
+        className="odak-kapsayicida w-full min-h-[44px] bg-transparent border-none outline-none text-govde text-slate-900 placeholder:text-slate-500"
       />
 
       {sorgu && (
