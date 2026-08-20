@@ -224,7 +224,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
             <div className="w-12 h-12 mx-auto rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
               <Icon name="onay" size="md" />
             </div>
-            <h3 className="text-xl font-semibold text-slate-900 tracking-tight">Başvurunuz alındı</h3>
+            <h3 className="text-vurgu font-semibold text-slate-900 tracking-tight">Başvurunuz alındı</h3>
             <p className="text-govde text-slate-500 font-normal leading-relaxed">
               {gonderildi.yol === 'otomatik'
                 ? 'Yedi günlük bekleme süresi başladı. Süre dolduğunda bu ekrandan ödemeyi yapıp sicili garajınıza alabilirsiniz.'
@@ -242,7 +242,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
         ) : talep && talep.durum === 'bekliyor' ? (
           /* ---------- BEKLEYEN BAŞVURU ---------- */
           <div className="space-y-4 pt-1">
-            <h3 className="text-xl font-semibold text-slate-900 tracking-tight text-center">
+            <h3 className="text-vurgu font-semibold text-slate-900 tracking-tight text-center">
               {talep.yol === 'otomatik' ? 'Bekleme süreniz sürüyor' : 'Başvurunuz inceleniyor'}
             </h3>
 
@@ -315,7 +315,7 @@ export default function SahipsizGeriYukleDialog({ plaka, onClose, onDevralindi }
               <div className="w-12 h-12 mx-auto rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
                 <Icon name="kalkan" size="md" />
               </div>
-              <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
+              <h3 className="text-vurgu sm:text-buyuk font-semibold text-slate-900 tracking-tight leading-snug">
                 Bu aracın sicili sistemde kayıtlı
               </h3>
               <p className="text-govde text-slate-500 font-normal leading-relaxed">

@@ -347,7 +347,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
           <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-2xs space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div className="space-y-1">
-                <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
+                <h1 className="text-vurgu sm:text-buyuk font-semibold text-slate-900 tracking-tight leading-snug">
                   {formData.title || `${formData.selectedYear || ''} ${formData.selectedBrand?.name || ''} ${formData.selectedSeries?.name || ''} ${formData.selectedModel?.name || ''}`}
                 </h1>
                 {/* ⚠ UYDURMA KONUM KALDIRILDI: eskiden il/ilçe seçilmemişse
@@ -454,7 +454,7 @@ export default function Step4PreviewAndPublish({ formData = {}, updateFormData, 
                     <p className="text-yardimci text-slate-500 font-medium">Yayımdan sonra hesaplanır</p>
                   </div>
                   <div className="text-right flex items-baseline gap-0.5">
-                    <span className="text-2xl font-semibold font-mono text-slate-500">—</span>
+                    <span className="text-buyuk font-semibold font-mono text-slate-500">—</span>
                     <span className="text-mini font-bold text-slate-500 font-mono">/100</span>
                   </div>
                 </div>

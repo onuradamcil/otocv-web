@@ -71,6 +71,17 @@
   --text-govde: 0.875rem;                       /* 14px */
   --text-govde--line-height: calc(1.25 / 0.875);/* = text-sm  (14->20px) */
   --text-kart: 0.9375rem;                       /* 15px */
+
+  /* 20px ve 24px: olcekte yoktu, sitede 38 yerde ham `text-xl`/`text-2xl`
+     olarak duruyordu (bolum/diyalog basliklari ve sicil puani).
+     ⚠ 36px (`text-4xl`) BILEREK EKLENMEDI: yalnizca TEK dosyada 4
+     kullanimi var; onun icin olcege kademe acmak, olcegi bir kisit
+     olmaktan cikarip "kodun kullandigi her boyutun listesi"ne cevirirdi.
+     Orada ham kalmasi bilincli. */
+  --text-vurgu: 1.25rem;                        /* 20px */
+  --text-vurgu--line-height: calc(1.75 / 1.25); /* = text-xl  (20->28px) */
+  --text-buyuk: 1.5rem;                         /* 24px */
+  --text-buyuk--line-height: calc(2 / 1.5);     /* = text-2xl (24->32px) */
   --text-bolum: 1.125rem;                       /* 18px */
   --text-bolum--line-height: calc(1.75 / 1.125);/* = text-lg  (18->28px) */
   --text-sayfa: 1.875rem;                       /* 30px */

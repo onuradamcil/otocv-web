@@ -1202,7 +1202,7 @@ export default function MarketplaceView({
           {/* `/vitrin` kendi sayfası ve kendi `h1`ine sahip olmalı: aynı
               başlığı iki rotada kullanmak hem SEO'da hem ekran okuyucuda
               "aynı sayfa" izlenimi verir. */}
-          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-100">
+          <h1 className="text-vurgu md:text-buyuk font-semibold tracking-tight text-slate-100">
             {tamSayfa
               ? 'Vitrindeki Tüm Araçlar'
               : 'Aracın Geçmişini Bilin, Kararınızı Belgeyle Verin'}

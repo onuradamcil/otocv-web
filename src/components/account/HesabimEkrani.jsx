@@ -244,7 +244,7 @@ export default function HesabimEkrani() {
       <div className="max-w-3xl mx-auto space-y-5">
 
         <div className="border-b border-slate-200 pb-4">
-          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-900">Hesabım</h1>
+          <h1 className="text-vurgu md:text-buyuk font-semibold tracking-tight text-slate-900">Hesabım</h1>
           <p className="text-mini text-slate-500 font-semibold mt-1">
             Kimlik bilgileriniz, giriş güvenliğiniz ve veri haklarınız.
           </p>

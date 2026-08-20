@@ -293,8 +293,8 @@ const Step3Medical = forwardRef(({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-rose-600 font-semibold text-2xl sm:text-sayfa leading-none">*</span>
-                <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
+                <span className="text-rose-600 font-semibold text-buyuk sm:text-sayfa leading-none">*</span>
+                <h3 className="text-vurgu sm:text-buyuk font-semibold text-slate-900 tracking-tight">
                   Servis, Bakım ve Parça Geçmişi
                 </h3>
               </div>

@@ -42,7 +42,7 @@ export default function YasalSayfa({ baslik, ozet, bolumler }) {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
 
       <div className="space-y-2">
-        <h1 className="text-2xl sm:text-sayfa font-semibold text-slate-900 tracking-tight">{baslik}</h1>
+        <h1 className="text-buyuk sm:text-sayfa font-semibold text-slate-900 tracking-tight">{baslik}</h1>
         <p className="text-govde text-slate-500 font-medium leading-relaxed">{ozet}</p>
       </div>
 

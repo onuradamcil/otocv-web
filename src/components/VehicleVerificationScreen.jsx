@@ -158,7 +158,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
           {verifyTab === 'pin' ? (
             <div className="space-y-6 animate-fadeIn flex-1 flex flex-col justify-between">
               <div className="space-y-1">
-                <h2 className="text-xl font-semibold text-slate-900">Dijital PIN Sorgulama</h2>
+                <h2 className="text-vurgu font-semibold text-slate-900">Dijital PIN Sorgulama</h2>
                 <p className="text-mini text-slate-500 font-medium leading-relaxed">
                   Ruhsat sahibinin size ilettiği benzersiz OTO.CV kodunu girin. Bu kod, aracın kilometresini, kaza geçmişini ve servis kayıtlarını tesciller.
                 </p>
@@ -210,7 +210,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                      söylüyor ve açıklama metnini işaret ediyor. */
                   aria-invalid={searchError ? 'true' : undefined}
                   aria-describedby={searchError ? 'sicil-pin-hata' : undefined}
-                  className="w-full py-5 px-6 bg-slate-50 border-2 border-gray-200 focus:border-indigo-500 rounded-lg text-center font-mono text-xl font-bold tracking-widest text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 transition-all shadow-inner uppercase"
+                  className="w-full py-5 px-6 bg-slate-50 border-2 border-gray-200 focus:border-indigo-500 rounded-lg text-center font-mono text-vurgu font-bold tracking-widest text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 transition-all shadow-inner uppercase"
                 />
               </div>
 
@@ -243,7 +243,7 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
           ) : (
             <div className="space-y-5 animate-fadeIn flex-1 flex flex-col justify-between">
               <div className="space-y-1">
-                <h2 className="text-xl font-semibold text-slate-900">Akıllı Barkod & QR Tarama</h2>
+                <h2 className="text-vurgu font-semibold text-slate-900">Akıllı Barkod & QR Tarama</h2>
                 <p className="text-mini text-slate-500 font-medium leading-relaxed">
                   Sistemimizdeki resmi belgede basılı olan QR kodunu cihaz kameranız ile taratın. Kimlik eşleşmesi yapılıp rapor otomatik getirilir.
                 </p>

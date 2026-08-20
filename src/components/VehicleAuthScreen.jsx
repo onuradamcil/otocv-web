@@ -192,7 +192,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
           
           {/* BAŞLIK GRUBU */}
           <div className="space-y-1 text-center">
-            <h1 className="text-xl font-semibold tracking-tight text-[#0F172A]">
+            <h1 className="text-vurgu font-semibold tracking-tight text-[#0F172A]">
               {authMode === 'login' && 'Giriş Yap'}
               {authMode === 'register_step1' && 'Hesap Aç'}
               {authMode === 'register_step2' && 'Profili Tamamla'}

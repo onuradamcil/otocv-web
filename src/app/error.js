@@ -36,7 +36,7 @@ export default function Error({ error, reset }) {
           </span>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Bir şeyler ters gitti</h1>
+            <h1 className="text-buyuk font-semibold text-slate-900 tracking-tight">Bir şeyler ters gitti</h1>
             <p className="text-mini md:text-govde text-slate-500 font-medium leading-relaxed">
               Sayfa yüklenirken bir sorun oluştu. Tekrar denemek çoğu zaman yeterli oluyor.
               Sorun sürerse bir süre sonra tekrar deneyin.

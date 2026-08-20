@@ -33,7 +33,7 @@ export default function Page() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
 
       <div className="space-y-2">
-        <h1 className="text-2xl sm:text-sayfa font-semibold text-slate-900 tracking-tight">
+        <h1 className="text-buyuk sm:text-sayfa font-semibold text-slate-900 tracking-tight">
           Ücretler
         </h1>
         <p className="text-govde text-slate-500 font-medium leading-relaxed">
@@ -77,7 +77,7 @@ export default function Page() {
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-xl font-semibold text-slate-900 tabular-nums leading-none">
+                  <p className="text-vurgu font-semibold text-slate-900 tabular-nums leading-none">
                     {fiyatYaz(urun.fiyat)}
                   </p>
                   <p className="text-etiket text-slate-500 font-bold uppercase tracking-wide mt-1">

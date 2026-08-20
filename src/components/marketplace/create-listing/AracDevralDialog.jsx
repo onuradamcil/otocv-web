@@ -129,7 +129,7 @@ export default function AracDevralDialog({
               <Icon name="onay" size="lg" strokeWidth={2.5} />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xl font-semibold text-slate-900 tracking-tight">
+              <h3 className="text-vurgu font-semibold text-slate-900 tracking-tight">
                 {sonuc.zatenVar ? 'Talebiniz zaten iletilmişti' : 'Talebiniz iletildi'}
               </h3>
               <p className="text-govde text-slate-500 font-normal leading-relaxed">
@@ -187,7 +187,7 @@ export default function AracDevralDialog({
               <Icon name="onay" size="lg" strokeWidth={2.5} />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xl font-semibold text-slate-900 tracking-tight">Araç sizin oldu</h3>
+              <h3 className="text-vurgu font-semibold text-slate-900 tracking-tight">Araç sizin oldu</h3>
               <p className="text-govde text-slate-500 font-normal leading-relaxed">
                 Bakım kayıtları ve belgeler araçla birlikte devredildi. Araç artık garajınızda.
               </p>
@@ -218,7 +218,7 @@ export default function AracDevralDialog({
               <Icon name="onay" size="lg" strokeWidth={2.5} />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xl font-semibold text-slate-900 tracking-tight">Talebiniz gönderildi</h3>
+              <h3 className="text-vurgu font-semibold text-slate-900 tracking-tight">Talebiniz gönderildi</h3>
               <p className="text-govde text-slate-500 font-normal leading-relaxed">
                 Araç sahibine bildirim gitti. Onayladığında araç garajınıza geçecek ve size
                 bildirim göndereceğiz.
@@ -244,7 +244,7 @@ export default function AracDevralDialog({
                 <Icon name="anahtar" size="lg" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-xl font-semibold text-slate-900 tracking-tight">
+                <h3 className="text-vurgu font-semibold text-slate-900 tracking-tight">
                   {onizleme ? 'Devralacağınız sicil' : 'Bu aracı devral'}
                 </h3>
                 <p className="text-govde text-slate-500 font-normal leading-relaxed">

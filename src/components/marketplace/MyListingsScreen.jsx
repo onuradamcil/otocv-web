@@ -57,7 +57,7 @@ export default function MyListingsScreen({ user, onNavigateToGarage }) {
           <span className="text-etiket font-bold text-indigo-600 uppercase font-mono tracking-wider block">
             PAZARYERİ VİTRİNİ
           </span>
-          <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight mt-0.5">
+          <h1 className="text-vurgu md:text-buyuk font-semibold text-slate-900 tracking-tight mt-0.5">
             Vitrindeki Araçlarım ({listings.length})
           </h1>
         </div>

@@ -35,7 +35,7 @@ export default function NotFound() {
           </span>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Sayfa bulunamadı</h1>
+            <h1 className="text-buyuk font-semibold text-slate-900 tracking-tight">Sayfa bulunamadı</h1>
             <p className="text-mini md:text-govde text-slate-500 font-medium leading-relaxed">
               Aradığınız sayfa taşınmış ya da hiç var olmamış olabilir. Aşağıdaki yollardan
               devam edebilirsiniz.

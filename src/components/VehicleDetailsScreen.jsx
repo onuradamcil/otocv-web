@@ -498,7 +498,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
           <div className="bg-white border border-slate-200 rounded-md p-4 sm:p-5 shadow-2xs space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div className="space-y-1">
-                <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
+                <h1 className="text-vurgu sm:text-buyuk font-semibold text-slate-900 tracking-tight leading-snug">
                   {vehicle.title || `${vehicle.year || ''} ${vehicle.brand || ''} ${vehicle.series || ''} ${vehicle.model || ''} ${vehicle.package || ''}`}
                 </h1>
                 {/* ⚠ BURADA UYDURMA KONUM VARDI:
@@ -1332,7 +1332,7 @@ export default function VehicleDetailsScreen({ vehicle, kayitlar = null, onBack,
                     Sicil Puanı
                   </span>
                   <span className="flex items-baseline gap-0.5">
-                    <span className={`text-2xl font-semibold font-mono tabular-nums ${
+                    <span className={`text-buyuk font-semibold font-mono tabular-nums ${
                       otocvScore >= 70 ? 'text-emerald-600'
                       : otocvScore >= 40 ? 'text-amber-600' : 'text-slate-500'
                     }`}>{otocvScore}</span>

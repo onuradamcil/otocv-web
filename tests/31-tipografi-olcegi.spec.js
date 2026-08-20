@@ -42,9 +42,13 @@ const KOK = path.join(__dirname, '..', 'src');
 const KARNE = ['otokarnescreen', 'officialreportview', 'advertisingcard', 'karne'];
 
 // Ölçekte karşılığı OLAN ve bu yüzden artık kaynakta bulunmaması gereken
-// ham puntolar. `text-xl` / `text-2xl` BİLEREK listede değil: ölçekte
-// karşılıkları yok, taşımak punto değiştirmek olurdu.
-const YASAK_PUNTO = /(?<![\w-])text-(xs|sm|lg|3xl)(?![\w-])/g;
+// ham puntolar.
+//
+// ⚠ `text-4xl` BİLEREK LİSTEDE DEĞİL. Ölçeğe 36px eklenmedi: yalnızca TEK
+// dosyada 4 kullanımı var ve onun için kademe açmak, ölçeği bir kısıt
+// olmaktan çıkarıp "kodun kullandığı her boyutun listesi"ne çevirirdi.
+// Orada ham kalması bilinçli bir karar; test onu kusur saymıyor.
+const YASAK_PUNTO = /(?<![\w-])text-(xs|sm|lg|xl|2xl|3xl)(?![\w-])/g;
 
 const BILESEN = /(?<!text-)\b(baslik-sayfa|baslik-bolum|baslik-kart|metin-govde|metin-yardimci|etiket|sayi-vurgu)\b/;
 const AGIRLIK = /\bfont-(thin|light|normal|medium|semibold|bold|extrabold|black)\b/;
@@ -117,7 +121,8 @@ test.describe('Tipografi ölçeği · tarayıcı', () => {
         // ⚠ Ham sınıflar da ölçülüyor: Tailwind onları ARTIK ÜRETMİYOR
         // olabilir (kaynakta kullanılmıyorlar), o yüzden beklenen değerler
         // burada SABİT yazılı — ölçümün kendisi taraftan bağımsız olsun.
-        for (const s of ['text-mini', 'text-govde', 'text-bolum', 'text-sayfa']) {
+        for (const s of ['text-mini', 'text-govde', 'text-bolum', 'text-sayfa',
+                         'text-vurgu', 'text-buyuk']) {
           sonuc[s] = olc(s);
         }
         kap.remove();
@@ -130,5 +135,7 @@ test.describe('Tipografi ölçeği · tarayıcı', () => {
       expect(olcum['text-govde']).toEqual({ punto: '14px', satir: '20px' });
       expect(olcum['text-bolum']).toEqual({ punto: '18px', satir: '28px' });
       expect(olcum['text-sayfa']).toEqual({ punto: '30px', satir: '36px' });
+      expect(olcum['text-vurgu']).toEqual({ punto: '20px', satir: '28px' });
+      expect(olcum['text-buyuk']).toEqual({ punto: '24px', satir: '32px' });
     });
 });

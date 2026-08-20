@@ -161,7 +161,7 @@ export default function PaywallDialog({
             <p className="text-etiket font-semibold uppercase tracking-widest text-indigo-600">
               Ücretli işlem
             </p>
-            <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
+            <h3 className="text-vurgu sm:text-buyuk font-semibold text-slate-900 tracking-tight leading-snug">
               {baslik || urun.ad}
             </h3>
             <p className="text-govde text-slate-500 font-normal leading-relaxed">

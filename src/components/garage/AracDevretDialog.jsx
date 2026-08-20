@@ -268,7 +268,7 @@ export default function AracDevretDialog({ vehicle, onClose, onSuccess }) {
                   <p className="text-yardimci font-bold uppercase tracking-wider text-emerald-800">
                     Devir Kodu
                   </p>
-                  <p className="text-2xl sm:text-sayfa font-semibold font-mono tracking-widest text-slate-900 select-all break-all">
+                  <p className="text-buyuk sm:text-sayfa font-semibold font-mono tracking-widest text-slate-900 select-all break-all">
                     {kod.kod}
                   </p>
                   <p className="flex items-center justify-center gap-1.5 text-yardimci font-semibold text-emerald-700">

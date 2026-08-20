@@ -1404,7 +1404,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
             aria-label="Sihirbazdan çık ve garaja dön"
             className="flex items-center gap-2 select-none group py-1 rounded focus-visible:ring-offset-2"
           >
-            <span className="text-xl font-display font-bold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
+            <span className="text-vurgu font-display font-bold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
               OTO.CV
             </span>
           </button>
@@ -1430,7 +1430,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
           
           <div className="space-y-1">
-            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-none">
+            <h1 className="text-vurgu sm:text-buyuk font-semibold text-slate-900 tracking-tight leading-none">
               {currentStep === 1 && "Garaja Araç Ekle & Tescil"}
               {currentStep === 2 && "Araç Detayları & Ekspertiz"}
               {currentStep === 3 && "Servis & Bakım Geçmişi"}
@@ -1564,7 +1564,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
+                <h3 className="text-vurgu sm:text-buyuk font-semibold text-slate-900 tracking-tight leading-snug">
                   Yarım kalan kaydınız var
                 </h3>
                 <p className="text-govde text-slate-500 font-normal leading-relaxed">
@@ -1635,7 +1635,7 @@ export default function CreateListingWizard({ onBack, onSuccess, user }) {
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
+                <h3 className="text-vurgu sm:text-buyuk font-semibold text-slate-900 tracking-tight leading-snug">
                   {mukerrerMetin.baslik}
                 </h3>
                 <p className="text-govde text-slate-500 font-normal leading-relaxed">

@@ -64,7 +64,7 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
         <div className="w-full max-w-md bg-white border border-slate-200/60 rounded-lg shadow-[0_20px_50px_rgba(15,23,42,0.01)] p-8 md:p-10 flex flex-col space-y-6 relative overflow-hidden">
           
           <div className="space-y-1.5 text-center">
-            <h1 className="text-xl font-semibold tracking-tight text-[#0F172A]">Yeni Şifre Belirle</h1>
+            <h1 className="text-vurgu font-semibold tracking-tight text-[#0F172A]">Yeni Şifre Belirle</h1>
             <p className="text-mini text-slate-500 font-medium leading-relaxed">Hesap güvenliğiniz için akılda kalıcı ve güçlü bir şifre tescil edin.</p>
           </div>
 

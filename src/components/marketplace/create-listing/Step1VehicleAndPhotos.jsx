@@ -558,8 +558,8 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
           {/* 1. KATMAN: EN DIŞ BEYAZ PANEL BAŞLIĞI */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-rose-600 font-black text-2xl sm:text-sayfa leading-none">*</span>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              <span className="text-rose-600 font-black text-buyuk sm:text-sayfa leading-none">*</span>
+              <h3 className="text-vurgu sm:text-buyuk font-black text-slate-900 tracking-tight">
                 Tescil & Poliçe Bilgileri
               </h3>
             </div>
@@ -812,8 +812,8 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
         <div className="bg-white border border-slate-200/90 rounded-md p-6 shadow-sm space-y-4 font-sans antialiased">
           
           <div className="flex items-center gap-2">
-            <span className="text-rose-600 font-black text-2xl sm:text-sayfa leading-none">*</span>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <span className="text-rose-600 font-black text-buyuk sm:text-sayfa leading-none">*</span>
+            <h3 className="text-vurgu sm:text-buyuk font-black text-slate-900 tracking-tight">
               Araç Seçimi
             </h3>
           </div>
