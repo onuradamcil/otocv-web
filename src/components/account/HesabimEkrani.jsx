@@ -351,11 +351,11 @@ export default function HesabimEkrani() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label className="block">
                 <span className={ETIKET}>Ad</span>
-                <input value={ad} onChange={(e) => setAd(e.target.value)} className={`mt-1.5 ${GIRDI}`} aria-label="Ad" />
+                <input value={ad} onChange={(e) => setAd(e.target.value)} className={`mt-1.5 ${GIRDI}`} aria-label="Ad" autoComplete="given-name" />
               </label>
               <label className="block">
                 <span className={ETIKET}>Soyad</span>
-                <input value={soyad} onChange={(e) => setSoyad(e.target.value)} className={`mt-1.5 ${GIRDI}`} aria-label="Soyad" />
+                <input value={soyad} onChange={(e) => setSoyad(e.target.value)} className={`mt-1.5 ${GIRDI}`} aria-label="Soyad" autoComplete="family-name" />
               </label>
             </div>
             <label className="block">

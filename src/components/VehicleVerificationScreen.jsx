@@ -174,7 +174,20 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                 className="space-y-6"
               >
               <div className="relative">
-                <input 
+                {/* ⚠ ETİKET YOKTU — YALNIZCA YER TUTUCU VARDI.
+                    Ekran okuyucu bu alanı "düzenleme alanı" diye okuyordu;
+                    kullanıcı neyi yazacağını duymuyordu. Yer tutucu etiket
+                    yerine geçmiyor: odaklanınca kayboluyor ve birçok ekran
+                    okuyucu onu hiç okumuyor.
+
+                    `sr-only` seçildi çünkü tasarımda görünür bir etiket yok
+                    ve eklemek ekranın düzenini değiştirirdi — bu bir
+                    erişilebilirlik onarımı, yeniden tasarım değil. */}
+                <label htmlFor="sicil-pin-kodu" className="sr-only">
+                  Araç sicil PIN kodu
+                </label>
+                <input
+                  id="sicil-pin-kodu"
                   type="text"
                   value={searchPin}
                   // 14: `CV-XXXXX-XXXXX`. Eskiden 9 idi ve yeni biçim PIN'i
@@ -184,6 +197,19 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
                   disabled={loading}
                   onChange={(e) => { setSearchPin(e.target.value); if (searchError) setSearchError(''); }}
                   placeholder="ÖRN: CV-4TKMB-9XQ2R"
+                  /* ⚠ `inputMode="numeric"` BİLEREK YOK. Kendi tarama
+                     betiğim burayı "sayısal alan" diye işaretlemişti ama
+                     PIN ALFANÜMERİK (`CV-4TKMB-9XQ2R`) — rakam klavyesi
+                     açmak kullanıcıyı harf yazamaz hâle getirirdi. */
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  /* Hata ekranda kırmızı yazıyordu ama alana BAĞLI DEĞİLDİ;
+                     ekran okuyucu kullanıcısı sorunun ne olduğunu
+                     duymuyordu. Artık alanın kendisi hatalı olduğunu
+                     söylüyor ve açıklama metnini işaret ediyor. */
+                  aria-invalid={searchError ? 'true' : undefined}
+                  aria-describedby={searchError ? 'sicil-pin-hata' : undefined}
                   className="w-full py-5 px-6 bg-slate-50 border-2 border-gray-200 focus:border-indigo-500 rounded-lg text-center font-mono text-xl font-bold tracking-widest text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 transition-all shadow-inner uppercase"
                 />
               </div>
@@ -191,7 +217,9 @@ export default function VehicleVerificationScreen({ onVehicleFound, initialPin =
               {searchError && (
                 <div className="bg-rose-50 border border-rose-100 rounded-md px-4 py-3 flex gap-2.5 items-start">
                   <span className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0 mt-1.5" />
-                  <p className="text-yardimci font-semibold text-rose-700 leading-relaxed">{searchError}</p>
+                  {/* role="alert": hata sorgudan SONRA beliriyor, yani
+                      kullanıcı o anda başka yere odaklı olabilir. */}
+                  <p id="sicil-pin-hata" role="alert" className="text-yardimci font-semibold text-rose-700 leading-relaxed">{searchError}</p>
                 </div>
               )}
 

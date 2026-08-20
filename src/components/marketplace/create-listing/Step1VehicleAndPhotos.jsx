@@ -621,13 +621,21 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
 
                 {/* KİLOMETRE */}
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wide">
+                  {/* ⚠ ETİKET ZATEN GÖRÜNÜYORDU AMA ALANA BAĞLI DEĞİLDİ:
+                      `htmlFor`/`id` yoktu ve input `<label>`ın içinde de
+                      değildi (araya sarmalayıcı `<div>` giriyor). Yani
+                      ekran okuyucu "düzenleme alanı" diyordu. Onarım metin
+                      UYDURMUYOR, var olan etiketi bağlıyor — uydurulmuş bir
+                      `aria-label` görünen etiketten farklı olsaydı bu da
+                      ayrı bir ihlal olurdu. */}
+                  <label htmlFor="arac-km" className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wide">
                     Güncel Kilometre (KM) <span className="text-rose-600">*</span>
                   </label>
                   <div className={`border rounded-md bg-white flex items-center h-11 px-3 transition-all ${
                     touchedFields.mileage && !isKmValid ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
                   }`}>
-                    <input 
+                    <input
+                      id="arac-km"
                       type="text"
                       value={activeKm}
                       onBlur={() => handleBlur('mileage')}
@@ -636,11 +644,25 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                         updateFormData({ mileage: formatted, km: formatted });
                       }}
                       placeholder="Örn: 42.500"
+                      /* Mobilde harf klavyesi açılıyordu. `formatThousandsSeparator`
+                         zaten rakam dışını atıyor, yani kullanıcının harfe
+                         hiç ihtiyacı yok. `type="number"` DEĞİL: binlik ayracı
+                         (42.500) sayı alanında geçersiz sayılıp değeri siler. */
+                      inputMode="numeric"
+                      autoComplete="off"
+                      /* `*` yalnızca GÖRSELDİ. Native `required` eklenmiyor:
+                         sihirbaz kendi doğrulamasını yapıyor (`isStep1Valid`)
+                         ve tarayıcı doğrulamasını devreye sokmak akışı
+                         bozabilir. `aria-required` semantiği veriyor,
+                         davranışı değiştirmiyor. */
+                      aria-required="true"
+                      aria-invalid={touchedFields.mileage && !isKmValid ? 'true' : undefined}
+                      aria-describedby={touchedFields.mileage && !isKmValid ? 'arac-km-hata' : undefined}
                       className="w-full bg-transparent border-none outline-none text-mini font-bold text-slate-800 font-mono tracking-wide"
                     />
                   </div>
                   {touchedFields.mileage && !isKmValid && (
-                    <p className="text-[13px] font-bold text-rose-600">Kilometre verisi zorunludur.</p>
+                    <p id="arac-km-hata" className="text-[13px] font-bold text-rose-600">Kilometre verisi zorunludur.</p>
                   )}
                 </div>
 
@@ -656,40 +678,64 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
                   
                   {/* TRAFİK SİGORTASI */}
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-600 uppercase">
+                    {/* ⚠ Üç tarih alanının da görünür etiketi vardı ama
+                        hiçbiri bağlı değildi. Ayrıca iki alanın hata metni
+                        BİREBİR AYNI ("Geçerli tarih giriniz."); `aria-describedby`
+                        her birini kendi metnine bağladığı için ekran okuyucu
+                        artık hangi alanın hatalı olduğunu karıştırmıyor. */}
+                    <label htmlFor="trafik-sigortasi-bitis" className="text-[11px] font-bold text-slate-600 uppercase">
                       Trafik Sigortası <span className="text-rose-600">*</span>
                     </label>
                     <div className={`border rounded-md bg-white flex items-center h-10 px-3 transition-all ${
                       touchedFields.traffic && !isTrafficDateValid ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
                     }`}>
-                      <input 
+                      <input
+                        id="trafik-sigortasi-bitis"
                         type="text"
                         value={traffic_insurance_end_date}
                         onBlur={() => handleBlur('traffic')}
                         onChange={(e) => updateFormData({ traffic_insurance_end_date: formatDateInput(e.target.value, 2027) })}
                         placeholder="GG/AA/YYYY"
+                        /* `formatDateInput` rakam dışını tamamen atıyor ve
+                           `/` işaretlerini kendisi koyuyor — kullanıcının
+                           harfe de ayraca da ihtiyacı yok. */
+                        inputMode="numeric"
+                        autoComplete="off"
+                        aria-required="true"
+                        aria-invalid={touchedFields.traffic && !isTrafficDateValid ? 'true' : undefined}
+                        aria-describedby={touchedFields.traffic && !isTrafficDateValid ? 'trafik-hata' : undefined}
                         className="w-full bg-transparent border-none outline-none text-mini font-bold text-slate-800 font-mono tracking-wider"
                       />
                     </div>
                     {touchedFields.traffic && !isTrafficDateValid && (
-                      <p className="text-[13px] font-bold text-rose-600">Geçerli tarih giriniz.</p>
+                      <p id="trafik-hata" className="text-[13px] font-bold text-rose-600">Geçerli tarih giriniz.</p>
                     )}
                   </div>
 
                   {/* KASKO POLİÇESİ */}
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-600 uppercase">
+                    <label htmlFor="kasko-bitis" className="text-[11px] font-bold text-slate-600 uppercase">
                       Kasko Poliçesi <span className="text-slate-500 font-normal font-mono">(Opsiyonel)</span>
                     </label>
                     <div className={`border rounded-md bg-white flex items-center h-10 px-3 transition-all ${
                       touchedFields.kasko && !isKaskoDateValid ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
                     }`}>
-                      <input 
+                      <input
+                        id="kasko-bitis"
                         type="text"
                         value={kasko_end_date}
                         onBlur={() => handleBlur('kasko')}
                         onChange={(e) => updateFormData({ kasko_end_date: formatDateInput(e.target.value, 2027) })}
                         placeholder="GG/AA/YYYY"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        /* ⚠ `aria-required` YOK — bu alan OPSİYONEL (etikette
+                           de öyle yazıyor). Diğer ikisiyle aynı muameleyi
+                           yapmak kullanıcıya yanlış bilgi vermek olurdu.
+                           Hata METNİ de yok, bu yüzden `aria-describedby`
+                           bağlanmıyor; yalnızca kenarlık kırmızıya dönüyor,
+                           onu da `aria-invalid` duyuruyor. */
+                        aria-invalid={touchedFields.kasko && !isKaskoDateValid ? 'true' : undefined}
                         className="w-full bg-transparent border-none outline-none text-mini font-bold text-slate-800 font-mono tracking-wider"
                       />
                     </div>
@@ -697,23 +743,29 @@ export default function Step1VehicleAndPhotos({ formData, updateFormData, userPa
 
                   {/* TÜVTÜRK MUAYENE */}
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-600 uppercase">
+                    <label htmlFor="muayene-bitis" className="text-[11px] font-bold text-slate-600 uppercase">
                       TÜVTÜRK Muayene <span className="text-rose-600">*</span>
                     </label>
                     <div className={`border rounded-md bg-white flex items-center h-10 px-3 transition-all ${
                       touchedFields.inspection && !isInspectionDateValid ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 focus-within:border-indigo-600'
                     }`}>
-                      <input 
+                      <input
+                        id="muayene-bitis"
                         type="text"
                         value={inspection_end_date}
                         onBlur={() => handleBlur('inspection')}
                         onChange={(e) => updateFormData({ inspection_end_date: formatDateInput(e.target.value, 2029) })}
                         placeholder="GG/AA/YYYY"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        aria-required="true"
+                        aria-invalid={touchedFields.inspection && !isInspectionDateValid ? 'true' : undefined}
+                        aria-describedby={touchedFields.inspection && !isInspectionDateValid ? 'muayene-hata' : undefined}
                         className="w-full bg-transparent border-none outline-none text-mini font-bold text-slate-800 font-mono tracking-wider"
                       />
                     </div>
                     {touchedFields.inspection && !isInspectionDateValid && (
-                      <p className="text-[13px] font-bold text-rose-600">Geçerli tarih giriniz.</p>
+                      <p id="muayene-hata" className="text-[13px] font-bold text-rose-600">Geçerli tarih giriniz.</p>
                     )}
                   </div>
 
