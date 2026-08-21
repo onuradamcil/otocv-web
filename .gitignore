@@ -57,3 +57,6 @@ supabase/.temp/
 # Yikici islem oncesi alinan JSON dokumleri. Plaka ve gorsel yollari
 # icerir - kisisel veri, depoya GIRMEZ.
 yedek/
+
+# Bakim betiginin indirdigi orijinal gorseller (kullanici verisi, depoya girmez)
+gorsel-yedek/
