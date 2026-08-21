@@ -34,6 +34,11 @@ const AUTH_METNI = [
   [/New password should be different/i,
    'Yeni şifreniz mevcut şifrenizden farklı olmalı.'],
   [/Password should be at least/i, PAROLA_KURALI_METNI],
+  // ⚠ BU KALIP EKSİKTİ ve kullanıcı ham İngilizce hatayı gördü:
+  // "Password should contain at least one character of each: abcdefg..."
+  // — arkasında karakter kümelerinin tam dökümüyle. Artık arayüz kuralları
+  // zaten önceden gösteriyor; bu satır yine de son bir emniyet.
+  [/Password should contain at least one character of each/i, PAROLA_KURALI_METNI],
   [/email address is invalid|Unable to validate email/i,
    'E-posta adresi geçerli görünmüyor.'],
   [/already registered|already been registered/i,

@@ -1,38 +1,3 @@
-<!--
-  =========================================================================
-  PAROLA DEĞİŞTİ BİLDİRİMİ  ·  auth.email.notification.password_changed
-
-  Konu satırı:  ⚠️ Parolanız Değiştirildi | Oto.CV Güvenlik Ağı
-
-  Supabase panelinde: Authentication → Emails → Templates
-  ⚠ Bu bildirim ÖNTANIMLI OLARAK KAPALI gelir; şablonu yapıştırmak yetmez,
-  bildirimin kendisi de açılmalı.
-
-  -------------------------------------------------------------------------
-  NİYE SIFIRLAMA ŞABLONUNDAN FARKLI
-  -------------------------------------------------------------------------
-  Sıfırlama e-postası bir İSTEK taşır: "şunu yapmak ister misin?". Bu ise
-  bir OLAY bildirir: "şu oldu". Fark, tek bir cümlede kendini gösteriyor —
-  sıfırlama şablonu "bu talebi siz yapmadıysanız görmezden gelin" diyor.
-  Burada aynı cümleyi yazmak tehlikeli olurdu: yapmadığınız bir parola
-  değişimi görmezden gelinecek bir şey değil, acil durumdur.
-
-  ⚠ DEĞİŞKENLER UYDURULMADI. Supabase'in bildirim şablonlarında geçerli
-  olanlar arasından yalnızca ikisi kullanıldı:
-    {{ .Email }}    hangi hesabın parolası değişti  (her hesapta var)
-    {{ .SiteURL }}  uygulamanın adresi
-  `{{ .ConfirmationURL }}` burada YOK — onaylanacak bir şey yok, değişim
-  zaten olmuş durumda.
-
-  ⚠ `{{ .Data.first_name }}` BİLEREK KULLANILMADI. Ölçüldü (21.08.2026):
-  8 hesabın 0'ında `first_name` yok, yalnızca 2 Google hesabında
-  `full_name` var. Kullanılsaydı kullanıcıların çoğuna "Merhaba ," giderdi.
-
-  ⚠ `{{ .SiteURL }}` panelden gelir (Authentication → URL Configuration),
-  `.env.local` değil. Orada localhost yazıyorsa bu e-postadaki bağlantı
-  gerçek kullanıcıda çalışmaz — canlıya çıkmadan kontrol edin.
-  =========================================================================
--->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -41,36 +6,16 @@
   <title>Parolanız Değiştirildi</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #FFFDFB; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
-
-  <!-- 📬 ÖN İZLEME SATIRI
-       Gelen kutusu listesinde konunun yanında görünen metin. Gizli olmasa
-       da kullanıcıya görünmüyor; olmazsa e-posta istemcisi gövdenin ilk
-       kelimelerini ("OTO.CV Parolanız...") oraya basıyor ve okunmaz oluyor. -->
   <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; mso-hide: all;">
     Hesabınızın parolası az önce değiştirildi. Bu işlemi siz yapmadıysanız hemen harekete geçin.
   </div>
 
   <table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 540px; margin: 40px auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.015); overflow: hidden; border-collapse: collapse;">
-
-    <!-- 👑 ÜST KURUMSAL LOGO ALANI
-         ⚠ `border-bottom` — sıfırlama şablonunda `border-b` yazılmış ve o
-         geçerli bir CSS özelliği değil (Tailwind sözdizimi); orada çizgi
-         hiç çizilmiyor. Burada doğrusu kullanıldı. -->
     <tr>
       <td align="center" style="padding: 32px 32px 24px 32px; border-bottom: 1px solid #f1f5f9;">
-        <!-- ⚠ LOGO BİLEREK BAĞLANTI. `<span>` olduğunda Gmail onu KENDİSİ
-             bağlantıya çeviriyordu: `.cv` gerçek bir alan adı uzantısı
-             (Cape Verde) olduğu için "OTO.CV" adres sanılıyor ve marka adı,
-             SAHİP OLMADIĞIMIZ `oto.cv` alan adına giden mavi altı çizili bir
-             linke dönüşüyordu (canlıda görüldü, 21.08.2026).
-             Gmail zaten bağlantı olan metni yeniden bağlamıyor; kendi
-             bağlantımızı koymak hem tuzağı kapatıyor hem de logoyu tıklanınca
-             siteye götürüyor. -->
         <a href="{{ .SiteURL }}" target="_blank" style="font-size: 22px; font-weight: 900; letter-spacing: -0.04em; color: #0F172A; text-decoration: none;">OTO.CV</a>
       </td>
     </tr>
-
-    <!-- 📝 İÇERİK ALANI -->
     <tr>
       <td style="padding: 32px 40px;">
         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
@@ -87,36 +32,18 @@
               Hesabınızın parolası az önce değiştirildi. Bu bildirimi, hesabınızda yapılan güvenlik değişikliklerinden haberdar olmanız için gönderiyoruz.
             </td>
           </tr>
-
-          <!-- 🪪 HESAP ŞERİDİ
-               Bu e-postanın TAŞIDIĞI ASIL BİLGİ bu: hangi hesap. Aynı kişinin
-               birden fazla hesabı olabiliyor; adres yazılmazsa kullanıcı hangi
-               hesabın etkilendiğini bilemez ve doğru hesabı koruyamaz. -->
           <tr>
             <td align="center" style="padding-bottom: 28px;">
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #fafafa; border: 1px solid #f1f5f9; border-radius: 12px; border-collapse: separate;">
                 <tr>
                   <td align="center" style="padding: 14px 20px;">
                     <span style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Etkilenen Hesap</span>
-                    <!-- ⚠ AYNI TUZAK: Gmail e-posta adresini kendisi mavi bir
-                         `mailto:` bağlantısına çeviriyordu. Bilgi olması
-                         gereken şey tıklanabilir görünüyordu. Kendi
-                         bağlantımızı koyup hesap ayarlarına yönlendiriyoruz —
-                         hem görünüm marka renginde kalıyor hem de bağlantı
-                         işe yarar bir yere gidiyor. -->
                     <a href="{{ .SiteURL }}/account" target="_blank" style="font-size: 13px; font-weight: 600; color: #0F172A; text-decoration: none; word-break: break-all;">{{ .Email }}</a>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
-
-          <!-- ⚠ UYARI BLOĞU
-               Şablondaki TEK renk sapması burada ve gerekçesi var: sıfırlama
-               e-postasında "siz değilseniz görmezden gelin" yazıyor, çünkü
-               orada hiçbir şey olmamış. Burada bir şey OLMUŞ. Kullanıcının
-               gözünün ilk düşmesi gereken yer bu blok; sıcak ton onu
-               diğer metinden ayırıyor, bağırmadan. -->
           <tr>
             <td style="padding-bottom: 24px;">
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; border-collapse: separate;">
@@ -129,13 +56,6 @@
               </table>
             </td>
           </tr>
-
-          <!-- 🚀 AKSİYON BUTONU
-               Sıfırlama şablonunda buton işlemi TAMAMLAR. Burada işlem zaten
-               tamamlanmış; buton bir GERİ ALMA yolu sunuyor. Aynı koyu ton
-               bilerek korundu: kırmızı bir buton paniğe çağırırdı, oysa
-               kullanıcıların çoğu bu postayı kendi yaptığı değişiklikten
-               sonra alacak. Aciliyeti metin taşıyor, renk değil. -->
           <tr>
             <td align="center" style="padding-bottom: 32px;">
               <table role="presentation" border="0" cellpadding="0" cellspacing="0">
@@ -159,8 +79,6 @@
         </table>
       </td>
     </tr>
-
-    <!-- 🏢 ALT BİLGİ VE YASAL ŞERİT -->
     <tr>
       <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #e2e8f0; text-align: center;">
         <span style="font-size: 10px; font-weight: 700; color: #64748B; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">Oto.CV Güvenlik Sistemi</span>

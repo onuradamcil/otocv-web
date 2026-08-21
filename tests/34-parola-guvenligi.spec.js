@@ -134,6 +134,42 @@ test.describe('Parola güvenliği · Hesabım ekranı', () => {
     ).toBeVisible({ timeout: 20_000 });
   });
 
+  test('⚠ KURALLAR FORMUN İÇİNDE, gönderim beklenmeden görünüyor', async ({ page }) => {
+    test.setTimeout(90_000);
+    const { yeni } = await parolaBolumu(page);
+
+    // NİYE: ürün sahibi parolasını değiştiremedi ve kuralı ancak
+    // gönderdikten sonra, İngilizce ve ham karakter dökümü hâlinde gördü.
+    // Kuralın formun içinde olması bir konfor değil, akışın çalışması.
+    await yeni.click();
+
+    const kutu = page.getByText(/şifre kuralları/i);
+    await expect(
+      kutu,
+      'yeni şifre alanına odaklanınca kurallar görünmüyor'
+    ).toBeVisible({ timeout: 10_000 });
+
+    // Dört karakter sınıfı da yazılı olmalı — biri eksikse kullanıcı yine
+    // hata kutusundan öğrenir.
+    for (const kural of [/küçük harf/i, /büyük harf/i, /rakam/i, /sembol/i, /en az 10 karakter/i]) {
+      await expect(
+        page.getByText(kural),
+        `kural listesinde eksik: ${kural}`
+      ).toBeVisible();
+    }
+
+    // ⚠ ASIL İDDİA: kural sağlanınca DURUM DEĞİŞİYOR. Liste sabit bir metin
+    // olsaydı da yukarıdaki iddialar geçerdi; canlı geri bildirim olduğunu
+    // ancak durumun değiştiğini görerek kanıtlayabiliriz.
+    const buyukHarfSatiri = page.getByRole('listitem').filter({ hasText: /büyük harf/i });
+    await expect(buyukHarfSatiri).toContainText(/eksik/i);
+    await yeni.fill('Gecerli123!');
+    await expect(
+      buyukHarfSatiri,
+      'büyük harf yazıldı ama kural hâlâ eksik görünüyor — liste canlı değil'
+    ).toContainText(/sağlandı/i, { timeout: 10_000 });
+  });
+
   test('asgari uzunluk kuralı ile mesajı TUTARLI', async ({ page }) => {
     test.setTimeout(90_000);
     const { mevcut, yeni, tekrar } = await parolaBolumu(page);
@@ -148,10 +184,24 @@ test.describe('Parola güvenliği · Hesabım ekranı', () => {
     await tekrar.fill(kisa);
     await page.getByRole('button', { name: 'Şifreyi değiştir' }).click();
 
-    const uyari = page.getByText(new RegExp(`en az ${EN_AZ_UZUNLUK} karakter`, 'i'));
+    // ⚠ SEÇİCİ HATA MESAJINA DARALTILDI. Yalnızca "en az 10 karakter"
+    // aramak artık İKİ öğeyle eşleşiyor: kural listesindeki satır ve hata
+    // mesajı. Kural listesi bu ekrana sonradan eklendi ve testi katı kip
+    // ihlaliyle düşürdü — iddia hâlâ doğruydu, seçici belirsizdi.
+    // ⚠ TEK BİR BİRLEŞİK REGEX KULLANILMIYOR VE BUNUN SEBEBİ ÖLÇÜLDÜ:
+    // şablon dizesi (`) içinde `\s` geçerli bir dize kaçışı değil, JavaScript
+    // onu düz `s` harfine indiriyor. `eksik:\s*en az` yazan bir regex,
+    // sessizce `eksik:s*en az` arar ve hiçbir şeyle eşleşmez. İki ayrı
+    // iddia hem bu tuzağı hem de hangi parçanın tutmadığını netleştiriyor.
+    const uyari = page.getByText(/şifre kuralı eksik/i);
     await expect(
       uyari,
-      `${EN_AZ_UZUNLUK - 1} karakterlik şifre reddedilmedi ya da mesaj ${EN_AZ_UZUNLUK} demiyor`
+      `${EN_AZ_UZUNLUK - 1} karakterlik şifre reddedilmedi`
     ).toBeVisible({ timeout: 20_000 });
+
+    await expect(
+      uyari,
+      `mesaj ${EN_AZ_UZUNLUK} demiyor — arayüz kuralı ile mesaj ayrışmış`
+    ).toContainText(new RegExp(`en az ${EN_AZ_UZUNLUK} karakter`, 'i'));
   });
 });

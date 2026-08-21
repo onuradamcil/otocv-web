@@ -36,7 +36,8 @@ import {
   epostaDegistir, sifreDegistir,
   bekleyenKapatmaTalebi, kapatmaTalepEt, kapatmaTalebiIptal, aracOzeti,
 } from '../../services/hesapService';
-import { parolaYeterliMi, PAROLA_KURALI_METNI } from '../../utils/parolaKurali';
+import { parolaYeterliMi, ilkEksikKural } from '../../utils/parolaKurali';
+import ParolaKurallari from '../common/ParolaKurallari';
 
 const GIRDI = 'w-full h-11 px-3.5 rounded-md border border-slate-200 bg-slate-50 text-mini font-bold text-slate-800 placeholder:text-slate-500 placeholder:font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:bg-white transition-colors disabled:opacity-60';
 const ETIKET = 'text-etiket font-semibold text-slate-500 uppercase tracking-wider';
@@ -70,6 +71,10 @@ export default function HesabimEkrani() {
   const [mevcutSifre, setMevcutSifre] = useState('');
   const [yeniSifre, setYeniSifre] = useState('');
   const [yeniSifreTekrar, setYeniSifreTekrar] = useState('');
+  // Kurallar alana odaklanildiginda gorunuyor: yazmadan ONCE de gorulsun
+  // diye. Surekli gorunur olsaydi, sifre degistirmeyen kullanicilar icin
+  // bos yere yer kaplardi.
+  const [sifreAlaniOdakta, setSifreAlaniOdakta] = useState(false);
   const [sifreGorunur, setSifreGorunur] = useState(false);
   const [sifreKaydediliyor, setSifreKaydediliyor] = useState(false);
 
@@ -149,9 +154,13 @@ export default function HesabimEkrani() {
 
   const sifreKaydet = async (e) => {
     e.preventDefault();
-    // ⚠ KURAL TEK KAYNAKTAN. Buraya elle '6' yazmak, sunucudaki asgari
-    // uzunluk değiştiğinde sessizce eskiyen bir kopya bırakıyordu.
-    if (!parolaYeterliMi(yeniSifre)) { toast.hata(PAROLA_KURALI_METNI); return; }
+    // ⚠ KURAL TEK KAYNAKTAN ve HANGİSİ eksikse O söyleniyor.
+    // Önce tüm kuralları tek bir cümlede sayıyorduk; kullanıcı hangisini
+    // sağlayamadığını o cümleden çıkarmak zorunda kalıyordu.
+    if (!parolaYeterliMi(yeniSifre)) {
+      toast.hata(`Şifre kuralı eksik: ${ilkEksikKural(yeniSifre)}`);
+      return;
+    }
     if (yeniSifre !== yeniSifreTekrar) { toast.hata('Yeni şifreler birbiriyle uyuşmuyor.'); return; }
 
     setSifreKaydediliyor(true);
@@ -439,6 +448,7 @@ export default function HesabimEkrani() {
                 <input
                   value={yeniSifre}
                   onChange={(e) => setYeniSifre(e.target.value)}
+                  onFocus={() => setSifreAlaniOdakta(true)}
                   type={sifreGorunur ? 'text' : 'password'}
                   autoComplete="new-password"
                   className={`mt-1.5 ${GIRDI}`}
@@ -450,6 +460,7 @@ export default function HesabimEkrani() {
                 <input
                   value={yeniSifreTekrar}
                   onChange={(e) => setYeniSifreTekrar(e.target.value)}
+                  onFocus={() => setSifreAlaniOdakta(true)}
                   type={sifreGorunur ? 'text' : 'password'}
                   autoComplete="new-password"
                   className={`mt-1.5 ${GIRDI}`}
@@ -457,6 +468,15 @@ export default function HesabimEkrani() {
                 />
               </label>
             </div>
+
+            {/* ⚠ KURALLAR FORMUN İÇİNDE. Önceden yalnızca gönderim sonrası
+                hata kutusunda görünüyordu; kullanıcı emeğini harcayıp
+                reddediliyor ve neyin eksik olduğunu ham bir İngilizce
+                listeden çıkarmaya çalışıyordu. */}
+            <ParolaKurallari
+              parola={yeniSifre}
+              gorunur={sifreAlaniOdakta || yeniSifre.length > 0}
+            />
 
             <div className="flex items-center justify-between gap-3">
               <button

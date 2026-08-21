@@ -9,7 +9,8 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { authHatasi, authHatasiTanindiMi } from '../services/hesapService';
-import { parolaYeterliMi, PAROLA_KURALI_METNI } from '../utils/parolaKurali';
+import { parolaYeterliMi, ilkEksikKural } from '../utils/parolaKurali';
+import ParolaKurallari from './common/ParolaKurallari';
 import Icon from './common/icons';
 
 export default function ResetPasswordScreen({ onSuccess, onBack }) {
@@ -26,10 +27,11 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
     setErrorMessage('');
     setSuccessMessage('');
 
-    // Kural tek kaynaktan (`utils/parolaKurali.js`). Buraya elle yazılan
-    // sayı, sunucudaki asgari uzunluk değiştiğinde sessizce eskiyordu.
+    // Kural tek kaynaktan (`utils/parolaKurali.js`) ve HANGİSİ eksikse o
+    // söyleniyor. Kuralların tamamı zaten formun içinde, yazarken canlı
+    // gösteriliyor; buradaki mesaj yalnızca son bir emniyet.
     if (!parolaYeterliMi(password)) {
-      setErrorMessage(PAROLA_KURALI_METNI);
+      setErrorMessage(`Şifre kuralı eksik: ${ilkEksikKural(password)}`);
       return;
     }
 
@@ -130,6 +132,14 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
               <label htmlFor="alan-sifreyi-tekrarla" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifreyi Tekrarla</label>
               <input id="alan-sifreyi-tekrarla" type={showPassword ? 'text' : 'password'} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="w-full py-2.5 px-3.5 bg-[#F2F4F7] border border-slate-200 focus:border-[#0F172A] text-mini font-medium rounded-md focus:outline-none shadow-sm" />
             </div>
+
+            {/* ⚠ KURALLAR BURADA DA GÖRÜNMELİ. Bu ekrana gelen kullanıcı
+                parolasını zaten unutmuş ve e-posta bağlantısıyla gelmiş;
+                bir de kuralı hata kutusundan öğrenmek zorunda kalırsa
+                akışı terk etme olasılığı en yüksek yer burasıdır.
+                Hesabım ekranından farklı olarak HEP görünür: burada tek
+                iş parola belirlemek, gizleyecek bir şey yok. */}
+            <ParolaKurallari parola={password} />
 
             <button type="submit" disabled={loading} className="w-full bg-[#0F172A] hover:bg-slate-800 text-white py-3 rounded-md font-semibold text-mini tracking-wide shadow-sm transition-colors mt-2">
               {loading ? 'Şifre Güncelleniyor...' : 'Şifreyi Güncelle'}
