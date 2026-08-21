@@ -31,7 +31,7 @@
 
 const { test, expect } = require('./yardimcilar');
 
-const KUTU = /PIN ile ara/i;
+const KUTU = /Marka, model veya şehir/i;
 const PANEL = '[role="listbox"]';
 const SATIR = '[role="option"]';
 const KARARTMA = 'div.fixed.inset-0.z-40';

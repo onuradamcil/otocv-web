@@ -50,7 +50,7 @@ export default function Header() {
 
   // ⚠ ARAMA KUTUSU TEK ÖRNEK ÇİZİLİYOR — CSS İLE GİZLEMEK YETMEZ.
   // İlk denemede masaüstü örneği `hidden md:flex`, mobil örneği `md:hidden`
-  // idi; ikisi de DOM'da duruyordu. Ölçüldü: `getByLabel(/PIN ile ara/i)`
+  // idi; ikisi de DOM'da duruyordu. Ölçüldü: `getByLabel(/Marka, model veya şehir/i)`
   // İKİ öğeye çözülüyor ve Playwright strict mode ihlaliyle dört test
   // birden kırılıyor. Ayrıca mobilde `.first` gizli olan masaüstü örneğini
   // seçiyordu. Bu projede aynı hata vitrin liste/ızgara ikilisinde de
@@ -586,7 +586,7 @@ export default function Header() {
             götürüyordu.
 
             ⚠ `md:hidden`: masaüstünde YUKARIDAKİ örnek çiziliyor. İkisi
-            aynı anda görünseydi sayfada `getByLabel(/PIN ile ara/i)` iki
+            aynı anda görünseydi sayfada `getByLabel(/Marka, model veya şehir/i)` iki
             öğeye çözülür ve dört test strict mode ihlaliyle kırılırdı. */}
         {!genisEkran && (
           <div className="border-t border-slate-800 px-4 py-2">

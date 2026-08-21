@@ -10,21 +10,35 @@
 // başlık şeridine taşındı — yani artık HER SAYFADA erişilebilir.
 //
 // -------------------------------------------------------------------------
-// ⚠ MANTIK BİREBİR TAŞINDI, SADELEŞTİRİLMEDİ
+// ⚠ PIN KISAYOLU KALDIRILDI — ÜRÜN SAHİBİNİN KARARI (21.08.2026)
 // -------------------------------------------------------------------------
-// Girdi PIN BİÇİMİNDEYSE doğrudan karneye, değilse arama ekranına gidiyor.
-// Bu ayrım tarihsel bir hatanın onarımı ve korunması şart:
+// Kutu eskiden girdiyi KARAKTER SAYISINA bakarak ikiye ayırıyordu: 6 ya da
+// 10 karakterse `/karne/CV-…`, değilse `/arama?q=…`. Bu kural kullanıcıya
+// hiçbir yerde görünmüyordu ve gerçek katalog adlarını yutuyordu.
 //
-//   `pinNormalize("bmw")` -> `CV-BMW`
+// ÖLÇÜLDÜ (21.08.2026, canlı katalog — tahmin değil):
+//   marka    9 / 49    (%18,4)  Toyota, Nissan, Volkswagen, Suzuki,
+//                               Mitsubishi, Subaru, Mini Cooper,
+//                               Rolls-Royce, Reeder
+//   seri   165 / 822   (%20,1)  Accent, Accord, Amarok, Arteon, Arkana…
+//   model  168 / 3.591 (%4,7)
+//   TOPLAM 342 / 4.462 (%7,7)
 //
-// Eski kod bunu geçerli sayıp `/karne/CV-BMW`'ye yönlendiriyordu; marka
-// arayan kullanıcı VAR OLMAYAN bir karne sayfasına düşüyordu.
+// Yani "Toyota" yazıp Enter'a basan kullanıcı "Karne bulunamadı" ekranına
+// düşüyordu. Artık kutu TEK İŞ yapıyor: araç arar.
+//
+// PIN sorgulama `/verify` ekranında duruyor — orada kendi etiketli alanı
+// var, girdi belirsiz değil. Oraya üç kapı açılıyor: anasayfadaki "Sicil
+// Sorgula" kartı, alt bilgideki "PIN ile Araç Sorgula" bağlantısı (her
+// sayfada) ve mobil çekmecedeki "Karne PIN Sorgula".
 //
 // -------------------------------------------------------------------------
-// ⚠ `aria-label` DEĞİŞMEZ
+// ⚠ ETİKET DE DEĞİŞTİ — BU ŞART, KOZMETİK DEĞİL
 // -------------------------------------------------------------------------
-// Test paketi arama kutusunu `getByLabel(/PIN ile ara/i)` ile buluyor.
-// Etiketi değiştirmek dört testi sessizce kırar.
+// Eski `aria-label` "… veya PIN ile ara" diyordu. PIN artık çalışmayacaksa
+// etiketin onu vaat etmesi kullanıcıyı kandırır; ekran okuyucu kullanıcısı
+// için de yanlış bilgi olur. Test çapası (`getByLabel`) birlikte
+// güncellendi: `25-anasayfa` (4 yer) ve `33-arama-onerileri` (1 yer).
 //
 // -------------------------------------------------------------------------
 // ÖNERİ PANELİ
@@ -49,7 +63,6 @@
 import React, { useState, useEffect, useRef, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { pinNormalize, pinBicimiMi } from '../../utils/pinUretici';
 import { katalogOnerileri, konumOnerileri, EN_AZ_HARF } from '../../services/oneriService';
 
 const ODAK = 'focus-visible:ring-offset-2';
@@ -164,15 +177,11 @@ function AramaFormu({ baslangic, mobil }) {
       return;
     }
 
+    // Seçili öneri yoksa Enter TEK bir yere gider: arama ekranı. Girdinin
+    // biçimine bakılmıyor — dallanma kaldırıldı, bkz. dosya başı.
     const q = sorgu.trim();
     if (!q) return;
     setAcik(false);
-
-    if (pinBicimiMi(q)) {
-      const pin = pinNormalize(q);
-      if (pin) router.push(`/karne/${encodeURIComponent(pin)}`);
-      return;
-    }
     router.push(`/arama?q=${encodeURIComponent(q)}`);
   };
 
@@ -210,15 +219,16 @@ function AramaFormu({ baslangic, mobil }) {
           </svg>
         </span>
 
-        {/* ⚠ Bu etiket TEST ÇAPASI — bkz. dosya başı. */}
+        {/* ⚠ Bu etiket TEST ÇAPASI ve kutunun ne YAPTIĞINI söylüyor —
+            ikisi birden; değiştirirken bkz. dosya başı. */}
         <input
           type="text"
           value={sorgu}
           onChange={(e) => { setSorgu(e.target.value); setAcik(true); }}
           onFocus={() => setAcik(true)}
           onKeyDown={tusaBas}
-          aria-label="Marka, model, şehir veya PIN ile ara"
-          placeholder="Marka, model veya PIN ile ara"
+          aria-label="Marka, model veya şehir ile ara"
+          placeholder="Marka, model veya şehir ara"
           autoComplete="off"
           /* ARIA birleşik kutu sözleşmesi. `aria-expanded` INPUT'a
              konuyor — testlerde `button[aria-expanded]` seçicisi yasak

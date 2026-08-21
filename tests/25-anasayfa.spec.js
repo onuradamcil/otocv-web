@@ -18,9 +18,23 @@
 // bunu geçerli sayıp `/karne/CV-BMW`'ye yönlendiriyordu. Marka arayan
 // kullanıcı var olmayan bir karne sayfasına düşüyordu.
 //
+// O onarım girdiyi UZUNLUĞA göre ayırmaya çevirmişti (6 ya da 10 karakter =
+// PIN) ve hatanın büyük kısmı ayakta kaldı: ölçüldü, kataloğun %7,7'si
+// (342/4.462) — markaların %18,4'ü dahil — hâlâ karneye gidiyordu.
+// 21.08.2026'da PIN dallanması ürün sahibinin kararıyla TAMAMEN kalktı.
+//
 // ⚠ BU TESTLER DAVRANIŞA BAKIYOR, SINIF ADINA DEĞİL. Süzgeç arayüzü ileride
 // yeniden tasarlanabilir; değişmemesi gereken şey "tıklayınca liste süzülür".
 // =========================================================================
+
+/**
+ * Arama kutusunun erişilebilir adı — tek yerde.
+ *
+ * ⚠ ETİKETTEN "PIN" ÇIKTI (21.08.2026). Kutu artık PIN kabul etmiyor;
+ * etiketin onu vaat etmesi kullanıcıyı kandırırdı. Gerekçe ve ölçüm
+ * `src/components/layout/HeaderArama.jsx` dosya başında.
+ */
+const ETIKET = /Marka, model veya şehir/i;
 
 // `girisYap` ve `supabaseIstemcisi` KALDIRILDI: garaj şeridi testi çıktı
 // (bölüm ürün sahibinin kararıyla kaldırıldı) ve kalan testlerin hiçbiri
@@ -268,7 +282,7 @@ test.describe('Süzgeçler · /arama ekranı', () => {
     await page.waitForLoadState('networkidle');
     await izgaraYerlessin(page);
 
-    const kutu = page.getByLabel(/PIN ile ara/i);
+    const kutu = page.getByLabel(ETIKET);
     await expect(kutu).toBeVisible();
 
     // ⚠ ARAMA ARTIK YERİNDE SÜZMÜYOR, GÖNDERİLİYOR.
@@ -294,7 +308,7 @@ test.describe('Süzgeçler · /arama ekranı', () => {
     await page.waitForLoadState('networkidle');
     await izgaraYerlessin(page);
 
-    const kutu2 = page.getByLabel(/PIN ile ara/i);
+    const kutu2 = page.getByLabel(ETIKET);
     await kutu2.fill('zzzbulunmayanmarka');
     await kutu2.press('Enter');   // arama gönderiliyor, yerinde süzmüyor
 
@@ -326,7 +340,7 @@ test.describe('Anasayfa · teşhir ve yönlendirme', () => {
     const once = await kartSayisi(page);
     test.skip(once === 0, 'vitrinde araç yok');
 
-    await page.getByLabel(/PIN ile ara/i).fill('zzzbulunmayanmarka');
+    await page.getByLabel(ETIKET).fill('zzzbulunmayanmarka');
     await page.waitForTimeout(1200);
 
     expect(
@@ -341,18 +355,25 @@ test.describe('Anasayfa · teşhir ve yönlendirme', () => {
     await page.waitForLoadState('networkidle');
     await izgaraYerlessin(page);
 
-    await page.getByLabel(/PIN ile ara/i).fill('bmw');
+    // ⚠ "toyota" BİLEREK SEÇİLDİ: tam 6 karakter, yani kaldırılan PIN
+    // kuralının yuttuğu uzunluk. Eski "bmw" (3 harf) o dala HİÇ girmiyordu,
+    // yani bu test gerçek hatayı yakalayamıyordu. Toyota Türkiye'nin en çok
+    // satan markalarından biri; kural geri gelirse buradan düşer.
+    await page.getByLabel(ETIKET).fill('toyota');
     await page.keyboard.press('Enter');
-    await page.waitForTimeout(2000);
+    // Sabit bekleme yerine gerçek koşul: adres `/` dışına çıksın. Yüklım
+    // hangi yöne giderse gitsin çözülüyor, böylece hata mesajı zaman aşımı
+    // değil aşağıdaki açıklayıcı iddia oluyor.
+    await page.waitForURL((u) => u.pathname !== '/', { timeout: 15_000 });
 
     expect(
       page.url(),
-      'marka yazıp Enter tuşuna basmak kullanıcıyı var olmayan bir karne '
-      + 'sayfasına götürüyor (pinNormalize her girdiye CV- öneki ekliyor)'
+      '6 karakterlik GERÇEK BİR MARKA adı karne sayfasına yönlendirdi — '
+      + 'uzunluğa dayalı PIN dallanması geri gelmiş olabilir'
     ).not.toContain('/karne/');
 
     expect(page.url(), 'Enter sonuç ekranına götürmedi').toContain('/arama');
-    expect(decodeURIComponent(page.url()), 'arama metni adrese taşınmadı').toContain('q=bmw');
+    expect(decodeURIComponent(page.url()), 'arama metni adrese taşınmadı').toContain('q=toyota');
   });
 
   test('süzgeçten MARKA seçmek `/arama` ekranına götürüyor', async ({ page }) => {
