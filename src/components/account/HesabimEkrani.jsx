@@ -36,6 +36,7 @@ import {
   epostaDegistir, sifreDegistir,
   bekleyenKapatmaTalebi, kapatmaTalepEt, kapatmaTalebiIptal, aracOzeti,
 } from '../../services/hesapService';
+import { parolaYeterliMi, PAROLA_KURALI_METNI } from '../../utils/parolaKurali';
 
 const GIRDI = 'w-full h-11 px-3.5 rounded-md border border-slate-200 bg-slate-50 text-mini font-bold text-slate-800 placeholder:text-slate-500 placeholder:font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:bg-white transition-colors disabled:opacity-60';
 const ETIKET = 'text-etiket font-semibold text-slate-500 uppercase tracking-wider';
@@ -148,7 +149,9 @@ export default function HesabimEkrani() {
 
   const sifreKaydet = async (e) => {
     e.preventDefault();
-    if (yeniSifre.length < 6) { toast.hata('Yeni şifre en az 6 karakter olmalı.'); return; }
+    // ⚠ KURAL TEK KAYNAKTAN. Buraya elle '6' yazmak, sunucudaki asgari
+    // uzunluk değiştiğinde sessizce eskiyen bir kopya bırakıyordu.
+    if (!parolaYeterliMi(yeniSifre)) { toast.hata(PAROLA_KURALI_METNI); return; }
     if (yeniSifre !== yeniSifreTekrar) { toast.hata('Yeni şifreler birbiriyle uyuşmuyor.'); return; }
 
     setSifreKaydediliyor(true);

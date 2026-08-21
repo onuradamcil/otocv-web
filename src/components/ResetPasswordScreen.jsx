@@ -8,6 +8,8 @@
 
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { authHatasi, authHatasiTanindiMi } from '../services/hesapService';
+import { parolaYeterliMi, PAROLA_KURALI_METNI } from '../utils/parolaKurali';
 import Icon from './common/icons';
 
 export default function ResetPasswordScreen({ onSuccess, onBack }) {
@@ -24,8 +26,10 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
     setErrorMessage('');
     setSuccessMessage('');
 
-    if (password.length < 6) {
-      setErrorMessage('Şifreniz en az 6 karakter olmalıdır.');
+    // Kural tek kaynaktan (`utils/parolaKurali.js`). Buraya elle yazılan
+    // sayı, sunucudaki asgari uzunluk değiştiğinde sessizce eskiyordu.
+    if (!parolaYeterliMi(password)) {
+      setErrorMessage(PAROLA_KURALI_METNI);
       return;
     }
 
@@ -46,7 +50,28 @@ export default function ResetPasswordScreen({ onSuccess, onBack }) {
         onSuccess();
       }, 2500);
     } catch (err) {
-      setErrorMessage('Şifre güncellenemedi. Bağlantınızın süresi dolmuş olabilir; giriş ekranından yeni bağlantı isteyin.');
+      // =====================================================================
+      // ⚠ GERÇEK HATA ARTIK YUTULMUYOR — ÖLÇÜLMÜŞ BİR KUSURUN ONARIMI
+      // =====================================================================
+      // Burası HER hatayı "bağlantınızın süresi dolmuş olabilir" diye
+      // gösteriyordu. Oysa en sık gelen hata bu değil:
+      //
+      //   Supabase, yeni parola eskisiyle AYNIYSA `same_password` koduyla
+      //   "New password should be different from the old password" döndürüyor
+      //   (21.08.2026'da canlıda ölçüldü).
+      //
+      // Yani aynı parolayı yazan kullanıcı, ekranda "bağlantı süresi dolmuş"
+      // okuyup yeni bir bağlantı istiyor, o da işe yaramıyor ve neyi yanlış
+      // yaptığını hiç öğrenemiyordu.
+      //
+      // `authHatasi` Supabase'in mesajlarını zaten Türkçeleştiriyor; burada
+      // da o kullanılıyor. Tanınmayan hatalarda eski metin korunuyor, çünkü
+      // süresi dolmuş bağlantı GERÇEKTEN olabilecek bir durum.
+      setErrorMessage(
+        authHatasiTanindiMi(err)
+          ? authHatasi(err)
+          : 'Şifre güncellenemedi. Bağlantınızın süresi dolmuş olabilir; giriş ekranından yeni bağlantı isteyin.'
+      );
     } finally {
       setLoading(false);
     }

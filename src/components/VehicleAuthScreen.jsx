@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 import Icon from './common/icons';
 import { tiklanabilir } from '../utils/tiklanabilir';
+import { PAROLA_KURALI_METNI } from '../utils/parolaKurali';
 
 export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess, onBack }) {
   // =========================================================================
@@ -166,7 +167,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
       } else if (err.message.includes('User already registered')) {
         setErrorMessage("Bu e-posta adresiyle kayıtlı bir hesap zaten mevcut.");
       } else if (err.message.includes('Password should be at least')) {
-        setErrorMessage("Şifreniz güvenlik gereği en his en az 6 karakterden oluşmalıdır.");
+        setErrorMessage(PAROLA_KURALI_METNI);
       } else {
         setErrorMessage("İşlem gerçekleştirilirken bir sistem hatası oluştu. Lütfen tekrar deneyiniz.");
       }
