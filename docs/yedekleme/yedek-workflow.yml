@@ -44,10 +44,18 @@ jobs:
       # ------------------------------------------------------------------
       # 1. DOĞRU pg_dump SÜRÜMÜ
       # ------------------------------------------------------------------
-      # ⚠ SÜRÜM UYUŞMASI ŞART. Supabase PostgreSQL 17 kullanıyor. Ubuntu'nun
-      # hazır gelen istemcisi daha eski ve `pg_dump` sunucudan yeni bir sürüm
-      # görünce "aborting because of server version mismatch" deyip çıkıyor.
-      # Bu yüzden PostgreSQL'in kendi deposu ekleniyor.
+      # ⚠ SÜRÜM UYUŞMASI ŞART. Supabase PostgreSQL 17 kullanıyor (ölçüldü:
+      # 17.6.1.141). `pg_dump` sunucudan yeni bir sürüm görünce "aborting
+      # because of server version mismatch" deyip çıkıyor. Bu yüzden
+      # PostgreSQL'in kendi deposu ekleniyor.
+      #
+      # ⚠ KURMAK YETMEDİ — ÖLÇÜLDÜ (kosum 32437552796, 21.08.2026):
+      #   Setting up postgresql-client-17 (17.11-1.pgdg24.04+2) ...
+      #   pg_dump (PostgreSQL) 16.15
+      # Yani paket kuruldu ama `/usr/bin/pg_dump` hâlâ 16'yı çağırıyordu.
+      # Sebep: Ubuntu'da `/usr/bin/pg_dump` bir sarmalayıcı (`pg_wrapper`) ve
+      # koşucuda hazır gelen 16'lık kümeyi seçiyor. Çözüm: 17'nin kendi
+      # dizini PATH'in BAŞINA konuyor.
       - name: PostgreSQL 17 istemcisini kur
         run: |
           sudo install -d /usr/share/postgresql-common/pgdg
@@ -58,7 +66,19 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
           sudo apt-get update -qq
           sudo apt-get install -y -qq postgresql-client-17
-          pg_dump --version
+
+          # PATH'e EKLENİYOR. `$GITHUB_PATH` yalnızca SONRAKİ adımları
+          # etkilediği için buradaki doğrulama tam yolla yapılıyor.
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+          SURUM=$(/usr/lib/postgresql/17/bin/pg_dump --version)
+          echo "Kullanılacak: $SURUM"
+          # ⚠ Sessizce yanlış sürüme düşmesin: bu satır olmasaydı hata
+          # döküm adımında, anlaşılması zor bir biçimde çıkacaktı.
+          case "$SURUM" in
+            *"(PostgreSQL) 17."*) ;;
+            *) echo "::error::pg_dump 17 bekleniyordu, gelen: $SURUM"; exit 1 ;;
+          esac
 
       # ------------------------------------------------------------------
       # 2. DÖKÜMÜ AL
@@ -83,6 +103,19 @@ jobs:
           PGSSLMODE: require
         run: |
           set -euo pipefail
+
+          # ⚠ BOŞ ANAHTAR BEKÇİSİ — ÖLÇÜLMÜŞ BİR HATANIN ÜRÜNÜ.
+          # İlk iki koşum (19-21.08.2026) burada düştü çünkü `VERITABANI_URL`
+          # tanımlı değildi. `pg_dump ""` adres verilmedi sanıp YEREL sokete
+          # bağlanmaya çalışıyor ve şu mesajı veriyor:
+          #   connection to server on socket "/var/run/postgresql/.s.PGSQL.5432"
+          # Bu mesaj eksik anahtarı hiç akla getirmiyor. Aşağıdaki üç satır
+          # onu doğrudan söyleyen bir hataya çeviriyor.
+          if [ -z "${VERITABANI_URL:-}" ]; then
+            echo "::error::VERITABANI_URL gizli anahtarı TANIMLI DEĞİL. Depo -> Settings -> Secrets and variables -> Actions -> New repository secret"
+            exit 1
+          fi
+
           mkdir -p cikti
           TARIH=$(date -u +%Y%m%d-%H%M)
           echo "TARIH=$TARIH" >> "$GITHUB_ENV"
