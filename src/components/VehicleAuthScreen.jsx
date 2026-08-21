@@ -31,9 +31,22 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  // =========================================================================
+  // ⚠ KOD UZUNLUĞU PANELDEN GELİR — UYDURULMAZ
+  // =========================================================================
+  // Bu sayı Supabase'in `mailer_otp_length` ayarını YANSITIR, onu belirlemez.
+  // İlk yazımda 6 varsayıldı; Management API ile okununca gerçek değerin 8
+  // olduğu görüldü (22.08.2026). 8 haneli bir kod `maxLength={6}` kutuya
+  // sığmaz — doğrulama ekranı hiç çalışmayacaktı ve bu ancak gerçek bir
+  // kullanıcı kaydolmayı deneyip başarısız olduğunda fark edilirdi.
+  //
+  // ⚠ PANELDEKİ AYAR DEĞİŞİRSE BURASI DA DEĞİŞMELİ:
+  //   Authentication → Sign In / Providers → Email → OTP Length
+  const KOD_UZUNLUK = 8;
+
   // --- E-POSTA DOĞRULAMA (authMode === 'dogrula') --------------------------
-  // Kayıt sonrası oturum GELMEDİYSE bu ekran açılıyor. Kod 6 haneli ve
-  // `{{ .Token }}` ile e-postaya gidiyor.
+  // Kayıt sonrası oturum GELMEDİYSE bu ekran açılıyor. Kod `{{ .Token }}`
+  // ile e-postaya gidiyor; uzunluğu için bkz. KOD_UZUNLUK.
   const [dogrulanacakEposta, setDogrulanacakEposta] = useState('');
   const [kod, setKod] = useState('');
   // ⚠ SAYAÇ ŞART: SMTP ayarında "kullanıcı başına asgari aralık" 60 saniye.
@@ -48,13 +61,13 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
     return () => clearTimeout(z);
   }, [tekrarSaniye]);
 
-  /** Girilen 6 haneli kodu doğrular. Başarılıysa kullanıcı içeri alınır. */
+  /** Girilen kodu doğrular. Başarılıysa kullanıcı içeri alınır. */
   const kodDogrula = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     const temiz = kod.replace(/\D/g, '');
-    if (temiz.length !== 6) {
-      setErrorMessage('Doğrulama kodu 6 haneli olmalı.');
+    if (temiz.length !== KOD_UZUNLUK) {
+      setErrorMessage(`Doğrulama kodu ${KOD_UZUNLUK} haneli olmalı.`);
       return;
     }
     try {
@@ -287,7 +300,7 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
               {authMode === 'register_step1' && 'Dijital garajınızı kurmak için ilk adımı atın.'}
               {authMode === 'register_step2' && 'Kurumsal kimlik tesciliniz için bilgileri doldurun.'}
               {authMode === 'forgot_password' && 'Hesabınıza kayıtlı e-posta adresini girin.'}
-              {authMode === 'dogrula' && 'Gönderdiğimiz 6 haneli kodu girerek hesabınızı etkinleştirin.'}
+              {authMode === 'dogrula' && 'Gönderdiğimiz kodu girerek hesabınızı etkinleştirin.'}
             </p>
           </div>
 
@@ -472,8 +485,8 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
             <form onSubmit={kodDogrula} className="space-y-4 animate-fadeIn">
               <p className="text-mini font-medium text-slate-600 leading-relaxed">
                 <span className="font-bold text-[#0F172A] break-all">{dogrulanacakEposta}</span>
-                {' '}adresine 6 haneli bir doğrulama kodu gönderdik.
-                Kod 1 saat geçerli.
+                {' '}adresine {KOD_UZUNLUK} haneli bir doğrulama kodu gönderdik.
+                Kod 15 dakika geçerli.
               </p>
 
               <div className="space-y-1">
@@ -487,20 +500,20 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
                   type="text"
                   inputMode="numeric"
                   autoComplete="one-time-code"
-                  pattern="[0-9]{6}"
-                  maxLength={6}
+                  pattern={`[0-9]{${KOD_UZUNLUK}}`}
+                  maxLength={KOD_UZUNLUK}
                   required
                   value={kod}
                   onChange={(e) => setKod(e.target.value.replace(/\D/g, ''))}
-                  placeholder="000000"
+                  placeholder={'0'.repeat(KOD_UZUNLUK)}
                   aria-label="Doğrulama kodu"
-                  className="w-full min-h-[44px] py-2.5 px-3.5 bg-[#F2F4F7] border border-slate-200 focus:border-[#0F172A] rounded-md text-center text-buyuk font-bold tracking-[0.4em] text-[#0F172A] focus:outline-none transition-colors shadow-sm"
+                  className="w-full min-h-[44px] py-2.5 px-3.5 bg-[#F2F4F7] border border-slate-200 focus:border-[#0F172A] rounded-md text-center text-buyuk font-bold tracking-[0.28em] text-[#0F172A] focus:outline-none transition-colors shadow-sm"
                 />
               </div>
 
               <button
                 type="submit"
-                disabled={loading || kod.length !== 6}
+                disabled={loading || kod.length !== KOD_UZUNLUK}
                 className="w-full bg-[#0F172A] hover:bg-slate-800 disabled:opacity-50 text-white py-3 rounded-md font-semibold text-mini tracking-wide shadow-sm transition-colors"
               >
                 {loading ? 'Doğrulanıyor...' : 'Hesabımı Doğrula'}

@@ -18,6 +18,19 @@
   ⚠ BAĞLANTI EKLEMEYİN. Eklenirse iki ayrı doğrulama yolu doğar; kullanıcı
   bağlantıya tıklayıp başka sekmede doğrulanır, kod ekranı ise açık kalıp
   "kod geçersiz" der. İki yol bir arada, tek yoldan daha kötüdür.
+
+  -------------------------------------------------------------------------
+  ⚠ KOD UZUNLUĞU VE SÜRESİ METNE YAZILMAZ — PANELDEN GELİR
+  -------------------------------------------------------------------------
+  İlk yazımda "6 haneli" ve "1 saat" varsayıldı. Management API ile okununca
+  gerçek değerler çıktı (22.08.2026):
+
+    mailer_otp_length = 8      (6 değil)
+    mailer_otp_exp    = 900 sn (1 saat değil, 15 dakika)
+
+  Uzunluk artık metinde HİÇ yazmıyor — kullanıcı kutuya bakınca zaten görüyor
+  ve panelde değişirse metin yalan söylemiyor. Süre yazılı çünkü kullanıcının
+  bilmesi gereken bir şey; ⚠ `mailer_otp_exp` değişirse BURASI DA DEĞİŞMELİ.
   =========================================================================
 -->
 <!DOCTYPE html>
@@ -56,7 +69,7 @@
           <tr>
             <td style="font-size: 13px; font-weight: 500; color: #64748B; line-height: 1.6; text-align: center; padding-bottom: 28px;">
               Merhaba,<br>
-              Oto.CV hesabınızı etkinleştirmek için aşağıdaki 6 haneli kodu kayıt ekranına girin.
+              Oto.CV hesabınızı etkinleştirmek için aşağıdaki kodu kayıt ekranına girin.
             </td>
           </tr>
 
@@ -80,7 +93,7 @@
 
           <tr>
             <td style="font-size: 12px; font-weight: 500; color: #64748B; line-height: 1.6; text-align: center; padding-bottom: 24px;">
-              Kod <strong style="color: #0F172A;">1 saat</strong> geçerlidir. Süresi dolarsa kayıt ekranından yeni kod isteyebilirsiniz.
+              Kod <strong style="color: #0F172A;">15 dakika</strong> geçerlidir. Süresi dolarsa kayıt ekranından yeni kod isteyebilirsiniz.
             </td>
           </tr>
 
