@@ -1,0 +1,88 @@
+<!--
+  =========================================================================
+  PAROLA SIFIRLAMA  ·  Supabase şablonu: "Reset Password" (recovery)
+
+  Konu satırı:  🔒 Parolanızı Sıfırlayın | Oto.CV Güvenlik Ağı
+
+  ⚠ BU DOSYA CANLIDAKİNİN BİREBİR KOPYASIDIR — düzeltilmedi.
+  Panel kaynak, bu dosya kopya. Aşağıdaki hata canlıda da duruyor:
+
+    satır: border-b: 1px solid #f1f5f9;
+    `border-b` GEÇERLİ BİR CSS ÖZELLİĞİ DEĞİL (Tailwind sözdizimi sızmış).
+    Logonun altındaki ayırıcı çizgi hiç çizilmiyor. Doğrusu `border-bottom`.
+
+  Bilerek düzeltilmedi: canlı bir e-posta şablonunu sormadan değiştirmek
+  doğru olmaz. Düzeltmek isterseniz `parola-degisti.html` içinde doğru
+  kullanım duruyor.
+  =========================================================================
+-->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parolanızı Sıfırlayın</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #FFFDFB; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+
+  <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 540px; margin: 40px auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.015); overflow: hidden; border-collapse: collapse;">
+
+    <!-- 👑 ÜST KURUMSAL LOGO ALANI -->
+    <tr>
+      <td align="center" style="padding: 32px 32px 24px 32px; border-b: 1px solid #f1f5f9;">
+        <span style="font-size: 22px; font-weight: 900; letter-spacing: -0.04em; color: #0F172A; text-decoration: none;">OTO.CV</span>
+      </td>
+    </tr>
+
+    <!-- 📝 İÇERİK ALANI -->
+    <tr>
+      <td style="padding: 32px 40px;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+          <tr>
+            <td style="font-size: 18px; font-weight: 700; color: #0F172A; letter-spacing: -0.02em; padding-bottom: 12px; text-align: center;">
+              Şifre Sıfırlama Talebi
+            </td>
+          </tr>
+          <tr>
+            <td style="font-size: 13px; font-weight: 500; color: #64748B; line-height: 1.6; text-align: center; padding-bottom: 32px;">
+              Merhaba,<br>
+              Hesabınız için şifre sıfırlama talebi aldık. Yeni şifrenizi güvenli bir şekilde belirlemek için aşağıdaki butona tıklayarak tescil adımına geçebilirsiniz.
+            </td>
+          </tr>
+
+          <!-- 🚀 AKSIYON BUTONU (SAHİBİNDEN GİBİ DIKKAT ÇEKICI) -->
+          <tr>
+            <td align="center" style="padding-bottom: 32px;">
+              <table border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" bgcolor="#0F172A" style="border-radius: 12px;">
+                    <a href="{{ .ConfirmationURL }}" target="_blank" style="display: inline-block; padding: 14px 36px; font-size: 13px; font-weight: 700; color: #ffffff; text-decoration: none; letter-spacing: 0.02em;">
+                      Şifremi Sıfırla
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="font-size: 11px; font-weight: 500; color: #94a3b8; line-height: 1.5; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 24px;">
+              Eğer bu talebi siz gerçekleştirmediyseniz, bu e-postayı güvenle görmezden gelebilirsiniz. Mevcut şifreniz tescilli olarak kalmaya devam edecektir.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- 🏢 ALT BİLGİ VE YASAL ŞERİT -->
+    <tr>
+      <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #e2e8f0; text-align: center;">
+        <span style="font-size: 10px; font-weight: 700; color: #64748B; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">Oto.CV Güvenlik Sistemi</span>
+        <span style="font-size: 10px; font-weight: 500; color: #94a3b8; display: block;">Bu e-posta otomatik olarak gönderilmiştir. Lütfen yanıtlamayınız.</span>
+      </td>
+    </tr>
+
+  </table>
+
+</body>
+</html>
