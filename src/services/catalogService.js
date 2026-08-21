@@ -33,10 +33,66 @@ const adaGoreAyikla = (liste) => {
   });
 };
 
+// =========================================================================
+// OTURUM İÇİ ÖNBELLEK
+//
+// -------------------------------------------------------------------------
+// NİYE — ÖLÇÜLDÜ, TAHMİN DEĞİL
+// -------------------------------------------------------------------------
+// Katalog DEĞİŞMEYEN başvuru verisi: 49 marka, 822 seri, 3.591 model,
+// 23.138 paket. Bir oturum boyunca tek bir satırı bile değişmiyor.
+//
+// Buna rağmen her çağrıda veritabanına gidiyordu. Günlükten ölçüldü
+// (21.08.2026, 24 saat): `/rest/v1/car_brands` **4.634 istek**. 13 aylık
+// aktif kullanıcı için. 100 bin kullanıcıda bu, hiç değişmeyen 49 satır
+// için milyonlarca sorgu demek.
+//
+// -------------------------------------------------------------------------
+// ⚠ SONUÇ DEĞİL, SÖZ (PROMISE) SAKLANIYOR
+// -------------------------------------------------------------------------
+// Sonucu saklamak yalnızca İKİNCİ çağrıyı kurtarırdı. Sözü saklamak, henüz
+// dönmemiş bir isteğe gelen eşzamanlı çağrıları da aynı isteğe bağlıyor.
+// Sihirbaz açılırken marka listesini birden fazla bileşen istiyor; bu ayrım
+// orada doğrudan iki isteği bire indiriyor.
+//
+// ⚠ HATA ÖNBELLEĞE ALINMIYOR. Ağ koptuğunda dönen boş liste saklansaydı,
+// bağlantı geri geldiğinde katalog oturum boyunca boş kalırdı.
+//
+// ⚠ SÜRE SINIRI YOK VE BU BİLİNÇLİ. Önbellek modül düzeyinde, yani sekme
+// kapanınca ölüyor. Katalog bir dağıtım (deploy) ile değişirse kullanıcı
+// zaten yeni bir JS paketi indiriyor ve önbellek sıfırdan başlıyor.
+// =========================================================================
+
+const onbellek = new Map();
+
+/**
+ * `uretici`yi anahtar başına BİR KEZ çalıştırır, sözü saklar.
+ * Boş sonuç dönerse (hata dalı) önbellekten düşürülür.
+ */
+const onbellekli = (anahtar, uretici) => {
+  if (onbellek.has(anahtar)) return onbellek.get(anahtar);
+
+  const soz = uretici().then((sonuc) => {
+    // Hata dalları `[]` döndürüyor. Boş listeyi kalıcı saklamak, geçici bir
+    // ağ hatasını oturum boyunca "katalog boş" hâline çevirirdi.
+    if (!Array.isArray(sonuc) || sonuc.length === 0) onbellek.delete(anahtar);
+    return sonuc;
+  }).catch((e) => {
+    onbellek.delete(anahtar);
+    throw e;
+  });
+
+  onbellek.set(anahtar, soz);
+  return soz;
+};
+
+/** Test ve hata ayıklama için: önbelleği tamamen boşaltır. */
+export const katalogOnbelleginiTemizle = () => onbellek.clear();
+
 /**
  * 1. Markaları Çek (Sayfa Açılışında - Sadece ~2KB)
  */
-export const fetchCatalogBrands = async () => {
+export const fetchCatalogBrands = async () => onbellekli('marka', async () => {
   try {
     const { data, error } = await supabase
       .from('car_brands')
@@ -49,26 +105,28 @@ export const fetchCatalogBrands = async () => {
     console.error('❌ Marka çekme hatası:', error.message);
     return [];
   }
-};
+});
 
 /**
  * 2. Markaya Göre Model Serilerini Çek (Örn: BMW -> 3 Serisi, 5 Serisi)
  */
 export const fetchCatalogSeries = async (brandId) => {
   if (!brandId) return [];
-  try {
-    const { data, error } = await supabase
-      .from('car_series')
-      .select('id, name')
-      .eq('brand_id', brandId)
-      .order('name', { ascending: true });
+  return onbellekli(`seri:${brandId}`, async () => {
+    try {
+      const { data, error } = await supabase
+        .from('car_series')
+        .select('id, name')
+        .eq('brand_id', brandId)
+        .order('name', { ascending: true });
 
-    if (error) throw error;
-    return adaGoreAyikla(data);
-  } catch (error) {
-    console.error('❌ Seri çekme hatası:', error.message);
-    return [];
-  }
+      if (error) throw error;
+      return adaGoreAyikla(data);
+    } catch (error) {
+      console.error('❌ Seri çekme hatası:', error.message);
+      return [];
+    }
+  });
 };
 
 /**
@@ -76,19 +134,21 @@ export const fetchCatalogSeries = async (brandId) => {
  */
 export const fetchCatalogModels = async (seriesId) => {
   if (!seriesId) return [];
-  try {
-    const { data, error } = await supabase
-      .from('car_models')
-      .select('id, name')
-      .eq('series_id', seriesId)
-      .order('name', { ascending: true });
+  return onbellekli(`model:${seriesId}`, async () => {
+    try {
+      const { data, error } = await supabase
+        .from('car_models')
+        .select('id, name')
+        .eq('series_id', seriesId)
+        .order('name', { ascending: true });
 
-    if (error) throw error;
-    return adaGoreAyikla(data);
-  } catch (error) {
-    console.error('❌ Alt model çekme hatası:', error.message);
-    return [];
-  }
+      if (error) throw error;
+      return adaGoreAyikla(data);
+    } catch (error) {
+      console.error('❌ Alt model çekme hatası:', error.message);
+      return [];
+    }
+  });
 };
 
 /**
@@ -96,19 +156,21 @@ export const fetchCatalogModels = async (seriesId) => {
  */
 export const fetchCatalogPackages = async (modelId) => {
   if (!modelId) return [];
-  try {
-    const { data, error } = await supabase
-      .from('car_packages')
-      .select('id, name')
-      .eq('model_id', modelId)
-      .order('name', { ascending: true });
+  return onbellekli(`paket:${modelId}`, async () => {
+    try {
+      const { data, error } = await supabase
+        .from('car_packages')
+        .select('id, name')
+        .eq('model_id', modelId)
+        .order('name', { ascending: true });
 
-    if (error) throw error;
-    return adaGoreAyikla(data);
-  } catch (error) {
-    console.error('❌ Paket çekme hatası:', error.message);
-    return [];
-  }
+      if (error) throw error;
+      return adaGoreAyikla(data);
+    } catch (error) {
+      console.error('❌ Paket çekme hatası:', error.message);
+      return [];
+    }
+  });
 };
 // =========================================================================
 // ADRESTEN AĞAÇ YOLUNU GERİ KURMA

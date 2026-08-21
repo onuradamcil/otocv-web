@@ -20,6 +20,8 @@
 // =========================================================================
 
 import { supabase } from '../lib/supabase';
+import { imzaliAdres } from '../utils/imzaliAdresBellegi';
+import { PAROLA_KURALI_METNI } from '../utils/parolaKurali';
 import { gorselSikistir, SIKISTIRMA } from '../utils/gorselSikistir';
 
 /**
@@ -31,8 +33,7 @@ import { gorselSikistir, SIKISTIRMA } from '../utils/gorselSikistir';
 const AUTH_METNI = [
   [/New password should be different/i,
    'Yeni şifreniz mevcut şifrenizden farklı olmalı.'],
-  [/Password should be at least/i,
-   'Şifre en az 6 karakter olmalı.'],
+  [/Password should be at least/i, PAROLA_KURALI_METNI],
   [/email address is invalid|Unable to validate email/i,
    'E-posta adresi geçerli görünmüyor.'],
   [/already registered|already been registered/i,
@@ -43,6 +44,22 @@ const AUTH_METNI = [
    'Yeni e-posta adresi mevcut adresinizle aynı.'],
 ];
 
+/**
+ * Tanınmayan hataların önüne konan sabit metin.
+ *
+ * ⚠ SABİT OLARAK DIŞA AKTARILIYOR ÇÜNKÜ ÇAĞIRANIN "BU HATA TANINDI MI"
+ * BİLMESİ GEREKİYOR. `ResetPasswordScreen` tanınan hatayı olduğu gibi
+ * gösteriyor, tanınmayanda ise kendi bağlam metnini kullanıyor. Bu öneki
+ * orada elle yazmak, ikisinin sessizce ayrışmasına açık kapı bırakırdı.
+ */
+export const AUTH_TANINMAYAN_ONEK = 'İşlem tamamlanamadı: ';
+
+/** Hata `authHatasi` tarafından TANINDI mı (yani bilinen bir duruma mı çevrildi)? */
+export function authHatasiTanindiMi(hata) {
+  const metin = authHatasi(hata);
+  return !!metin && !metin.startsWith(AUTH_TANINMAYAN_ONEK);
+}
+
 export function authHatasi(hata) {
   const mesaj = hata?.message || '';
   if (!mesaj) return null;
@@ -51,7 +68,7 @@ export function authHatasi(hata) {
   }
   // Eşleşmeyen hatayı YUTMUYORUZ. Sessizce "bir şeyler ters gitti" demek,
   // kullanıcıyı da bizi de kör bırakıyor.
-  return `İşlem tamamlanamadı: ${mesaj}`;
+  return `${AUTH_TANINMAYAN_ONEK}${mesaj}`;
 }
 
 // -------------------------------------------------------------------------
@@ -225,18 +242,34 @@ function avatarDegistiDuyur() {
   }
 }
 
-/** Görsel için kısa ömürlü imzalı URL. Yol yoksa null. */
+/**
+ * Görsel için kısa ömürlü imzalı URL. Yol yoksa null.
+ *
+ * ⚠ SONUÇ BELLEĞE ALINIYOR — ÖLÇÜLMÜŞ BİR İSRAFIN ONARIMI.
+ * Bu fonksiyon başlık şeridinin HER yüklenişinde çağrılıyordu ve her
+ * çağrıda YENİ bir jeton üretiyordu. Aynı 55 KB'lık dosya, farklı adres
+ * taşıdığı için CDN'e hiç giremiyor ve günde 2.191 kez kaynaktan
+ * indiriliyordu (günlükten ölçüldü, önbellek isabeti: 2.961'de 1).
+ *
+ * Jetonun ömrü UZATILMIYOR; yalnızca hâlâ geçerliyse yeniden kullanılıyor.
+ * Ayrıntı ve güvenlik payı: `utils/imzaliAdresBellegi.js`.
+ *
+ * Dosya adı zaman damgalı olduğu için yeni yükleme yeni anahtar üretiyor —
+ * bellek kendiliğinden tazeleniyor, elle temizlemeye gerek yok.
+ */
 export async function avatarUrl(yol, saniye = 3600) {
   if (!yol) return null;
-  const { data, error } = await supabase.storage
-    .from(AVATAR_KOVASI)
-    .createSignedUrl(yol, saniye);
+  return imzaliAdres(`${AVATAR_KOVASI}:${yol}`, saniye, async () => {
+    const { data, error } = await supabase.storage
+      .from(AVATAR_KOVASI)
+      .createSignedUrl(yol, saniye);
 
-  if (error) {
-    console.error('Avatar URL üretilemedi:', error.message);
-    return null;
-  }
-  return data?.signedUrl ?? null;
+    if (error) {
+      console.error('Avatar URL üretilemedi:', error.message);
+      return null;
+    }
+    return data?.signedUrl ?? null;
+  });
 }
 
 /**

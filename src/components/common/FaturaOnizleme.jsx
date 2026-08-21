@@ -37,6 +37,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { imzaliAdres } from '../../utils/imzaliAdresBellegi';
 import Icon from './icons';
 
 const BUCKET = 'vehicle-invoices';
@@ -44,21 +45,31 @@ const BUCKET = 'vehicle-invoices';
 // işe yaraması için kısa.
 const OMUR_SN = 300;
 
-/** Yolu imzalı bağlantıya çevirir. Başarısızsa null döner. */
+/**
+ * Yolu imzalı bağlantıya çevirir. Başarısızsa null döner.
+ *
+ * ⚠ SONUÇ BELLEĞE ALINIYOR AMA ÖMÜR UZATILMIYOR. `OMUR_SN` yukarıdaki
+ * gerekçesiyle 300 saniyede kalıyor; bellek yalnızca o 300 saniye içinde
+ * AYNI jetonu yeniden kullanıyor. Önceki hâlde her görüntüleme yeni bir
+ * jeton üretiyor, dosya CDN'e hiç giremiyor ve kaynaktan baştan iniyordu —
+ * 4,5 MB'lık tek bir fatura böylece günde 167 MB yakmıştı.
+ */
 async function imzala(yol) {
   if (!yol) return null;
-  const { data, error } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrl(yol, OMUR_SN);
+  return imzaliAdres(`${BUCKET}:${yol}`, OMUR_SN, async () => {
+    const { data, error } = await supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(yol, OMUR_SN);
 
-  if (error) {
-    // Yetki yoksa burası normal: başka kullanıcının faturası ya da dosya
-    // taşınmamış eski bir kayıt. Sessizce geçmiyoruz ama kullanıcıya
-    // teknik hata da göstermiyoruz.
-    console.warn('Fatura bağlantısı alınamadı:', error.message);
-    return null;
-  }
-  return data?.signedUrl || null;
+    if (error) {
+      // Yetki yoksa burası normal: başka kullanıcının faturası ya da dosya
+      // taşınmamış eski bir kayıt. Sessizce geçmiyoruz ama kullanıcıya
+      // teknik hata da göstermiyoruz.
+      console.warn('Fatura bağlantısı alınamadı:', error.message);
+      return null;
+    }
+    return data?.signedUrl || null;
+  });
 }
 
 /**
