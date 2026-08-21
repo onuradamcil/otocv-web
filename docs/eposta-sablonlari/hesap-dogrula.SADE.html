@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doğrulama Kodunuz</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #FFFDFB; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+
+  <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; mso-hide: all;">
+    Hesabınızı etkinleştirmek için doğrulama kodunuz hazır.
+  </div>
+
+  <table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 540px; margin: 40px auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.015); overflow: hidden; border-collapse: collapse;">
+
+    <tr>
+      <td align="center" style="padding: 32px 32px 24px 32px; border-bottom: 1px solid #f1f5f9;">
+        <a href="{{ .SiteURL }}" target="_blank" style="font-size: 22px; font-weight: 900; letter-spacing: -0.04em; color: #0F172A; text-decoration: none;">OTO.CV</a>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding: 32px 40px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+
+          <tr>
+            <td style="font-size: 18px; font-weight: 700; color: #0F172A; letter-spacing: -0.02em; padding-bottom: 12px; text-align: center;">
+              Hesabınızı Doğrulayın
+            </td>
+          </tr>
+
+          <tr>
+            <td style="font-size: 13px; font-weight: 500; color: #64748B; line-height: 1.6; text-align: center; padding-bottom: 28px;">
+              Merhaba,<br>
+              Oto.CV hesabınızı etkinleştirmek için aşağıdaki 6 haneli kodu kayıt ekranına girin.
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-bottom: 28px;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F2F4F7; border: 1px solid #e2e8f0; border-radius: 12px; border-collapse: separate;">
+                <tr>
+                  <td align="center" style="padding: 22px 20px;">
+                    <span style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 10px;">Doğrulama Kodu</span>
+                    <span style="font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 32px; font-weight: 700; color: #0F172A; letter-spacing: 0.28em;">{{ .Token }}</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="font-size: 12px; font-weight: 500; color: #64748B; line-height: 1.6; text-align: center; padding-bottom: 24px;">
+              Kod <strong style="color: #0F172A;">1 saat</strong> geçerlidir. Süresi dolarsa kayıt ekranından yeni kod isteyebilirsiniz.
+            </td>
+          </tr>
+
+          <tr>
+            <td style="font-size: 11px; font-weight: 500; color: #94a3b8; line-height: 1.5; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 24px;">
+              Bu hesabı siz açmadıysanız bu e-postayı görmezden gelebilirsiniz. Kod girilmediği sürece hesap etkinleşmez ve hiçbir bilginiz kaydedilmez.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #e2e8f0; text-align: center;">
+        <span style="font-size: 10px; font-weight: 700; color: #64748B; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">Oto.CV Güvenlik Sistemi</span>
+        <span style="font-size: 10px; font-weight: 500; color: #94a3b8; display: block;">Bu e-posta otomatik olarak gönderilmiştir. Lütfen yanıtlamayınız.</span>
+      </td>
+    </tr>
+
+  </table>
+
+</body>
+</html>
