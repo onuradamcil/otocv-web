@@ -92,7 +92,18 @@ test.describe('Hesabım ekranı', () => {
     });
 
     test('profil görseli yükleme alanı Profil bölümünde', async ({ page }) => {
-      const profil = page.locator('section').filter({ hasText: 'Görseliniz, ad, soyad' });
+      // ⚠ ÇAPA BAŞLIĞA BAĞLANDI, ÖZET METNİNE DEĞİL.
+      // Önceden bölüm `hasText: 'Görseliniz, ad, soyad'` ile bulunuyordu —
+      // yani ÖZET CÜMLESİNİN NOKTALAMASINA. 22.08.2026'da telefon alanı
+      // kaldırılınca özet "Görseliniz, ad ve soyad bilgileriniz." oldu,
+      // virgül gitti ve test düştü. Oysa test edilen şey (görsel yükleme
+      // alanının Profil bölümünde olması) hiç değişmemişti.
+      //
+      // Başlık (`<h2>Profil</h2>`) bölümün KİMLİĞİ; özet ise zamanla
+      // değişecek bir pazarlama cümlesi. Çapa kimliğe bağlanmalı.
+      const profil = page.locator('section').filter({
+        has: page.getByRole('heading', { name: 'Profil', exact: true }),
+      });
       await expect(profil, 'Profil bölümü bulunamadı').toBeVisible();
 
       // Görsel varsa "Değiştir", yoksa "Görsel yükle" — ikisinden biri olmalı.

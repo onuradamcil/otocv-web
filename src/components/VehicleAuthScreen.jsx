@@ -12,6 +12,7 @@ import { supabase } from '../lib/supabase';
 import Icon from './common/icons';
 import { tiklanabilir } from '../utils/tiklanabilir';
 import { PAROLA_KURALI_METNI } from '../utils/parolaKurali';
+import { authHatasi, authHatasiTanindiMi } from '../services/hesapService';
 
 export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess, onBack }) {
   // =========================================================================
@@ -22,7 +23,6 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
   const [rememberMe, setRememberMe] = useState(true); // Kurumsal UX standardı gereği varsayılan aktiftir
   
   const [loading, setLoading] = useState(false);
@@ -30,6 +30,77 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
 
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  // --- E-POSTA DOĞRULAMA (authMode === 'dogrula') --------------------------
+  // Kayıt sonrası oturum GELMEDİYSE bu ekran açılıyor. Kod 6 haneli ve
+  // `{{ .Token }}` ile e-postaya gidiyor.
+  const [dogrulanacakEposta, setDogrulanacakEposta] = useState('');
+  const [kod, setKod] = useState('');
+  // ⚠ SAYAÇ ŞART: SMTP ayarında "kullanıcı başına asgari aralık" 60 saniye.
+  // Sayaç olmadan kullanıcı "tekrar gönder"e basıyor, sunucu sessizce
+  // reddediyor ve kullanıcı postayı boşuna bekliyor.
+  const [tekrarSaniye, setTekrarSaniye] = useState(0);
+
+  // Geri sayım. Saniyede bir azalıyor, sıfıra inince duruyor.
+  useEffect(() => {
+    if (tekrarSaniye <= 0) return undefined;
+    const z = setTimeout(() => setTekrarSaniye((n) => n - 1), 1000);
+    return () => clearTimeout(z);
+  }, [tekrarSaniye]);
+
+  /** Girilen 6 haneli kodu doğrular. Başarılıysa kullanıcı içeri alınır. */
+  const kodDogrula = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    const temiz = kod.replace(/\D/g, '');
+    if (temiz.length !== 6) {
+      setErrorMessage('Doğrulama kodu 6 haneli olmalı.');
+      return;
+    }
+    try {
+      setLoading(true);
+      // ⚠ `type: 'signup'` — kayıt doğrulaması. `email` ya da `recovery`
+      // türleri başka akışlara ait; yanlış tür "Token has expired or is
+      // invalid" veriyor ve sebebi hiç anlaşılmıyor.
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: dogrulanacakEposta,
+        token: temiz,
+        type: 'signup',
+      });
+      if (error) throw error;
+      onAuthSuccess(data.user);
+    } catch (err) {
+      setErrorMessage(authHatasiTanindiMi(err)
+        ? authHatasi(err)
+        : 'Kod doğrulanamadı. Süresi dolmuş olabilir; yeni kod isteyin.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /** Yeni kod ister. 60 saniyelik sunucu aralığına saygı duyuyor. */
+  const kodTekrarGonder = async () => {
+    if (tekrarSaniye > 0) return;
+    setErrorMessage('');
+    setSuccessMessage('');
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: dogrulanacakEposta,
+      });
+      if (error) throw error;
+      setSuccessMessage('Yeni kod gönderildi. Gelen kutunuzu kontrol edin.');
+      setTekrarSaniye(60);
+    } catch (err) {
+      setErrorMessage(authHatasiTanindiMi(err)
+        ? authHatasi(err)
+        : 'Kod gönderilemedi. Biraz bekleyip tekrar deneyin.');
+      setTekrarSaniye(60);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     setAuthMode(initialMode);
@@ -45,14 +116,6 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
   // =========================================================================
   // 2. BLOK: INPUT FILTRELEME VE TELEFON SÜRÜCÜLERI
   // =========================================================================
-  const handlePhoneChange = (e) => {
-    const rawInput = e.target.value;
-    let cleaned = rawInput.replace(/\D/g, '');
-    if (cleaned.startsWith('0')) {
-      cleaned = cleaned.substring(1);
-    }
-    setPhone(cleaned);
-  };
 
   const handleRegisterStep1Submit = (e) => {
     e.preventDefault();
@@ -141,25 +204,44 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
         if (error) throw error;
         onAuthSuccess(data.user);
       } else {
+        // =================================================================
+        // ⚠ PROFİL ARTIK BURADAN YAZILMIYOR
+        // =================================================================
+        // Eskiden `signUp`tan hemen sonra istemci `profiles.insert()`
+        // çağırıyordu. E-posta doğrulaması AÇILDIĞI ANDA bu kırılıyor:
+        // doğrulama açıkken `signUp` OTURUM DÖNDÜRMÜYOR, dolayısıyla insert
+        // `profil_olustur_kendi` politikasına (`auth.uid() = id`) takılıp
+        // reddediliyor ve kayıt tamamen çöküyor.
+        //
+        // Ad/soyad artık `options.data` ile taşınıyor ve profili sunucudaki
+        // `handle_new_user` tetikleyicisi oluşturuyor. Bu ayrıca Google ile
+        // girenlerin profilsiz kalması sorununu da çözdü — ölçülmüştü:
+        // 8 kullanıcıdan 1'inin (tek OAuth kullanıcısı) profili yoktu.
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: email.trim(),
           password: password,
+          options: {
+            data: {
+              first_name: firstName.trim(),
+              last_name: lastName.trim(),
+            },
+          },
         });
         if (authError) throw authError;
 
-        if (authData?.user) {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              id: authData.user.id,
-              first_name: firstName.trim(),
-              last_name: lastName.trim(),
-              phone_number: phone.trim() 
-            });
-
-          if (profileError) throw profileError;
-          onAuthSuccess(authData.user);
+        // ⚠ İKİ DURUMU DA KARŞILIYOR, ÇÜNKÜ PANEL AYARI DEĞİŞEBİLİR.
+        // "Confirm email" kapalıyken `signUp` oturum döndürür ve kullanıcı
+        // doğrudan içeri girer. Açıkken oturum GELMEZ; kullanıcı doğrulama
+        // ekranına gider. Kodun her iki halde de doğru olması, ayarı açmayı
+        // tek tıklık bir iş yapıyor — kod değişikliği gerekmiyor.
+        if (!authData?.session) {
+          setDogrulanacakEposta(email.trim());
+          setAuthMode('dogrula');
+          setSuccessMessage('');
+          return;
         }
+
+        onAuthSuccess(authData.user);
       }
     } catch (err) {
       if (err.message.includes('Invalid login credentials')) {
@@ -198,12 +280,14 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
               {authMode === 'register_step1' && 'Hesap Aç'}
               {authMode === 'register_step2' && 'Profili Tamamla'}
               {authMode === 'forgot_password' && 'Şifremi Unuttum'}
+              {authMode === 'dogrula' && 'E-postanızı Doğrulayın'}
             </h1>
             <p className="text-mini text-slate-500 font-medium leading-relaxed">
               {authMode === 'login' && 'Oto.CV tescilli dünyasına güvenle adım atın.'}
               {authMode === 'register_step1' && 'Dijital garajınızı kurmak için ilk adımı atın.'}
               {authMode === 'register_step2' && 'Kurumsal kimlik tesciliniz için bilgileri doldurun.'}
               {authMode === 'forgot_password' && 'Hesabınıza kayıtlı e-posta adresini girin.'}
+              {authMode === 'dogrula' && 'Gönderdiğimiz 6 haneli kodu girerek hesabınızı etkinleştirin.'}
             </p>
           </div>
 
@@ -332,14 +416,22 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
                   <input id="alan-soyadiniz" type="text" required autoComplete="family-name" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Örn: Yılmaz" className="w-full py-2 px-3 border border-slate-200 rounded-md text-mini font-medium focus:outline-none focus:border-[#0F172A] transition-colors" />
                 </div>
               </div>
-              <div className="space-y-1">
-                <label htmlFor="alan-cep-telefonu-sifirsiz" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Cep Telefonu (Sıfırsız)</label>
-                <input id="alan-cep-telefonu-sifirsiz" 
-                  type="tel" required autoComplete="tel-national" maxLength={10} value={phone} onChange={handlePhoneChange} 
-                  placeholder="5XX XXX XX XX" 
-                  className="w-full py-2 px-3 border border-slate-200 rounded-md text-mini font-medium focus:outline-none focus:border-[#0F172A] transition-colors font-mono tracking-widest text-slate-800" 
-                />
-              </div>
+              {/* ⚠ TELEFON ALANI KALDIRILDI (22.08.2026) — ÖLÇÜLEREK.
+                  `phone_number` kodda yalnızca 5 yerde geçiyordu ve hepsi
+                  kapalı bir döngüydü: kayıtta yaz -> Hesabım formuna oku ->
+                  aynı formdan tekrar yaz. Hiçbir ekranda gösterilmiyor,
+                  hiçbir servise gitmiyordu. Üstelik ürün telefonu her
+                  yüzeyden BİLEREK kaldırmıştı (bkz. VehicleDetailsScreen,
+                  MesajBaslatDialog, teklifOrtaklari yorumları).
+
+                  Zorunlu bir alan olarak kayıt oranını düşürüyor, KVKK
+                  aydınlatma yükü taşıyor ve karşılığında sıfır fayda
+                  veriyordu. 7 profilin 6'sında dolu ama uzunluklar 9-10
+                  arası — doğrulanmayan alan böyle olur.
+
+                  ⚠ SÜTUN DÜŞÜRÜLMEDİ: SMS servisi geldiğinde lazım olacak.
+                  Ama o gün numaraların DOĞRULANMASI gerekeceği için bugün
+                  toplananların değeri zaten sıfıra yakın. */}
               <div className="space-y-1 relative">
                 <label htmlFor="alan-sifre-belirle" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Şifre Belirle</label>
                 <div className="relative">
@@ -361,6 +453,81 @@ export default function VehicleAuthScreen({ initialMode = 'login', onAuthSuccess
               <button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-md font-semibold text-mini tracking-wide shadow-md transition-colors active:scale-[0.98] mt-2">
                 {loading ? 'Kaydediliyor...' : 'Tescili Tamamla ve Garaja Gir'}
               </button>
+            </form>
+          )}
+
+          {/* ===================================================================
+              AKIŞ E: E-POSTA DOĞRULAMA (6 HANELİ KOD)
+
+              ⚠ BAĞLANTI DEĞİL KOD KULLANILIYOR — ÜRÜN SAHİBİNİN KARARI.
+              Sihirli bağlantı, kullanıcıyı postadan tarayıcıya atlatıyor ve
+              mobilde çoğu zaman YANLIŞ tarayıcıda açılıyor; oradaki oturum
+              kayıt yaptığı sekmeyle aynı değil. Kod ise aynı sekmede kalıyor.
+
+              ⚠ Bu ekran, "Confirm email" ayarı KAPALIYKEN hiç görünmez:
+              `signUp` oturum döndürdüğü için kullanıcı doğrudan içeri girer.
+              Yani kod bugün de doğru çalışıyor, ayar açılınca devreye giriyor.
+              =================================================================== */}
+          {authMode === 'dogrula' && (
+            <form onSubmit={kodDogrula} className="space-y-4 animate-fadeIn">
+              <p className="text-mini font-medium text-slate-600 leading-relaxed">
+                <span className="font-bold text-[#0F172A] break-all">{dogrulanacakEposta}</span>
+                {' '}adresine 6 haneli bir doğrulama kodu gönderdik.
+                Kod 1 saat geçerli.
+              </p>
+
+              <div className="space-y-1">
+                <label htmlFor="alan-dogrulama-kodu" className="text-etiket font-semibold text-slate-500 uppercase tracking-wider pl-0.5">Doğrulama Kodu</label>
+                {/* ⚠ `inputMode="numeric"` + `autoComplete="one-time-code"`:
+                    telefonda sayısal klavye açılıyor ve iOS gelen SMS/e-posta
+                    kodunu klavyenin üstünde önerebiliyor. `pattern` HTML
+                    doğrulamasını da bağlıyor. */}
+                <input
+                  id="alan-dogrulama-kodu"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  required
+                  value={kod}
+                  onChange={(e) => setKod(e.target.value.replace(/\D/g, ''))}
+                  placeholder="000000"
+                  aria-label="Doğrulama kodu"
+                  className="w-full min-h-[44px] py-2.5 px-3.5 bg-[#F2F4F7] border border-slate-200 focus:border-[#0F172A] rounded-md text-center text-buyuk font-bold tracking-[0.4em] text-[#0F172A] focus:outline-none transition-colors shadow-sm"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || kod.length !== 6}
+                className="w-full bg-[#0F172A] hover:bg-slate-800 disabled:opacity-50 text-white py-3 rounded-md font-semibold text-mini tracking-wide shadow-sm transition-colors"
+              >
+                {loading ? 'Doğrulanıyor...' : 'Hesabımı Doğrula'}
+              </button>
+
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={kodTekrarGonder}
+                  disabled={loading || tekrarSaniye > 0}
+                  className="min-h-[36px] text-yardimci font-bold text-slate-500 hover:text-[#0F172A] disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  {/* ⚠ SAYAÇ GÖRÜNÜR OLMALI. SMTP ayarındaki 60 saniyelik
+                      kullanıcı başına aralık yüzünden erken istek sessizce
+                      reddediliyor; sayaç olmadan kullanıcı postayı boşuna
+                      bekliyor ve ürünü bozuk sanıyor. */}
+                  {tekrarSaniye > 0 ? `Yeni kod ${tekrarSaniye} sn sonra` : 'Yeni kod gönder'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setAuthMode('login'); setKod(''); setErrorMessage(''); setSuccessMessage(''); }}
+                  className="min-h-[36px] text-yardimci font-bold text-slate-500 hover:text-[#0F172A] transition-colors"
+                >
+                  Giriş ekranına dön
+                </button>
+              </div>
             </form>
           )}
 

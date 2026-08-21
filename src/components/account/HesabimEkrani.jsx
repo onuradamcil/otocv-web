@@ -59,7 +59,6 @@ export default function HesabimEkrani() {
   // Profil formu
   const [ad, setAd] = useState('');
   const [soyad, setSoyad] = useState('');
-  const [telefon, setTelefon] = useState('');
   const [profilKaydediliyor, setProfilKaydediliyor] = useState(false);
 
   // E-posta
@@ -106,7 +105,6 @@ export default function HesabimEkrani() {
       setProfil(veri);
       setAd(veri?.first_name || '');
       setSoyad(veri?.last_name || '');
-      setTelefon(veri?.phone_number || '');
       setTalep(mevcutTalep);
       setAraclar(liste);
       if (veri?.avatar_yolu) setAvatarAdres(await avatarUrl(veri.avatar_yolu));
@@ -125,11 +123,11 @@ export default function HesabimEkrani() {
     }
 
     setProfilKaydediliyor(true);
-    const { basarili, hata } = await profilGuncelle(kullanici.id, { ad, soyad, telefon });
+    const { basarili, hata } = await profilGuncelle(kullanici.id, { ad, soyad });
     setProfilKaydediliyor(false);
 
     if (!basarili) { toast.hata(hata); return; }
-    setProfil((p) => ({ ...p, first_name: ad.trim(), last_name: soyad.trim(), phone_number: telefon.trim() || null }));
+    setProfil((p) => ({ ...p, first_name: ad.trim(), last_name: soyad.trim() }));
     toast.basari('Profiliniz güncellendi.');
   };
 
@@ -289,7 +287,7 @@ export default function HesabimEkrani() {
         )}
 
         {/* ---------------------------------------------------------------- */}
-        <Bolum baslik="Profil" ozet="Görseliniz, ad, soyad ve telefon numaranız.">
+        <Bolum baslik="Profil" ozet="Görseliniz, ad ve soyad bilgileriniz.">
           {/* PROFİL GÖRSELİ.
               Kova ÖZEL: görsel bir kişinin yüzü olabiliyor ve genel kovada
               dosya adını tahmin eden herkes ona ulaşırdı. Okuma imzalı URL
@@ -370,18 +368,17 @@ export default function HesabimEkrani() {
                 <input value={soyad} onChange={(e) => setSoyad(e.target.value)} className={`mt-1.5 ${GIRDI}`} aria-label="Soyad" autoComplete="family-name" />
               </label>
             </div>
-            <label className="block">
-              <span className={ETIKET}>Telefon</span>
-              <input
-                value={telefon}
-                onChange={(e) => setTelefon(e.target.value)}
-                type="tel"
-                inputMode="tel"
-                placeholder="05XX XXX XX XX"
-                className={`mt-1.5 ${GIRDI}`}
-                aria-label="Telefon"
-              />
-            </label>
+            {/* ⚠ TELEFON ALANI KALDIRILDI (22.08.2026). Gerekçe kayıt
+                ekranında yazılı (`VehicleAuthScreen`): `phone_number` kodda
+                kapalı bir döngüydü — kayıtta yaz, bu forma oku, aynı formdan
+                tekrar yaz. Hiçbir ekranda gösterilmiyor, hiçbir servise
+                gitmiyordu. Ürün telefonu zaten her yüzeyden bilerek
+                kaldırmıştı.
+
+                ⚠ SÜTUN DÜŞÜRÜLMEDİ ve MEVCUT NUMARALAR SİLİNMEDİ: SMS
+                servisi geldiğinde lazım olacak. `profilGuncelle` artık
+                `phone_number`a hiç dokunmuyor, yani bu form kaydedildiğinde
+                var olan numaralar OLDUĞU GİBİ kalıyor. */}
             <div className="flex justify-end">
               <button type="submit" disabled={profilKaydediliyor} className={BIRINCIL}>
                 {profilKaydediliyor ? 'Kaydediliyor…' : 'Değişiklikleri kaydet'}

@@ -83,7 +83,7 @@ export function authHatasi(hata) {
 export async function profilGetir(userId) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('first_name, last_name, phone_number, is_premium, pazarlama_izni, pazarlama_izni_at, avatar_yolu, created_at')
+    .select('first_name, last_name, is_premium, pazarlama_izni, pazarlama_izni_at, avatar_yolu, created_at')
     .eq('id', userId)
     .single();
 
@@ -92,18 +92,22 @@ export async function profilGetir(userId) {
 }
 
 /**
- * Ad, soyad ve telefonu günceller.
+ * Ad ve soyadı günceller.
+ *
+ * ⚠ `phone_number`a BİLEREK DOKUNULMUYOR (22.08.2026). Telefon alanı hem
+ * kayıt hem Hesabım ekranından kaldırıldı ama sütun ve mevcut numaralar
+ * duruyor (SMS servisi için). Buradan yazılsaydı, form her kaydedildiğinde
+ * numarayı `null`a çevirirdi — yani veriyi sessizce silerdi.
  *
  * `is_premium` BİLEREK gönderilmiyor. Gönderilse bile tetikleyici eski
  * değeri geri yazardı; göndermemek niyeti de açık ediyor.
  */
-export async function profilGuncelle(userId, { ad, soyad, telefon }) {
+export async function profilGuncelle(userId, { ad, soyad }) {
   const { error } = await supabase
     .from('profiles')
     .update({
       first_name: ad.trim(),
       last_name: soyad.trim(),
-      phone_number: telefon.trim() || null,
     })
     .eq('id', userId);
 

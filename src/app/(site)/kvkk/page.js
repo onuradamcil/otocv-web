@@ -20,7 +20,7 @@ const BOLUMLER = [
   {
     baslik: 'Hangi verileri tutuyoruz',
     satirlar: [
-      { ad: 'Hesap bilgileri', deger: 'Ad, soyad, telefon numarası ve e-posta adresi. Kayıt sırasında sizin girdiğiniz değerler.' },
+      { ad: 'Hesap bilgileri', deger: 'Ad, soyad ve e-posta adresi. Kayıt sırasında sizin girdiğiniz değerler. Telefon numarası ARTIK İSTENMİYOR; daha önce girilmiş numaralar hesabınızda duruyor ve hesap kapatıldığında siliniyor.' },
       { ad: 'Araç bilgileri', deger: 'Plaka, marka, model, yıl, kilometre, sigorta/kasko/muayene tarihleri, hasar beyanı ve araç fotoğrafları.' },
       { ad: 'Servis kayıtları', deger: 'Bakım tarihi, kilometre, servis adı, tutar ve açıklama. İsteğe bağlı olarak fatura görseli.' },
       { ad: 'Sahiplik geçmişi', deger: 'Bir aracın kaç kez el değiştirdiği ve her devirde onaylanan rıza metni.' },

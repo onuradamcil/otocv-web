@@ -6,7 +6,7 @@
 
 export const metadata = {
   title: 'Hesabım',
-  description: 'Ad, soyad, telefon ve şifre bilgilerinizi düzenleyin.',
+  description: 'Ad, soyad ve şifre bilgilerinizi düzenleyin.',
   robots: { index: false, follow: false },
 };
 
