@@ -57,23 +57,45 @@ GitHub'da **New repository**:
 
 #### 2 · Bağlantı dizesini alın
 
-Supabase panelinde: **Project Settings → Database → Connection string**
+Supabase panelinde üstteki yeşil **`Connect`** düğmesi → **`Direct
+Connection string`** sekmesi → açılan listeden **`Session pooler`**.
 
-⚠ **"Session pooler" sekmesini seçin, "Direct connection" DEĞİL.**
+⚠ SEKME ADI YANILTICI: "Direct Connection string" sekmesinin İÇİNDE
+"Direct connection", "Transaction pooler" ve "Session pooler" seçenekleri
+birlikte duruyor. Bize gereken üçüncüsü. (Eskiden bu ekran
+`Project Settings → Database` altındaydı; panel değişti.)
+
+⚠ **"Session pooler" seçin, "Direct connection" DEĞİL.**
 Sebebi teknik: doğrudan bağlantı yalnızca IPv6 üzerinden çalışıyor, GitHub'ın
 çalıştırdığı makineler ise IPv4. Direct connection ile iş akışı
 "could not connect to server" hatası verir.
 
-Dize şuna benzer (bölge `eu-central-1`, proje `zjfxwvmcouuyrebltmwz`):
+Dize şuna benzer (ölçüldü, 21.08.2026):
 
 ```
-postgresql://postgres.zjfxwvmcouuyrebltmwz:<SIFRE>@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+postgresql://postgres.zjfxwvmcouuyrebltmwz:<SIFRE>@aws-1-eu-central-1.pooler.supabase.com:5432/postgres
 ```
 
-`<SIFRE>` yerine veritabanı şifreniz gelir. Hatırlamıyorsanız aynı sayfadan
-**Reset database password** ile yenileyebilirsiniz.
+⚠ SUNUCU ADINI EZBERE YAZMAYIN, panelden kopyalayın. Bu belgede önce
+`aws-0` yazıyordu; projenin gerçek sunucusu **`aws-1`**. Yanlışı yazmak
+sessizce bağlanamama hatası verir. Port **`5432`** olmalı — `6543`
+"Transaction pooler"dır ve `pg_dump` orada çalışmaz.
 
-⚠ Bu dizeyi **hiçbir dosyaya yazmayın**, doğrudan GitHub secret'a yapıştırın.
+`<SIFRE>` yerine veritabanı şifreniz gelir. Hatırlamıyorsanız aynı ekrandaki
+**Reset database password** ile yenileyebilirsiniz; siteniz etkilenmez
+çünkü uygulama publishable anahtarı kullanıyor, veritabanı şifresini değil.
+
+⚠ ŞİFREDE ÖZEL KARAKTER VARSA percent-encode edin (`@` -> `%40`,
+`#` -> `%23`, `/` -> `%2F`, `%` -> `%25`). Yoksa adres yanlış ayrışır.
+
+⚠ Bu dizeyi **hiçbir dosyaya yazmayın ve kimseye göndermeyin** (yapay zeka
+sohbetleri dahil — içinde canlı veritabanı şifreniz var). Doğrudan GitHub
+secret'a yapıştırın. Terminalden koyacaksanız etkileşimli biçimi kullanın,
+böylece kabuk geçmişine düşmez:
+
+```
+gh secret set VERITABANI_URL --repo onuradamcil/otocv-yedek
+```
 
 #### 3 · Yedek parolası üretin
 
@@ -101,6 +123,11 @@ New repository secret**
 
 Bu depodaki `docs/yedekleme/yedek-workflow.yml` dosyasını gizli depoya
 **`.github/workflows/yedek.yml`** adıyla koyun.
+
+⚠ İKİSİNİ DE KOYUN. İlk kurulumda yalnızca `YEDEK_SIFRESI` konmuş,
+`VERITABANI_URL` unutulmuştu; iki gece üst üste yedek alınamadı. İş akışı
+artık eksik anahtarı açıkça söyleyen bir hatayla duruyor, ama en baştan iki
+satırı birden koymak en iyisi.
 
 #### 6 · Elle çalıştırıp doğrulayın
 
